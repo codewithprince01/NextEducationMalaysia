@@ -1,0 +1,30 @@
+
+> next-education-malaysia@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 11.2s
+  Running TypeScript ...
+Failed to compile.
+
+.next/types/validator.ts:423:31
+Type error: Type 'typeof import("D:/NEXT/NextEducationMalaysia/src/app/api/university/[uname]/rankings/route")' does not satisfy the constraint 'RouteHandlerConfig<"/api/university/[uname]/rankings">'.
+  Types of property 'GET' are incompatible.
+    Type '(request: NextRequest, { params }: { params: Promise<{ slug: string; }>; }) => Promise<NextResponse<{ status: boolean; message: string; data: { rankings: never[]; }; }> | NextResponse<...>>' is not assignable to type '(request: NextRequest, context: { params: Promise<{ uname: string; }>; }) => void | Response | Promise<void | Response>'.
+      Types of parameters '__1' and 'context' are incompatible.
+        Type '{ params: Promise<{ uname: string; }>; }' is not assignable to type '{ params: Promise<{ slug: string; }>; }'.
+          Types of property 'params' are incompatible.
+            Type 'Promise<{ uname: string; }>' is not assignable to type 'Promise<{ slug: string; }>'.
+              Property 'slug' is missing in type '{ uname: string; }' but required in type '{ slug: string; }'.
+
+[0m [90m 421 |[39m   type __IsExpected[33m<[39m[33mSpecific[39m [36mextends[39m [33mRouteHandlerConfig[39m[33m<[39m[32m"/api/university/[uname]/rankings"[39m[33m>>[39m [33m=[39m [33mSpecific[39m
+ [90m 422 |[39m   [36mconst[39m handler [33m=[39m {} [36mas[39m [36mtypeof[39m [36mimport[39m([32m"../../src/app/api/university/[uname]/rankings/route.js"[39m)
+[31m[1m>[22m[39m[90m 423 |[39m   type __Check [33m=[39m __IsExpected[33m<[39m[36mtypeof[39m handler[33m>[39m
+ [90m     |[39m                               [31m[1m^[22m[39m
+ [90m 424 |[39m   [90m// @ts-ignore[39m
+ [90m 425 |[39m   type __Unused [33m=[39m __Check
+ [90m 426 |[39m }[0m
+Next.js build worker exited with code: 1 and signal: null

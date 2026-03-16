@@ -1,0 +1,66 @@
+import { PrismaClient, Prisma } from '@prisma/client'
+
+const SITE_VAR = process.env.SITE_VAR || 'MYS'
+
+const globalForPrisma = globalThis as unknown as { prisma: ReturnType<typeof createPrismaClient> }
+
+/**
+ * Models that have a `website` column.
+ * WebsiteScope filter is auto-applied to all read queries.
+ */
+const WEBSITE_SCOPED_MODELS = [
+  'University', 'UniversityProgram', 'CourseSpecialization',
+  'CourseCategory', 'Blog', 'BlogCategory', 'Level',
+  'Scholarship', 'Service', 'Exam', 'PageBanner',
+  'PageContent', 'DynamicPageSeo', 'InstituteType',
+] as const
+
+type ScopedModel = (typeof WEBSITE_SCOPED_MODELS)[number]
+
+function isScopedModel(model: string): model is ScopedModel {
+  return (WEBSITE_SCOPED_MODELS as readonly string[]).includes(model)
+}
+
+function createPrismaClient() {
+  const base = new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+  })
+
+  return base.$extends({
+    query: {
+      $allModels: {
+        async findMany({ model, args, query }) {
+          if (isScopedModel(model)) {
+            args.where = { ...args.where, website: SITE_VAR }
+          }
+          return query(args)
+        },
+        async findFirst({ model, args, query }) {
+          if (isScopedModel(model)) {
+            args.where = { ...args.where, website: SITE_VAR }
+          }
+          return query(args)
+        },
+        async findUnique({ model, args, query }) {
+          return query(args)
+        },
+        async count({ model, args, query }) {
+          if (isScopedModel(model)) {
+            args.where = { ...args.where, website: SITE_VAR }
+          }
+          return query(args)
+        },
+        async aggregate({ model, args, query }) {
+          if (isScopedModel(model)) {
+            args.where = { ...args.where, website: SITE_VAR }
+          }
+          return query(args)
+        },
+      },
+    },
+  })
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma

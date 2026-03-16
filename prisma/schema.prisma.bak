@@ -1,0 +1,861 @@
+// Prisma Schema - Education Malaysia
+// Generated structure matching the existing MySQL database.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════
+// CORE MODELS
+// ═══════════════════════════════════════════════════════
+
+model University {
+  id                     Int       @id @default(autoincrement())
+  name                   String?
+  uname                  String?   // URL slug
+  views                  Int?      @default(0)
+  click                  Int?      @default(0)
+  city                   String?
+  state                  String?
+  qs_rank                String?
+  times_rank             String?
+  qs_asia_rank           String?
+  shortnote              String?   @db.Text
+  established_year       String?
+  local_students         String?
+  international_students String?
+  accredited_by          String?
+  approved_by            String?
+  latitude_longitude     String?
+  featured               Int?      @default(0)
+  rating                 String?
+  logo_path              String?
+  banner_path            String?
+  institute_type         Int?
+  is_local               Int?      @default(0)
+  is_international       Int?      @default(0)
+  status                 Int?      @default(1)
+  homeview               Int?      @default(0)
+  parent_university_id   Int?
+  email                  String?
+  contact_number1        String?
+  contact_number2        String?
+  hostel_facility        String?
+  meta_title             String?   @db.Text
+  meta_description       String?   @db.Text
+  meta_keyword           String?   @db.Text
+  og_image_path          String?
+  page_content           String?   @db.LongText
+  website                String?   @default("MYS")
+  created_at             DateTime? @default(now())
+  updated_at             DateTime? @updatedAt
+
+  // Relations
+  instituteType   InstituteType?       @relation(fields: [institute_type], references: [id])
+  programs        UniversityProgram[]
+  photos          UniversityPhoto[]
+  videos          UniversityVideo[]
+  overviews       UniversityOverview[]
+  reviews         Review[]
+  facilities      UniversityFacility[]
+  scholarships    UniversityScholarship[]
+  rankings        UniversityRanking[]
+
+  @@index([uname])
+  @@index([status])
+  @@index([website])
+  @@index([institute_type])
+  @@index([featured])
+  @@map("universities")
+}
+
+model UniversityProgram {
+  id                Int       @id @default(autoincrement())
+  university_id     Int?
+  course_name       String?
+  slug              String?
+  level             String?
+  study_mode        String?   @db.Text
+  intake            String?   @db.Text
+  duration          String?
+  tution_fee        String?
+  application_deadline String?
+  accreditations    String?
+  course_category_id Int?
+  specialization_id Int?
+  status            Int?      @default(1)
+  meta_title        String?   @db.Text
+  meta_description  String?   @db.Text
+  meta_keyword      String?   @db.Text
+  og_image_path     String?
+  courses_description String? @db.LongText
+  website           String?   @default("MYS")
+  views             Int?      @default(0)
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+
+  // Relations
+  university        University?         @relation(fields: [university_id], references: [id])
+  courseCategory     CourseCategory?     @relation(fields: [course_category_id], references: [id])
+  courseSpecialization CourseSpecialization? @relation(fields: [specialization_id], references: [id])
+  contents          UniversityProgramContent[]
+
+  @@index([university_id])
+  @@index([slug])
+  @@index([status])
+  @@index([website])
+  @@index([level])
+  @@index([course_category_id])
+  @@index([specialization_id])
+  @@map("university_programs")
+}
+
+model CourseCategory {
+  id               Int       @id @default(autoincrement())
+  name             String?
+  slug             String?
+  description      String?   @db.LongText
+  meta_title       String?   @db.Text
+  meta_description String?   @db.Text
+  meta_keyword     String?   @db.Text
+  og_image_path    String?
+  status           Int?      @default(1)
+  website          String?   @default("MYS")
+  author_id        Int?
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+
+  // Relations
+  programs         UniversityProgram[]
+  contents         CourseCategoryContent[]
+  faqs             CourseCategoryFaq[]
+  specializations  CourseSpecialization[]
+
+  @@index([slug])
+  @@index([website])
+  @@map("course_categories")
+}
+
+model CourseSpecialization {
+  id                Int       @id @default(autoincrement())
+  name              String?
+  slug              String?
+  course_category_id Int?
+  description       String?   @db.LongText
+  meta_title       String?   @db.Text
+  meta_description  String?   @db.Text
+  meta_keyword      String?   @db.Text
+  og_image_path     String?
+  banner_path       String?
+  status            Int?      @default(1)
+  website           String?   @default("MYS")
+  author_id         Int?
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+
+  // Relations
+  courseCategory     CourseCategory?    @relation(fields: [course_category_id], references: [id])
+  programs          UniversityProgram[]
+  contents          SpecializationContent[]
+  faqs              CourseSpecializationFaq[]
+  specializationLevels SpecializationLevel[]
+
+  @@index([slug])
+  @@index([website])
+  @@index([course_category_id])
+  @@map("course_specializations")
+}
+
+model SpecializationLevel {
+  id                 Int       @id @default(autoincrement())
+  specialization_id  Int?
+  level_name         String?
+  url_slug           String?
+  description        String?   @db.LongText
+  meta_title         String?   @db.Text
+  meta_description   String?   @db.Text
+  meta_keyword       String?   @db.Text
+  created_at         DateTime? @default(now())
+  updated_at         DateTime? @updatedAt
+
+  specialization     CourseSpecialization? @relation(fields: [specialization_id], references: [id])
+  contents           SpecializationLevelContent[]
+
+  @@index([specialization_id])
+  @@index([url_slug])
+  @@map("specialization_levels")
+}
+
+model SpecializationContent {
+  id                Int       @id @default(autoincrement())
+  specialization_id Int?
+  tab               String?
+  description       String?   @db.LongText
+  position          Int?      @default(0)
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+
+  specialization    CourseSpecialization? @relation(fields: [specialization_id], references: [id])
+
+  @@index([specialization_id])
+  @@map("specialization_contents")
+}
+
+model SpecializationLevelContent {
+  id                        Int       @id @default(autoincrement())
+  specialization_level_id   Int?
+  tab                       String?
+  description               String?   @db.LongText
+  position                  Int?      @default(0)
+  created_at                DateTime? @default(now())
+  updated_at                DateTime? @updatedAt
+
+  specializationLevel       SpecializationLevel? @relation(fields: [specialization_level_id], references: [id])
+
+  @@map("specialization_level_contents")
+}
+
+model Level {
+  id         Int       @id @default(autoincrement())
+  level      String?
+  slug       String?
+  name       String?
+  description String?  @db.LongText
+  meta_title String?   @db.Text
+  meta_description String? @db.Text
+  meta_keyword String? @db.Text
+  website    String?   @default("MYS")
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  @@index([slug])
+  @@index([level])
+  @@index([website])
+  @@map("levels")
+}
+
+// ═══════════════════════════════════════════════════════
+// BLOG
+// ═══════════════════════════════════════════════════════
+
+model Blog {
+  id               Int       @id @default(autoincrement())
+  title            String?
+  headline         String?
+  slug             String?
+  short_description String?  @db.Text
+  description      String?   @db.LongText
+  thumbnail_path   String?
+  category_id      Int?
+  author_id        Int?
+  status           Int?      @default(1)
+  meta_title       String?   @db.Text
+  meta_description String?   @db.Text
+  meta_keyword     String?   @db.Text
+  og_image_path    String?
+  website          String?   @default("MYS")
+  created_by       Int?
+  updated_by       Int?
+  approved_by      Int?
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+
+  // Relations
+  category         BlogCategory? @relation(fields: [category_id], references: [id])
+  author           Author?       @relation(fields: [author_id], references: [id])
+  contents         BlogContent[]
+  faqs             BlogFaq[]
+
+  @@index([slug])
+  @@index([category_id])
+  @@index([status])
+  @@index([website])
+  @@map("blogs")
+}
+
+model BlogCategory {
+  id              Int       @id @default(autoincrement())
+  category_name   String?
+  category_slug   String?
+  description     String?   @db.LongText
+  meta_title      String?   @db.Text
+  meta_description String?  @db.Text
+  meta_keyword    String?   @db.Text
+  og_image_path   String?
+  status          Int?      @default(1)
+  website         String?   @default("MYS")
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
+
+  blogs           Blog[]
+
+  @@index([category_slug])
+  @@index([website])
+  @@map("blog_categories")
+}
+
+model BlogContent {
+  id          Int       @id @default(autoincrement())
+  blog_id     Int?
+  parent_id   Int?
+  tab         String?
+  description String?   @db.LongText
+  position    Int?      @default(0)
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  blog        Blog?     @relation(fields: [blog_id], references: [id])
+
+  @@index([blog_id])
+  @@index([parent_id])
+  @@map("blog_contents")
+}
+
+model BlogFaq {
+  id          Int       @id @default(autoincrement())
+  blog_id     Int?
+  question    String?   @db.Text
+  answer      String?   @db.Text
+  position    Int?      @default(0)
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  blog        Blog?     @relation(fields: [blog_id], references: [id])
+
+  @@index([blog_id])
+  @@map("blog_faqs")
+}
+
+model Author {
+  id         Int       @id @default(autoincrement())
+  name       String?
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  blogs      Blog[]
+
+  @@map("authors")
+}
+
+// ═══════════════════════════════════════════════════════
+// UNIVERSITY SUB-MODELS
+// ═══════════════════════════════════════════════════════
+
+model InstituteType {
+  id            Int       @id @default(autoincrement())
+  type          String?
+  slug          String?
+  seo_title_slug String?
+  website       String?   @default("MYS")
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  universities  University[]
+
+  @@index([slug])
+  @@index([seo_title_slug])
+  @@index([website])
+  @@map("institute_types")
+}
+
+model UniversityOverview {
+  id            Int       @id @default(autoincrement())
+  university_id Int?
+  tab           String?
+  description   String?   @db.LongText
+  position      Int?      @default(0)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  university    University? @relation(fields: [university_id], references: [id])
+
+  @@index([university_id])
+  @@map("university_overviews")
+}
+
+model UniversityPhoto {
+  id            Int       @id @default(autoincrement())
+  university_id Int?
+  photo_path    String?
+  is_featured   Int?      @default(0)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  university    University? @relation(fields: [university_id], references: [id])
+
+  @@index([university_id])
+  @@map("university_photos")
+}
+
+model UniversityVideo {
+  id            Int       @id @default(autoincrement())
+  university_id Int?
+  video_url     String?
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  university    University? @relation(fields: [university_id], references: [id])
+
+  @@index([university_id])
+  @@map("university_videos")
+}
+
+model UniversityFacility {
+  id         Int       @id @default(autoincrement())
+  u_id       Int?
+  facility   String?
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  university University? @relation(fields: [u_id], references: [id])
+
+  @@index([u_id])
+  @@map("university_facilities")
+}
+
+model UniversityRanking {
+  id            Int       @id @default(autoincrement())
+  university_id Int?
+  ranking_body  String?
+  rank          String?
+  year          String?
+  position      Int?      @default(0)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  university    University? @relation(fields: [university_id], references: [id])
+
+  @@index([university_id])
+  @@map("university_rankings")
+}
+
+model UniversityScholarship {
+  id            Int       @id @default(autoincrement())
+  u_id          Int?
+  title         String?
+  description   String?   @db.LongText
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  university    University? @relation(fields: [u_id], references: [id])
+  contents      UniversityScholarshipContent[]
+
+  @@index([u_id])
+  @@map("university_scholarships")
+}
+
+model UniversityScholarshipContent {
+  id                       Int       @id @default(autoincrement())
+  university_scholarship_id Int?
+  tab                      String?
+  description              String?   @db.LongText
+  position                 Int?      @default(0)
+  created_at               DateTime? @default(now())
+  updated_at               DateTime? @updatedAt
+
+  scholarship              UniversityScholarship? @relation(fields: [university_scholarship_id], references: [id])
+
+  @@map("university_scholarship_contents")
+}
+
+model UniversityProgramContent {
+  id          Int       @id @default(autoincrement())
+  c_id        Int?
+  tab         String?
+  description String?   @db.LongText
+  position    Int?      @default(0)
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  program     UniversityProgram? @relation(fields: [c_id], references: [id])
+
+  @@index([c_id])
+  @@map("university_program_contents")
+}
+
+model Review {
+  id            Int       @id @default(autoincrement())
+  name          String?
+  email         String?
+  mobile        String?
+  university_id Int?
+  program       String?
+  passing_year  String?
+  review_title  String?
+  description   String?   @db.Text
+  rating        Int?      @default(0)
+  status        Int?      @default(0)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  university    University? @relation(fields: [university_id], references: [id])
+
+  @@index([university_id])
+  @@index([status])
+  @@map("reviews")
+}
+
+// ═══════════════════════════════════════════════════════
+// COURSE CATEGORY SUB-MODELS
+// ═══════════════════════════════════════════════════════
+
+model CourseCategoryContent {
+  id                 Int       @id @default(autoincrement())
+  course_category_id Int?
+  tab                String?
+  description        String?   @db.LongText
+  position           Int?      @default(0)
+  created_at         DateTime? @default(now())
+  updated_at         DateTime? @updatedAt
+
+  courseCategory     CourseCategory? @relation(fields: [course_category_id], references: [id])
+
+  @@index([course_category_id])
+  @@map("course_category_contents")
+}
+
+model CourseCategoryFaq {
+  id                 Int       @id @default(autoincrement())
+  course_category_id Int?
+  question           String?   @db.Text
+  answer             String?   @db.Text
+  position           Int?      @default(0)
+  created_at         DateTime? @default(now())
+  updated_at         DateTime? @updatedAt
+
+  courseCategory     CourseCategory? @relation(fields: [course_category_id], references: [id])
+
+  @@index([course_category_id])
+  @@map("course_category_faqs")
+}
+
+model CourseSpecializationFaq {
+  id                Int       @id @default(autoincrement())
+  specialization_id Int?
+  question          String?   @db.Text
+  answer            String?   @db.Text
+  position          Int?      @default(0)
+  created_at        DateTime? @default(now())
+  updated_at        DateTime? @updatedAt
+
+  specialization    CourseSpecialization? @relation(fields: [specialization_id], references: [id])
+
+  @@index([specialization_id])
+  @@map("course_specialization_faqs")
+}
+
+// ═══════════════════════════════════════════════════════
+// SCHOLARSHIPS
+// ═══════════════════════════════════════════════════════
+
+model Scholarship {
+  id               Int       @id @default(autoincrement())
+  title            String?
+  slug             String?
+  shortnote        String?   @db.Text
+  thumbnail_path   String?
+  meta_title       String?   @db.Text
+  meta_description String?   @db.Text
+  meta_keyword     String?   @db.Text
+  og_image_path    String?
+  website          String?   @default("MYS")
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+
+  contents         ScholarshipContent[]
+  faqs             ScholarshipFaq[]
+
+  @@index([slug])
+  @@index([website])
+  @@map("scholarships")
+}
+
+model ScholarshipContent {
+  id              Int       @id @default(autoincrement())
+  scholarship_id  Int?
+  tab             String?
+  description     String?   @db.LongText
+  position        Int?      @default(0)
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
+
+  scholarship     Scholarship? @relation(fields: [scholarship_id], references: [id])
+
+  @@index([scholarship_id])
+  @@map("scholarship_contents")
+}
+
+model ScholarshipFaq {
+  id              Int       @id @default(autoincrement())
+  scholarship_id  Int?
+  question        String?   @db.Text
+  answer          String?   @db.Text
+  position        Int?      @default(0)
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
+
+  scholarship     Scholarship? @relation(fields: [scholarship_id], references: [id])
+
+  @@index([scholarship_id])
+  @@map("scholarship_faqs")
+}
+
+// ═══════════════════════════════════════════════════════
+// EXAMS & SERVICES
+// ═══════════════════════════════════════════════════════
+
+model Exam {
+  id               Int       @id @default(autoincrement())
+  name             String?
+  uri              String?
+  description      String?   @db.LongText
+  meta_title       String?   @db.Text
+  meta_description String?   @db.Text
+  meta_keyword     String?   @db.Text
+  og_image_path    String?
+  banner_path      String?
+  website          String?   @default("MYS")
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+
+  contents         ExamContent[]
+  faqs             ExamFaq[]
+
+  @@index([uri])
+  @@index([website])
+  @@map("exams")
+}
+
+model ExamContent {
+  id          Int       @id @default(autoincrement())
+  exam_id     Int?
+  tab         String?
+  description String?   @db.LongText
+  position    Int?      @default(0)
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  exam        Exam?     @relation(fields: [exam_id], references: [id])
+
+  @@index([exam_id])
+  @@map("exam_contents")
+}
+
+model ExamFaq {
+  id          Int       @id @default(autoincrement())
+  exam_id     Int?
+  question    String?   @db.Text
+  answer      String?   @db.Text
+  position    Int?      @default(0)
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  exam        Exam?     @relation(fields: [exam_id], references: [id])
+
+  @@index([exam_id])
+  @@map("exam_faqs")
+}
+
+model Service {
+  id               Int       @id @default(autoincrement())
+  title            String?
+  uri              String?
+  shortnote        String?   @db.Text
+  thumbnail_path   String?
+  meta_title       String?   @db.Text
+  meta_description String?   @db.Text
+  meta_keyword     String?   @db.Text
+  og_image_path    String?
+  banner_path      String?
+  website          String?   @default("MYS")
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+
+  contents         ServiceContent[]
+
+  @@index([uri])
+  @@index([website])
+  @@map("services")
+}
+
+model ServiceContent {
+  id          Int       @id @default(autoincrement())
+  service_id  Int?
+  tab         String?
+  description String?   @db.LongText
+  position    Int?      @default(0)
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  service     Service?  @relation(fields: [service_id], references: [id])
+
+  @@index([service_id])
+  @@map("service_contents")
+}
+
+// ═══════════════════════════════════════════════════════
+// SEO & PAGE CONTENT
+// ═══════════════════════════════════════════════════════
+
+model DynamicPageSeo {
+  id               Int       @id @default(autoincrement())
+  url              String?
+  meta_title       String?   @db.Text
+  meta_description String?   @db.Text
+  meta_keyword     String?   @db.Text
+  og_image_path    String?
+  page_content     String?   @db.LongText
+  website          String?   @default("MYS")
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+
+  @@index([url])
+  @@index([website])
+  @@map("dynamic_page_seos")
+}
+
+model StaticPageSeo {
+  id               Int       @id @default(autoincrement())
+  page             String?
+  meta_title       String?   @db.Text
+  meta_description String?   @db.Text
+  meta_keyword     String?   @db.Text
+  og_image_path    String?
+  website          String?   @default("MYS")
+  created_at       DateTime? @default(now())
+  updated_at       DateTime? @updatedAt
+
+  @@index([page])
+  @@map("static_page_seos")
+}
+
+model PageContent {
+  id          Int       @id @default(autoincrement())
+  page_name   String?
+  position    String?
+  description String?   @db.LongText
+  website     String?   @default("MYS")
+  author_id   Int?
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  @@index([page_name])
+  @@index([website])
+  @@map("page_contents")
+}
+
+model PageBanner {
+  id          Int       @id @default(autoincrement())
+  uri         String?
+  banner_path String?
+  mobile_banner_path String?
+  website     String?   @default("MYS")
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  @@index([uri])
+  @@map("page_banners")
+}
+
+model DefaultOgImage {
+  id            Int       @id @default(autoincrement())
+  og_image_path String?
+  is_default    Int?      @default(0)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  @@map("default_og_images")
+}
+
+// ═══════════════════════════════════════════════════════
+// MISC
+// ═══════════════════════════════════════════════════════
+
+model Faq {
+  id            Int       @id @default(autoincrement())
+  category_id   Int?
+  question      String?   @db.Text
+  answer      String?   @db.Text
+  position      Int?      @default(0)
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  category      FaqCategory? @relation(fields: [category_id], references: [id])
+
+  @@index([category_id])
+  @@map("faqs")
+}
+
+model FaqCategory {
+  id             Int       @id @default(autoincrement())
+  category_name  String?
+  category_slug  String?
+  created_at     DateTime? @default(now())
+  updated_at     DateTime? @updatedAt
+
+  faqs           Faq[]
+
+  @@index([category_slug])
+  @@map("faq_categories")
+}
+
+// ═══════════════════════════════════════════════════════
+// EMGS STATS & ANALYTICS
+// ═══════════════════════════════════════════════════════
+
+model MalaysiaApplicationCategory {
+  id            Int      @id @default(autoincrement())
+  category_name String
+  category_slug String
+  color_class   String?
+  created_at    DateTime? @default(now())
+  updated_at    DateTime? @updatedAt
+
+  applications  MalaysiaApplication[]
+
+  @@map("malaysia_application_categories")
+}
+
+model MalaysiaApplication {
+  id          Int      @id @default(autoincrement())
+  year        Int
+  category_id Int
+  count       Int
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  category    MalaysiaApplicationCategory @relation(fields: [category_id], references: [id])
+
+  @@map("malaysia_applications")
+}
+
+model InternationalStudentDataCountry {
+  id           Int      @id @default(autoincrement())
+  country_name String
+  country_slug String   @unique
+  color_class  String?
+  created_at   DateTime? @default(now())
+  updated_at   DateTime? @updatedAt
+
+  applications InternationalStudentData[]
+
+  @@map("international_student_data_countries")
+}
+
+model InternationalStudentData {
+  id         Int      @id @default(autoincrement())
+  year       Int
+  country_id Int?
+  count      Int      @default(0)
+  created_at DateTime? @default(now())
+  updated_at DateTime? @updatedAt
+
+  country    InternationalStudentDataCountry? @relation(fields: [country_id], references: [id])
+
+  @@map("international_student_data")
+}
