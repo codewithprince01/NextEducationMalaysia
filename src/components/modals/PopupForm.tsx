@@ -11,6 +11,14 @@ import axios from "axios";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in';
 
+function buildImageUrl(path?: string | null) {
+  if (!path) return null;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  const base = IMAGE_BASE.replace(/\/+$/, "");
+  const cleanPath = path.replace(/^\/+/, "");
+  return `${base}/${cleanPath}`;
+}
+
 interface PopupFormProps {
   isOpen: boolean;
   onClose: () => void;
@@ -157,14 +165,10 @@ const PopupForm: React.FC<PopupFormProps> = ({
 
   if (!isOpen) return null;
 
-  const logoUrl = universityData?.logo_path 
-    ? (universityData.logo_path.startsWith("http") 
-        ? universityData.logo_path 
-        : `${IMAGE_BASE}${universityData.logo_path}`)
-    : null;
+  const logoUrl = buildImageUrl(universityData?.logo_path) || buildImageUrl(universityData?.banner_path);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-9999 px-4">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-[9999] px-4">
       {showSuccess ? (
         <SuccessView formType={formType} onOk={onSuccessOk} />
       ) : (

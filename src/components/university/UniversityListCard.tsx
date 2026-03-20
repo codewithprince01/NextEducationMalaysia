@@ -16,6 +16,7 @@ type University = {
   id: number
   name?: string | null
   uname?: string | null
+  slug?: string | null
   banner_path?: string | null
   logo_path?: string | null
   city?: string | null
@@ -28,9 +29,16 @@ type University = {
   click?: number | null
 }
 
-export default function UniversityListCard({ uni, priority = false }: { uni: University; priority?: boolean }) {
+type Props = {
+  uni: University
+  priority?: boolean
+  onOpenFeeModal?: (uni: University) => void
+  onOpenBrochureModal?: (uni: University) => void
+}
+
+export default function UniversityListCard({ uni, priority = false, onOpenFeeModal, onOpenBrochureModal }: Props) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const slug = uni.uname
+  const slug = uni.uname || uni.slug
   const imageUrl = imgUrl(uni.banner_path) ?? imgUrl(uni.logo_path) ?? '/placeholder-university.jpg'
   const rating = uni.rating ? parseFloat(String(uni.rating)).toFixed(1) : '0.0'
 
@@ -56,18 +64,14 @@ export default function UniversityListCard({ uni, priority = false }: { uni: Uni
       <div className="p-5">
         {/* Location + Established */}
         <div className="flex items-center gap-3 mb-3 text-[11px] font-medium text-gray-500 uppercase tracking-wider">
-          {uni.city && (
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-blue-500" />
-              <span>{uni.city}</span>
-            </div>
-          )}
-          {uni.established_year && (
-            <div className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-blue-500" />
-              <span>Est. {uni.established_year}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-blue-500" />
+            <span>{uni.city || 'Kuala Lumpur'}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5 text-blue-500" />
+            <span>Est. {uni.established_year || 'N/A'}</span>
+          </div>
         </div>
 
         <Link
@@ -124,18 +128,38 @@ export default function UniversityListCard({ uni, priority = false }: { uni: Uni
             View Details →
           </Link>
           <div className="grid grid-cols-2 gap-2">
-            <Link
-              href={`/university/${slug}?action=fee`}
-              className="py-2.5 px-3 border-2 border-blue-200 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-50 transition-all duration-200 text-center uppercase tracking-wide"
-            >
-              Fee Structure
-            </Link>
-            <Link
-              href={`/university/${slug}?action=brochure`}
-              className="py-2.5 px-3 border-2 border-green-200 text-green-600 rounded-xl font-bold text-xs hover:bg-green-50 transition-all duration-200 text-center uppercase tracking-wide"
-            >
-              Brochure
-            </Link>
+            {onOpenFeeModal ? (
+              <button
+                type="button"
+                onClick={() => onOpenFeeModal(uni)}
+                className="py-2.5 px-3 border-2 border-blue-200 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-50 transition-all duration-200 text-center uppercase tracking-wide cursor-pointer"
+              >
+                Fee Structure
+              </button>
+            ) : (
+              <Link
+                href={`/university/${slug}?action=fee`}
+                className="py-2.5 px-3 border-2 border-blue-200 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-50 transition-all duration-200 text-center uppercase tracking-wide"
+              >
+                Fee Structure
+              </Link>
+            )}
+            {onOpenBrochureModal ? (
+              <button
+                type="button"
+                onClick={() => onOpenBrochureModal(uni)}
+                className="py-2.5 px-3 border-2 border-green-200 text-green-600 rounded-xl font-bold text-xs hover:bg-green-50 transition-all duration-200 text-center uppercase tracking-wide cursor-pointer"
+              >
+                Brochure
+              </button>
+            ) : (
+              <Link
+                href={`/university/${slug}?action=brochure`}
+                className="py-2.5 px-3 border-2 border-green-200 text-green-600 rounded-xl font-bold text-xs hover:bg-green-50 transition-all duration-200 text-center uppercase tracking-wide"
+              >
+                Brochure
+              </Link>
+            )}
           </div>
         </div>
       </div>

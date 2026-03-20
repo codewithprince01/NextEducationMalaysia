@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 export const usePopupFormState = (isOpen: boolean, formType: string, onClose: () => void) => {
   const [captcha, setCaptcha] = useState("");
@@ -74,21 +75,45 @@ export const usePopupFormState = (isOpen: boolean, formType: string, onClose: ()
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [pcRes, cRes, lRes, catRes]: any[] = await Promise.all([
-          axios.get(`${API_BASE}/phonecodes`),
-          axios.get(`${API_BASE}/countries`),
-          axios.get(`${API_BASE}/levels`),
-          axios.get(`${API_BASE}/course-categories`),
-        ]);
+      const parseList = (res: any) => {
+        if (Array.isArray(res?.data)) return res.data;
+        if (Array.isArray(res?.data?.data)) return res.data.data;
+        if (Array.isArray(res?.data?.data?.data)) return res.data.data.data;
+        return [];
+      };
 
-        setPhonecode(Array.isArray(pcRes.data) ? pcRes.data : pcRes.data.data || []);
-        setCountriesData(Array.isArray(cRes.data) ? cRes.data : cRes.data.data || []);
-        setLevels(lRes.data.data || []);
-        setCourseCategories(Array.isArray(catRes.data) ? catRes.data : catRes.data.data || []);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
+      const localFetch = (path: string) => axios.get(path, {
+        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
+      });
+
+      const remoteFetch = (path: string) => axios.get(`${API_BASE}${path}`, {
+        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
+      });
+
+      const fetchWithFallback = async (localPath: string, remotePath: string) => {
+        try {
+          return await localFetch(localPath);
+        } catch {
+          return await remoteFetch(remotePath);
+        }
+      };
+
+      const [pcRes, cRes, lRes, catRes] = await Promise.allSettled([
+        fetchWithFallback('/api/v1/phonecodes', '/phonecodes'),
+        fetchWithFallback('/api/v1/countries', '/countries'),
+        fetchWithFallback('/api/v1/levels', '/levels'),
+        fetchWithFallback('/api/v1/course-categories', '/course-categories'),
+      ]);
+
+      const pcData = pcRes.status === 'fulfilled' ? parseList(pcRes.value) : [];
+      const cData = cRes.status === 'fulfilled' ? parseList(cRes.value) : [];
+      const lData = lRes.status === 'fulfilled' ? parseList(lRes.value) : [];
+      const catData = catRes.status === 'fulfilled' ? parseList(catRes.value) : [];
+
+      setPhonecode(pcData);
+      setCountriesData(cData);
+      setLevels(lData);
+      setCourseCategories(catData);
     };
     fetchData();
   }, []);
