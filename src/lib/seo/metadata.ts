@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { replaceTag } from './replace-tag'
 import { prisma } from '@/lib/db'
-import { SITE_URL, IMAGE_BASE_URL, storageUrl } from '@/lib/constants'
+import { SITE_URL, storageUrl } from '@/lib/constants'
 import { currentMonth, currentYear, stripTags, truncate } from '@/lib/utils'
 
 type TagMap = Record<string, string>
@@ -19,8 +19,15 @@ async function getDynamicSeo(url: string) {
 }
 
 async function getDefaultOgImage(): Promise<string> {
-  const img = await prisma.defaultOgImage.findFirst({ where: { default: true } })
-  return img?.file_path ? storageUrl(img.file_path)! : `${SITE_URL}/og-default.png`
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT file_path
+    FROM default_og_images
+    WHERE \`default\` = 1
+    ORDER BY id DESC
+    LIMIT 1
+  `) as Array<{ file_path?: string | null }>
+
+  return rows[0]?.file_path ? storageUrl(rows[0].file_path)! : `${SITE_URL}/og-default.png`
 }
 
 function buildOgImage(path: string | null | undefined, fallback: string): string {

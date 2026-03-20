@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import { getSpecializationBySlug, getAllSpecializationSlugs } from '@/lib/queries/specializations'
-import { serializeBigInt } from '@/lib/utils'
 import { resolveSpecializationMeta } from '@/lib/seo/metadata'
 import { specializationJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
@@ -18,17 +17,17 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const spec = await getSpecializationBySlug(slug)
+  const detail = await getSpecializationBySlug(slug)
+  const spec = detail?.specialization
   if (!spec) return {}
   return resolveSpecializationMeta(spec)
 }
 
 export default async function SpecializationDetailPage({ params }: Props) {
   const { slug, levelSlug } = await params
-  const specData = await getSpecializationBySlug(slug)
-  if (!specData) notFound()
-
-  const spec = serializeBigInt(specData)
+  const detail = await getSpecializationBySlug(slug)
+  const spec = detail?.specialization
+  if (!detail || !spec) notFound()
 
   return (
     <>
@@ -38,7 +37,12 @@ export default async function SpecializationDetailPage({ params }: Props) {
         { name: 'Specialization', url: `${SITE_URL}/specialization` },
         { name: spec.name || '', url: `${SITE_URL}/specialization/${slug}` }
       ])} />
-      <SpecializationDetailClient slug={slug} levelSlug={levelSlug} initialData={spec} />
+      <SpecializationDetailClient
+        slug={slug}
+        levelSlug={levelSlug}
+        initialData={detail}
+        initialLevelData={null}
+      />
     </>
   )
 }
