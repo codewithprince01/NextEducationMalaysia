@@ -7,8 +7,11 @@ import { SITE_URL } from '@/lib/constants'
 import BlogDetailClient from './BlogDetailClient'
 import { serializeBigInt } from '@/lib/utils'
 import BlogListClient from '../../BlogListClient'
+import { prisma } from '@/lib/db-fresh'
 
 export const revalidate = 21600
+export const dynamicParams = true
+export const dynamic = 'force-dynamic'
 
 type Props = { params: Promise<{ category: string; slugWithId: string }> }
 
@@ -67,10 +70,56 @@ export default async function BlogDetailPage({ params }: Props) {
   }
 
   const parsed = parseSlugWithId(slugWithId)
-  if (!parsed) notFound()
+  if (!parsed) {
+    return <BlogDetailClient category={category} slugWithId={slugWithId} />
+  }
 
-  const result = await blogService.getBlogDetail(category, slugWithId)
-  if (!result) notFound()
+  // Resolve by ID first for robust client navigation and canonical redirects.
+  const canonical = await prisma.blog.findFirst({
+    where: { id: parsed.id, status: 1 },
+    select: {
+      id: true,
+      slug: true,
+      category: { select: { category_slug: true } },
+    },
+  })
+  if (!canonical?.slug) {
+    return <BlogDetailClient category={category} slugWithId={slugWithId} />
+  }
+
+  const canonicalCategory = canonical.category?.category_slug || category
+  const canonicalUrl = `/blog/${canonicalCategory}/${canonical.slug}-${canonical.id}`
+  if ((canonical.category?.category_slug && canonical.category.category_slug !== category) || canonical.slug !== parsed.slug) {
+    redirect(canonicalUrl)
+  }
+
+  const result = await blogService.getBlogDetail(canonicalCategory, `${canonical.slug}-${canonical.id}`)
+  if (!result) {
+    const fallbackBlog = await getBlogBySlugAndId(canonical.slug, Number(canonical.id))
+    if (!fallbackBlog) {
+      return <BlogDetailClient category={category} slugWithId={slugWithId} />
+    }
+
+    const fallbackData = {
+      data: fallbackBlog,
+      related_blogs: [],
+      categories: [],
+      specializations: [],
+    }
+
+    return (
+      <>
+        <JsonLd data={blogJsonLd(fallbackData.data, parsed.id)} />
+        <JsonLd data={breadcrumbJsonLd([
+          { name: 'Home', url: SITE_URL },
+          { name: 'Blog', url: `${SITE_URL}/blog` },
+          { name: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), url: `${SITE_URL}/blog/${category}` },
+          { name: fallbackData.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
+        ])} />
+        <BlogDetailClient category={category} slugWithId={slugWithId} initialData={fallbackData} />
+      </>
+    )
+  }
 
   return (
     <>

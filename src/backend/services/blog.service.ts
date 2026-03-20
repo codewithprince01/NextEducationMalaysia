@@ -159,41 +159,128 @@ export class BlogService {
       },
     });
 
-    if (!category) return null;
-
     const idMatch = slugWithId.match(/\d+$/);
-    const blogId = idMatch ? BigInt(idMatch[0]) : null;
+    const blogId = idMatch ? Number.parseInt(idMatch[0], 10) : null;
     const slug = slugWithId.replace(/-\d+$/, '');
 
-    if (!blogId) return null;
+    if (!blogId || !Number.isFinite(blogId)) return null;
 
-    const blog = await prisma.blog.findFirst({
-      where: {
-        category_id: category.id,
-        slug: slug,
-        id: blogId,
-        status: 1,
-      },
-      include: {
-        author: true,
-        contents: {
-          where: { parent_id: null },
-          include: {
-            other_blog_contents: {
-              orderBy: { position: 'asc' },
-            },
-          },
-          orderBy: { position: 'asc' },
+    const blogSelect = {
+      id: true,
+      headline: true,
+      slug: true,
+      description: true,
+      thumbnail_path: true,
+      meta_title: true,
+      meta_description: true,
+      meta_keyword: true,
+      og_image_path: true,
+      created_at: true,
+      updated_at: true,
+      author: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-    });
+      category: {
+        select: {
+          id: true,
+          category_name: true,
+          category_slug: true,
+        },
+      },
+    };
+
+    let blog = category
+      ? await prisma.blog.findFirst({
+          where: {
+            category_id: category.id,
+            slug: slug,
+            id: blogId,
+            status: 1,
+          },
+          select: blogSelect,
+        })
+      : null;
+
+    // Fallback: keep category + id strict, but don't fail hard on minor slug mismatch.
+    if (!blog && category) {
+      blog = await prisma.blog.findFirst({
+        where: {
+          category_id: category.id,
+          id: blogId,
+          status: 1,
+        },
+        select: blogSelect,
+      });
+    }
+
+    // Final fallback: resolve by ID globally so detail opens even if URL category is wrong.
+    if (!blog) {
+      blog = await prisma.blog.findFirst({
+        where: {
+          id: blogId,
+          status: 1,
+        },
+        select: blogSelect,
+      });
+    }
 
     if (!blog) return null;
+    const effectiveCategory = blog.category || category;
+    const allContents = await prisma.$queryRawUnsafe<Array<{
+      id: number
+      title: string | null
+      description: string | null
+      parent_id: number | null
+      position: number | null
+    }>>(
+      `
+      SELECT id, title, description, parent_id, position
+      FROM blog_contents
+      WHERE blog_id = ?
+      ORDER BY position ASC, id ASC
+      `,
+      Number(blog.id),
+    );
+
+    const parentContents = allContents
+      .filter((item) => item.parent_id === null)
+      .map((parent) => ({
+        id: parent.id,
+        title: parent.title || '',
+        tab: parent.title || '',
+        description: parent.description || '',
+        position: parent.position ?? 0,
+        child_contents: allContents
+          .filter((child) => child.parent_id === parent.id)
+          .map((child) => ({
+            id: child.id,
+            title: child.title || '',
+            tab: child.title || '',
+            description: child.description || '',
+            position: child.position ?? 0,
+          })),
+      }));
 
     const [relatedBlogs, categories, specializations, dynamicSeo] = await Promise.all([
       prisma.blog.findMany({
         where: { id: { not: blog.id }, status: 1 },
-        select: { id: true, headline: true, thumbnail_path: true, created_at: true },
+        select: {
+          id: true,
+          headline: true,
+          slug: true,
+          thumbnail_path: true,
+          created_at: true,
+          category: {
+            select: {
+              id: true,
+              category_name: true,
+              category_slug: true,
+            },
+          },
+        },
         orderBy: { id: 'desc' },
         take: 12,
       }),
@@ -208,7 +295,7 @@ export class BlogService {
       }),
       seoService.getStaticPageSeo('blog-details', {
         title: blog.headline || '',
-        category: category.category_name || '',
+        category: effectiveCategory?.category_name || '',
         currentmonth: new Date().toLocaleString('en-US', { month: 'short' }),
         currentyear: new Date().getFullYear().toString(),
         site: process.env.SITE_URL || '',
@@ -216,7 +303,10 @@ export class BlogService {
     ]);
 
     return {
-      data: serializeBigInt(blog),
+      data: serializeBigInt({
+        ...blog,
+        parent_contents: parentContents,
+      }),
       related_blogs: serializeBigInt(relatedBlogs),
       categories: serializeBigInt(categories),
       specializations: serializeBigInt(specializations),
@@ -228,6 +318,24 @@ export class BlogService {
         title: blog.headline
       },
     };
+  }
+
+  async getBlogDetailById(id: number) {
+    const blog = await prisma.blog.findFirst({
+      where: { id, status: 1 },
+      select: {
+        id: true,
+        slug: true,
+        category: {
+          select: {
+            category_slug: true,
+          },
+        },
+      },
+    });
+
+    if (!blog?.slug || !blog?.category?.category_slug) return null;
+    return this.getBlogDetail(blog.category.category_slug, `${blog.slug}-${blog.id}`);
   }
 }
 

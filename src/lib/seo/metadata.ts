@@ -118,16 +118,17 @@ export async function resolveCourseCategoryMeta(
 }
 
 export async function resolveBlogMeta(
-  blog: { title?: string | null; slug?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image_path?: string | null; category?: { category_slug?: string | null } | null },
+  blog: { title?: string | null; headline?: string | null; slug?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image_path?: string | null; category?: { category_slug?: string | null } | null },
   blogId: number,
 ): Promise<Metadata> {
   const dseo = await getDynamicSeo('blog-detail')
   const fallbackOg = await getDefaultOgImage()
+  const blogTitle = blog.title || blog.headline || ''
 
   const tags: TagMap = {
     ...baseTags(),
-    title: blog.title || '',
-    blogtitle: blog.title || '',
+    title: blogTitle,
+    blogtitle: blogTitle,
   }
 
   const title = replaceTag(blog.meta_title || dseo?.meta_title || '%blogtitle%', tags)

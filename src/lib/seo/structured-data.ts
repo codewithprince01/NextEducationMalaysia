@@ -97,24 +97,33 @@ export function courseJsonLd(program: {
 
 export function blogJsonLd(blog: {
   title?: string | null
+  headline?: string | null
   slug?: string | null
   short_description?: string | null
+  description?: string | null
   thumbnail_path?: string | null
-  created_at?: Date | null
-  updated_at?: Date | null
+  created_at?: Date | string | null
+  updated_at?: Date | string | null
   author?: { name?: string | null } | null
   category?: { category_slug?: string | null } | null
 }, blogId: number): JsonLd {
   const categorySlug = blog.category?.category_slug || 'uncategorized'
+  const toIso = (value?: Date | string | null) => {
+    if (!value) return undefined
+    if (value instanceof Date) return value.toISOString()
+    const parsed = new Date(value)
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString()
+  }
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: blog.title,
-    description: blog.short_description,
+    headline: blog.title || blog.headline,
+    description: blog.short_description || blog.description,
     image: storageUrl(blog.thumbnail_path) || undefined,
     url: `${SITE_URL}/blog/${categorySlug}/${blog.slug}-${blogId}`,
-    datePublished: blog.created_at?.toISOString(),
-    dateModified: blog.updated_at?.toISOString(),
+    datePublished: toIso(blog.created_at),
+    dateModified: toIso(blog.updated_at),
     author: {
       '@type': 'Person',
       name: blog.author?.name || 'Education Malaysia',

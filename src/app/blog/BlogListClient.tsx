@@ -333,7 +333,8 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
     ? blogs.filter(b =>
         b.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.short_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.category?.category_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        b.category?.category_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        b.get_category?.category_name?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : blogs
 
@@ -475,11 +476,18 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
               const imageUrl = item.imgpath?.startsWith('http')
                 ? item.imgpath
                 : `${IMAGE_BASE}/storage/${(item.thumbnail_path || 'default.jpg').replace(/^\/+/, '')}`
-              const catSlug = item.category?.category_slug
+              const itemCategory = item.category || item.get_category
+              const catSlug =
+                itemCategory?.category_slug ||
+                (selectedCategory && selectedCategory !== 'all' ? selectedCategory : 'all')
+              const blogSlug =
+                item.slug ||
+                item.headline?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') ||
+                'blog'
 
               return (
                 <Link
-                  href={`/blog/${catSlug}/${item.slug}-${item.id}`}
+                  href={`/blog/${catSlug}/${blogSlug}-${item.id}`}
                   key={item.id}
                   className="flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
@@ -492,12 +500,15 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
                       fetchPriority={index === 0 ? 'high' : 'auto'}
                     />
                     <div
-                      onClick={e => { e.preventDefault(); handleCategoryChange(catSlug) }}
+                      onClick={e => {
+                        e.preventDefault()
+                        if (catSlug && catSlug !== 'all') handleCategoryChange(catSlug)
+                      }}
                       className={`absolute top-4 left-4 font-semibold text-sm px-3 py-1 rounded shadow-md cursor-pointer transition ${
                         selectedCategory === catSlug ? 'bg-blue-600 text-white' : 'bg-white text-black hover:bg-blue-100'
                       }`}
                     >
-                      {item.category?.category_name || 'General'}
+                      {itemCategory?.category_name || 'General'}
                     </div>
                   </div>
                   <div className="p-4 flex-1">

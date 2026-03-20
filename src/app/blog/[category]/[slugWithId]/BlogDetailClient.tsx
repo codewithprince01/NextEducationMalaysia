@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import Breadcrumb from '@/components/Breadcrumb'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
@@ -8,21 +8,23 @@ import { CalendarDays, ArrowRight, User, Clock } from 'lucide-react'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = '/api/v1'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 // ── Session cache ────────────────────────────────────────────────────────────
 const CACHE_TTL = 5 * 60 * 1000
+const BLOG_DETAIL_CACHE_VERSION = 'v2'
 const blogDetailCache = {
   get(key: string) {
     try {
-      const raw = sessionStorage.getItem(`blog_detail_${key}`)
+      const raw = sessionStorage.getItem(`blog_detail_${BLOG_DETAIL_CACHE_VERSION}_${key}`)
       if (!raw) return null
       const { data, ts } = JSON.parse(raw)
-      if (Date.now() - ts > CACHE_TTL) { sessionStorage.removeItem(`blog_detail_${key}`); return null }
+      if (Date.now() - ts > CACHE_TTL) { sessionStorage.removeItem(`blog_detail_${BLOG_DETAIL_CACHE_VERSION}_${key}`); return null }
       return data
     } catch { return null }
   },
   set(key: string, data: unknown) {
-    try { sessionStorage.setItem(`blog_detail_${key}`, JSON.stringify({ data, ts: Date.now() })) } catch { /* ignore */ }
+    try { sessionStorage.setItem(`blog_detail_${BLOG_DETAIL_CACHE_VERSION}_${key}`, JSON.stringify({ data, ts: Date.now() })) } catch { /* ignore */ }
   },
 }
 
@@ -74,7 +76,7 @@ function formatBlogHTML(html: string, sectionIndex: string | number | null = nul
   // Table wrapper
   formatted = formatted.replace(
     /<table\b[^>]*>/gi,
-    `<div class="responsive-table-wrapper w-full overflow-x-auto my-6 bg-white border border-gray-200 rounded-lg shadow-sm"><table class="w-full min-w-[600px] border-collapse text-left">`,
+    `<div class="responsive-table-wrapper"><table class="w-full min-w-[600px] border-collapse text-left">`,
   )
   formatted = formatted.replace(/<\/table>/gi, `</table></div>`)
 
@@ -123,32 +125,93 @@ interface BlogDetailClientProps {
   slugWithId: string
 }
 
+function normalizeDetailPayload(payload: any) {
+  const root = payload || {}
+  const dataRoot = root?.data && typeof root.data === 'object' ? root.data : root
+  const blogData = dataRoot?.blog || dataRoot || {
+    headline: '',
+    created_at: new Date().toISOString(),
+    author: { name: '' },
+    description: '',
+    parent_contents: [],
+    categories: [],
+  }
+
+  return {
+    blog: blogData,
+    relatedBlogs: dataRoot?.related_blogs || root?.related_blogs || [],
+    categories: dataRoot?.categories || root?.categories || [],
+    courses: dataRoot?.specializations || root?.specializations || [],
+  }
+}
+
 export default function BlogDetailClient({ category, slugWithId, initialData }: BlogDetailClientProps & { initialData?: any }) {
   const cacheKey = `${category}_${slugWithId}`
-  const cached = typeof window !== 'undefined' ? blogDetailCache.get(cacheKey) : null
 
-  const d = initialData?.data || initialData
-  const [blog, setBlog] = useState<any>(d?.blog || d || { headline: '', created_at: new Date().toISOString(), author: { name: '' }, description: '', parent_contents: [], categories: [] })
-  const [relatedBlogs, setRelatedBlogs] = useState<any[]>(d?.related_blogs || [])
-  const [categories, setCategories] = useState<any[]>(d?.categories || [])
-  const [courses, setCourses] = useState<any[]>(d?.specializations || [])
-  const [loading, setLoading] = useState(!initialData && !cached)
+  const normalizedInitial = normalizeDetailPayload(initialData)
+  const [blog, setBlog] = useState<any>(normalizedInitial.blog)
+  const [relatedBlogs, setRelatedBlogs] = useState<any[]>(normalizedInitial.relatedBlogs)
+  const [categories, setCategories] = useState<any[]>(normalizedInitial.categories)
+  const [courses, setCourses] = useState<any[]>(normalizedInitial.courses)
+  const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (initialData) return
+    if (initialData) {
+      const parsed = normalizeDetailPayload(initialData)
+      setBlog(parsed.blog)
+      setRelatedBlogs(parsed.relatedBlogs)
+      setCategories(parsed.categories)
+      setCourses(parsed.courses)
+      setLoading(false)
+      return
+    }
+
+    const cached = blogDetailCache.get(cacheKey)
+    if (cached) {
+      setBlog(cached.blog || { headline: '', created_at: new Date().toISOString(), author: { name: '' }, description: '', parent_contents: [], categories: [] })
+      setRelatedBlogs(cached.relatedBlogs || [])
+      setCategories(cached.categories || [])
+      setCourses(cached.courses || [])
+      setLoading(false)
+    }
+
+    const controller = new AbortController()
     const fetchBlogData = async () => {
       try {
         if (!cached) setLoading(true)
         setError(null)
-        const res = await fetch(`${API_BASE}/blog-details/${category}/${slugWithId}`)
-        if (!res.ok) throw new Error('Failed')
-        const json = await res.json()
+        let res = await fetch(`${API_BASE}/blog-details/${category}/${slugWithId}`, {
+          headers: { 'x-api-key': API_KEY },
+          cache: 'no-store',
+          signal: controller.signal,
+        })
+        let json: any = null
+
+        if (res.ok) {
+          json = await res.json()
+        } else {
+          const idMatch = slugWithId.match(/-(\d+)$/)
+          const blogId = idMatch ? Number.parseInt(idMatch[1], 10) : NaN
+
+          if (Number.isFinite(blogId) && blogId > 0) {
+            res = await fetch(`${API_BASE}/blog-detail-by-id/${blogId}`, {
+              headers: { 'x-api-key': API_KEY },
+              cache: 'no-store',
+              signal: controller.signal,
+            })
+            if (!res.ok) throw new Error('Failed')
+            json = await res.json()
+          } else {
+            throw new Error('Failed')
+          }
+        }
+
         const data = json?.data || json
         const blogData = data.blog || data
-        const relatedData = data.related_blogs || []
-        const catsData = data.categories || []
-        const coursesData = data.specializations || []
+        const relatedData = data.related_blogs || json?.related_blogs || []
+        const catsData = data.categories || json?.categories || []
+        const coursesData = data.specializations || json?.specializations || []
 
         setBlog(blogData)
         setRelatedBlogs(relatedData)
@@ -156,14 +219,27 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
         setCourses(coursesData)
 
         blogDetailCache.set(cacheKey, { blog: blogData, relatedBlogs: relatedData, categories: catsData, courses: coursesData })
-      } catch {
+      } catch (err) {
+        if ((err as Error)?.name === 'AbortError') return
         setError('Failed to load blog details.')
       } finally {
         setLoading(false)
       }
     }
     fetchBlogData()
-  }, [category, slugWithId])
+    return () => controller.abort()
+  }, [category, slugWithId, initialData, cacheKey])
+
+  useEffect(() => {
+    if (relatedBlogs.length === 0) return
+    relatedBlogs
+      .filter((item: any) => item?.thumbnail_path)
+      .slice(0, 6)
+      .forEach((item: any) => {
+        const img = new Image()
+        img.src = `${IMAGE_BASE}/storage/${String(item.thumbnail_path).replace(/^\/+/, '')}`
+      })
+  }, [relatedBlogs])
 
   if (loading) return <BlogDetailSkeleton />
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>
@@ -174,6 +250,11 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
     { label: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), href: `/blog/${category}` },
     { label: blog.headline || slugWithId },
   ]
+
+  const filteredRelatedBlogs = useMemo(
+    () => relatedBlogs.filter((item: any) => Number(item?.id) !== Number(blog?.id)),
+    [relatedBlogs, blog?.id],
+  )
 
   return (
     <>
@@ -279,7 +360,7 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-2 md:gap-4 justify-center my-4 md:my-6">
               <a
-                href="/contact-us"
+                href="/signup"
                 className="px-6 md:px-8 py-2 md:py-3 bg-blue-600 text-white font-semibold rounded-full hover:bg-blue-700 shadow-md hover:shadow-lg transition-all text-sm md:text-base"
               >
                 APPLY HERE
@@ -388,22 +469,27 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
 
             {/* Inquiry Form */}
             <div id="get-in-touch">
-              <SideInquiryForm title="Enquire Now" context={blog.headline} />
+              <SideInquiryForm title="Get In Touch" context={blog.headline} />
             </div>
 
             {/* Related Blogs */}
-            {relatedBlogs.length > 0 && (
+            {filteredRelatedBlogs.length > 0 && (
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">
                 <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-900">Related Blogs</h3>
                 <div className="space-y-3 md:space-y-4">
-                  {relatedBlogs.map((item: any) => {
+                  {filteredRelatedBlogs.map((item: any) => {
                     const blogSlug = item.slug ||
                       item.headline?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') ||
                       'blog'
+                    const itemCategory =
+                      item.category?.category_slug ||
+                      item.get_category?.category_slug ||
+                      item.getCategory?.category_slug ||
+                      category
                     return (
                       <Link
                         key={item.id}
-                        href={`/blog/${category}/${blogSlug}-${item.id}`}
+                        href={`/blog/${itemCategory}/${blogSlug}-${item.id}`}
                         className="flex items-center gap-2 md:gap-3 hover:bg-gray-50 p-2 md:p-3 rounded-lg transition group"
                       >
                         {item.thumbnail_path && (

@@ -23,11 +23,31 @@ export const getBlogBySlugAndId = unstable_cache(
   (slug: string, id: number) =>
     prisma.blog.findFirst({
       where: { slug, id, status: 1 as any },
-      include: {
-        category: true,
-        author: true,
-        contents: { orderBy: { position: 'asc' } },
-        faqs: { orderBy: { id: 'asc' } },
+      select: {
+        id: true,
+        headline: true,
+        slug: true,
+        description: true,
+        thumbnail_path: true,
+        meta_title: true,
+        meta_description: true,
+        meta_keyword: true,
+        og_image_path: true,
+        created_at: true,
+        updated_at: true,
+        category: {
+          select: {
+            id: true,
+            category_name: true,
+            category_slug: true,
+          },
+        },
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     }).then(serializeBigInt),
   ['blog-detail'],
