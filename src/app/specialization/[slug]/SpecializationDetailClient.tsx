@@ -4,6 +4,7 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
+  ArrowRight,
   ArrowLeft,
   Award,
   BookOpen,
@@ -12,14 +13,16 @@ import {
   Clock,
   DollarSign,
   FileText,
+  Flame,
   GraduationCap,
   Info,
   Lightbulb,
   MapPin,
   Target,
 } from 'lucide-react'
-import TrendingCourses from '@/components/common/TrendingCourses'
+import Breadcrumb from '@/components/Breadcrumb'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
+import TrendingCourses from '@/components/common/TrendingCourses'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import { storageUrl } from '@/lib/constants'
 
@@ -76,6 +79,7 @@ type SpecializationDetailData = {
   specialization?: Specialization
   related_universities?: RelatedUniversity[]
   featured_universities?: RelatedUniversity[]
+  other_specializations?: Array<{ id?: number | string; name?: string | null; slug?: string | null }>
 }
 
 type LevelDetailData = {
@@ -148,6 +152,14 @@ function toLevelSlug(value: string) {
     .replace(/-+/g, '-')
 }
 
+function toTitleFromSlug(value: string) {
+  return (value || '')
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 function getLevelConfig(levelSlug: string, level: SpecializationLevel) {
   const normalized = (levelSlug || '').toLowerCase().trim()
 
@@ -192,6 +204,8 @@ export default function SpecializationDetailClient({
   const detail = initialData || {}
   const specialization = detail.specialization || {}
   const relatedUniversities = detail.related_universities || []
+  const featuredUniversities = detail.featured_universities || []
+  const otherSpecializations = detail.other_specializations || []
   const faqs = specialization.faqs || []
   const specializationLevels =
     specialization.specializationLevels ||
@@ -330,8 +344,17 @@ export default function SpecializationDetailClient({
     )
   }
 
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Specializations', href: '/specialization' },
+    { label: specialization.name || slug },
+    ...(levelSlug ? [{ label: toTitleFromSlug(levelSlug) }] : []),
+  ]
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50">
+      <Breadcrumb items={breadcrumbItems} />
+
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-4 pb-12 sm:pb-16">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-linear-to-br from-blue-900 via-indigo-800 to-purple-900">
@@ -660,13 +683,97 @@ export default function SpecializationDetailClient({
 
             <div className="lg:col-span-1 space-y-6 lg:space-y-8">
               <div className="min-h-[400px]">
-                <TrendingCourses variant="sidebar" />
+                {otherSpecializations.length > 0 ? (
+                  <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Flame className="w-5 h-5 text-orange-500" />
+                      <h3 className="text-xl font-bold text-gray-800">Trending Courses</h3>
+                    </div>
+                    <div className="h-px bg-gray-200 w-full mb-6" />
+                    <ul className="space-y-1">
+                      {otherSpecializations.slice(0, 11).map((course) => (
+                        <li key={`${course.id || course.slug}`}>
+                          <Link
+                            href={`/specialization/${course.slug}`}
+                            className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-orange-50 transition-colors group"
+                          >
+                            <span className="text-gray-700 font-medium group-hover:text-blue-700 transition-colors">
+                              {course.name}
+                            </span>
+                            <ArrowRight className="text-orange-500 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <TrendingCourses variant="sidebar" />
+                )}
               </div>
               <div className="min-h-[550px]" id="get-in-touch">
-                <SideInquiryForm title="Enquire Now" context={specialization.name || slug} />
+                <SideInquiryForm title="Get In Touch" context={specialization.name || slug} />
               </div>
               <div className="min-h-[400px]">
-                <FeaturedUniversities variant="sidebar" />
+                {featuredUniversities.length > 0 ? (
+                  <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mt-8 overflow-hidden">
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                      <h2 className="text-xl font-bold text-gray-900 tracking-tight">Featured Universities</h2>
+                    </div>
+                    <div className="space-y-4">
+                      {featuredUniversities.slice(0, 5).map((university) => {
+                        const imageUrl = storageUrl(university.logo_path)
+                        return (
+                          <Link
+                            key={`${university.id}-${university.uname}`}
+                            href={`/university/${university.uname}`}
+                            className="block group"
+                          >
+                            <div className="p-4 rounded-xl border border-gray-50 bg-gray-50 group-hover:bg-white group-hover:border-blue-200 group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-300">
+                              <div className="flex gap-4 items-center">
+                                <div className="w-16 h-16 shrink-0 rounded-xl border border-white p-2.5 flex items-center justify-center bg-white shadow-xs group-hover:border-blue-50 transition-colors overflow-hidden relative">
+                                  {imageUrl ? (
+                                    <Image
+                                      src={imageUrl}
+                                      alt={university.name || 'University'}
+                                      fill
+                                      sizes="64px"
+                                      className="object-contain p-2.5"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <GraduationCap className="text-gray-300 w-6 h-6" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-bold text-gray-800 text-sm mb-1.5 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
+                                    {university.name}
+                                  </h4>
+                                  <div className="flex items-center text-[11px] text-gray-500 font-medium mb-1.5">
+                                    <MapPin className="mr-1.5 text-red-400 shrink-0 w-2.5 h-2.5" />
+                                    <span className="truncate">{university.city}</span>
+                                  </div>
+                                  <div className="flex items-center text-[10px] uppercase tracking-wider text-blue-600 font-bold bg-blue-50 w-fit px-2 py-0.5 rounded-md">
+                                    <span>Best Choice</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                    <Link
+                      href="/universities"
+                      className="flex items-center justify-center gap-2 mt-6 py-2.5 w-full text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-blue-50"
+                    >
+                      <span>Explore All Institutions</span>
+                      <ArrowRight className="w-2.5 h-2.5" />
+                    </Link>
+                  </div>
+                ) : (
+                  <FeaturedUniversities variant="sidebar" />
+                )}
               </div>
             </div>
           </div>
