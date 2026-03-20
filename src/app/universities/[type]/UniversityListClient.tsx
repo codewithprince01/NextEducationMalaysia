@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, X, ChevronDown, Search, House, ChevronRight } from 'lucide-react'
 import UniversityListCard from '@/components/university/UniversityListCard'
-import PopupForm from '@/components/modals/PopupForm'
+import { BrochureForm, FeeStructureForm } from '@/components/modals/UniversityForms'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 
 type Uni = { id: number } & Record<string, any>
 type FilterOption = { id: number; name: string; slug?: string }
@@ -177,8 +178,10 @@ export default function UniversityListClient({
   const [isLoading, setIsLoading] = useState(initialData.length === 0)
   const [showMore, setShowMore] = useState(false)
   const [selectedUniversity, setSelectedUniversity] = useState<Uni | null>(null)
-  const [isPopupFormOpen, setIsPopupFormOpen] = useState(false)
-  const [popupFormType, setPopupFormType] = useState<'brochure' | 'fee'>('brochure')
+  const [feeModalOpen, setFeeModalOpen] = useState(false)
+  const [brochureModalOpen, setBrochureModalOpen] = useState(false)
+  const [successModalOpen, setSuccessModalOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '')
@@ -314,14 +317,31 @@ export default function UniversityListClient({
 
   const openFeeModal = (uni: Uni) => {
     setSelectedUniversity(uni)
-    setPopupFormType('fee')
-    setIsPopupFormOpen(true)
+    setFeeModalOpen(true)
   }
 
   const openBrochureModal = (uni: Uni) => {
     setSelectedUniversity(uni)
-    setPopupFormType('brochure')
-    setIsPopupFormOpen(true)
+    setBrochureModalOpen(true)
+  }
+
+  const showSuccess = (message: string) => {
+    setSuccessMessage(message)
+    setSuccessModalOpen(true)
+    setTimeout(() => {
+      setSuccessModalOpen(false)
+      setSuccessMessage('')
+    }, 3500)
+  }
+
+  const getUniversityLogo = (uni: Uni | null) => {
+    if (!uni) return null
+    const path = uni.logo_path || uni.banner_path
+    if (!path) return null
+    if (String(path).startsWith('http://') || String(path).startsWith('https://')) return String(path)
+    const base = IMAGE_BASE.replace(/\/+$/, '')
+    const clean = String(path).replace(/^\/+/, '')
+    return `${base}/${clean}`
   }
 
   const dynamicTitle = (() => {
@@ -572,12 +592,37 @@ export default function UniversityListClient({
         </main>
       </div>
 
-      <PopupForm
-        isOpen={isPopupFormOpen}
-        onClose={() => setIsPopupFormOpen(false)}
-        universityData={selectedUniversity || {}}
-        formType={popupFormType}
+      <FeeStructureForm
+        universityId={selectedUniversity?.id}
+        universityName={selectedUniversity?.name}
+        universityLogo={getUniversityLogo(selectedUniversity)}
+        isOpen={feeModalOpen}
+        onClose={() => setFeeModalOpen(false)}
+        onSuccess={showSuccess}
       />
+
+      <BrochureForm
+        universityId={selectedUniversity?.id}
+        universityName={selectedUniversity?.name}
+        universityLogo={getUniversityLogo(selectedUniversity)}
+        isOpen={brochureModalOpen}
+        onClose={() => setBrochureModalOpen(false)}
+        onSuccess={showSuccess}
+      />
+
+      {successModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl p-6 text-center max-w-sm">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">{successMessage}</h3>
+            <p className="text-gray-600">We'll get back to you soon.</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

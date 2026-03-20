@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react";
-import Image from "next/image";
 import { X } from "lucide-react";
 import { usePopupFormState } from "./usePopupFormState";
 import SuccessView from "./SuccessView";
@@ -184,11 +183,10 @@ const PopupForm: React.FC<PopupFormProps> = ({
             <div className="flex flex-col items-center mb-4">
               {logoUrl && (
                 <div className="relative w-20 h-20 mb-2">
-                  <Image
+                  <img
                     src={logoUrl}
                     alt={universityData.name || "University Logo"}
-                    fill
-                    className="object-contain"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               )}
