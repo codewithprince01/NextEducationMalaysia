@@ -11,6 +11,7 @@ type Course = {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid' | 'sidebar' }) {
   const [courses, setCourses] = useState<Course[]>([])
@@ -19,12 +20,28 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch(`${API_BASE}/home`)
+        const res = await fetch(`${API_BASE}/home`, {
+          headers: { 'x-api-key': API_KEY },
+        })
         const json = await res.json()
-        if (json?.data?.specializationsWithContent) {
+        const fromHome = json?.data?.specializationsWithContent || json?.data?.specializations_with_content
+        if (Array.isArray(fromHome) && fromHome.length > 0) {
           const limit = variant === 'sidebar' ? 11 : 12
-          setCourses(json.data.specializationsWithContent.slice(0, limit))
+          setCourses(fromHome.slice(0, limit))
+          return
         }
+
+        // Fallback for environments where /home does not include specializationsWithContent
+        const fallbackRes = await fetch(`${API_BASE}/specializations?limit=12&orderBy=name&orderIn=asc`, {
+          headers: { 'x-api-key': API_KEY },
+        })
+        const fallbackJson = await fallbackRes.json()
+        const fallbackRows = Array.isArray(fallbackJson?.data) ? fallbackJson.data : []
+        const normalized = fallbackRows
+          .filter((row: any) => row?.id && row?.name && row?.slug)
+          .map((row: any) => ({ id: Number(row.id), name: String(row.name), slug: String(row.slug) }))
+        const limit = variant === 'sidebar' ? 11 : 12
+        setCourses(normalized.slice(0, limit))
       } catch (error) {
         console.error('Failed to load trending courses:', error)
       } finally {
@@ -80,6 +97,9 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
   if (loading) {
     return (
       <section className="bg-white px-4 md:px-10 lg:px-24">
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">
+          List of Top Trending <span className="text-blue-600">Courses in Malaysia</span>
+        </h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 animate-pulse">
           {[...Array(12)].map((_, i) => (
             <div key={i} className="bg-gray-50 rounded-2xl shadow-md p-5 border border-gray-100">

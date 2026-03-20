@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Shield, Award, BookOpen, Users, FileCheck, CheckCircle2, Loader2 } from 'lucide-react'
 import { FaUniversity, FaGraduationCap, FaGlobe, FaSchool } from 'react-icons/fa'
+import TrendingCourses from '@/components/common/TrendingCourses'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -134,10 +135,20 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
     }
 
     const fetchType = async (type: string) => {
-      const res = await fetch(`${API_BASE}/universities/universities-listing-data?type=${type}`, { headers: { 'x-api-key': API_KEY } })
+      const typeSlug =
+        type === 'public'
+          ? 'public-institution'
+          : type === 'private'
+            ? 'private-institution'
+            : 'foreign-university'
+
+      const res = await fetch(
+        `${API_BASE}/universities/universities-in-malaysia?type_slug=${encodeURIComponent(typeSlug)}&page=1&per_page=21`,
+        { headers: { 'x-api-key': API_KEY } },
+      )
       if (!res.ok) return []
       const json = await res.json()
-      return json?.data || json?.universities || []
+      return json?.data?.data || json?.data?.universities?.data || json?.data || []
     }
 
     const loadAll = async () => {
@@ -347,8 +358,8 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
           <span className="text-blue-800">International Schools</span>{' '}
           <span className="text-blue-600">in Malaysia</span>
         </h2>
-        <div className="flex justify-center">
-          <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6 flex flex-col items-center max-w-sm w-full">
+        <div className="flex justify-center grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow p-6 flex flex-col items-center">
             <div className="bg-blue-100 p-4 rounded-full mb-4">
               <FaSchool className="text-blue-600 text-4xl" />
             </div>
@@ -481,15 +492,24 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
           <span className="text-blue-600">about:</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {(['public', 'private', 'foreign'] as const).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`group relative overflow-hidden rounded-xl bg-white px-6 py-8 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${activeTab === tab ? 'ring-2 ring-blue-600' : ''}`}
-            >
-              <h3 className="text-xl font-bold text-blue-800 uppercase">{tab} UNIVERSITIES</h3>
-            </button>
-          ))}
+          <button
+            onClick={() => setActiveTab('public')}
+            className={`group relative overflow-hidden rounded-xl bg-white px-6 py-8 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${activeTab === 'public' ? 'ring-2 ring-blue-600' : ''}`}
+          >
+            <h3 className="text-xl font-bold text-blue-800">PUBLIC UNIVERSITIES</h3>
+          </button>
+          <button
+            onClick={() => setActiveTab('private')}
+            className={`group relative overflow-hidden rounded-xl bg-white px-6 py-8 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${activeTab === 'private' ? 'ring-2 ring-blue-600' : ''}`}
+          >
+            <h3 className="text-xl font-bold text-blue-800">PRIVATE UNIVERSITIES</h3>
+          </button>
+          <button
+            onClick={() => setActiveTab('foreign')}
+            className={`group relative overflow-hidden rounded-xl bg-white px-6 py-8 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl cursor-pointer ${activeTab === 'foreign' ? 'ring-2 ring-blue-600' : ''}`}
+          >
+            <h3 className="text-xl font-bold text-blue-800">FOREIGN UNIVERSITIES</h3>
+          </button>
         </div>
       </div>
 
@@ -501,14 +521,20 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
           </div>
         ) : (
           <div className="p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-md">
-            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
-              {activeTab === 'public' && 'List of Public Universities in Malaysia'}
-              {activeTab === 'private' && 'List of Private Universities in Malaysia'}
-              {activeTab === 'foreign' && 'List of Foreign Universities in Malaysia'}
-            </h3>
-            {renderTable(universities[activeTab], activeTab)}
+            <div>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
+                {activeTab === 'public' && 'List of Public Universities in Malaysia'}
+                {activeTab === 'private' && 'List of Private Universities in Malaysia'}
+                {activeTab === 'foreign' && 'List of Foreign Universities in Malaysia'}
+              </h3>
+              {renderTable(universities[activeTab], activeTab)}
+            </div>
           </div>
         )}
+      </div>
+
+      <div className="max-w-6xl mx-auto mt-16">
+        <TrendingCourses />
       </div>
     </div>
   )

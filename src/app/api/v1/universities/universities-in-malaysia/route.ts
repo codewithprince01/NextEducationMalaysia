@@ -11,9 +11,10 @@ async function getHandler(req: NextRequest) {
   const params = {
     search: searchParams.get('search') || undefined,
     institute_type: searchParams.get('institute_type') || undefined,
+    type_slug: searchParams.get('type_slug') || undefined,
     state: searchParams.get('state') || undefined,
     page: parseInt(searchParams.get('page') || '1'),
-    limit: parseInt(searchParams.get('limit_per_page') || '21'),
+    limit: parseInt(searchParams.get('per_page') || searchParams.get('limit_per_page') || '21'),
   };
 
   const data = await universityService.getUniversitiesInMalaysia(params);

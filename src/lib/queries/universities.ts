@@ -32,7 +32,9 @@ export async function getUniversitiesByType(typeSlug: string) {
 
       // Use raw SQL to avoid rating/qs_rank type mismatches
       const universities = await prisma.$queryRawUnsafe(`
-        SELECT u.id, u.name, u.uname, u.logo_path, u.city, u.state, u.qs_rank, u.rating
+        SELECT u.id, u.name, u.uname, u.logo_path, u.banner_path, u.city, u.state, u.qs_rank, u.rating,
+               u.shortnote, u.established_year, u.click,
+               (SELECT COUNT(*) FROM university_programs up WHERE up.university_id = u.id AND up.status = 1) as active_programs_count
         FROM universities u
         JOIN institute_types it ON u.institute_type = it.id
         WHERE u.status = 1 AND (
