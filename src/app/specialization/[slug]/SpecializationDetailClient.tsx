@@ -313,6 +313,10 @@ export default function SpecializationDetailClient({
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }, [slug, levelSlug])
+
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName)
     window.history.pushState(null, '', `#${tabName.toLowerCase().replace(/\s+/g, '-')}`)
@@ -347,7 +351,7 @@ export default function SpecializationDetailClient({
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Specializations', href: '/specialization' },
-    { label: specialization.name || slug },
+    { label: specialization.name || slug, href: levelSlug ? `/specialization/${slug}` : undefined },
     ...(levelSlug ? [{ label: toTitleFromSlug(levelSlug) }] : []),
   ]
 
@@ -459,6 +463,7 @@ export default function SpecializationDetailClient({
                       <Link
                         key={levelItem.actualSlug}
                         href={href}
+                        scroll
                         className={`group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 border-2 ${
                           isActive
                             ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 ring-2 ring-blue-100 ring-offset-1'
