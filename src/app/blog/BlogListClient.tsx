@@ -1,26 +1,29 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, Search, X } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Breadcrumb from '@/components/Breadcrumb'
 
 const PER_PAGE = 12
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = '/api/v1'
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
+const BLOG_CACHE_VERSION = 'v2'
+
+type BlogCategory = { id: number; category_name: string; category_slug: string }
 
 // ── Session cache ────────────────────────────────────────────────────────────
 const BLOG_CACHE_TTL = 5 * 60 * 1000
 const blogCache = {
   get(key: string) {
     try {
-      const raw = sessionStorage.getItem(`blog_${key}`)
+      const raw = sessionStorage.getItem(`blog_${BLOG_CACHE_VERSION}_${key}`)
       if (!raw) return null
       const { data, ts } = JSON.parse(raw)
       if (Date.now() - ts > BLOG_CACHE_TTL) {
-        sessionStorage.removeItem(`blog_${key}`)
+        sessionStorage.removeItem(`blog_${BLOG_CACHE_VERSION}_${key}`)
         return null
       }
       return data
@@ -30,20 +33,54 @@ const blogCache = {
   },
   set(key: string, data: unknown) {
     try {
-      sessionStorage.setItem(`blog_${key}`, JSON.stringify({ data, ts: Date.now() }))
+      sessionStorage.setItem(`blog_${BLOG_CACHE_VERSION}_${key}`, JSON.stringify({ data, ts: Date.now() }))
     } catch { /* ignore */ }
   },
+}
+
+function normalizeCategories(payload: any): BlogCategory[] {
+  const raw = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.data)
+      ? payload.data
+      : Array.isArray(payload?.categories)
+        ? payload.categories
+        : []
+
+  return raw
+    .map((item: any) => ({
+      id: Number(item?.id),
+      category_name: item?.category_name || item?.name || '',
+      category_slug: item?.category_slug || item?.slug || '',
+    }))
+    .filter((item: BlogCategory) => Boolean(item.id && item.category_name && item.category_slug))
+}
+
+function deriveCategoriesFromBlogs(items: any[]): BlogCategory[] {
+  const map = new Map<string, BlogCategory>()
+  items.forEach((blog: any) => {
+    const cat = blog?.category || blog?.get_category
+    if (!cat?.category_slug) return
+    map.set(cat.category_slug, {
+      id: Number(cat.id),
+      category_name: cat.category_name || '',
+      category_slug: cat.category_slug,
+    })
+  })
+  return Array.from(map.values())
 }
 
 /* ─── Skeleton ───────────────────────────────────────────────────────────── */
 function LoadingSkeleton() {
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-md animate-pulse">
-      <div className="w-full h-48 bg-gray-300" />
-      <div className="p-4 space-y-2">
-        <div className="h-4 bg-gray-300 rounded w-1/4" />
-        <div className="h-6 bg-gray-300 rounded w-3/4" />
-        <div className="h-4 bg-gray-300 rounded w-1/2" />
+    <div className="bg-white rounded-xl overflow-hidden shadow-md animate-pulse flex flex-col h-full">
+      <div className="w-full aspect-video sm:h-48 bg-gray-200" />
+      <div className="p-4 flex-1">
+        <div className="h-5 bg-gray-200 rounded w-full mb-2" />
+        <div className="h-5 bg-gray-200 rounded w-2/3" />
+      </div>
+      <div className="px-4 pb-4 mt-auto">
+        <div className="h-4 bg-gray-200 rounded w-32" />
       </div>
     </div>
   )
@@ -119,24 +156,98 @@ function PaginationBar({ currentPage, lastPage, onPageChange }: {
 /* ─── Main Client Component ──────────────────────────────────────────────── */
 export default function BlogListClient({ initialCategory, initialData }: { initialCategory?: string, initialData?: any }) {
   const router = useRouter()
+  const pathname = usePathname()
   const initCat = initialCategory || 'all'
+  const routeDefaults = (() => {
+    if (typeof window === 'undefined') return { category: initCat, page: 1 }
+    const parts = window.location.pathname.split('/').filter(Boolean)
+    if (parts[0] !== 'blog') return { category: initCat, page: 1 }
 
-  const [blogs, setBlogs] = useState<any[]>(initialData?.data || initialData?.blogs?.data || [])
-  const [categories, setCategories] = useState<any[]>([])
-  const [currentPage, setCurrentPage] = useState(initialData?.pagination?.current_page || initialData?.blogs?.current_page || 1)
-  const [lastPage, setLastPage] = useState(initialData?.pagination?.last_page || initialData?.blogs?.last_page || 1)
-  const [total, setTotal] = useState(initialData?.pagination?.total || initialData?.blogs?.total || 0)
+    let category = 'all'
+    let page = 1
+    if (parts[1]) {
+      if (parts[1].startsWith('page-')) {
+        page = Number.parseInt(parts[1].replace('page-', ''), 10) || 1
+      } else {
+        category = parts[1]
+        if (parts[2]?.startsWith('page-')) {
+          page = Number.parseInt(parts[2].replace('page-', ''), 10) || 1
+        }
+      }
+    }
+    return { category, page }
+  })()
+
+  const readPayload = (payload: any) => ({
+    blogs: payload?.data || payload?.blogs?.data || [],
+    currentPage: payload?.pagination?.current_page || payload?.blogs?.current_page || 1,
+    lastPage: payload?.pagination?.last_page || payload?.blogs?.last_page || 1,
+    total: payload?.pagination?.total || payload?.blogs?.total || 0,
+  })
+
+  const [blogs, setBlogs] = useState<any[]>(readPayload(initialData).blogs)
+  const [categories, setCategories] = useState<BlogCategory[]>([])
+  const [currentPage, setCurrentPage] = useState(routeDefaults.page || readPayload(initialData).currentPage)
+  const [lastPage, setLastPage] = useState(readPayload(initialData).lastPage)
+  const [total, setTotal] = useState(readPayload(initialData).total)
   const [loading, setLoading] = useState(!initialData)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState(initCat)
+  const [selectedCategory, setSelectedCategory] = useState(routeDefaults.category || initCat)
+  const activeRequestRef = useRef<{ key: string; controller: AbortController } | null>(null)
+
+  useEffect(() => {
+    if (!initialData) return
+    const next = readPayload(initialData)
+    setBlogs(next.blogs)
+    setCurrentPage(next.currentPage)
+    setLastPage(next.lastPage)
+    setTotal(next.total)
+    setSelectedCategory(initCat)
+    setLoading(false)
+  }, [initialData, initCat])
+
+  useEffect(() => {
+    if (!pathname) return
+
+    const parts = pathname.split('/').filter(Boolean)
+    if (parts[0] !== 'blog') return
+
+    let categoryFromUrl = 'all'
+    let pageFromUrl = 1
+
+    if (parts[1]) {
+      if (parts[1].startsWith('page-')) {
+        pageFromUrl = Number.parseInt(parts[1].replace('page-', ''), 10) || 1
+      } else {
+        categoryFromUrl = parts[1]
+        if (parts[2]?.startsWith('page-')) {
+          pageFromUrl = Number.parseInt(parts[2].replace('page-', ''), 10) || 1
+        }
+      }
+    }
+
+    if (selectedCategory !== categoryFromUrl) setSelectedCategory(categoryFromUrl)
+    if (currentPage !== pageFromUrl) setCurrentPage(pageFromUrl)
+  }, [pathname])
+
+  useEffect(() => {
+    return () => {
+      activeRequestRef.current?.controller.abort()
+    }
+  }, [])
 
   /* ── Fetch blogs ─────────────────────────────────────────────────────── */
   const fetchBlogs = useCallback(async (page: number, category: string) => {
     const cacheKey = `${category || 'all'}_${page}`
+    if (activeRequestRef.current?.key === cacheKey) return
+
+    activeRequestRef.current?.controller.abort()
+    const controller = new AbortController()
+    activeRequestRef.current = { key: cacheKey, controller }
+
     const cached = blogCache.get(cacheKey)
     if (cached) {
       setBlogs(cached.blogs)
-      setCurrentPage(cached.currentPage)
       setLastPage(cached.lastPage)
       setTotal(cached.total)
       if (cached.categories?.length) setCategories(cached.categories)
@@ -149,9 +260,11 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
       const url = (!category || category === 'all')
         ? `${API_BASE}/blog?page=${page}&per_page=${PER_PAGE}`
         : `${API_BASE}/blog-by-category/${category}?page=${page}&per_page=${PER_PAGE}`
-      const res = await fetch(url, { headers: { 'x-api-key': API_KEY } })
+      const res = await fetch(url, { headers: { 'x-api-key': API_KEY }, cache: 'no-store', signal: controller.signal })
       if (!res.ok) throw new Error('Failed to fetch')
       const json = await res.json()
+
+      if (activeRequestRef.current?.key !== cacheKey) return
       
       if (json.status) {
         const newBlogs = json.data || []
@@ -159,16 +272,18 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
         const newLast = json.pagination?.last_page || 1
         const newTotal = json.pagination?.total || 0
         setBlogs(newBlogs)
-        setCurrentPage(newCurrent)
         setLastPage(newLast)
         setTotal(newTotal)
         blogCache.set(cacheKey, { blogs: newBlogs, currentPage: newCurrent, lastPage: newLast, total: newTotal })
       }
     } catch (err) {
+      if ((err as Error)?.name === 'AbortError') return
       console.error('Error fetching blogs:', err)
       if (!cached) setBlogs([])
     } finally {
-      setLoading(false)
+      if (activeRequestRef.current?.key === cacheKey) {
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -179,32 +294,39 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
       try {
         const res = await fetch(`${API_BASE}/blog/categories`, { headers: { 'x-api-key': API_KEY } })
         const json = await res.json()
-        if (json.status && Array.isArray(json.data)) {
-          setCategories(json.data)
+        const parsed = normalizeCategories(json)
+        if (json.status && parsed.length > 0) {
+          setCategories(parsed)
+          return
         }
       } catch (err) {
         console.error('Error fetching categories:', err)
       }
+
+      const fromCurrentBlogs = deriveCategoriesFromBlogs(blogs)
+      if (fromCurrentBlogs.length > 0) {
+        setCategories(fromCurrentBlogs)
+        return
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/blog?page=1&per_page=50`, { headers: { 'x-api-key': API_KEY } })
+        const json = await res.json()
+        const fallback = deriveCategoriesFromBlogs(json?.data || [])
+        if (fallback.length > 0) setCategories(fallback)
+      } catch {
+        // keep empty if everything fails
+      }
     }
     fetch_()
-  }, [])
+  }, [blogs, categories.length])
 
   /* ── Initial load ────────────────────────────────────────────────────── */
-  useEffect(() => {
-    if (initialData && initCat === initialCategory) return
-    fetchBlogs(1, initCat)
-    setSelectedCategory(initCat)
-    setCurrentPage(1)
-    setSearchQuery('')
-  }, [initCat])
-
   /* ── Refetch on page change ──────────────────────────────────────────── */
   useEffect(() => {
     if (searchQuery) return
-    if (initialData && currentPage === 1 && selectedCategory === initCat) return
     fetchBlogs(currentPage, selectedCategory)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [currentPage])
+  }, [currentPage, selectedCategory, searchQuery, fetchBlogs])
 
   /* ── Client-side search filter ───────────────────────────────────────── */
   const displayedBlogs = searchQuery.trim()
@@ -232,7 +354,19 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
   }
 
   const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= lastPage) setCurrentPage(page)
+    if (page < 1 || page > lastPage) return
+    setCurrentPage(page)
+    setSearchQuery('')
+
+    let newUrl: string
+    if (!selectedCategory || selectedCategory === 'all') {
+      newUrl = page === 1 ? '/blog' : `/blog/page-${page}`
+    } else {
+      newUrl = page === 1 ? `/blog/${selectedCategory}` : `/blog/${selectedCategory}/page-${page}`
+    }
+
+    router.push(newUrl, { scroll: false })
+    window.scrollTo({ top: 0, behavior: 'auto' })
   }
 
   const breadcrumbItems = [
@@ -275,7 +409,7 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
               <select
                 value={selectedCategory}
                 onChange={e => handleCategoryChange(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer font-medium text-gray-700 shadow-sm hover:border-blue-400 transition-colors"
               >
                 <option value="all">All Categories</option>
                 {categories.map(cat => (
@@ -312,14 +446,16 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
 
         {/* Results count */}
         {!loading && (
-          <div className="mb-4 text-gray-700 font-semibold">
+          <div className="mb-4 text-gray-700 font-semibold flex items-center gap-2">
             {searchQuery ? (
               <>
+                <div className="w-1.5 h-6 bg-blue-600 rounded-full" />
                 Found <span className="text-blue-600">{displayedBlogs.length}</span>{' '}
-                blog{displayedBlogs.length !== 1 ? 's' : ''} matching &ldquo;{searchQuery}&rdquo;
+                blog{displayedBlogs.length !== 1 ? 's' : ''} matching "{searchQuery}"
               </>
             ) : (
               <>
+                <div className="w-1.5 h-6 bg-blue-600 rounded-full" />
                 Showing{' '}
                 <span className="text-blue-600">
                   {(currentPage - 1) * PER_PAGE + 1}–{Math.min(currentPage * PER_PAGE, total)}
@@ -333,9 +469,9 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
         {/* Blog Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => <LoadingSkeleton key={i} />)
+            Array.from({ length: 12 }).map((_, i) => <LoadingSkeleton key={i} />)
           ) : displayedBlogs.length > 0 ? (
-            displayedBlogs.map(item => {
+            displayedBlogs.map((item, index) => {
               const imageUrl = item.imgpath?.startsWith('http')
                 ? item.imgpath
                 : `${IMAGE_BASE}/storage/${(item.thumbnail_path || 'default.jpg').replace(/^\/+/, '')}`
@@ -345,14 +481,15 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
                 <Link
                   href={`/blog/${catSlug}/${item.slug}-${item.id}`}
                   key={item.id}
-                  className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  className="flex flex-col h-full bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
-                  <div className="relative">
+                  <div className="relative aspect-video sm:h-48">
                     <img
                       src={imageUrl}
                       alt={item.headline}
-                      className="w-full h-48 object-cover"
-                      loading="lazy"
+                      className="w-full h-full object-cover"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      fetchPriority={index === 0 ? 'high' : 'auto'}
                     />
                     <div
                       onClick={e => { e.preventDefault(); handleCategoryChange(catSlug) }}
@@ -363,12 +500,12 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
                       {item.category?.category_name || 'General'}
                     </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-base text-gray-800 line-clamp-2 hover:text-blue-600 transition-colors">
+                  <div className="p-4 flex-1">
+                    <h3 className="font-semibold text-base text-gray-800 line-clamp-2 hover:text-blue-600 transition-colors min-h-12">
                       {item.headline}
                     </h3>
                   </div>
-                  <div className="px-4 pb-4 flex items-center text-gray-600 text-sm">
+                  <div className="px-4 pb-4 mt-auto flex items-center text-gray-600 text-sm">
                     <CalendarDays className="w-4 h-4 mr-2" />
                     <span>
                       {new Date(item.created_at).toLocaleDateString('en-GB', {

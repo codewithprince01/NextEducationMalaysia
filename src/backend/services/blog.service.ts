@@ -28,7 +28,13 @@ export class BlogService {
       const [blogs, total, seo] = await Promise.all([
         prisma.blog.findMany({
           where: { status: 1 },
-          include: {
+          select: {
+            id: true,
+            headline: true,
+            slug: true,
+            thumbnail_path: true,
+            created_at: true,
+            category_id: true,
             category: {
               select: {
                 id: true,
@@ -71,6 +77,15 @@ export class BlogService {
   async getBlogsByCategory(categorySlug: string, page: number = 1, pageSize: number = 12) {
     const category = await prisma.blogCategory.findFirst({
       where: { category_slug: categorySlug, status: 1 },
+      select: {
+        id: true,
+        category_name: true,
+        category_slug: true,
+        meta_title: true,
+        meta_keyword: true,
+        meta_description: true,
+        og_image_path: true,
+      },
     });
 
     if (!category) return null;
@@ -80,7 +95,13 @@ export class BlogService {
     const [blogs, total, dynamicSeo] = await Promise.all([
       prisma.blog.findMany({
         where: { category_id: category.id, status: 1 },
-        include: {
+        select: {
+          id: true,
+          headline: true,
+          slug: true,
+          thumbnail_path: true,
+          created_at: true,
+          category_id: true,
           category: {
             select: {
               id: true,
@@ -127,6 +148,15 @@ export class BlogService {
   async getBlogDetail(categorySlug: string, slugWithId: string) {
     const category = await prisma.blogCategory.findFirst({
       where: { category_slug: categorySlug },
+      select: {
+        id: true,
+        category_name: true,
+        category_slug: true,
+        meta_title: true,
+        meta_keyword: true,
+        meta_description: true,
+        og_image_path: true,
+      },
     });
 
     if (!category) return null;

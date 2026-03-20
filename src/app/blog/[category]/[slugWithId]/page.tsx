@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { getBlogBySlugAndId, getAllBlogSlugs } from '@/lib/queries/blogs'
 import { resolveBlogMeta } from '@/lib/seo/metadata'
 import { blogJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
@@ -6,6 +6,7 @@ import JsonLd from '@/components/seo/JsonLd'
 import { SITE_URL } from '@/lib/constants'
 import BlogDetailClient from './BlogDetailClient'
 import { serializeBigInt } from '@/lib/utils'
+import BlogListClient from '../../BlogListClient'
 
 export const revalidate = 21600
 
@@ -29,7 +30,20 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const { slugWithId } = await params
+  const { category, slugWithId } = await params
+  const pageMatch = slugWithId.match(/^page-(\d+)$/)
+  if (pageMatch) {
+    const pageNum = Number.parseInt(pageMatch[1], 10) || 1
+    const title = category
+      .split('-')
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+    return {
+      title: pageNum > 1 ? `${title} - Blog Page ${pageNum} | Education Malaysia` : `${title} - Blog | Education Malaysia`,
+      description: `Read the latest ${title} articles and guides for international students in Malaysia.`,
+      alternates: { canonical: pageNum > 1 ? `${SITE_URL}/blog/${category}/page-${pageNum}` : `${SITE_URL}/blog/${category}` },
+    }
+  }
   const parsed = parseSlugWithId(slugWithId)
   if (!parsed) return {}
   const blog = await getBlogBySlugAndId(parsed.slug, parsed.id)
@@ -41,6 +55,17 @@ import { blogService } from '@/backend'
 
 export default async function BlogDetailPage({ params }: Props) {
   const { category, slugWithId } = await params
+  const pageMatch = slugWithId.match(/^page-(\d+)$/)
+  if (pageMatch) {
+    const pageNum = Number.parseInt(pageMatch[1], 10) || 1
+    const result = await blogService.getBlogsByCategory(category, pageNum, 12)
+    if (!result) notFound()
+    if (result?.pagination?.last_page && pageNum > result.pagination.last_page) {
+      redirect(`/blog/${category}`)
+    }
+    return <BlogListClient initialCategory={category} initialData={result} />
+  }
+
   const parsed = parseSlugWithId(slugWithId)
   if (!parsed) notFound()
 

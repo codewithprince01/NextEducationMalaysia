@@ -7,13 +7,14 @@ import {
  */
 async function getHandler(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params;
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('per_page') || searchParams.get('limit') || '12');
 
-  const result = await blogService.getBlogsByCategory(params.slug, page, limit);
+  const result = await blogService.getBlogsByCategory(slug, page, limit);
   if (!result) throw new NotFoundError('Blog category not found');
   
   return apiSuccess(result.data, 'Blogs by category fetched successfully', 200, {

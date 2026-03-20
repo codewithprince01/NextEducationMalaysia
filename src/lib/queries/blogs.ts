@@ -5,7 +5,7 @@ import { serializeBigInt } from '@/lib/utils'
 export const getAllBlogSlugs = unstable_cache(
   () =>
     prisma.blog.findMany({
-      where: { status: true as any },
+      where: { status: 1 as any },
       select: { id: true, slug: true, category: { select: { category_slug: true } } },
     }).then((rows: any[]) =>
       rows
@@ -22,7 +22,7 @@ export const getAllBlogSlugs = unstable_cache(
 export const getBlogBySlugAndId = unstable_cache(
   (slug: string, id: number) =>
     prisma.blog.findFirst({
-      where: { slug, id, status: true as any },
+      where: { slug, id, status: 1 as any },
       include: {
         category: true,
         author: true,
@@ -38,7 +38,7 @@ export const getBlogsByCategory = unstable_cache(
   (categorySlug: string, page = 1, perPage = 12) =>
     prisma.blog.findMany({
       where: {
-        status: true as any,
+        status: 1 as any,
         category: { category_slug: categorySlug },
       },
       select: {
@@ -62,7 +62,7 @@ export const getBlogsByCategory = unstable_cache(
 export const getRecentBlogs = unstable_cache(
   (limit = 6) =>
     prisma.blog.findMany({
-      where: { status: true as any },
+      where: { status: 1 as any },
       select: {
         id: true,
         headline: true,
@@ -82,12 +82,12 @@ export const getRecentBlogs = unstable_cache(
 export const getBlogCategories = unstable_cache(
   () =>
     prisma.blogCategory.findMany({
-      where: { status: true as any },
+      where: { status: 1 as any },
       select: {
         id: true,
         category_name: true,
         category_slug: true,
-        _count: { select: { blogs: { where: { status: true as any } } } },
+        _count: { select: { blogs: { where: { status: 1 as any } } } },
       },
     }).then(serializeBigInt),
   ['blog-categories'],

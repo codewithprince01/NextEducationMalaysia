@@ -7,9 +7,10 @@ import {
  */
 async function getHandler(
   req: NextRequest,
-  { params }: { params: { categorySlug: string, slug: string } }
+  { params }: { params: Promise<{ categorySlug: string, slug: string }> }
 ) {
-  const result = await blogService.getBlogDetail(params.categorySlug, params.slug);
+  const { categorySlug, slug } = await params;
+  const result = await blogService.getBlogDetail(categorySlug, slug);
   if (!result) throw new NotFoundError('Blog not found');
   
   return apiSuccess(result.data, 'Blog details fetched successfully', 200, {

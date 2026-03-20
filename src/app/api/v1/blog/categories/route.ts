@@ -10,7 +10,7 @@ import { serializeBigInt } from '@/lib/utils';
  */
 async function getHandler(req: NextRequest) {
   const categories = await prisma.blogCategory.findMany({
-    where: { status: true as any },
+    where: { status: 1 as any },
     select: {
       id: true,
       category_name: true,
