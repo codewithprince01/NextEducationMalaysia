@@ -17,7 +17,6 @@ export const getScholarshipBySlug = unstable_cache(
       where: { slug },
       include: {
         contents: { orderBy: { id: 'asc' } },
-        faqs: { orderBy: { id: 'asc' } },
       },
     }).then(serializeBigInt),
   ['scholarship-detail'],

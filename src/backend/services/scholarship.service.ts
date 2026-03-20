@@ -48,9 +48,6 @@ export class ScholarshipService {
       include: {
         contents: {
           orderBy: { position: 'asc' }
-        },
-        faqs: {
-          orderBy: { id: 'asc' }
         }
       }
     });
