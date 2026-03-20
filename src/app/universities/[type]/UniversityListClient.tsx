@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { Loader2, X, ChevronDown, Search } from 'lucide-react'
 import UniversityListCard from '@/components/university/UniversityListCard'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 type Uni = { id: number } & Record<string, any>
 type FilterOptions = { id: number; name: string }[]
@@ -104,7 +105,6 @@ export default function UniversityListClient({
   const [lastPage, setLastPage] = useState(1)
   const [perPage] = useState(21)
   const [isLoading, setIsLoading] = useState(!initialData.length)
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
   const [showMore, setShowMore] = useState(false)
 
   // Filters
@@ -128,7 +128,7 @@ export default function UniversityListClient({
         return
       } catch {}
     }
-    fetch(`${API_BASE}/universities/filters?type=${typeSlug}`)
+    fetch(`${API_BASE}/universities/filters?type=${typeSlug}`, { headers: { 'x-api-key': API_KEY } })
       .then(r => r.ok ? r.json() : null)
       .then(d => {
         if (!d) return
@@ -163,7 +163,7 @@ export default function UniversityListClient({
       if (itype) params.append('institute_type', itype)
       params.append('type_slug', typeSlug)
 
-      const res = await fetch(`${API_BASE}/universities/universities-in-malaysia?${params}`)
+      const res = await fetch(`${API_BASE}/universities/universities-in-malaysia?${params}`, { headers: { 'x-api-key': API_KEY } })
       if (!res.ok) throw new Error()
       const json = await res.json()
       const data = json?.data?.data || json?.data || []
@@ -217,21 +217,21 @@ export default function UniversityListClient({
 
   return (
     <div className="bg-white">
-      <div className="container mx-auto px-4 py-10">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Type Nav */}
         {allTypes.length > 0 && (
-          <nav className="flex gap-2 flex-wrap mb-6">
-            <Link href="/universities" className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium hover:border-blue-500 hover:text-blue-600 transition-all">
+          <nav className="flex gap-2.5 flex-wrap mb-8">
+            <Link href="/universities" className="px-5 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-bold text-gray-700 hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm">
               All Universities
             </Link>
             {allTypes.map(t => (
               <Link
                 key={t.id}
                 href={`/universities/${t.seo_title_slug || t.slug}`}
-                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm ${
                   (t.seo_title_slug || t.slug) === typeSlug
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white border border-gray-200 hover:border-blue-500 hover:text-blue-600'
+                    ? 'bg-blue-600 text-white border border-blue-600'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:border-blue-500 hover:text-blue-600'
                 }`}
               >
                 {t.type}
@@ -240,71 +240,73 @@ export default function UniversityListClient({
           </nav>
         )}
 
-        {/* Heading */}
-        <div className="mb-3 min-h-[80px] md:min-h-[100px]">
-          <h1 className="text-2xl md:text-4xl font-black text-[#0f172a] leading-tight mb-2">
+        {/* Header Section */}
+        <header className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-2 tracking-tight">
             {typeName}
           </h1>
-          <p className="text-gray-500 text-lg">
-            Found <span className="text-[#2563eb] font-bold">{total}</span> universities matching your criteria.
+          <p className="text-lg text-gray-600 font-medium">
+            Found <span className="text-blue-600 font-bold">{total}</span> universities matching your criteria.
           </p>
-        </div>
-
-        {/* Collapsible description box */}
-        {pageContent && (
-          <>
-            <div
-              className="border border-gray-200 rounded-xl p-4 md:p-6 mb-3 relative"
-              style={showMore ? { height: 'auto', overflow: 'visible' } : { height: 176, overflow: 'hidden' }}
-            >
+          
+          {/* Enhanced Description Box */}
+          {pageContent && (
+            <div className={`bg-blue-50/80 border border-blue-200 rounded-2xl p-5 md:p-8 mt-6 relative shadow-sm transition-all duration-500 ${showMore ? 'max-h-none' : 'max-h-[300px] overflow-hidden'}`}>
               <div className="text-gray-700 text-sm leading-relaxed">
                 {showMore && (
                   <button
                     onClick={() => setShowMore(false)}
-                    className="absolute top-3 right-3 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all z-10 cursor-pointer"
+                    className="absolute top-4 right-4 p-2 text-red-500 bg-white hover:bg-red-50 border border-red-100 rounded-full transition-all z-20 shadow-sm cursor-pointer"
                     title="Collapse"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 )}
-                <p className="text-lg md:text-xl font-bold text-[#0f172a] mb-2 md:mb-3">{staticHeading}</p>
-                <div className={showMore ? 'max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200' : 'line-clamp-3 text-gray-600'}>
+                <h3 className="text-xl md:text-2xl font-black text-gray-900 mb-4 tracking-tight leading-snug">{staticHeading}</h3>
+                <div className={`relative transition-all duration-500 ${showMore ? '' : 'line-clamp-4 md:line-clamp-3 text-gray-600'}`}>
                   {showMore ? (
                     <div
-                      className="prose prose-sm max-w-none text-gray-600"
+                      className="prose prose-blue prose-sm max-w-none text-gray-600 font-medium
+                        [&>p]:mb-4 [&>p]:leading-relaxed
+                        [&>ul]:mb-4 [&>ul]:list-disc [&>ul]:pl-5
+                        [&>ol]:mb-4 [&>ol]:list-decimal [&>ol]:pl-5
+                        [&>h1]:text-2xl [&>h1]:font-black [&>h1]:mb-3 [&>h1]:text-gray-900
+                        [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-2 [&>h2]:text-gray-800
+                        [&>h3]:text-lg [&>h3]:font-bold [&>h3]:mb-2 [&>h3]:text-gray-800"
                       dangerouslySetInnerHTML={{ __html: pageContent.replace(/<h[1-3][^>]*>.*?<\/h[1-3]>/gi, '') }}
                     />
                   ) : plainText}
                 </div>
               </div>
+              
+              {hasLongContent && (
+                <div className={`pt-4 ${showMore ? '' : 'absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-blue-50/90 via-blue-50/40 to-transparent flex justify-center'}`}>
+                  <button
+                    onClick={() => setShowMore(!showMore)}
+                    className="flex items-center gap-1.5 text-blue-600 text-sm font-bold hover:underline cursor-pointer bg-white px-5 py-2 rounded-full shadow-md border border-blue-100 transition-transform active:scale-95"
+                  >
+                    {showMore ? <>Show Less <ChevronDown className="h-4 w-4 rotate-180 transition-transform" /></> : <>Show More <ChevronDown className="h-4 w-4 transition-transform" /></>}
+                  </button>
+                </div>
+              )}
             </div>
-            {hasLongContent && (
-              <div className="mb-6">
-                <button
-                  onClick={() => setShowMore(!showMore)}
-                  className="flex items-center gap-1 text-[#2563eb] text-sm font-medium hover:underline cursor-pointer"
-                >
-                  {showMore ? <>Show Less <ChevronDown className="rotate-180 transition-transform" /></> : <>Show More <ChevronDown className="transition-transform" /></>}
-                </button>
-              </div>
-            )}
-          </>
-        )}
+          )}
+        </header>
 
         {/* Search and Filter Bar */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 mb-8 flex-wrap">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-10 p-4 bg-gray-50/50 rounded-2xl border border-gray-200/60 shadow-sm">
           <div className="relative grow">
-            <Search className="absolute top-1/2 left-3 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute top-1/2 left-4 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="search"
               placeholder="Search university by name..."
               value={search}
               onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm font-medium transition-all"
             />
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             {instituteTypes.length > 0 && (
               <Dropdown
                 title="Institute Type"
@@ -324,7 +326,7 @@ export default function UniversityListClient({
             )}
             <button
               onClick={handleReset}
-              className="shrink-0 px-6 py-2.5 bg-[#2563eb] text-white rounded-lg hover:bg-[#1d4ed8] transition-colors text-sm font-semibold cursor-pointer"
+              className="shrink-0 px-8 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 active:bg-blue-700 transition-all text-sm font-bold shadow-md hover:shadow-lg cursor-pointer transform active:scale-95"
             >
               Reset
             </button>
@@ -336,15 +338,15 @@ export default function UniversityListClient({
           {isLoading && !universities.length ? (
             <CardSkeleton />
           ) : !isLoading && universities.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
-              <div className="mb-6 inline-flex p-4 bg-blue-50 rounded-full">
-                <Loader2 className="w-12 h-12 text-blue-300 animate-spin" />
+            <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-gray-200">
+              <div className="mb-6 inline-flex p-5 bg-blue-50 rounded-full">
+                <Search className="w-12 h-12 text-blue-400" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">No universities found</h3>
-              <p className="text-gray-500 max-w-sm mx-auto">Try adjusting your search or filters to find what you&apos;re looking for.</p>
+              <h3 className="text-2xl font-black text-gray-900 mb-2">No universities found</h3>
+              <p className="text-gray-500 max-w-xs mx-auto font-medium text-sm">Try adjusting your search or filters to find what you&apos;re looking for.</p>
             </div>
           ) : (
-            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
               {universities.map((uni, index) => (
                 <UniversityListCard
                   key={uni.id}
@@ -357,32 +359,28 @@ export default function UniversityListClient({
 
           {/* Pagination */}
           {lastPage > 1 && !isLoading && (
-            <div className="mt-10 mb-16">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="text-sm sm:text-base text-gray-700 font-medium">
-                    Showing <span className="font-bold text-blue-600">{startItem}</span>-
-                    <span className="font-bold text-blue-600">{endItem}</span> of{' '}
-                    <span className="font-bold text-blue-600">{total}</span> universities
+            <div className="mt-16 mb-20">
+              <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="text-sm text-gray-600 font-bold uppercase tracking-wider">
+                    Showing <span className="text-blue-600">{startItem}</span>—<span className="text-blue-600">{endItem}</span> of <span className="text-blue-600">{total}</span>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={() => handlePage(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className={`flex items-center gap-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
                         currentPage === 1
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg cursor-pointer'
+                          : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg cursor-pointer transform active:scale-95'
                       }`}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                      <span className="hidden sm:inline">Previous</span>
+                      <ChevronDown className="w-4 h-4 rotate-90" />
+                      <span className="hidden sm:inline">Prev</span>
                     </button>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       {[...Array(lastPage)].map((_, i) => {
                         const page = i + 1
                         const show = page === 1 || page === lastPage || (page >= currentPage - 1 && page <= currentPage + 1)
@@ -391,10 +389,10 @@ export default function UniversityListClient({
                           <button
                             key={page}
                             onClick={() => handlePage(page)}
-                            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg font-bold text-sm sm:text-base transition-all duration-200 cursor-pointer ${
+                            className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl font-black text-sm transition-all duration-300 cursor-pointer ${
                               currentPage === page
-                                ? 'bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-110 ring-2 ring-blue-300'
-                                : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-md'
+                                ? 'bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-110 ring-4 ring-blue-500/20'
+                                : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600'
                             }`}
                           >{page}</button>
                         )
@@ -406,16 +404,14 @@ export default function UniversityListClient({
                     <button
                       onClick={() => handlePage(currentPage + 1)}
                       disabled={currentPage === lastPage}
-                      className={`flex items-center gap-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
                         currentPage === lastPage
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg cursor-pointer'
+                          : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg cursor-pointer transform active:scale-95'
                       }`}
                     >
                       <span className="hidden sm:inline">Next</span>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      <ChevronDown className="w-4 h-4 -rotate-90" />
                     </button>
                   </div>
                 </div>

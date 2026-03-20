@@ -1,5 +1,6 @@
-import { prisma } from '@/lib/db'
+import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
+import { serializeBigInt } from '@/lib/utils'
 
 export const getAllCourseCategorySlugs = unstable_cache(
   () =>
@@ -24,7 +25,7 @@ export const getCourseCategory = unstable_cache(
           orderBy: { name: 'asc' },
         },
       },
-    }),
+    }).then(serializeBigInt),
   ['course-category-detail'],
   { revalidate: 86400, tags: ['course'] },
 )
@@ -41,7 +42,7 @@ export const getAllCourseCategories = unstable_cache(
         _count: { select: { programs: { where: { status: true as any } } } },
       },
       orderBy: { name: 'asc' },
-    }),
+    }).then(serializeBigInt),
   ['all-course-categories'],
   { revalidate: 86400 },
 )
@@ -51,7 +52,7 @@ export const getLevels = unstable_cache(
     prisma.level.findMany({
       select: { id: true, level: true, slug: true },
       orderBy: { id: 'asc' },
-    }),
+    }).then(serializeBigInt),
   ['levels'],
   { revalidate: 86400 },
 )
@@ -66,7 +67,7 @@ export const getProgramBySlug = unstable_cache(
         courseSpecialization: { select: { name: true, slug: true } },
         contents: { orderBy: { id: 'asc' } },
       },
-    }),
+    }).then(serializeBigInt),
   ['program-detail'],
   { revalidate: 86400 },
 )

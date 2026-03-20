@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Star, CheckCircle, MessageSquare, Quote, Users } from 'lucide-react'
+import { Star, CheckCircle } from 'lucide-react'
 
 interface Review {
   id: number
@@ -17,6 +17,70 @@ interface Review {
 interface ReviewStats {
   total_reviews: number
   average_rating: string
+}
+
+const ReviewCard = ({ review }: { review: Review }) => {
+  return (
+    <div className="bg-white rounded-md border border-gray-200 p-4 mb-4 relative shadow-sm font-sans">
+      {/* Floating Score */}
+      <div className="absolute top-4 right-4 bg-[#0a1d37] text-white font-bold text-lg px-3 py-1 rounded">
+        {review.rating}
+      </div>
+
+      <div className="flex items-center gap-3 mb-2">
+        {/* Avatar */}
+        <div className="w-12 h-12 rounded-full bg-[#0a1d37] flex items-center justify-center text-white text-xl font-bold shrink-0">
+          {review.name.charAt(0).toUpperCase()}
+        </div>
+
+        {/* Name + Verified + Stars */}
+        <div>
+          <div className="flex items-center gap-1 text-lg font-semibold text-gray-800">
+            {review.name}
+            <CheckCircle className="text-green-600 fill-green-600/10" size={16} />
+          </div>
+          <div className="flex items-center text-green-600 text-sm mt-1">
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  className={i < review.rating ? "text-green-600 fill-green-600" : "text-gray-300"}
+                />
+              ))}
+            </div>
+            <span className="ml-2 text-gray-600 text-xs whitespace-nowrap">✔ Verified Review</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Date */}
+      <p className="text-sm text-gray-500 mb-2">
+        Post on - {new Date(review.created_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        })} <span className="font-semibold text-gray-800">by {review.name}</span>
+      </p>
+
+      {/* Program & Year */}
+      {review.program && (
+        <p className="text-sm text-blue-600 font-medium mb-2">
+          {review.program} {review.passing_year && `(${review.passing_year})`}
+        </p>
+      )}
+
+      {/* Title */}
+      <h3 className="text-lg font-semibold text-gray-800 mb-1">
+        {review.review_title}
+      </h3>
+
+      {/* Body */}
+      <p className="text-gray-700 leading-relaxed text-sm">
+        {review.description}
+      </p>
+    </div>
+  )
 }
 
 export default function UniversityReviewsClient({ uname }: { uname: string }) {
@@ -44,107 +108,60 @@ export default function UniversityReviewsClient({ uname }: { uname: string }) {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-48 bg-gray-100 rounded-[2.5rem]" />
-        {[1, 2].map((i) => (
-          <div key={i} className="h-64 bg-gray-100 rounded-[2rem]" />
-        ))}
+      <div className="max-w-4xl mx-auto px-4 py-12 animate-pulse space-y-6">
+        <div className="h-40 bg-gray-100 rounded-lg" />
+        {[1, 2].map(i => <div key={i} className="h-48 bg-gray-50 rounded-lg" />)}
       </div>
     )
   }
 
-  if (reviews.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200">
-        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4 text-gray-300">
-          <MessageSquare className="w-8 h-8" />
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">No Reviews Yet</h3>
-        <p className="text-gray-500">Be the first to share your experience at this institution.</p>
-      </div>
-    )
-  }
+  if (reviews.length === 0) return null
 
   const avgRating = parseFloat(stats?.average_rating || '5')
   const ratingPercentage = Math.round((avgRating / 5) * 100)
 
   return (
-    <div className="space-y-12">
-      {/* Overview Stats Card */}
-      <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl -mr-32 -mt-32" />
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-blue-400">
-              <Users className="w-4 h-4" />
-              Student Voice
-            </div>
-            <h2 className="text-3xl font-black">Student Ratings <br />& Experiences</h2>
-            <div className="flex items-center gap-4">
-              <div className="text-5xl font-black text-blue-500">{avgRating}</div>
-              <div className="space-y-1">
-                <div className="flex text-yellow-400">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className={`w-5 h-5 ${s <= Math.round(avgRating) ? 'fill-current' : 'text-gray-600'}`} />
-                  ))}
-                </div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-tight">Based on {stats?.total_reviews} Verified Reviews</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] backdrop-blur-sm">
-             <div className="text-4xl font-black text-blue-500 mb-2">{ratingPercentage}%</div>
-             <p className="text-lg font-bold">Recommended Institution</p>
-             <p className="text-slate-400 text-sm mt-2">Percentage of students who would recommend this college to others based on their academic journey.</p>
-          </div>
+    <div className="max-w-4xl mx-auto px-4 py-8 font-sans">
+      {/* Top Section */}
+      <div className="text-center mb-10">
+        <h2 className="text-3xl font-bold text-[#0a1d37] mb-3">
+          Rating and Reviews
+        </h2>
+        <div className="flex justify-center items-center gap-1.5 mb-2">
+          {[...Array(5)].map((_, i) => (
+            <Star
+              key={i}
+              size={24}
+              className={i < Math.round(avgRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+            />
+          ))}
+          <span className="text-xl font-bold ml-2 text-gray-800">
+            {stats?.average_rating || "5.0"} out of 5
+          </span>
+        </div>
+        <p className="text-gray-600 font-medium">
+          Based on {stats?.total_reviews || reviews.length} Review
+          {(stats?.total_reviews || reviews.length) > 1 ? "s" : ""}
+        </p>
+        <div className="mt-3">
+          <p className="font-bold text-gray-800 text-lg">
+            {ratingPercentage}% Reviewer
+          </p>
+          <p className="text-gray-500">Recommends this college</p>
         </div>
       </div>
 
       {/* Reviews List */}
-      <div className="space-y-8">
-        <div className="flex items-center justify-between">
-           <h3 className="text-xl font-black text-gray-900">Recent Testimonials</h3>
-           <div className="text-xs font-bold text-blue-600 uppercase tracking-widest px-4 py-2 bg-blue-50 rounded-full">Showing {reviews.length} results</div>
-        </div>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-gray-800">
+          Showing {reviews.length} Review{reviews.length > 1 ? "s" : ""}
+        </h3>
+      </div>
 
-        <div className="grid grid-cols-1 gap-6">
-          {reviews.map((review) => (
-            <div key={review.id} className="group bg-white border border-gray-100 rounded-[2rem] p-8 shadow-xl shadow-blue-900/5 hover:border-blue-200 transition-all relative">
-              <div className="absolute top-8 right-8 w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center font-black text-blue-700">
-                {review.rating}
-              </div>
-              
-              <div className="flex gap-4 mb-6">
-                 <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-xl">
-                    {review.name.charAt(0)}
-                 </div>
-                 <div>
-                    <div className="flex items-center gap-2">
-                       <h4 className="font-black text-gray-900">{review.name}</h4>
-                       <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    </div>
-                    <p className="text-sm font-bold text-gray-400">
-                       {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                    </p>
-                 </div>
-              </div>
-
-              {review.program && (
-                <p className="inline-flex items-center gap-2 px-4 py-1.5 bg-gray-50 text-gray-500 rounded-full text-xs font-bold mb-6">
-                   {review.program} {review.passing_year && `• Class of ${review.passing_year}`}
-                </p>
-              )}
-
-              <div className="space-y-4">
-                 <h5 className="text-lg font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{review.review_title}</h5>
-                 <div className="relative">
-                    <Quote className="w-8 h-8 text-blue-50/50 absolute -top-4 -left-4" />
-                    <p className="text-gray-600 leading-relaxed relative z-10">{review.description}</p>
-                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="space-y-4">
+        {reviews.map((review) => (
+          <ReviewCard key={review.id} review={review} />
+        ))}
       </div>
     </div>
   )

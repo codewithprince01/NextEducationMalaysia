@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { apiSuccess, serializeBigInt } from '@/backend'
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,11 +56,11 @@ export async function GET(request: NextRequest) {
 
     const overallTotal = yearsData.reduce((sum, y) => sum + y.total, 0)
 
-    return NextResponse.json({
+    return apiSuccess(serializeBigInt({
       overall_total: overallTotal,
       years: yearsData
-    })
-  } catch (err) {
+    }))
+  } catch (err: any) {
     console.error('[Nationality Stats API]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

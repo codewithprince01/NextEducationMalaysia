@@ -6,15 +6,15 @@ import StudyJourney from '@/components/home/StudyJourney'
 import UniversitySliderClient from '@/components/home/UniversitySliderClient'
 import MalaysiaSection from '@/components/home/MalaysiaSection'
 import Culture from '@/components/home/Culture'
+import MalaysiaInfo from '@/components/home/MalaysiaInfo'
 import ProgrammeSelector from '@/components/home/ProgrammeSelector'
+import FieldStudyClient from '@/components/home/FieldStudyClient'
+import NationalityStatsClient from '@/components/home/NationalityStatsClient'
 import RankingTable from '@/components/home/RankingTable'
 import TestimonialSlider from '@/components/home/TestimonialSlider'
 import type { Testimonial } from '@/components/home/TestimonialSlider'
-import FieldStudyClient from '@/components/home/FieldStudyClient'
-import NationalityStatsClient from '@/components/home/NationalityStatsClient'
-import EducationSystem from '@/components/home/EducationSystem'
-import UniversityRankingTableClient from '@/components/home/UniversityRankingTableClient'
-import TestimonialSliderClient from '@/components/home/TestimonialSliderClient'
+import LazySection from '@/components/ui/LazySection'
+import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
 
@@ -41,11 +41,13 @@ async function getHomeData() {
 async function getTestimonials(): Promise<Testimonial[]> {
   try {
     const { prisma } = await import('@/lib/db')
-    return (await (prisma as any).testimonial.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const testimonialModel = (prisma as any).testimonial
+    return await testimonialModel.findMany({
       where: { status: true },
       select: { id: true, name: true, review: true, country: true, program: true, university: true },
       take: 10,
-    })) as Testimonial[]
+    }) as Testimonial[]
   } catch {
     return []
   }
@@ -73,40 +75,76 @@ export default async function Home() {
 
       {/* University slider — SSR data → client Swiper */}
       {featuredUniversities.length > 0 && (
-        <section>
-          <UniversitySliderClient universities={featuredUniversities as any[]} />
-        </section>
+        <LazySection>
+          <ErrorBoundary>
+            <UniversitySliderClient universities={featuredUniversities} />
+          </ErrorBoundary>
+        </LazySection>
       )}
 
       {/* Why Malaysia + stats + education pathway */}
-      <MalaysiaSection />
+      <LazySection>
+        <ErrorBoundary>
+          <MalaysiaSection />
+        </ErrorBoundary>
+      </LazySection>
 
       {/* Culture info cards + About Malaysia grid */}
-      <Suspense fallback={<Skeleton />}>
-        <Culture />
-      </Suspense>
+      <LazySection>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton />}>
+            <Culture />
+          </Suspense>
+        </ErrorBoundary>
+      </LazySection>
 
       {/* Educational System — Academic pathway visualization */}
-      <EducationSystem />
+      <LazySection>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton />}>
+            <MalaysiaInfo />
+          </Suspense>
+        </ErrorBoundary>
+      </LazySection>
 
       {/* Favourite programme selector */}
-      <Suspense fallback={<Skeleton />}>
-        <ProgrammeSelector />
-      </Suspense>
+      <LazySection>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton />}>
+            <ProgrammeSelector />
+          </Suspense>
+        </ErrorBoundary>
+      </LazySection>
 
       {/* EMGS Field Study Dashboard — Interactive enrollment trends */}
-      <FieldStudyClient />
+      <LazySection>
+        <ErrorBoundary>
+          <FieldStudyClient />
+        </ErrorBoundary>
+      </LazySection>
 
       {/* EMGS Nationality Trends — Global enrollment footprint */}
-      <NationalityStatsClient />
+      <LazySection>
+        <ErrorBoundary>
+          <NationalityStatsClient />
+        </ErrorBoundary>
+      </LazySection>
 
       {/* University rankings table */}
-      <Suspense fallback={<Skeleton />}>
-        <RankingTable />
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<Skeleton />}>
+          <RankingTable />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Student testimonials */}
-      {testimonials.length > 0 && <TestimonialSlider testimonials={testimonials} />}
+      {testimonials.length > 0 && (
+        <LazySection>
+          <ErrorBoundary>
+            <TestimonialSlider testimonials={testimonials} />
+          </ErrorBoundary>
+        </LazySection>
+      )}
     </main>
   )
 }

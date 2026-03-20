@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   BookOpen,
   Calendar,
@@ -10,156 +10,167 @@ import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
-  Loader2,
-  AlertCircle
-} from 'lucide-react'
+} from "lucide-react";
+import { Skeleton, FieldStudySkeleton } from "../ui/Skeleton";
 
-// --- Types ---
-
-type StatItem = {
-  category_id: number
-  category: string | null
-  slug: string | null
-  color: string | null
-  count: number
+interface YearItem {
+  category_id: number;
+  category: string;
+  slug: string;
+  count: number;
+  color: string;
 }
 
-type YearData = {
-  year: number
-  total: number
-  items: StatItem[]
+interface YearData {
+  year: number;
+  total: number;
+  items: YearItem[];
 }
 
-type StatsResponse = {
-  overall_total: number
-  years: YearData[]
+interface StatsData {
+  overall_total: number;
+  years: YearData[];
 }
-
-type Category = {
-  id: number
-  category_name: string
-  color_class: string | null
-}
-
-// --- Skeleton Component ---
-
-const Skeleton = ({ className }: { className?: string }) => (
-  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
-)
-
-const FieldStudySkeleton = () => (
-  <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 space-y-8">
-    <div className="max-w-7xl mx-auto space-y-8">
-      <div className="flex flex-col items-center space-y-4">
-        <Skeleton className="w-16 h-16 rounded-xl" />
-        <Skeleton className="w-2/3 h-10" />
-        <Skeleton className="w-1/2 h-6" />
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-2xl" />)}
-      </div>
-      <Skeleton className="h-64 rounded-2xl" />
-    </div>
-  </div>
-)
-
-// --- Main Component ---
 
 export default function FieldStudyClient() {
-  const [years, setYears] = useState<number[]>([])
-  const [selectedYears, setSelectedYears] = useState<number[]>([])
-  const [allCategories, setAllCategories] = useState<any[]>([])
-  const [statsData, setStatsData] = useState<StatsResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
-  
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const [years, setYears] = useState<number[]>([]);
+  const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [showFilters, setShowFilters] = useState(true);
+  const [statsData, setStatsData] = useState<StatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        setLoading(true)
-        const [yearsRes, categoriesRes, statsRes] = await Promise.all([
-          fetch('/api/emgs/years').then(r => r.json()),
-          fetch('/api/emgs/categories').then(r => r.json()),
-          fetch('/api/emgs/stats').then(r => r.json())
-        ])
+        setLoading(true);
+        const [yearsRes, statsRes] = await Promise.all([
+          fetch('/api/emgs/years').then(res => res.json()),
+          fetch('/api/emgs/stats').then(res => res.json())
+        ]);
 
-        if (yearsRes.error || categoriesRes.error || statsRes.error) {
-          throw new Error('Failed to fetch data')
-        }
+        if (yearsRes.error) throw new Error(yearsRes.error);
+        if (statsRes.error) throw new Error(statsRes.error);
 
-        setYears(yearsRes)
-        setSelectedYears(yearsRes)
-        setStatsData(statsRes)
-        
-        // Extract categories with unique info
-        const catMap = new Map()
-        statsRes.years.forEach((y: YearData) => {
-          y.items.forEach(item => {
-            if (!catMap.has(item.category_id)) {
-              catMap.set(item.category_id, {
-                id: item.category_id,
-                name: item.category,
-                slug: item.slug,
-                color: item.color
-              })
-            }
-          })
-        })
-        setAllCategories(Array.from(catMap.values()).sort((a, b) => a.id - b.id))
-        
-        setLoading(false)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-        setLoading(false)
+        const yearsData = yearsRes.data || [];
+        setYears(yearsData);
+        setSelectedYears(yearsData);
+        setStatsData(statsRes.data);
+      } catch (err: any) {
+        console.error("Error fetching data:", err);
+        setError(err.message || "Failed to load data");
+      } finally {
+        setLoading(false);
       }
     }
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
-  const scrollLeft = () => scrollRef.current?.scrollBy({ left: -300, behavior: 'smooth' })
-  const scrollRight = () => scrollRef.current?.scrollBy({ left: 300, behavior: 'smooth' })
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -296, behavior: "smooth" });
+    }
+  };
 
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 296, behavior: "smooth" });
+    }
+  };
+
+  // Filter years based on selection
   const filteredYearsData = useMemo(() => {
-    if (!statsData) return []
-    return statsData.years.filter(y => selectedYears.includes(y.year))
-  }, [selectedYears, statsData])
+    if (!statsData || !statsData.years) return [];
+    return statsData.years.filter((yearData) =>
+      selectedYears.includes(yearData.year),
+    );
+  }, [selectedYears, statsData]);
 
+  // Calculate total applications
   const totalApplications = useMemo(() => {
-    return filteredYearsData.reduce((sum, y) => sum + y.total, 0)
-  }, [filteredYearsData])
+    return filteredYearsData.reduce((sum, yearData) => sum + yearData.total, 0);
+  }, [filteredYearsData]);
+
+  // Get all unique categories across all years
+  const allCategories = useMemo(() => {
+    if (!statsData || !statsData.years) return [];
+    const catMap = new Map();
+
+    statsData.years.forEach((yearData) => {
+      yearData.items.forEach((item) => {
+        if (!catMap.has(item.category_id)) {
+          catMap.set(item.category_id, {
+            id: item.category_id,
+            name: item.category,
+            slug: item.slug,
+            color: item.color,
+          });
+        }
+      });
+    });
+
+    return Array.from(catMap.values()).sort((a, b) => a.id - b.id);
+  }, [statsData]);
 
   const toggleYear = (year: number) => {
-    setSelectedYears(prev => {
-      if (prev.length === years.length) return [year]
-      if (prev.length === 1 && prev.includes(year)) return [...years].sort()
-      if (prev.includes(year)) {
-        const next = prev.filter(y => y !== year)
-        return next.length > 0 ? next : [year]
+    setSelectedYears((prev) => {
+      if (prev.length === years.length) {
+        return [year];
       }
-      return [...prev, year].sort()
-    })
-  }
+      if (prev.length === 1 && prev.includes(year)) {
+        return [...years].sort();
+      }
+      if (prev.includes(year)) {
+        const newSelection = prev.filter((y) => y !== year);
+        return newSelection.length > 0 ? newSelection : [year];
+      }
+      return [...prev, year].sort();
+    });
+  };
 
-  if (loading) return <FieldStudySkeleton />
+  if (loading) {
+    return <FieldStudySkeleton />;
+  }
 
   if (error) {
     return (
-      <div className="min-h-[400px] flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h3 className="text-xl font-bold text-gray-900 mb-2">Error Loading Stats</h3>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <button onClick={() => window.location.reload()} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-          Retry
-        </button>
+      <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-xl p-8 shadow-lg max-w-md text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
+            Error Loading Data
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {error || "Failed to load data"}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          >
+            Retry
+          </button>
+        </div>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 pb-16">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header Section */}
       <div className="bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -224,7 +235,8 @@ export default function FieldStudyClient() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-10">
         {/* Summary */}
         {selectedYears.length > 0 && (
           <div className="text-center">
@@ -244,7 +256,7 @@ export default function FieldStudyClient() {
             {allCategories.map((cat) => (
               <div key={cat.id} className="flex items-center gap-1.5 sm:gap-2">
                 <div
-                  className={`w-3 h-3 sm:w-4 sm:h-4 ${cat.color || 'bg-gray-400'} rounded shadow-sm`}
+                  className={`w-3 h-3 sm:w-4 sm:h-4 ${cat.color} rounded shadow-sm`}
                 ></div>
                 <span className="font-medium text-gray-700">{cat.name}</span>
               </div>
@@ -252,57 +264,125 @@ export default function FieldStudyClient() {
           </div>
         )}
 
-        {/* Year Row Cards with Arrow Navigation */}
-        <div className="relative group">
-          <button 
-            onClick={scrollLeft}
-            className="absolute -left-5 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hidden md:flex border border-gray-100 hover:bg-blue-600 hover:text-white transition-all scale-0 group-hover:scale-100"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          
-          <div 
-            ref={scrollRef}
-            className="flex gap-6 overflow-x-auto pb-6 pt-2 scrollbar-hide snap-x"
-          >
-            {filteredYearsData.map(y => (
-              <div 
-                key={y.year} 
-                className="w-80 shrink-0 bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/40 border border-white hover:shadow-2xl hover:translate-y-[-4px] transition-all snap-center"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="text-2xl font-black text-gray-900">{y.year}</div>
-                  <div className="px-3 py-1 bg-gray-50 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wider">
-                    {y.total.toLocaleString()} Total
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  {y.items.map((item, idx) => (
-                    <div key={idx} className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-bold text-gray-700 truncate max-w-[180px]">{item.category}</span>
-                        <span className="font-black text-gray-900">{item.count.toLocaleString()}</span>
+        {/* Year Cards with Arrows */}
+        {filteredYearsData.length > 0 ? (
+          <div className="relative">
+            {/* Left Arrow */}
+            <button
+              onClick={scrollLeft}
+              className="absolute -left-2 sm:left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-[#003893] hover:text-white transition-all duration-300 border border-gray-200 group"
+            >
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 group-hover:text-white" />
+            </button>
+
+            {/* Cards Container - No visible scrollbar */}
+            <div
+              ref={scrollRef}
+              className="overflow-x-scroll mx-10 sm:mx-14 scrollbar-hide"
+            >
+              <div className="flex gap-4 sm:gap-6">
+                {filteredYearsData.map((yearData) => (
+                  <div
+                    key={yearData.year}
+                    className="bg-white/80 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition w-[260px] sm:w-[280px] shrink-0"
+                  >
+                    <div className="text-center mb-3 sm:mb-4">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
+                        <span className="text-base sm:text-lg font-bold text-gray-900">
+                          {yearData.year}
+                        </span>
                       </div>
-                      <div className="w-full h-2 bg-gray-50 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${item.color || 'bg-blue-500'} rounded-full transition-all duration-1000`} 
-                          style={{ width: `${(item.count / y.total) * 100}%` }}
-                        />
+                      <div className="text-xs sm:text-sm text-gray-600">
+                        Total: {yearData.total.toLocaleString()}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-2 sm:space-y-3">
+                      {yearData.items.map((item, idx) => (
+                        <div
+                          key={`${yearData.year}-${item.category_id}-${idx}`}
+                          className="flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-1.5 sm:gap-2">
+                            <div
+                              className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${item.color} rounded`}
+                            ></div>
+                            <span className="text-xs text-gray-600 truncate">
+                              {item.category || "N/A"}
+                            </span>
+                          </div>
+                          <span className="text-xs sm:text-sm font-semibold text-gray-900">
+                            {item.count.toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
 
-          <button 
-            onClick={scrollRight}
-            className="absolute -right-5 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-xl items-center justify-center hidden md:flex border border-gray-100 hover:bg-blue-600 hover:text-white transition-all scale-0 group-hover:scale-100"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        </div>
+            {/* Right Arrow */}
+            <button
+              onClick={scrollRight}
+              className="absolute -right-2 sm:right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-[#003893] hover:text-white transition-all duration-300 border border-gray-200 group"
+            >
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 group-hover:text-white" />
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500">
+              No data available for selected years
+            </p>
+          </div>
+        )}
+
+        {/* Horizontal Chart */}
+        {filteredYearsData.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-8 shadow-lg overflow-x-auto">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-4 text-center">
+              Field Distribution by Year
+            </h3>
+            <div className="space-y-4 sm:space-y-6 min-w-[1000px] sm:min-w-0">
+              {filteredYearsData.map((yearData) => (
+                <div
+                  key={yearData.year}
+                  className="flex items-center gap-3 sm:gap-6"
+                >
+                  <div className="w-20 sm:w-24 text-base sm:text-lg font-bold text-gray-700 flex items-center shrink-0">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+                    {yearData.year}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex h-10 sm:h-12 bg-gray-100 rounded-lg overflow-hidden shadow-inner">
+                      {yearData.items.map((item, idx) => (
+                        <div
+                          key={`chart-${yearData.year}-${item.category_id}-${idx}`}
+                          className={`${item.color} flex items-center justify-center text-gray-800 text-[10px] sm:text-sm font-semibold transition hover:brightness-110 cursor-pointer overflow-hidden`}
+                          style={{
+                            width: `${(item.count / yearData.total) * 100}%`,
+                          }}
+                          title={`${item.category || "Unknown"}: ${item.count.toLocaleString()}`}
+                        >
+                          {/* Only show count if bar is wide enough to avoid clutter */}
+                          {(item.count / yearData.total) * 100 > 3 && (
+                            <span className="px-1 truncate">
+                              {item.count.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="w-20 sm:w-28 text-right text-base sm:text-lg font-bold text-gray-700 shrink-0">
+                    {yearData.total.toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Summary by Field */}
         {allCategories.length > 0 && totalApplications > 0 && (
@@ -328,26 +408,30 @@ export default function FieldStudyClient() {
                 };
               })
               .filter(Boolean)
-              .map(({ cat, total, percentage }: any) => (
-                <div
-                  key={cat.id}
-                  className="bg-white/90 backdrop-blur rounded-2xl p-3 sm:p-4 shadow hover:shadow-md transition-all flex flex-col items-center justify-center border border-gray-100 group"
-                >
+              .map((item) => {
+                if (!item) return null;
+                const { cat, total, percentage } = item;
+                return (
                   <div
-                    className={`w-8 h-8 sm:w-10 sm:h-10 ${cat.color} rounded-lg mb-2 shadow-sm group-hover:scale-110 transition-transform flex items-center justify-center`}
+                    key={cat.id}
+                    className="bg-white/90 backdrop-blur rounded-2xl p-3 sm:p-4 shadow hover:shadow-md transition-all flex flex-col items-center justify-center border border-gray-100 group"
                   >
-                    <span className="text-white text-xs font-bold">
-                      {percentage}%
-                    </span>
+                    <div
+                      className={`w-8 h-8 sm:w-10 sm:h-10 ${cat.color} rounded-lg mb-2 shadow-sm group-hover:scale-110 transition-transform flex items-center justify-center`}
+                    >
+                      <span className="text-white text-xs font-bold">
+                        {percentage}%
+                      </span>
+                    </div>
+                    <div className="text-lg sm:text-xl font-bold text-gray-800 leading-tight">
+                      {total.toLocaleString()}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-center text-gray-500 font-medium line-clamp-2 mt-1 px-1 h-8 flex items-center justify-center">
+                      {cat.name || "Unknown"}
+                    </div>
                   </div>
-                  <div className="text-lg sm:text-xl font-bold text-gray-800 leading-tight">
-                    {total.toLocaleString()}
-                  </div>
-                  <div className="text-[10px] sm:text-xs text-center text-gray-500 font-medium line-clamp-2 mt-1 px-1 h-8 flex items-center justify-center">
-                    {cat.name || "Unknown"}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         )}
 
@@ -389,7 +473,7 @@ export default function FieldStudyClient() {
                   <>
                     <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-lg text-center">
                       <div className="text-2xl sm:text-3xl font-bold text-emerald-600 mb-2">
-                        {socialSciFirst && socialSciLast
+                        {socialSciFirst && socialSciLast && socialSciFirst.count > 0
                           ? Math.round(
                               ((socialSciLast.count - socialSciFirst.count) /
                                 socialSciFirst.count) *
@@ -408,7 +492,7 @@ export default function FieldStudyClient() {
 
                     <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 sm:p-6 shadow-lg text-center">
                       <div className="text-2xl sm:text-3xl font-bold text-red-600 mb-2">
-                        {scienceFirst && scienceLast
+                        {scienceFirst && scienceLast && scienceFirst.count > 0
                           ? Math.round(
                               ((scienceLast.count - scienceFirst.count) /
                                 scienceFirst.count) *
@@ -442,14 +526,50 @@ export default function FieldStudyClient() {
             </div>
           </div>
         )}
+      </div>
 
-        <div className="text-center py-10">
-           <div className="inline-flex items-center gap-3 px-6 py-3 bg-white rounded-2xl shadow-md border border-gray-100">
-              <Globe className="w-5 h-5 text-blue-500 animate-spin-slow" />
-              <span className="text-gray-600 font-bold">Data provided by Education Malaysia Global Services (EMGS)</span>
-           </div>
+      {/* Footer Section - New in 1:1 Sync */}
+      <div className="bg-linear-to-r from-gray-50 to-blue-50 border-t border-gray-200 mt-12 pb-12">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-linear-to-r from-[#003893] to-[#003893] rounded-2xl mb-4 sm:mb-6 shadow-xl">
+            <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+            Education Malaysia Global Services
+          </h2>
+          <p className="text-base sm:text-xl text-gray-600 mb-6 sm:mb-10 max-w-3xl mx-auto px-4">
+            Comprehensive data insights into international student applications
+            and field of study preferences in Malaysia.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 max-w-4xl mx-auto">
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-lg border border-white/50">
+              <div className="text-2xl sm:text-3xl font-bold text-[#003893] mb-2">
+                {years.length}
+              </div>
+              <div className="text-sm sm:text-base text-gray-700 font-medium">
+                Years of Data
+              </div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-lg border border-white/50">
+              <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">
+                {allCategories.length}
+              </div>
+              <div className="text-sm sm:text-base text-gray-700 font-medium">
+                Fields of Study
+              </div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 shadow-lg border border-white/50">
+              <div className="text-2xl sm:text-3xl font-bold text-indigo-600 mb-2">
+                {statsData?.overall_total?.toLocaleString() || 0}
+              </div>
+              <div className="text-sm sm:text-base text-gray-700 font-medium">
+                Total Applications
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

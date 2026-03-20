@@ -196,7 +196,7 @@ export default function MalaysiaSection() {
               Education System in Malaysia
             </h2>
             <p className="text-slate-600 text-sm sm:text-base max-w-6xl mx-auto leading-relaxed px-2 sm:px-4 text-justify">
-              Malaysia's education system offers accessible, high-quality learning from early childhood to higher education, guided by strong national standards and global benchmarks. Both Malaysian and international students benefit from structured academic pathways, modern teaching approaches, and flexible opportunities for lifelong learning.
+              Malaysia's education system offers accessible, high-quality learning from early childhood to higher education, guided by strong national standards and global benchmarks. Both Malaysian and international students benefit from structured academic pathways, modern teaching approaches, and flexible opportunities for lifelong learning. With its focus on innovation and inclusivity, Malaysia continues to grow as one of Asia's leading education hubs.
             </p>
           </div>
           <div className="text-center mb-5 md:mb-6">

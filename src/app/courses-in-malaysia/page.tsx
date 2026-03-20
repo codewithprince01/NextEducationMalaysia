@@ -10,52 +10,58 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/courses-in-malaysia` },
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+import { malaysiaDiscoveryService } from '@/backend'
 
 export default async function CoursesPage({ searchParams }: { searchParams: Promise<any> }) {
   const params = await searchParams
-  const page = params.page || '1'
+  const page = params.page ? parseInt(params.page) : 1
   
-  // Build query for initial fetch
-  const qs = new URLSearchParams()
-  qs.set('page', String(page))
-  qs.set('per_page', '10')
-  qs.set('sort_by', params.sort_by || 'rating')
-  if (params.search) qs.set('search', params.search)
-  
-  // Pass list filters if present
-  const filterKeys = ['levels', 'categories', 'specializations', 'intakes', 'study_modes']
-  filterKeys.forEach(key => {
-    const val = params[key]
-    if (Array.isArray(val)) val.forEach(v => qs.append(`${key}[]`, v))
-    else if (val) qs.append(`${key}[]`, val)
+  // Extract first value from potential arrays for filter slugs
+  const getFirst = (val: any) => Array.isArray(val) ? val[0] : val
+
+  // Fetch data directly from service (bypasses API Key/Network issues in RSC)
+  const result = await malaysiaDiscoveryService.getCoursesInMalaysia({
+    level: getFirst(params.levels),
+    category: getFirst(params.categories),
+    specialization: getFirst(params.specializations),
+    study_mode: getFirst(params.study_modes),
+    intake: getFirst(params.intakes),
+    search: params.search,
+    page: page
   })
 
-  // Fetch in parallel
-  const [filtersRes, coursesRes] = await Promise.all([
-    fetch(`${API_BASE}/courses/filters`, { next: { revalidate: 86400 } }),
-    fetch(`${API_BASE}/courses?${qs.toString()}`, { next: { revalidate: 3600 } })
-  ])
-
-  let filterData = {}
-  let coursesData = null
-
-  try {
-    const fJson = await filtersRes.json()
-    filterData = fJson.data || fJson
-    
-    const cJson = await coursesRes.json()
-    coursesData = cJson.data || cJson
-  } catch (e) {
-    console.error('Failed to fetch initial course data:', e)
+  const filterData = result.filters
+  const coursesData = {
+    data: result.rows.data,
+    pagination: {
+      total: result.rows.total,
+      current_page: result.rows.current_page,
+      per_page: result.rows.per_page,
+      last_page: result.rows.last_page,
+    },
+    // Adding fallbacks matching client component checks
+    courses: {
+      data: result.rows.data,
+      total: result.rows.total,
+      current_page: result.rows.current_page,
+      last_page: result.rows.last_page,
+    },
+    filters: result.filters,
+    current_filters: result.current_filters,
+    seo: result.seo,
+    nou: result.nou,
+    noc: result.noc
   }
 
   return (
     <CoursesListClient 
       initialFilterData={filterData} 
       initialCoursesData={coursesData}
-      initialLevel={params.levels}
-      initialCategory={params.categories}
+      initialLevel={params.levels || params.level}
+      initialCategory={params.categories || params.category}
+      initialSpecialization={params.specializations || params.specialization}
+      initialStudyMode={params.study_modes || params.study_mode}
+      initialIntake={params.intakes || params.intake}
     />
   )
 }

@@ -13,6 +13,7 @@ import {
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import { getServiceBySlug } from '@/lib/queries/resources'
 import { resolveServiceMeta } from '@/lib/seo/metadata'
+import { serializeBigInt } from '@/lib/utils'
 
 interface Params { params: Promise<{ slug: string }> }
 
@@ -751,7 +752,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function ServiceDetailPage({ params }: Params) {
   const { slug } = await params
-  const service = await getServiceBySlug(slug)
+  const serviceData = await getServiceBySlug(slug)
+  const service = serializeBigInt(serviceData) as any
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },

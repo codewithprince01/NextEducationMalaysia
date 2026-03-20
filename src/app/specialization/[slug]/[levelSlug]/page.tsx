@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getSpecializationLevel } from '@/lib/queries/specializations'
 import { SITE_URL } from '@/lib/constants'
+import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 86400
 
@@ -18,8 +19,10 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function SpecializationLevelPage({ params }: Props) {
   const { slug, levelSlug } = await params
-  const level = await getSpecializationLevel(slug, levelSlug)
-  if (!level) notFound()
+  const levelData = await getSpecializationLevel(slug, levelSlug)
+  if (!levelData) notFound()
+
+  const level = serializeBigInt(levelData)
 
   return (
     <main className="container mx-auto py-6">

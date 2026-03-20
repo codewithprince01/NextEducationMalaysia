@@ -48,6 +48,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  
+  // URL Rewrites for legacy filter patterns
+  async rewrites() {
+    return [
+      {
+        source: "/:slug-courses",
+        destination: "/filtered-courses/:slug",
+      },
+    ];
+  },
 
   // Permanent redirects — preserve legacy URLs
   async redirects() {

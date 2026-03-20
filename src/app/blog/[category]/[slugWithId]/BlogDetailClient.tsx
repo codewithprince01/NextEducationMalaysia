@@ -7,7 +7,7 @@ import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import { CalendarDays, ArrowRight, User, Clock } from 'lucide-react'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
+const API_BASE = '/api/v1'
 
 // ── Session cache ────────────────────────────────────────────────────────────
 const CACHE_TTL = 5 * 60 * 1000

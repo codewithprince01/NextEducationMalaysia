@@ -1,47 +1,44 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'courses', label: 'Courses' },
-  { id: 'gallery', label: 'Gallery' },
-  { id: 'videos', label: 'Videos' },
-  { id: 'ranking', label: 'Ranking' },
-  { id: 'reviews', label: 'Reviews' },
+  { id: 'overview', label: 'Overview', path: '' },
+  { id: 'courses', label: 'Courses', path: '/courses' },
+  { id: 'gallery', label: 'Gallery', path: '/gallery' },
+  { id: 'videos', label: 'Videos', path: '/videos' },
+  { id: 'ranking', label: 'Ranking', path: '/ranking' },
+  { id: 'reviews', label: 'Reviews', path: '/reviews' },
 ]
 
 type Props = {
   slug: string
-  initialTab?: string
 }
 
-export default function UniversityTabsClient({ slug, initialTab = 'overview' }: Props) {
-  const router = useRouter()
+export default function UniversityTabsClient({ slug }: Props) {
   const pathname = usePathname()
-  const [activeTab, setActiveTab] = useState(initialTab)
-
-  // Sync tab to URL when tab changes
-  useEffect(() => {
-    if (activeTab === 'overview') {
-      router.replace(`/university/${slug}`, { scroll: false })
-    } else {
-      router.replace(`/university/${slug}/${activeTab}`, { scroll: false })
+  
+  // Determine active tab based on pathname
+  const activeTab = TABS.find(tab => {
+    if (tab.id === 'overview') {
+      return pathname === `/university/${slug}`
     }
-  }, [activeTab, slug, router])
+    return pathname.startsWith(`/university/${slug}${tab.path}`)
+  })?.id || 'overview'
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-14 z-10">
+    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-14 z-20">
       <div className="max-w-[1400px] mx-auto px-2 md:px-4 flex overflow-x-auto scrollbar-hide">
         {TABS.map((tab, index) => (
-          <button
+          <Link
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            href={`/university/${slug}${tab.path}`}
+            scroll={false}
             className={`py-4 text-sm font-medium transition-all border-b-2 cursor-pointer whitespace-nowrap ${index === 0 ? 'pl-0 pr-6' : 'px-6'} ${activeTab === tab.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-blue-500'}`}
           >
             {tab.label}
-          </button>
+          </Link>
         ))}
       </div>
     </div>

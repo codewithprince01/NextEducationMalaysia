@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import type { Swiper as SwiperType } from 'swiper'
 import 'swiper/css'
+import PopupForm from '../modals/PopupForm'
+import CompareForm from '../modals/CompareForm'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 
@@ -35,14 +37,22 @@ function imageSrc(path: string | null | undefined) {
   return `${IMAGE_BASE}/storage/${path}`
 }
 
-function UniversityCard({ uni }: { uni: University }) {
+function UniversityCard({ 
+  uni, 
+  onOpenModal,
+  onCompare
+}: { 
+  uni: University, 
+  onOpenModal: (type: "brochure" | "fee") => void,
+  onCompare: () => void
+}) {
   const [expanded, setExpanded] = useState(false)
   const banner = imageSrc(uni.banner_path || uni.logo_path)
   const logo = imageSrc(uni.logo_path)
   const typeLabel = uni.institute_type?.type || 'University'
   const isPublic = typeLabel.toLowerCase().includes('public')
   
-  const shortNote = uni.shortnote || "Explore this university's world-class facilities and academic programs in Malaysia."
+  const shortNote = uni.shortnote || "Explore this university."
   const shouldTruncate = shortNote.length > 100
 
   return (
@@ -53,23 +63,21 @@ function UniversityCard({ uni }: { uni: University }) {
           src={banner}
           alt={uni.name || "University Banner"}
           loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          width="800"
+          height="480"
+          onError={(e) => {
+            e.currentTarget.src = "https://via.placeholder.com/400x200?text=No+Image";
+          }}
+          className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
         />
 
         {/* Type Badge */}
-        <div className="absolute top-4 left-4">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isPublic ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}`}>
-            <span className="mr-1">{isPublic ? '🏛️' : '🏢'}</span>
-            {typeLabel}
-          </span>
-        </div>
-
-        {/* Ranking Badge */}
-        {uni.qs_rank && (
-          <div className="absolute top-4 right-4">
-            <div className="bg-linear-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg">
-              #{uni.qs_rank}
-            </div>
+        {uni.institute_type?.type && (
+          <div className="absolute top-4 left-4">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isPublic ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}`}>
+              <span className="mr-1">{isPublic ? '🏛️' : '🏢'}</span>
+              {typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}
+            </span>
           </div>
         )}
       </div>
@@ -127,7 +135,7 @@ function UniversityCard({ uni }: { uni: University }) {
           <div className="text-center p-3 bg-yellow-50 rounded-xl">
             <Star className="w-5 h-5 text-yellow-600 mx-auto mb-1 fill-current" />
             <div className="text-lg font-bold text-yellow-600">
-              {uni.rating ? Number(uni.rating).toFixed(1) : "0.0"}
+              {uni.rating ? parseFloat(String(uni.rating)).toFixed(1) : "0.0"}
             </div>
             <div className="text-xs text-gray-600">Rating</div>
           </div>
@@ -143,23 +151,26 @@ function UniversityCard({ uni }: { uni: University }) {
           </Link>
 
           <div className="grid grid-cols-2 gap-2">
-            <Link href={`/university/${uni.uname}#forms`} className="flex-1">
-              <button className="cursor-pointer w-full py-2 px-3 border-2 border-blue-200 text-blue-600 rounded-xl font-medium hover:bg-blue-50 transition-all duration-200 text-sm">
-                Fee Structure
-              </button>
-            </Link>
-            <Link href={`/university/${uni.uname}#forms`} className="flex-1">
-              <button className="cursor-pointer w-full py-2 px-3 border-2 border-green-200 text-green-600 rounded-xl font-medium hover:bg-green-50 transition-all duration-200 text-sm">
-                Brochure
-              </button>
-            </Link>
+            <button 
+              onClick={() => onOpenModal("fee")}
+              className="cursor-pointer py-2 px-3 border-2 border-blue-200 text-blue-600 rounded-xl font-medium hover:bg-blue-50 transition-all duration-200 text-sm"
+            >
+              Fee Structure
+            </button>
+            <button 
+              onClick={() => onOpenModal("brochure")}
+              className="cursor-pointer py-2 px-3 border-2 border-green-200 text-green-600 rounded-xl font-medium hover:bg-green-50 transition-all duration-200 text-sm"
+            >
+              Brochure
+            </button>
           </div>
 
-          <Link href="/universities" className="block">
-            <button className="cursor-pointer w-full py-2 px-4 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200 text-sm">
-              Compare Universities
-            </button>
-          </Link>
+          <button 
+            onClick={onCompare}
+            className="cursor-pointer w-full py-2 px-4 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200 text-sm"
+          >
+            Compare Universities
+          </button>
         </div>
       </div>
     </div>
@@ -168,12 +179,28 @@ function UniversityCard({ uni }: { uni: University }) {
 
 export default function UniversitySliderClient({ universities }: { universities: University[] }) {
   const swiperRef = useRef<SwiperType | null>(null)
+  
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalType, setModalType] = useState<"brochure" | "fee">("brochure")
+  const [selectedUni, setSelectedUni] = useState<University | null>(null)
+  const [isCompareOpen, setIsCompareOpen] = useState(false)
+
+  const openModal = useCallback((uni: University, type: "brochure" | "fee") => {
+    setSelectedUni(uni)
+    setModalType(type)
+    setIsModalOpen(true)
+  }, [])
+
+  const openCompareModal = useCallback(() => {
+    setIsCompareOpen(true)
+  }, [])
 
   return (
     <div className="relative px-2 sm:px-6 py-4 bg-linear-to-b from-blue-50 to-white">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-center text-black mt-6 mb-8 text-shadow-sm">
-          🎓 Top Trending Universities <span className="text-blue-600">in Malaysia</span>
+        <h2 className="text-3xl font-bold text-center text-black mt-6">
+          🎓 Top Trending Universities{" "}
+          <span className="text-blue-600">in Malaysia</span>
         </h2>
 
         <div className="relative group/slider px-0 sm:px-10">
@@ -207,11 +234,28 @@ export default function UniversitySliderClient({ universities }: { universities:
           >
             {universities.map((uni, idx) => (
               <SwiperSlide key={uni.id || idx} className="h-auto pb-4">
-                <UniversityCard uni={uni} />
+                <UniversityCard 
+                  uni={uni} 
+                  onOpenModal={(type) => openModal(uni, type)}
+                  onCompare={openCompareModal}
+                />
               </SwiperSlide>
             ))}
           </Swiper>
         </div>
+
+        <PopupForm 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          universityData={selectedUni}
+          formType={modalType}
+        />
+
+        <CompareForm 
+          isOpen={isCompareOpen}
+          onClose={() => setIsCompareOpen(false)}
+          universities={universities}
+        />
 
         <div className="text-center mt-6">
           <Link

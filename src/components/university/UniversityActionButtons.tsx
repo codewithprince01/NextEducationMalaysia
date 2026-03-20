@@ -30,7 +30,7 @@ export default function UniversityActionButtons({
 
       <button
         onClick={onBrochure}
-        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-lg hover:shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+        className="w-full bg-linear-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-lg hover:shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
       >
         <Download size={18} />
         Download Brochure
@@ -46,9 +46,9 @@ export default function UniversityActionButtons({
 
       <button
         onClick={onCounselling}
-        className="relative group w-full overflow-hidden bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-5 py-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-sm font-extrabold uppercase tracking-tight cursor-pointer"
+        className="relative group w-full overflow-hidden bg-linear-to-r from-emerald-500 to-emerald-600 text-white px-5 py-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 text-sm font-extrabold uppercase tracking-tight cursor-pointer"
       >
-        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></span>
+        <span className="absolute inset-0 w-full h-full bg-linear-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></span>
         <BookOpen size={18} className="animate-bounce" />
         Direct University Counseling
       </button>

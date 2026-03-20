@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { unstable_cache } from 'next/cache'
+import { serializeBigInt } from '@/lib/utils'
 
 export const getHomePageData = unstable_cache(
   async () => {
@@ -39,13 +40,13 @@ export const getHomePageData = unstable_cache(
       }),
     ])
 
-    return {
+    return serializeBigInt({
       featuredUniversities,
       totalUniversities,
       totalCourses,
       courseCategories,
       pageContent,
-    }
+    })
   },
   ['home-page-data'],
   { revalidate: 43200 },

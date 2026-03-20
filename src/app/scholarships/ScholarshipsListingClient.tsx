@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowRight, ExternalLink, Award } from 'lucide-react'
-import { NEXT_PUBLIC_IMAGE_BASE_URL } from '@/lib/constants'
+import { NEXT_PUBLIC_IMAGE_BASE_URL, storageUrl } from '@/lib/constants'
 
 interface Scholarship {
   id: number
@@ -19,8 +19,8 @@ const ScholarshipCard = ({ scholarship, index }: { scholarship: any; index: numb
   const imageUrl = scholarship.thumbnail_path
     ? scholarship.thumbnail_path.startsWith('http') 
         ? scholarship.thumbnail_path 
-        : `${NEXT_PUBLIC_IMAGE_BASE_URL}${scholarship.thumbnail_path.startsWith('/') ? '' : '/'}${scholarship.thumbnail_path}`
-    : 'https://via.placeholder.com/400x300'
+        : storageUrl(scholarship.thumbnail_path) || 'https://placehold.co/600x400/e2e8f0/475569?text=Scholarship'
+    : 'https://placehold.co/600x400/e2e8f0/475569?text=Scholarship'
 
   return (
     <Link href={`/scholarships/${scholarship.slug}`}>
@@ -31,7 +31,7 @@ const ScholarshipCard = ({ scholarship, index }: { scholarship: any; index: numb
             src={imageUrl}
             alt={scholarship.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-            onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x300' }}
+            onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/600x400/e2e8f0/475569?text=Scholarship' }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/40 transition-all duration-300"></div>
           <div className="absolute top-4 left-4">

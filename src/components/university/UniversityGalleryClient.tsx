@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Maximize2, X, ImageIcon } from 'lucide-react'
+import { Search, X, ImageIcon } from 'lucide-react'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
 
@@ -43,7 +43,7 @@ export default function UniversityGalleryClient({ slug, initialPhotos = [] }: Pr
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="animate-pulse bg-gray-200 rounded-xl h-48" />
+          <div key={i} className="animate-pulse bg-gray-200 rounded-lg h-48" />
         ))}
       </div>
     )
@@ -59,9 +59,9 @@ export default function UniversityGalleryClient({ slug, initialPhotos = [] }: Pr
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mt-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">Campus Gallery</h2>
+        <h2 className="text-xl! font-bold! text-gray-800">Gallery</h2>
         <span className="text-sm text-gray-500">{photos.length} Photos</span>
       </div>
 
@@ -69,38 +69,38 @@ export default function UniversityGalleryClient({ slug, initialPhotos = [] }: Pr
         {photos.map((photo, i) => (
           <div
             key={photo.id}
-            className="group relative aspect-video cursor-pointer overflow-hidden rounded-xl border border-gray-100 shadow-sm transition-all hover:shadow-md"
+            className="group relative cursor-pointer"
             onClick={() => setSelectedImg(getFullUrl(photo.photo_path))}
           >
             <img
               src={getFullUrl(photo.photo_path)}
-              alt={`Campus view ${i + 1}`}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              alt={`Campus ${i + 1}`}
+              className="rounded-lg shadow-md object-cover w-full h-48 transition-transform duration-200"
               loading="lazy"
             />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
-              <div className="rounded-full bg-white/90 p-2 text-gray-900 shadow-lg">
-                <Maximize2 className="h-5 w-5" />
-              </div>
+            {/* Zoom Icon on Hover */}
+            <div className="absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
+              <Search className="text-white text-2xl" size={28} />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Modal (Full screen view) */}
       {selectedImg && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[100] animate-in fade-in duration-200">
           <button
             onClick={() => setSelectedImg(null)}
-            className="absolute top-6 right-6 z-[110] rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20 hover:text-red-400 cursor-pointer"
+            className="absolute top-6 right-6 text-white text-4xl hover:text-red-500 transition-colors z-[110] cursor-pointer"
+            aria-label="Close image preview"
           >
-            <X className="h-8 w-8" />
+            <X size={40} />
           </button>
 
           <img
             src={selectedImg}
-            alt="Campus preview"
-            className="max-h-[90vh] max-w-full rounded-lg object-contain shadow-2xl animate-in zoom-in-95 duration-300"
+            alt="Zoomed campus"
+            className="max-w-full max-h-[90vh] rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
           />
         </div>
       )}

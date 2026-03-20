@@ -5,6 +5,7 @@ import JsonLd from '@/components/seo/JsonLd'
 import { SITE_URL } from '@/lib/constants'
 import { getExamBySlug, getAllExams } from '@/lib/queries/resources'
 import ExamDetailClient from './ExamDetailClient'
+import { serializeBigInt } from '@/lib/utils'
 
 interface Params { params: Promise<{ slug: string }> }
 
@@ -17,12 +18,15 @@ export async function generateMetadata({ params }: Params) {
 
 export default async function ExamDetailPage({ params }: Params) {
   const { slug } = await params
-  const exam = await getExamBySlug(slug)
-  const allExams = await getAllExams()
+  const examData = await getExamBySlug(slug)
+  const allExamsData = await getAllExams()
 
-  if (!exam) {
+  if (!examData) {
     notFound()
   }
+
+  const exam = serializeBigInt(examData)
+  const allExams = serializeBigInt(allExamsData)
 
   return (
     <>

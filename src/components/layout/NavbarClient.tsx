@@ -34,7 +34,6 @@ const RESOURCES_LINKS = {
 }
 
 const NAV_LINKS = [
-  { href: '/', label: 'Home' },
   { href: '/courses-in-malaysia', label: 'Courses' },
   { href: '/universities', label: 'Universities' },
   { href: '/specialization', label: 'Specialization' },
@@ -90,17 +89,14 @@ export default function NavbarClient() {
 
           {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-7 font-medium">
-            {NAV_LINKS.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`hover:text-blue-700 transition ${
-                  isActive(link.href) ? 'text-blue-900 font-bold underline underline-offset-8' : ''
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            <Link
+              href="/"
+              className={`hover:text-blue-700 transition ${
+                isActive('/') ? 'text-blue-900 font-bold underline underline-offset-8' : ''
+              }`}
+            >
+              Home
+            </Link>
 
             {/* Resources dropdown */}
             <div
@@ -161,6 +157,18 @@ export default function NavbarClient() {
               )}
             </div>
 
+            {NAV_LINKS.map(link => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`hover:text-blue-700 transition ${
+                  isActive(link.href) ? 'text-blue-900 font-bold underline underline-offset-8' : ''
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+
             {/* CTA */}
             <Link href={isLoggedIn ? '/student/profile' : '/signup'}>
               <button className="bg-blue-900 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold">
@@ -193,15 +201,12 @@ export default function NavbarClient() {
             </button>
           </div>
 
-          {NAV_LINKS.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="block hover:text-blue-700 transition py-2 text-lg"
-            >
-              {link.label}
-            </Link>
-          ))}
+          <Link
+            href="/"
+            className="block hover:text-blue-700 transition py-2 text-lg"
+          >
+            Home
+          </Link>
 
           {/* Mobile resources accordion */}
           <div>
@@ -231,6 +236,16 @@ export default function NavbarClient() {
               </div>
             )}
           </div>
+
+          {NAV_LINKS.map(link => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="block hover:text-blue-700 transition py-2 text-lg"
+            >
+              {link.label}
+            </Link>
+          ))}
 
           <Link href={isLoggedIn ? '/student/profile' : '/signup'} className="w-full block">
             <button className="w-full bg-blue-900 text-white py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold">

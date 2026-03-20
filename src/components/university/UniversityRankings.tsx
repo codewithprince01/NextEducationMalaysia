@@ -46,7 +46,7 @@ export default function UniversityRankings({
   ]
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 w-full">
+    <div className="bg-white rounded-xl shadow-md p-4 w-full border border-gray-100">
       <h3 className={`${compact ? 'text-base' : 'text-lg'} font-semibold text-gray-900 mb-3`}>
         Global Rankings
       </h3>
@@ -54,7 +54,7 @@ export default function UniversityRankings({
         {cards.map(({ label, value, from, to }) => (
           <div
             key={label}
-            className="flex flex-col items-center justify-center p-4 bg-linear-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 shadow-sm transition-all hover:shadow-md hover:scale-105"
+            className={`bg-linear-to-r ${from} ${to} rounded-lg ${cardPad} text-white shadow text-center transition-all hover:shadow-lg hover:scale-[1.02]`}
           >
             <p className={`${textSize} font-bold`}>{value}</p>
             <p className="text-xs opacity-90">{label}</p>

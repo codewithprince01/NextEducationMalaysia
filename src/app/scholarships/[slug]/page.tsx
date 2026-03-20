@@ -11,6 +11,8 @@ import { scholarshipJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
 import { SITE_URL } from '@/lib/constants'
 
+import { serializeBigInt } from '@/lib/utils'
+
 interface Params {
   params: Promise<{ slug: string }>
 }
@@ -38,12 +40,12 @@ export default async function ScholarshipDetailPage({ params }: Params) {
   const otherScholarships = await getAllScholarships()
 
   // Format data for client component
-  const formattedData = {
+  const formattedData = serializeBigInt({
     ...scholarship,
     otherScholarships: otherScholarships
       .filter(s => s.slug !== slug)
       .slice(0, 5) // Limit to 5 similar scholarships
-  }
+  })
 
   return (
     <>

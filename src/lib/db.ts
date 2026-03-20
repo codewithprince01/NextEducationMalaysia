@@ -10,15 +10,19 @@ const globalForPrisma = globalThis as unknown as { prisma: ReturnType<typeof cre
  */
 const WEBSITE_SCOPED_MODELS = [
   'University', 'UniversityProgram', 'CourseSpecialization',
-  'CourseCategory', 'Blog', 'BlogCategory', 'Level',
+  'CourseCategory', 'Blog', 'BlogCategory',
   'Scholarship', 'Service', 'Exam', 'PageBanner',
-  'PageContent', 'DynamicPageSeo', 'InstituteType',
+  'PageContent', 'DynamicPageSeo', 'StaticPageSeo',
+  'InstituteType', 'leads',
 ] as const
 
 type ScopedModel = (typeof WEBSITE_SCOPED_MODELS)[number]
 
 function isScopedModel(model: string): model is ScopedModel {
-  return (WEBSITE_SCOPED_MODELS as readonly string[]).includes(model)
+  if (model.toLowerCase() === 'level') return false;
+  return (WEBSITE_SCOPED_MODELS as readonly string[]).some(
+    (m) => m.toLowerCase() === model.toLowerCase()
+  )
 }
 
 function createPrismaClient() {
@@ -30,12 +34,14 @@ function createPrismaClient() {
     query: {
       $allModels: {
         async findMany({ model, args, query }) {
+          console.log(`Prisma Query: findMany on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }
           return query(args)
         },
         async findFirst({ model, args, query }) {
+          console.log(`Prisma Query: findFirst on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }
@@ -45,12 +51,14 @@ function createPrismaClient() {
           return query(args)
         },
         async count({ model, args, query }) {
+          console.log(`Prisma Query: count on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }
           return query(args)
         },
         async aggregate({ model, args, query }) {
+          console.log(`Prisma Query: aggregate on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }

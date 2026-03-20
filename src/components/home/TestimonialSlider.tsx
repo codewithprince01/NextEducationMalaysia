@@ -67,6 +67,9 @@ export default function TestimonialSlider({ testimonials }: { testimonials: Test
                     width={48} height={48}
                     loading="lazy"
                     className={`w-12 h-12 rounded-full object-cover border-2 shadow-sm ${isActive ? 'border-white' : 'border-slate-300'}`}
+                    onError={(e: any) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name || 'S')}&background=${isActive ? 'ffffff' : 'cbd5e1'}&color=${isActive ? '003893' : '64748b'}&bold=true`
+                    }}
                   />
                   <div>
                     <h3 className={`text-sm font-bold uppercase tracking-wide leading-tight ${isActive ? 'text-white' : 'text-slate-600'}`}>{t.name}</h3>

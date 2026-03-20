@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { SITE_URL } from '@/lib/constants'
 import BlogListClient from './BlogListClient'
+import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 21600 // 6 hours
 
@@ -10,17 +11,10 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/blog` },
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+import { blogService } from '@/backend'
 
 export default async function BlogListPage() {
-  let initialData = null
-  try {
-    const res = await fetch(`${API_BASE}/blog?page=1&per_page=12`, { next: { revalidate: 21600 } })
-    const json = await res.json()
-    initialData = json.blogs || json
-  } catch (e) {
-    console.error('Failed to fetch initial blogs:', e)
-  }
-
-  return <BlogListClient initialData={initialData} />
+  const result = await blogService.getBlogs(1, 12)
+  
+  return <BlogListClient initialData={result} />
 }

@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { Shield, Award, BookOpen, Users, FileCheck, CheckCircle2, Loader2 } from 'lucide-react'
 import { FaUniversity, FaGraduationCap, FaGlobe, FaSchool } from 'react-icons/fa'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 type University = {
   id: number
@@ -133,7 +134,7 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
     }
 
     const fetchType = async (type: string) => {
-      const res = await fetch(`${API_BASE}/universities/universities-listing-data?type=${type}`)
+      const res = await fetch(`${API_BASE}/universities/universities-listing-data?type=${type}`, { headers: { 'x-api-key': API_KEY } })
       if (!res.ok) return []
       const json = await res.json()
       return json?.data || json?.universities || []

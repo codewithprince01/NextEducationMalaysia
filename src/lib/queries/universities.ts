@@ -1,146 +1,59 @@
-import { prisma } from '@/lib/db'
+import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
-
-export const getAllUniversitySlugs = unstable_cache(
-  () =>
-    prisma.university.findMany({
-      where: { status: true as any },
-      select: { uname: true },
-    }).then(rows => rows.map(r => r.uname).filter(Boolean) as string[]),
-  ['university-slugs'],
-  { revalidate: 86400 },
-)
-
-export const getUniversityBySlug = unstable_cache(
-  (slug: string) =>
-    prisma.university.findFirst({
-      where: { uname: slug, status: true as any },
-      include: {
-        instituteType: { select: { type: true } },
-        photos: { where: { is_featured: true as any }, take: 1 },
-      } as any,
-    }),
-  ['university-detail'],
-  { revalidate: 86400, tags: ['university'] },
-)
-
-export const getUniversityFull = unstable_cache(
-  (slug: string) =>
-    prisma.university.findFirst({
-      where: { uname: slug, status: true as any },
-      include: {
-        instituteType: { select: { type: true } },
-        photos: { orderBy: { is_featured: 'desc' } },
-        overviews: { orderBy: { position: 'asc' } },
-      } as any,
-    }),
-  ['university-full'],
-  { revalidate: 3600, tags: ['university'] },
-)
-
-export const getUniversityOverviews = unstable_cache(
-  (universityId: number) =>
-    prisma.universityOverview.findMany({
-      where: { university_id: universityId },
-      orderBy: { position: 'asc' },
-    }),
-  ['university-overviews'],
-  { revalidate: 86400 },
-)
-
-export const getUniversityCourses = unstable_cache(
-  (universityId: number) =>
-    prisma.universityProgram.findMany({
-      where: { university_id: universityId, status: true as any },
-      select: {
-        id: true,
-        course_name: true,
-        slug: true,
-        level: true,
-        duration: true,
-        tution_fee: true,
-        intake: true,
-      },
-      orderBy: { course_name: 'asc' },
-    }),
-  ['university-courses'],
-  { revalidate: 86400 },
-)
-
-export const getUniversityPhotos = (universityId: number) =>
-  prisma.universityPhoto.findMany({
-    where: { university_id: universityId },
-    orderBy: { is_featured: 'desc' },
-  })
-
-export const getUniversityVideos = (universityId: number) =>
-  prisma.universityVideo.findMany({
-    where: { university_id: universityId },
-  })
-
-export const getUniversityReviews = (universityId: number) =>
-  prisma.review.findMany({
-    where: { university_id: universityId, status: true as any },
-    orderBy: { created_at: 'desc' },
-  })
-
-export const getUniversityRankings = (universityId: number) =>
-  prisma.universityRanking.findMany({
-    where: { university_id: universityId },
-    orderBy: { position: 'asc' },
-  })
-
-export const getUniversityScholarships = (universityId: number) =>
-  prisma.universityScholarship.findMany({
-    where: { u_id: universityId, status: true as any },
-  })
+import { serializeBigInt } from '@/lib/utils'
 
 export const getFeaturedUniversities = unstable_cache(
   () =>
     prisma.university.findMany({
-      where: { status: true as any, featured: true as any },
+      where: { featured: 1, status: 1 },
       select: {
         id: true,
         name: true,
         uname: true,
         logo_path: true,
-        banner_path: true,
         city: true,
         state: true,
         qs_rank: true,
-        established_year: true,
         rating: true,
         instituteType: { select: { type: true } },
-      } as any,
+      },
       orderBy: { name: 'asc' },
       take: 12,
-    }),
+    }).then(serializeBigInt),
   ['featured-universities'],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ['universities'] },
 )
 
-export const getUniversitiesByType = unstable_cache(
-  (typeSlug: string) =>
-    prisma.university.findMany({
-      where: {
-        status: true as any,
-        instituteType: { slug: typeSlug },
-      },
-      select: {
-        id: true,
-        name: true,
-        uname: true,
-        logo_path: true,
-        city: true,
-        state: true,
-        qs_rank: true,
-        rating: true,
-      },
-      orderBy: { name: 'asc' },
-    }),
-  ['universities-by-type'],
-  { revalidate: 86400 },
-)
+export async function getUniversitiesByType(typeSlug: string) {
+  return unstable_cache(
+    async () => {
+      const base = typeSlug.replace(/-in-malaysia$/, '');
+      const normalized = base.replace(/-universities$/, '-university').replace(/-institutions$/, '-institution');
+
+      // Use raw SQL to avoid rating/qs_rank type mismatches
+      const universities = await prisma.$queryRawUnsafe(`
+        SELECT u.id, u.name, u.uname, u.logo_path, u.city, u.state, u.qs_rank, u.rating
+        FROM universities u
+        JOIN institute_types it ON u.institute_type = it.id
+        WHERE u.status = 1 AND (
+          it.slug = ? OR it.seo_title_slug = ? OR
+          it.slug = ? OR it.seo_title_slug = ? OR
+          it.slug = ? OR it.slug = ?
+        )
+        ORDER BY u.name ASC
+      `, 
+      base, base, 
+      normalized, normalized, 
+      normalized.replace(/-institution$/, ''), 
+      normalized.replace(/-university$/, '')
+      );
+
+      return serializeBigInt(universities);
+    },
+    ['universities-by-type', typeSlug],
+    { revalidate: 86400, tags: ['universities'] }
+  )();
+}
 
 export const getUniversityBySearch = (query: string) =>
   prisma.university.findMany({
@@ -149,7 +62,7 @@ export const getUniversityBySearch = (query: string) =>
         { name: { contains: query } },
         { uname: { contains: query } },
       ],
-      status: true as any,
+      status: 1,
     },
     select: {
       id: true,
@@ -160,18 +73,20 @@ export const getUniversityBySearch = (query: string) =>
     take: 10,
   })
 
-export const getUniversityPrograms = (universityId: number) =>
-  prisma.universityProgram.findMany({
-    where: { university_id: universityId, status: true as any },
-    include: {
-      courseCategory: true,
-    },
-  })
+export const getUniversityPrograms = (universityId: number) => {
+  // Use raw SQL for programs to avoid tution_fee type mismatch
+  return prisma.$queryRawUnsafe(`
+    SELECT up.*, cc.name as category_name, cc.slug as category_slug
+    FROM university_programs up
+    LEFT JOIN course_categories cc ON up.course_category_id = cc.id
+    WHERE up.university_id = ? AND up.status = 1
+  `, universityId).then(serializeBigInt);
+}
 
 export const getAllUniversities = unstable_cache(
   () =>
     prisma.university.findMany({
-      where: { status: true as any },
+      where: { status: 1 },
       select: {
         id: true,
         name: true,
@@ -183,16 +98,61 @@ export const getAllUniversities = unstable_cache(
         instituteType: { select: { type: true } },
       } as any,
       orderBy: { name: 'asc' },
-    }),
+    }).then(serializeBigInt),
   ['all-universities'],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ['universities'] },
 )
 
 export const getInstituteTypes = unstable_cache(
   () =>
     prisma.instituteType.findMany({
       select: { id: true, type: true, slug: true, seo_title_slug: true },
-    }),
+    }).then(serializeBigInt),
   ['institute-types'],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ['institute-types'] },
+)
+
+export const getPageContent = unstable_cache(
+  async (pageName: string) => {
+    const results = await prisma.$queryRawUnsafe(`
+      SELECT heading, description FROM page_contents 
+      WHERE page_name = ? AND status = 1 
+      LIMIT 1
+    `, pageName) as any[]
+    return results[0] || null
+  },
+  ['page-content'],
+  { revalidate: 86400, tags: ['page-contents'] },
+)
+
+export const getUniversityFull = unstable_cache(
+  async (slug: string) => {
+    // 1. Fetch main university data via raw SQL to handle 0000-00-00 dates and type mismatches
+    const universities: any[] = await prisma.$queryRawUnsafe(`
+      SELECT * FROM universities WHERE uname = ? AND status = 1 LIMIT 1
+    `, slug)
+
+    if (!universities.length) return null
+    const university = universities[0]
+
+    const universityId = Number(university.id)
+
+    // 2. Fetch relations via raw SQL to bypass date validation
+    const [photos, programs, instituteType] = await Promise.all([
+      prisma.$queryRawUnsafe(`SELECT * FROM university_photos WHERE university_id = ?`, universityId) as Promise<any[]>,
+      prisma.$queryRawUnsafe(`SELECT course_name FROM university_programs WHERE university_id = ? AND status = 1`, universityId) as Promise<any[]>,
+      prisma.$queryRawUnsafe(`SELECT type FROM institute_types WHERE id = ?`, Number(university.institute_type)) as Promise<any[]>
+    ])
+
+    const typeData = instituteType[0]
+
+    return serializeBigInt({
+      ...university,
+      photos,
+      programs,
+      instituteType: typeData
+    })
+  },
+  ['university-full'],
+  { revalidate: 86400, tags: ['universities'] }
 )

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { apiSuccess } from '@/backend'
 
 export async function GET() {
   try {
@@ -8,7 +9,7 @@ export async function GET() {
       distinct: ['year'],
       orderBy: { year: 'asc' },
     })
-    return NextResponse.json(years.map((y: { year: number }) => y.year))
+    return apiSuccess(years.map((y: { year: number }) => y.year))
   } catch (err) {
     console.error('[EMGS Years API]', err)
     return NextResponse.json({ error: 'Failed to fetch years' }, { status: 500 })

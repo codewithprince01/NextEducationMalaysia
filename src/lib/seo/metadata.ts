@@ -19,8 +19,8 @@ async function getDynamicSeo(url: string) {
 }
 
 async function getDefaultOgImage(): Promise<string> {
-  const img = await prisma.defaultOgImage.findFirst({ where: { is_default: 1 } })
-  return img?.og_image_path ? storageUrl(img.og_image_path)! : `${SITE_URL}/og-default.png`
+  const img = await prisma.defaultOgImage.findFirst({ where: { default: true } })
+  return img?.file_path ? storageUrl(img.file_path)! : `${SITE_URL}/og-default.png`
 }
 
 function buildOgImage(path: string | null | undefined, fallback: string): string {
@@ -176,22 +176,22 @@ export async function resolveScholarshipMeta(
 }
 
 export async function resolveExamMeta(
-  exam: { name?: string | null; uri?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image_path?: string | null }
+  exam: { page_name?: string | null; uri?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image?: string | null }
 ): Promise<Metadata> {
   const dseo = await getDynamicSeo('exam')
   const fallbackOg = await getDefaultOgImage()
 
   const tags: TagMap = {
     ...baseTags(),
-    title: exam.name || '',
-    examname: exam.name || '',
+    title: exam.page_name || '',
+    examname: exam.page_name || '',
   }
 
   const title = replaceTag(exam.meta_title || dseo?.meta_title || '%examname%', tags)
   const desc = replaceTag(exam.meta_description || dseo?.meta_description || '', tags)
   const kw = replaceTag(exam.meta_keyword || dseo?.meta_keyword || '', tags)
   const canonical = `${SITE_URL}/resources/exams/${exam.uri}`
-  const ogImage = buildOgImage(exam.og_image_path || dseo?.og_image_path, fallbackOg)
+  const ogImage = buildOgImage(exam.og_image || (exam as any).og_image_path || dseo?.og_image_path, fallbackOg)
 
   return buildMeta(title, desc, kw, canonical, ogImage)
 }
@@ -219,21 +219,21 @@ export async function resolveCourseMeta(
 }
 
 export async function resolveServiceMeta(
-  service: { title?: string | null; uri?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image_path?: string | null }
+  service: { headline?: string | null; slug?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image_path?: string | null }
 ): Promise<Metadata> {
   const dseo = await getDynamicSeo('service')
   const fallbackOg = await getDefaultOgImage()
 
   const tags: TagMap = {
     ...baseTags(),
-    title: service.title || '',
-    servicename: service.title || '',
+    title: service.headline || '',
+    servicename: service.headline || '',
   }
 
   const title = replaceTag(service.meta_title || dseo?.meta_title || '%servicename%', tags)
   const desc = replaceTag(service.meta_description || dseo?.meta_description || '', tags)
   const kw = replaceTag(service.meta_keyword || dseo?.meta_keyword || '', tags)
-  const canonical = `${SITE_URL}/resources/services/${service.uri}`
+  const canonical = `${SITE_URL}/resources/services/${service.slug}`
   const ogImage = buildOgImage(service.og_image_path || dseo?.og_image_path, fallbackOg)
 
   return buildMeta(title, desc, kw, canonical, ogImage)

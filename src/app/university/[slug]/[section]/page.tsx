@@ -1,10 +1,12 @@
 import { notFound } from 'next/navigation'
-import { getUniversityBySlug, getUniversityFull } from '@/lib/queries/universities'
-import { resolveUniversityMeta } from '@/lib/seo/metadata'
-import UniversityHeroClient from '@/components/university/UniversityHeroClient'
-import UniversityContentClient from '@/components/university/UniversityContentClient'
-import { universityJsonLd } from '@/lib/seo/structured-data'
-import JsonLd from '@/components/seo/JsonLd'
+import { getUniversityFull } from '@/lib/queries/universities'
+import UniversityCoursesClient from '@/components/university/UniversityCoursesClient'
+import UniversityGalleryClient from '@/components/university/UniversityGalleryClient'
+import UniversityVideosClient from '@/components/university/tabs/UniversityVideosClient'
+import UniversityRankingClient from '@/components/university/tabs/UniversityRankingClient'
+import UniversityReviewsClient from '@/components/university/tabs/UniversityReviewsClient'
+import UniversitySectionContainer from '@/components/university/UniversitySectionContainer'
+import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 86400
 
@@ -12,32 +14,14 @@ type Props = { params: Promise<{ slug: string; section: string }> }
 
 const VALID_SECTIONS = ['courses', 'gallery', 'videos', 'ranking', 'reviews', 'scholarships']
 
-export async function generateMetadata({ params }: Props) {
-  const { slug, section } = await params
-  if (!VALID_SECTIONS.includes(section)) return {}
-  const university = await getUniversityBySlug(slug)
-  if (!university) return {}
-  return resolveUniversityMeta(university, section)
-}
-
 export default async function UniversitySectionPage({ params }: Props) {
   const { slug, section } = await params
   if (!VALID_SECTIONS.includes(section)) notFound()
 
-  const university = await getUniversityFull(slug)
-  if (!university) notFound()
+  const universityData = await getUniversityFull(slug)
+  if (!universityData) notFound()
 
-  const overviews = (university.overviews || []).map((ov: any) => ({
-    ...ov,
-    id: Number(ov.id),
-    university_id: Number(ov.university_id),
-    tab: ov.title || ov.tab
-  }))
-  const photos = (university.photos || []).map((p: any) => ({
-    ...p,
-    id: Number(p.id),
-    university_id: Number(p.university_id)
-  }))
+  const university = serializeBigInt(universityData) as any
 
   let initialCourseData = null
   if (section === 'courses') {
@@ -50,20 +34,24 @@ export default async function UniversitySectionPage({ params }: Props) {
     }
   }
 
+  const renderContent = () => {
+    switch (section) {
+      case 'courses': return <UniversityCoursesClient slug={slug} initialData={initialCourseData} />
+      case 'gallery': return <UniversityGalleryClient slug={slug} />
+      case 'videos': return <UniversityVideosClient uname={slug} />
+      case 'ranking': return <UniversityRankingClient uname={slug} />
+      case 'reviews': return <UniversityReviewsClient uname={slug} />
+      default: return notFound()
+    }
+  }
+
   return (
-    <>
-      <JsonLd data={universityJsonLd(university as any)} />
-      <UniversityHeroClient
-        university={{ ...(university as any), offeredCourses: [] }}
-        photos={photos as any}
-      />
-      <UniversityContentClient
-        slug={slug}
-        overviews={overviews as any}
-        universityName={university.name}
-        initialTab={section}
-        initialCourseData={initialCourseData}
-      />
-    </>
+    <UniversitySectionContainer
+      slug={slug}
+      universityName={university.name}
+      fullWidth={section === 'courses'}
+    >
+      {renderContent()}
+    </UniversitySectionContainer>
   )
 }

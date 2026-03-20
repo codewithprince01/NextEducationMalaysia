@@ -8,7 +8,8 @@ import Breadcrumb from '@/components/Breadcrumb'
 
 const PER_PAGE = 12
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
+const API_BASE = '/api/v1'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 // ── Session cache ────────────────────────────────────────────────────────────
 const BLOG_CACHE_TTL = 5 * 60 * 1000
@@ -120,11 +121,11 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
   const router = useRouter()
   const initCat = initialCategory || 'all'
 
-  const [blogs, setBlogs] = useState<any[]>(initialData?.blogs?.data || initialData?.data || [])
+  const [blogs, setBlogs] = useState<any[]>(initialData?.data || initialData?.blogs?.data || [])
   const [categories, setCategories] = useState<any[]>([])
-  const [currentPage, setCurrentPage] = useState(initialData?.blogs?.current_page || initialData?.current_page || 1)
-  const [lastPage, setLastPage] = useState(initialData?.blogs?.last_page || initialData?.last_page || 1)
-  const [total, setTotal] = useState(initialData?.blogs?.total || initialData?.total || 0)
+  const [currentPage, setCurrentPage] = useState(initialData?.pagination?.current_page || initialData?.blogs?.current_page || 1)
+  const [lastPage, setLastPage] = useState(initialData?.pagination?.last_page || initialData?.blogs?.last_page || 1)
+  const [total, setTotal] = useState(initialData?.pagination?.total || initialData?.blogs?.total || 0)
   const [loading, setLoading] = useState(!initialData)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState(initCat)
@@ -148,15 +149,15 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
       const url = (!category || category === 'all')
         ? `${API_BASE}/blog?page=${page}&per_page=${PER_PAGE}`
         : `${API_BASE}/blog-by-category/${category}?page=${page}&per_page=${PER_PAGE}`
-      const res = await fetch(url)
+      const res = await fetch(url, { headers: { 'x-api-key': API_KEY } })
       if (!res.ok) throw new Error('Failed to fetch')
       const json = await res.json()
-      const blogData = json.blogs
-      if (blogData) {
-        const newBlogs = blogData.data || []
-        const newCurrent = blogData.current_page || page
-        const newLast = blogData.last_page || 1
-        const newTotal = blogData.total || 0
+      
+      if (json.status) {
+        const newBlogs = json.data || []
+        const newCurrent = json.pagination?.current_page || page
+        const newLast = json.pagination?.last_page || 1
+        const newTotal = json.pagination?.total || 0
         setBlogs(newBlogs)
         setCurrentPage(newCurrent)
         setLastPage(newLast)
@@ -176,21 +177,10 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
     if (categories.length > 0) return
     const fetch_ = async () => {
       try {
-        const res = await fetch(`${API_BASE}/blog`)
+        const res = await fetch(`${API_BASE}/blog/categories`, { headers: { 'x-api-key': API_KEY } })
         const json = await res.json()
-        const blogData = json.blogs
-        if (blogData?.data?.length > 0) {
-          const map = new Map()
-          blogData.data.forEach((b: any) => {
-            if (b.get_category && !map.has(b.get_category.id)) {
-              map.set(b.get_category.id, {
-                id: b.get_category.id,
-                category_name: b.get_category.category_name,
-                category_slug: b.get_category.category_slug,
-              })
-            }
-          })
-          setCategories(Array.from(map.values()))
+        if (json.status && Array.isArray(json.data)) {
+          setCategories(json.data)
         }
       } catch (err) {
         console.error('Error fetching categories:', err)
@@ -221,7 +211,7 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
     ? blogs.filter(b =>
         b.headline?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.short_description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.get_category?.category_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        b.category?.category_name?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : blogs
 
@@ -349,7 +339,7 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
               const imageUrl = item.imgpath?.startsWith('http')
                 ? item.imgpath
                 : `${IMAGE_BASE}/storage/${(item.thumbnail_path || 'default.jpg').replace(/^\/+/, '')}`
-              const catSlug = item.get_category?.category_slug
+              const catSlug = item.category?.category_slug
 
               return (
                 <Link
@@ -370,7 +360,7 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
                         selectedCategory === catSlug ? 'bg-blue-600 text-white' : 'bg-white text-black hover:bg-blue-100'
                       }`}
                     >
-                      {item.get_category?.category_name || 'General'}
+                      {item.category?.category_name || 'General'}
                     </div>
                   </div>
                   <div className="p-4">

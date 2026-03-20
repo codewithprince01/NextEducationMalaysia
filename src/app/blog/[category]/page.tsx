@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation'
 import { SITE_URL } from '@/lib/constants'
 import BlogListClient from '../BlogListClient'
 
@@ -18,18 +19,13 @@ export async function generateMetadata({ params }: Props) {
   }
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+import { blogService } from '@/backend'
 
 export default async function BlogCategoryPage({ params }: Props) {
   const { category } = await params
-  let initialData = null
-  try {
-    const res = await fetch(`${API_BASE}/blog-by-category/${category}?page=1&per_page=12`, { next: { revalidate: 21600 } })
-    const json = await res.json()
-    initialData = json.blogs || json
-  } catch (e) {
-    console.error('Failed to fetch initial category blogs:', e)
-  }
+  const result = await blogService.getBlogsByCategory(category, 1, 12)
+  
+  if (!result) return notFound()
 
-  return <BlogListClient initialCategory={category} initialData={initialData} />
+  return <BlogListClient initialCategory={category} initialData={result} />
 }

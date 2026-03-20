@@ -112,8 +112,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
   if (!courseDetails) return null
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Breadcrumb items={breadcrumbItems} />
+    <div className="min-h-screen bg-transparent">
       
       <div className="py-6 px-1 lg:px-6">
         <div className="max-w-7xl mx-auto">

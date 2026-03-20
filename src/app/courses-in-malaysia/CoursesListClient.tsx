@@ -1,16 +1,23 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import Breadcrumb from '@/components/Breadcrumb'
 import {
   Filter, ChevronDown, ChevronUp, X, Search, ArrowUpDown,
-  List, LayoutGrid, MapPin, Building, Star, BookOpen, Globe, Home,
+  List, LayoutGrid, MapPin, Building, Star, BookOpen, Globe, Home, Layers,
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import AuthModal from '@/components/modals/AuthModal'
+import PopupForm from '@/components/modals/PopupForm'
+import CourseCompareBar from './CourseCompareBar'
+import CourseComparisonModal from './CourseComparisonModal'
+import { toast } from 'react-toastify'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 const PER_PAGE = 10
 
 // ── Session cache ────────────────────────────────────────────────────────────
@@ -65,8 +72,23 @@ function FilterPanelSkeleton() {
   )
 }
 
-// ── CourseCard ────────────────────────────────────────────────────────────────
-function CourseCard({ course, viewMode }: { course: any; viewMode: 'list' | 'grid' }) {
+function CourseCard({ 
+  course, 
+  viewMode,
+  appliedCourses,
+  onApplyNow,
+  onViewDetail,
+  onAddToCompare,
+  onUniversityClick,
+}: { 
+  course: any; 
+  viewMode: 'list' | 'grid';
+  appliedCourses: Set<number>;
+  onApplyNow: (c: any) => void;
+  onViewDetail: (c: any) => void;
+  onAddToCompare: (c: any) => void;
+  onUniversityClick: (u: any) => void;
+}) {
   const accreditations: string[] = Array.isArray(course.accreditations)
     ? course.accreditations
     : typeof course.accreditations === 'string'
@@ -75,14 +97,18 @@ function CourseCard({ course, viewMode }: { course: any; viewMode: 'list' | 'gri
 
   const uniSlug = course.university?.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') || ''
 
-  return (
-    <div className={`bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-blue-300 group relative ${viewMode === 'grid' ? 'flex flex-col h-full' : 'mb-4 w-full'}`}>
+    return (
+    <div
+      className={`bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-blue-300 group relative ${
+        viewMode === "grid" ? "flex flex-col h-full" : "mb-4 w-full"
+      }`}
+    >
       <div className="px-4 py-1.5">
         {/* University Header */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-2 mb-2">
           <div className="flex items-center gap-3 w-full">
             {/* Logo */}
-            <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center shrink-0 border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 shadow-sm overflow-hidden">
               {course.university?.logo_path ? (
                 <img
                   src={`${IMAGE_BASE}/storage/${course.university.logo_path}`}
@@ -99,20 +125,24 @@ function CourseCard({ course, viewMode }: { course: any; viewMode: 'list' | 'gri
 
             {/* University Info */}
             <div className="flex-1 min-w-0">
-              <Link
-                href={`/university/${uniSlug}`}
-                className="text-sm sm:text-base font-bold text-gray-900 hover:text-blue-600 transition-colors truncate leading-tight block"
+              <h3
+                onClick={() => onUniversityClick(course.university)}
+                className="text-sm sm:text-base font-bold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors truncate leading-tight"
               >
                 {course.university?.name}
-              </Link>
+              </h3>
+
               <div className="flex items-center text-gray-600 text-xs mt-0.5">
-                <MapPin className="w-3 h-3 mr-1 shrink-0" />
-                <span className="truncate">{course.university?.city}, {course.university?.state}</span>
+                <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">
+                  {course.university?.city}, {course.university?.state}
+                </span>
               </div>
+
               <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5">
                 <div className="flex items-center">
                   <Building className="w-3 h-3 mr-0.5" />
-                  <span>{course.university?.inst_type || 'Private'}</span>
+                  <span>{course.university?.inst_type || "Private"}</span>
                 </div>
                 <div className="flex items-center">
                   <BookOpen className="w-3 h-3 mr-0.5" />
@@ -123,23 +153,30 @@ function CourseCard({ course, viewMode }: { course: any; viewMode: 'list' | 'gri
           </div>
 
           {/* Rating & Badges */}
-          <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto sm:shrink-0">
+          <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
             <div className="flex gap-1.5">
-              {course.is_local === 1 && (
+              {Number(course.is_local) === 1 && (
                 <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded border border-blue-200">
                   <Home className="w-3 h-3 text-blue-600" />
-                  <span className="text-xs font-semibold text-blue-700">Local</span>
+                  <span className="text-xs font-semibold text-blue-700">
+                    Local
+                  </span>
                 </div>
               )}
-              {course.is_international === 1 && (
+              {Number(course.is_international) === 1 && (
                 <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-200">
                   <Globe className="w-3 h-3 text-green-600" />
-                  <span className="text-xs font-semibold text-green-700">Int&apos;l</span>
+                  <span className="text-xs font-semibold text-green-700">
+                    Int&apos;l
+                  </span>
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-0.5 bg-gradient-to-br from-amber-50 to-yellow-50 px-2 py-1 rounded border border-amber-200">
-              <span className="text-sm font-bold text-gray-900">{course.university?.rating || 'N/A'}</span>
+
+            <div className="flex items-center gap-0.5 bg-linear-to-br from-amber-50 to-yellow-50 px-2 py-1 rounded border border-amber-200">
+              <span className="text-sm font-bold text-gray-900">
+                {course.university?.rating || "N/A"}
+              </span>
               <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
             </div>
           </div>
@@ -147,19 +184,19 @@ function CourseCard({ course, viewMode }: { course: any; viewMode: 'list' | 'gri
 
         {/* Course Title + Specs */}
         <div className="border-t border-gray-200 pt-2 mb-2">
-          <Link
-            href={`/university/${uniSlug}/${course.slug || course.id}`}
-            className="text-sm font-bold text-blue-600 mb-2 hover:text-blue-700 transition-colors line-clamp-2 leading-tight block"
+          <h4
+            onClick={() => onViewDetail(course)}
+            className="text-sm font-bold text-blue-600 mb-2 hover:text-blue-700 cursor-pointer transition-colors line-clamp-2 leading-tight block"
           >
             {course.course_name}
-          </Link>
+          </h4>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2">
             {[
               { label: 'Mode', value: course.study_mode },
               { label: 'Duration', value: course.duration },
               { label: 'Intakes', value: course.intake },
-              { label: 'Tuition Fee', value: course.fee },
+              { label: 'Tuition Fee', value: course.fee, },
             ].map(({ label, value }) => (
               <div key={label} className="bg-gray-50 rounded p-2 border border-gray-200 flex flex-col justify-center min-h-[60px]">
                 <p className="text-xs text-gray-500 mb-0.5 font-semibold uppercase">{label}</p>
@@ -180,20 +217,31 @@ function CourseCard({ course, viewMode }: { course: any; viewMode: 'list' | 'gri
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-1.5 w-full mb-1">
-          <Link
-            href={`/contact-us`}
-            className="font-bold py-2 px-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 text-center"
+        {/* Action Buttons (Old Style: py-2.5 rounded-lg) */}
+        <div className="grid grid-cols-3 gap-1.5 w-full">
+          <button
+            onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
+            className={`font-bold py-2.5 px-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs ${
+              appliedCourses.has(course.id)
+                ? "bg-gray-400 text-white cursor-not-allowed"
+                : "bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+            }`}
+            disabled={appliedCourses.has(course.id)}
           >
-            Apply Now
-          </Link>
-          <Link
-            href={`/university/${uniSlug}/${course.slug || course.id}`}
-            className="cursor-pointer bg-white text-gray-800 font-bold py-2.5 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm text-center"
+            {appliedCourses.has(course.id) ? "Applied" : "Apply Now"}
+          </button>
+          <button
+            onClick={() => onViewDetail(course)}
+            className="cursor-pointer bg-white text-gray-800 font-bold py-2 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
           >
             View Details
-          </Link>
+          </button>
+          <button
+            onClick={() => onAddToCompare(course)}
+            className="cursor-pointer font-bold py-2 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
+          >
+            Compare
+          </button>
         </div>
       </div>
     </div>
@@ -204,10 +252,10 @@ function CourseCard({ course, viewMode }: { course: any; viewMode: 'list' | 'gri
 function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, activeFilterCount, specializationSearch, onToggleFilter, onFilterChange, onReset, onSpecializationSearch }: any) {
   if (loading) return <FilterPanelSkeleton />
   return (
-    <div className="hidden lg:block w-[280px] min-w-[280px] shrink-0 bg-gradient-to-br from-white to-blue-50/30 border border-blue-100 p-6 rounded-2xl shadow-xl space-y-5 text-base sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto">
+    <div className="hidden lg:block w-[280px] min-w-[280px] shrink-0 bg-linear-to-br from-white to-blue-50/30 border border-blue-100 p-6 rounded-2xl shadow-xl space-y-5 text-base sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto scrollbar-hide">
       <div className="pb-4 border-b-2 border-blue-100">
         <div className="flex items-center gap-2.5 mb-3">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-1.5 rounded-lg shadow-sm">
+          <div className="bg-linear-to-br from-blue-600 to-blue-700 p-1.5 rounded-lg shadow-sm">
             <Filter className="w-4 h-4 text-white" />
           </div>
           <h2 className="text-xl font-bold text-gray-900">Filters</h2>
@@ -224,11 +272,11 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
       <div className="space-y-3">
         {Object.entries(filters).map(([key, items]: [string, any]) => (
           <div key={key} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-all">
-            <button onClick={() => onToggleFilter(key)} className="w-full flex items-center justify-between p-3 text-left hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent transition-all">
+            <button onClick={() => onToggleFilter(key)} className="w-full flex items-center justify-between p-3 text-left hover:bg-linear-to-r hover:from-blue-50 hover:to-transparent transition-all">
               <span className="font-bold text-gray-900 capitalize flex items-center gap-2">
                 {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
                 {selectedFilters[key]?.length > 0 && (
-                  <span className="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">{selectedFilters[key].length}</span>
+                  <span className="bg-linear-to-r from-blue-500 to-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">{selectedFilters[key].length}</span>
                 )}
               </span>
               <div className={`transition-transform duration-200 ${openFilters[key] ? 'rotate-180' : ''}`}>
@@ -236,23 +284,31 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
               </div>
             </button>
             {openFilters[key] && (
-              <div className="px-3 pb-3 space-y-1.5 max-h-56 overflow-y-auto bg-gradient-to-b from-gray-50/50 to-white">
+              <div className="px-3 pb-3 space-y-1.5 max-h-56 overflow-y-auto bg-linear-to-b from-gray-50/50 to-white">
                 {key === 'specializations' && (
                   <div className="sticky top-0 bg-white z-10 pb-2 mb-2 border-b border-gray-200">
                     <input type="text" placeholder="Search specializations..." value={specializationSearch} onChange={e => onSpecializationSearch(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
                   </div>
                 )}
-                {(items as any[]).filter((item: any) => {
+                {(Array.isArray(items) ? items : []).filter((item: any) => {
                   if (key !== 'specializations' || !specializationSearch) return true
                   return (item.label || item.name || item.slug || '').toLowerCase().includes(specializationSearch.toLowerCase())
                 }).map((item: any) => {
                   const value = item.value || item.slug || item.name || item.month || item.study_mode || item
                   const display = item.label || item.name || item.slug || item.month || item.study_mode || item
-                  const normalizedValue = (key === 'intakes' || key === 'study_modes') ? String(value).trim() : String(value).toLowerCase().trim().replace(/\s+/g, '-')
+                  // Standardize all values to lower-kebab-case for matching
+                  const normalizedValue = String(value).toLowerCase().trim().replace(/\s+/g, '-')
                   const isChecked = selectedFilters[key]?.includes(normalizedValue) || false
+                  const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
                   return (
-                    <label key={item.id || value} className={`flex items-center gap-3 py-2 px-3 cursor-pointer rounded-lg transition-all group ${isChecked ? 'bg-gradient-to-r from-blue-100 to-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-blue-50/50 border border-transparent'}`}>
-                      <input type="radio" name={`course-${key}-desktop`} className="w-4 h-4 text-blue-600 border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 shrink-0 cursor-pointer rounded-full" checked={isChecked} onChange={() => onFilterChange(key, normalizedValue, item.id)} />
+                    <label key={item.id || value} className={`flex items-center gap-3 py-2 px-3 cursor-pointer rounded-lg transition-all group ${isChecked ? 'bg-linear-to-r from-blue-100 to-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-blue-50/50 border border-transparent'}`}>
+                      <input 
+                        type={isSingleSelect ? "radio" : "checkbox"} 
+                        name={`course-${key}-desktop`} 
+                        className="w-4 h-4 text-blue-600 border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 shrink-0 cursor-pointer rounded-full" 
+                        checked={isChecked} 
+                        onChange={() => onFilterChange(key, normalizedValue, item.id)} 
+                      />
                       <span className={`text-sm font-medium text-left transition-colors ${isChecked ? 'text-blue-900 font-semibold' : 'text-gray-700 group-hover:text-blue-700'}`}>{display}</span>
                     </label>
                   )
@@ -305,9 +361,17 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                   }).map((item: any) => {
                     const value = item.value || item.slug || item.name || item.month || item.study_mode || item
                     const display = item.label || item.name || item.slug || item.month || item.study_mode || item
+                    const normalizedValue = (key === 'intakes' || key === 'study_modes') ? String(value).trim() : String(value).toLowerCase().trim().replace(/\s+/g, '-')
+                    const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
                     return (
                       <label key={item.id || value} className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-blue-50 rounded-lg pl-0 pr-2 transition-all group">
-                        <input type="radio" name={`course-${key}-mobile`} className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-blue-500 shrink-0 rounded-full" checked={selectedFilters[key].includes(String(value).toLowerCase().trim())} onChange={() => onFilterChange(key, String(value).toLowerCase().trim(), item.id)} />
+                        <input 
+                          type={isSingleSelect ? "radio" : "checkbox"} 
+                          name={`course-${key}-mobile`} 
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-blue-500 shrink-0 rounded-full" 
+                          checked={selectedFilters[key].includes(String(value).toLowerCase().trim())} 
+                          onChange={() => onFilterChange(key, String(value).toLowerCase().trim(), item.id)} 
+                        />
                         <span className="text-gray-700 text-sm font-medium group-hover:text-blue-700 text-left">{display}</span>
                       </label>
                     )
@@ -333,20 +397,20 @@ function CoursePagination({ currentPage, lastPage, onPageChange }: { currentPage
   const unique = [...new Set(pages)].sort((a, b) => a - b)
   return (
     <div className="flex justify-center items-center gap-2 mt-8 flex-wrap">
-      <button onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className={`flex items-center gap-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md'}`}>
-        <ChevronLeft className="w-4 h-4" /><span className="hidden sm:inline">Previous</span>
+      <button onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:border-gray-400 shadow-sm'}`}>
+        <ChevronLeft size={20} />
       </button>
       {unique.map((p, i) => {
         const prev = unique[i - 1]
         return (
           <span key={p} className="flex items-center gap-2">
             {prev && p - prev > 1 && <span className="text-gray-400 font-bold px-1">•••</span>}
-            <button onClick={() => onPageChange(p)} className={`w-10 h-10 rounded-lg font-bold text-sm transition-all ${currentPage === p ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-110 ring-2 ring-blue-300' : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600'}`}>{p}</button>
+            <button onClick={() => onPageChange(p)} className={`w-10 h-10 rounded-full font-bold text-sm transition-all ${currentPage === p ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:border-gray-400'}`}>{p}</button>
           </span>
         )
       })}
-      <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === lastPage} className={`flex items-center gap-1 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${currentPage === lastPage ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md'}`}>
-        <span className="hidden sm:inline">Next</span><ChevronRight className="w-4 h-4" />
+      <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === lastPage} className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${currentPage === lastPage ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 hover:border-gray-400 shadow-sm'}`}>
+        <ChevronRight size={20} />
       </button>
     </div>
   )
@@ -354,44 +418,140 @@ function CoursePagination({ currentPage, lastPage, onPageChange }: { currentPage
 
 // ── Main Component ────────────────────────────────────────────────────────────
 interface CoursesListClientProps {
-  initialLevel?: string
-  initialCategory?: string
+  initialLevel?: string | string[]
+  initialCategory?: string | string[]
+  initialSpecialization?: string | string[]
+  initialStudyMode?: string | string[]
+  initialIntake?: string | string[]
+  initialFilterType?: string
+  initialFilterValue?: string
   initialFilterData?: any
   initialCoursesData?: any
 }
 
-const EMPTY_FILTERS = { levels: [], categories: [], specializations: [], intakes: [], study_modes: [] }
+type FilterState = Record<string, string[]>
+
+const EMPTY_FILTERS: FilterState = { levels: [], categories: [], specializations: [], intakes: [], study_modes: [] }
+
+// Filter type mapping - OLD project uses radio buttons for ALL filters
+const SINGLE_SELECT_FILTERS = ['levels', 'categories', 'specializations', 'intakes', 'study_modes']
 
 export default function CoursesListClient({ 
   initialLevel, 
   initialCategory,
+  initialSpecialization,
+  initialStudyMode,
+  initialIntake,
+  initialFilterType,
+  initialFilterValue,
   initialFilterData,
   initialCoursesData
 }: CoursesListClientProps) {
-  const [courses, setCourses] = useState<any[]>(initialCoursesData?.courses?.data || initialCoursesData?.data || [])
+  const [courses, setCourses] = useState<any[]>(initialCoursesData?.data || initialCoursesData?.courses?.data || [])
   const [filterData, setFilterData] = useState<any>(initialFilterData || {})
   const [filterLoading, setFilterLoading] = useState(!initialFilterData)
   const [loading, setLoading] = useState(!initialCoursesData)
-  const [currentPage, setCurrentPage] = useState(initialCoursesData?.courses?.current_page || initialCoursesData?.current_page || 1)
-  const [lastPage, setLastPage] = useState(initialCoursesData?.courses?.last_page || initialCoursesData?.last_page || 1)
-  const [totalCourses, setTotalCourses] = useState(initialCoursesData?.courses?.total || initialCoursesData?.total || 0)
+  const [currentPage, setCurrentPage] = useState(initialCoursesData?.pagination?.current_page || initialCoursesData?.courses?.current_page || 1)
+  const [lastPage, setLastPage] = useState(initialCoursesData?.pagination?.last_page || initialCoursesData?.courses?.last_page || 1)
+  const [totalCourses, setTotalCourses] = useState(initialCoursesData?.pagination?.total || initialCoursesData?.courses?.total || 0)
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>(EMPTY_FILTERS)
+  const [lastSelectedFilter, setLastSelectedFilter] = useState<{key: string, value: string, id?: number} | null>(null)
   const [openFilters, setOpenFilters] = useState<Record<string, boolean>>({ levels: true })
   const [specializationSearch, setSpecializationSearch] = useState('')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('rating')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [showMobileFilter, setShowMobileFilter] = useState(false)
-  const [pageTitle, setPageTitle] = useState('Find Your Perfect Course')
+  const [showMore, setShowMore] = useState(false)
+  const [comparisonCourses, setComparisonCourses] = useState<any[]>([])
+  const [showComparisonModal, setShowComparisonModal] = useState(false)
+  const [isApplyOpen, setIsApplyOpen] = useState(false)
+  const [selectedCourseForApply, setSelectedCourseForApply] = useState<any>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [pendingCourse, setPendingCourse] = useState<any>(null)
+  const [appliedCourses, setAppliedCourses] = useState<Set<number>>(new Set())
+  const router = useRouter()
+  
+  const current_filters = useMemo(() => ({
+    level: Array.isArray(initialLevel) ? initialLevel[0] : initialLevel,
+    category: initialCategory ? { name: Array.isArray(initialCategory) ? initialCategory[0] : initialCategory } : null,
+    specialization: initialSpecialization ? { name: Array.isArray(initialSpecialization) ? initialSpecialization[0] : initialSpecialization } : null
+  }), [initialLevel, initialCategory, initialSpecialization])
+
+  // SEO logic matching old project
+  const pageHeading = useMemo(() => {
+    // Priority: 1. User's last click, 2. Initial URL filters
+    if (lastSelectedFilter) {
+      const name = lastSelectedFilter.value.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      return `${name} Courses in Malaysia`
+    }
+    
+    const activeFilterName = current_filters.level || current_filters.category?.name || current_filters.specialization?.name
+    if (activeFilterName) {
+      const name = String(activeFilterName).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      return `${name} Courses in Malaysia`
+    }
+
+    if (initialCoursesData?.seo?.meta_title && initialCoursesData.seo.meta_title !== '%title%') {
+      return initialCoursesData.seo.meta_title.split('|')[0].split(' - ')[0].trim()
+    }
+    return 'Courses in Malaysia'
+  }, [initialCoursesData, lastSelectedFilter, current_filters])
+
+  const pageDescription = useMemo(() => {
+    const activeFilterNameRaw = lastSelectedFilter?.value || current_filters.level || current_filters.category?.name || current_filters.specialization?.name
+    
+    if (activeFilterNameRaw) {
+      const activeFilterName = String(activeFilterNameRaw).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+      return (
+        `Discover a list of ${totalCourses > 0 ? totalCourses : "..."} ${activeFilterName} courses offered by the Top ${initialCoursesData?.nou || "..."} universities ` +
+        `and colleges in Malaysia. Gather valuable information such as entry requirements, fee structures, ` +
+        `intake schedules for ${new Date().getFullYear()}, study modes, and recommendations for the best ` +
+        `universities and colleges offering ${activeFilterName} degree programs. Enroll directly in ` +
+        `${activeFilterName} courses through EducationMalaysia.in.`
+      )
+    }
+    return initialCoursesData?.seo?.page_contents || 
+      "Discover thousands of courses offered by top universities and colleges in Malaysia. Compare programs, entry requirements, fee structures, intake dates, and study modes. Find the best degrees, diplomas, and certificates across all fields of study in Malaysia and enroll directly through EducationMalaysia.in."
+  }, [initialCoursesData, lastSelectedFilter, current_filters, totalCourses])
+
+  const decodeHTMLEntities = (text: string) => {
+    if (!text) return ''
+    return text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
+      .replace(/&[a-z]+;/gi, '')
+  }
+
+  const stripTags = (html: string) => {
+    if (!html) return ''
+    const clean = decodeHTMLEntities(html.replace(/<\/?[^>]+(>|$)/g, ' ').replace(/\s+/g, ' '))
+    return clean.trim()
+  }
+
+  const isHtml = /<[a-z][\s\S]*>/i.test(pageDescription)
+  const plainText = isHtml ? stripTags(pageDescription) : pageDescription
+  const CHAR_LIMIT = 450
+  const needsButton = pageDescription && plainText.length > CHAR_LIMIT
 
   const activeFilterCount = Object.values(selectedFilters).reduce((acc, v) => acc + v.length, 0)
 
   // ── Build query string ───────────────────────────────────────────────────
   const buildQuery = useCallback((page: number, filters: Record<string, string[]>, q: string, sort: string) => {
-    const params = new URLSearchParams({ page: String(page), per_page: String(PER_PAGE), sort_by: sort })
+    const params = new URLSearchParams({ page: String(page), per_page: String(PER_PAGE) })
     if (q) params.set('search', q)
     Object.entries(filters).forEach(([key, values]) => {
-      values.forEach(v => params.append(key + '[]', v))
+      const paramKey = key === 'levels' ? 'level' : 
+                      key === 'categories' ? 'category' : 
+                      key === 'specializations' ? 'specialization' : 
+                      key === 'study_modes' ? 'study_mode' : 
+                      key === 'intakes' ? 'intake' : key
+      values.forEach(v => params.append(paramKey, v))
     })
     return params.toString()
   }, [])
@@ -404,7 +564,7 @@ export default function CoursesListClient({
       const cached = cache.get(cacheKey)
       if (cached) { setFilterData(cached); setFilterLoading(false); return }
       try {
-        const res = await fetch(`${API_BASE}/courses/filters`)
+        const res = await fetch(`${API_BASE}/courses/filters`, { headers: { 'x-api-key': API_KEY } })
         if (!res.ok) throw new Error('Failed')
         const json = await res.json()
         const data = json.data || json
@@ -422,10 +582,51 @@ export default function CoursesListClient({
   // ── Init filters from URL props ──────────────────────────────────────────
   useEffect(() => {
     const init: Record<string, string[]> = { ...EMPTY_FILTERS }
-    if (initialLevel) init.levels = [initialLevel.toLowerCase()]
-    if (initialCategory) init.categories = [initialCategory.toLowerCase()]
+    
+    const toArr = (val: any) => {
+      if (!val) return []
+      return (Array.isArray(val) ? val : [val]).map(v => String(v).toLowerCase().trim().replace(/\s+/g, '-'))
+    }
+
+    if (initialLevel) init.levels = toArr(initialLevel)
+    if (initialCategory) init.categories = toArr(initialCategory)
+    if (initialSpecialization) init.specializations = toArr(initialSpecialization)
+    if (initialStudyMode) init.study_modes = toArr(initialStudyMode)
+    if (initialIntake) init.intakes = toArr(initialIntake)
+    
+    // Set last selected filter for SEO
+    if (initialFilterType && initialFilterValue) {
+      setLastSelectedFilter({ key: initialFilterType, value: initialFilterValue })
+    }
+    
     setSelectedFilters(init)
-  }, [initialLevel, initialCategory])
+  }, [initialLevel, initialCategory, initialSpecialization, initialStudyMode, initialIntake, initialFilterType, initialFilterValue])
+
+  // Apply sorting like OLD project
+  const applySorting = useCallback((coursesList: any[], sortType: string) => {
+    const sorted = [...coursesList]
+    if (sortType === 'rating')
+      sorted.sort(
+        (a, b) => (b.university?.rating || 0) - (a.university?.rating || 0),
+      )
+    else if (sortType === 'duration')
+      sorted.sort(
+        (a, b) =>
+          parseFloat((a.duration || "0").replace(/[^0-9.]/g, "")) -
+          parseFloat((b.duration || "0").replace(/[^0-9.]/g, "")),
+      )
+    return sorted
+  }, [])
+
+  // Apply sorting when sortBy changes
+  useEffect(() => {
+    if (courses.length > 0) {
+      const sortedCourses = applySorting(courses, sortBy)
+      if (JSON.stringify(sortedCourses) !== JSON.stringify(courses)) {
+        setCourses(sortedCourses)
+      }
+    }
+  }, [sortBy, applySorting])
 
   // ── Fetch courses ────────────────────────────────────────────────────────
   const fetchCourses = useCallback(async (page: number, filters: Record<string, string[]>, q: string, sort: string) => {
@@ -433,37 +634,46 @@ export default function CoursesListClient({
     const cacheKey = `list_${qs}`
     const cached = cache.get(cacheKey)
     if (cached) {
-      setCourses(cached.courses)
+      // Apply sorting to cached data
+      const sortedCourses = applySorting(cached.courses, sort)
+      setCourses(sortedCourses)
       setCurrentPage(cached.currentPage)
       setLastPage(cached.lastPage)
       setTotalCourses(cached.total)
-      if (cached.title) setPageTitle(cached.title)
+      if (cached.title) { /* update pageTitle if needed */ }
       setLoading(false)
       return
     }
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/courses?${qs}`)
+      const res = await fetch(`${API_BASE}/courses-in-malaysia?${qs}`, { headers: { 'x-api-key': API_KEY } })
       if (!res.ok) throw new Error('Failed')
       const json = await res.json()
-      const data = json.data || json
-      const newCourses = data.courses?.data || data.data || []
-      const newLast = data.courses?.last_page || data.last_page || 1
-      const newTotal = data.courses?.total || data.total || 0
-      const newTitle = data.seo?.meta_title || data.title || 'Find Your Perfect Course'
-      setCourses(newCourses)
-      setCurrentPage(page)
-      setLastPage(newLast)
-      setTotalCourses(newTotal)
-      setPageTitle(newTitle)
-      cache.set(cacheKey, { courses: newCourses, currentPage: page, lastPage: newLast, total: newTotal, title: newTitle })
+      
+      if (json.status || json.data) {
+        let newCourses = json.data || json.rows?.data || []
+        
+        // Apply client-side sorting like OLD project
+        newCourses = applySorting(newCourses, sort)
+        
+        const pagination = json.pagination || json.rows
+        const newLast = pagination?.last_page || 1
+        const newTotal = pagination?.total || 0
+        const newTitle = json.seo?.meta_title || json.title || 'Find Your Perfect Course'
+        setCourses(newCourses)
+        setCurrentPage(page)
+        setLastPage(newLast)
+        setTotalCourses(newTotal)
+        // setPageTitle(newTitle)
+        cache.set(cacheKey, { courses: newCourses, currentPage: page, lastPage: newLast, total: newTotal, title: newTitle })
+      }
     } catch (e) {
       console.error('Courses error:', e)
       setCourses([])
     } finally {
       setLoading(false)
     }
-  }, [buildQuery])
+  }, [buildQuery, applySorting])
 
   useEffect(() => {
     if (initialCoursesData && currentPage === 1 && Object.values(selectedFilters).every(v => v.length === 0) && !search) {
@@ -471,19 +681,96 @@ export default function CoursesListClient({
       return
     }
     fetchCourses(currentPage, selectedFilters, search, sortBy)
-  }, [currentPage, selectedFilters, sortBy])
+  }, [currentPage, selectedFilters, sortBy, fetchCourses])
 
   const handleSearch = () => {
     setCurrentPage(1)
+    
+    // Build URL with search
+    const primaryKeys = ['specializations', 'categories', 'levels']
+    const activePrimaryKey = primaryKeys.find(k => selectedFilters[k]?.length > 0)
+    
+    let basePath = '/courses-in-malaysia'
+    if (activePrimaryKey && selectedFilters[activePrimaryKey][0]) {
+      basePath = `/${selectedFilters[activePrimaryKey][0]}-courses`
+    }
+    
+    const params = new URLSearchParams()
+    if (search) params.set('search', search)
+    
+    Object.entries(selectedFilters).forEach(([filterKey, values]) => {
+      if (filterKey === activePrimaryKey) return
+      const vals = values as string[]
+      if (vals.length > 0) {
+        const paramKey = filterKey === 'levels' ? 'level' : 
+                        filterKey === 'categories' ? 'category' : 
+                        filterKey === 'specializations' ? 'specialization' : 
+                        filterKey === 'study_modes' ? 'study_mode' : 
+                        filterKey === 'intakes' ? 'intake' : filterKey
+        vals.forEach(v => params.append(paramKey, v))
+      }
+    })
+    
+    const queryString = params.toString()
+    const fullPath = queryString ? `${basePath}?${queryString}` : basePath
+    
+    router.push(fullPath)
     fetchCourses(1, selectedFilters, search, sortBy)
   }
 
-  const handleFilterChange = (key: string, value: string) => {
-    setSelectedFilters(prev => {
-      const curr = prev[key] || []
-      const next = curr.includes(value) ? curr.filter(v => v !== value) : [value]
-      return { ...prev, [key]: next }
+  const handleFilterChange = (key: string, value: string, filterId?: number) => {
+    let nextFilters: FilterState = { ...selectedFilters }
+    
+    // 1. Calculate next state
+    const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
+    const curr = selectedFilters[key] || []
+    const exists = curr.includes(value)
+    
+    if (isSingleSelect) {
+      nextFilters[key] = exists ? [] : [value]
+    } else {
+      nextFilters[key] = exists ? curr.filter(v => v !== value) : [...curr, value]
+    }
+
+    // 2. Update state
+    setSelectedFilters(nextFilters)
+    
+    // Update last selected filter for SEO
+    if (!exists) {
+      setLastSelectedFilter({ key, value, id: filterId })
+    }
+    
+    // 3. Build URL like OLD project
+    // Determine primary filter for path
+    const primaryKeys = ['specializations', 'categories', 'levels']
+    const activePrimaryKey = primaryKeys.find(k => nextFilters[k]?.length > 0)
+    
+    let basePath = '/courses-in-malaysia'
+    if (activePrimaryKey && nextFilters[activePrimaryKey][0]) {
+      basePath = `/${nextFilters[activePrimaryKey][0]}-courses`
+    }
+    
+    // Build query params for secondary filters
+    const params = new URLSearchParams()
+    if (search) params.set('search', search)
+    
+    Object.entries(nextFilters).forEach(([filterKey, values]) => {
+      if (filterKey === activePrimaryKey) return // Skip primary filter (in path)
+      const vals = values as string[]
+      if (vals.length > 0) {
+        const paramKey = filterKey === 'levels' ? 'level' : 
+                        filterKey === 'categories' ? 'category' : 
+                        filterKey === 'specializations' ? 'specialization' : 
+                        filterKey === 'study_modes' ? 'study_mode' : 
+                        filterKey === 'intakes' ? 'intake' : filterKey
+        vals.forEach(v => params.append(paramKey, v))
+      }
     })
+    
+    const queryString = params.toString()
+    const fullPath = queryString ? `${basePath}?${queryString}` : basePath
+    
+    router.push(fullPath)
     setCurrentPage(1)
   }
 
@@ -492,20 +779,109 @@ export default function CoursesListClient({
     setSearch('')
     setSortBy('rating')
     setCurrentPage(1)
+    setLastSelectedFilter(null)
+    router.push('/courses-in-malaysia')
   }
+
+  const handleAddToCompare = useCallback((course: any) => {
+    if (comparisonCourses.length >= 3) {
+      toast.error('You can compare maximum 3 courses')
+      return
+    }
+    if (comparisonCourses.find(c => c.id === course.id)) {
+      toast('Course already added to comparison')
+      return
+    }
+    setComparisonCourses(prev => [...prev, course])
+    toast.success('Course added to comparison')
+  }, [comparisonCourses])
+
+  const handleRemoveFromCompare = useCallback((courseId: number) => {
+    setComparisonCourses(prev => prev.filter(c => c.id !== courseId))
+  }, [])
+
+  const handleClearAllCompare = useCallback(() => setComparisonCourses([]), [])
+
+  const handleCompare = useCallback(() => {
+    if (comparisonCourses.length < 2) {
+      toast.error('Please add at least 2 courses to compare')
+      return
+    }
+    setShowComparisonModal(true)
+  }, [comparisonCourses.length])
+
+  const handleUniversityClick = useCallback((university: any) => {
+    const universityName = typeof university === 'string' ? university : university?.name || university?.uname
+    if (!universityName) return
+    
+    const slug = university?.uname || universityName
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '')
+    
+    router.push(`/university/${slug}`)
+  }, [router])
+
+  const handleApplyNow = useCallback((course: any) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      setSelectedCourseForApply(course)
+      setIsApplyOpen(true)
+    } else {
+      setPendingCourse(course)
+      setShowAuthModal(true)
+    }
+  }, [])
+
+  const handleViewDetail = useCallback((course: any) => {
+    if (!course || !course.university?.name) return
+    const universitySlug = course.university.uname || course.university.name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '')
+    const courseSlug = course.slug || (course.course_name ? course.course_name.toLowerCase().replace(/\s+/g, '-').replace(/[()&]/g, '').replace(/--+/g, '-').trim() : null)
+    if (!courseSlug) return
+    router.push(`/university/${universitySlug}/courses/${courseSlug}`)
+  }, [router])
 
   const toggleFilter = (key: string) => setOpenFilters(prev => ({ ...prev, [key]: !prev[key] }))
 
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Courses in Malaysia', href: '/courses-in-malaysia' },
-    ...(initialLevel ? [{ label: initialLevel.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
-    ...(initialCategory ? [{ label: initialCategory.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
+    ...(lastSelectedFilter?.value ? [{ label: String(lastSelectedFilter.value).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
+    ...(initialLevel ? [{ label: (Array.isArray(initialLevel) ? initialLevel[0] : initialLevel).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
+    ...(initialCategory ? [{ label: (Array.isArray(initialCategory) ? initialCategory[0] : initialCategory).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
+    ...(initialSpecialization ? [{ label: (Array.isArray(initialSpecialization) ? initialSpecialization[0] : initialSpecialization).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
   ]
 
   return (
     <>
-      <Breadcrumb items={breadcrumbItems} />
+      {/* Breadcrumb section */}
+      <div className="w-full bg-blue-50 shadow-sm min-h-[40px] sm:min-h-[52px]">
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-2 sm:py-3">
+          <div className="flex items-center flex-nowrap gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto scrollbar-hide">
+            <Link href="/" className="flex items-center gap-1 hover:underline hover:text-blue-500 shrink-0">
+              <Home size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden xs:inline">Home</span>
+            </Link>
+            <span className="text-gray-400">/</span>
+            <Link href="/courses-in-malaysia" className="flex items-center gap-1 hover:underline hover:text-blue-500 shrink-0">
+              <Layers size={16} className="sm:w-[18px] sm:h-[18px]" />
+              <span className="hidden sm:inline">Courses in Malaysia</span>
+              <span className="sm:hidden">Courses</span>
+            </Link>
+            {(initialLevel || initialCategory) && (
+              <>
+                <ChevronRight className="shrink-0 w-4 h-4 text-gray-400 mx-1" />
+                <span className="shrink-0 text-blue-600 font-semibold whitespace-nowrap capitalize">
+                  {String(initialCategory || initialLevel || '').replace(/-/g, ' ')}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Mobile filter drawer */}
       {showMobileFilter && (
@@ -528,12 +904,12 @@ export default function CoursesListClient({
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
             {/* Mobile filter button */}
-            <div className="lg:hidden w-full flex justify-between items-center mb-3 bg-gradient-to-r from-white to-blue-50/50 rounded-xl p-3 shadow-lg border border-blue-100">
+            <div className="lg:hidden w-full flex justify-between items-center mb-3 bg-linear-to-r from-white to-blue-50/50 rounded-xl p-3 shadow-lg border border-blue-100">
               <span className="text-sm font-bold text-gray-800">
                 <span className="text-blue-600">{totalCourses}</span> Courses Found
               </span>
               <button
-                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2.5 rounded-lg shadow-md flex items-center gap-2 text-sm font-bold hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-lg transform hover:-translate-y-0.5"
+                className="bg-linear-to-r from-blue-600 to-blue-700 text-white px-4 py-2.5 rounded-lg shadow-md flex items-center gap-2 text-sm font-bold hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-lg transform hover:-translate-y-0.5"
                 onClick={() => setShowMobileFilter(true)}
               >
                 <Filter className="w-4 h-4" />
@@ -565,12 +941,35 @@ export default function CoursesListClient({
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-900 mb-1">{pageTitle}</h1>
+                      <h1 className="text-2xl font-bold text-gray-900 mb-1">{pageHeading}</h1>
                       <p className="text-sm text-gray-600">
                         Showing <span className="font-semibold text-blue-600">{totalCourses}</span> courses available in Malaysia
                       </p>
                     </div>
                   </div>
+
+                  {pageDescription && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mt-2 shadow-sm">
+                      {showMore ? (
+                        <div
+                          className="text-gray-700 text-sm leading-relaxed prose prose-sm max-w-none transition-opacity duration-300"
+                          dangerouslySetInnerHTML={{ __html: pageDescription }}
+                        />
+                      ) : (
+                        <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">
+                          {needsButton ? plainText.slice(0, CHAR_LIMIT) + '...' : plainText}
+                        </p>
+                      )}
+                      {needsButton && (
+                        <button
+                          onClick={() => setShowMore(!showMore)}
+                          className="mt-3 text-blue-600 text-sm font-semibold hover:underline focus:outline-none flex items-center gap-1 cursor-pointer"
+                        >
+                          {showMore ? <>Show Less <ChevronUp className="w-4 h-4" /></> : <>Show More <ChevronDown className="w-4 h-4" /></>}
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   {/* Sort + Search + View toggle */}
                   <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pt-3 border-t border-gray-200">
@@ -607,7 +1006,7 @@ export default function CoursesListClient({
 
                   {/* Active filter chips */}
                   {activeFilterCount > 0 && (
-                    <div className="bg-white border border-gray-200 rounded-xl mt-2 shadow-sm p-4">
+                    <div className="bg-white border border-gray-200 rounded-xl mt-4 shadow-sm p-4">
                       <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2">
                         <div className="flex items-center gap-2">
                           <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm shrink-0">
@@ -636,11 +1035,22 @@ export default function CoursesListClient({
               </div>
 
               {/* Course Cards */}
-              <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : 'space-y-0'}`}>
+              <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : 'space-y-4'}`}>
                 {loading && courses.length === 0
                   ? [...Array(5)].map((_, i) => <CourseCardSkeleton key={i} />)
                   : courses.length > 0
-                    ? courses.map(course => <CourseCard key={course.id} course={course} viewMode={viewMode} />)
+                    ? courses.map(course => (
+                        <CourseCard 
+                          key={course.id} 
+                          course={course} 
+                          viewMode={viewMode}
+                          appliedCourses={appliedCourses}
+                          onApplyNow={handleApplyNow}
+                          onViewDetail={handleViewDetail}
+                          onAddToCompare={handleAddToCompare}
+                          onUniversityClick={handleUniversityClick}
+                        />
+                      ))
                     : (
                       <div className="bg-white rounded-xl shadow-md p-12 text-center">
                         <p className="text-gray-500 text-lg mb-4">No courses found matching your criteria.</p>
@@ -655,6 +1065,45 @@ export default function CoursesListClient({
           </div>
         </div>
       </div>
+
+      <CourseCompareBar 
+        comparisonCourses={comparisonCourses}
+        onRemoveFromCompare={handleRemoveFromCompare}
+        onCompare={handleCompare}
+        onClearAll={handleClearAllCompare}
+      />
+
+      {showComparisonModal && (
+        <CourseComparisonModal 
+          comparisonCourses={comparisonCourses}
+          appliedCourses={appliedCourses}
+          onApplyNow={handleApplyNow}
+          onClose={() => setShowComparisonModal(false)}
+        />
+      )}
+
+      {/* Modals */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        courseId={pendingCourse?.id || null}
+        onSuccess={() => {
+          if (pendingCourse) handleApplyNow(pendingCourse)
+          setPendingCourse(null)
+        }} 
+      />
+
+      {isApplyOpen && (
+        <PopupForm 
+          isOpen={isApplyOpen} 
+          onClose={() => setIsApplyOpen(false)} 
+          universityData={{
+            ...selectedCourseForApply?.university,
+            id: selectedCourseForApply?.university_id || selectedCourseForApply?.university?.id
+          }}
+          formType="apply"
+        />
+      )}
     </>
   )
 }

@@ -10,13 +10,14 @@ type Specialization = {
 async function getSpecializations(): Promise<Specialization[]> {
   try {
     const { prisma } = await import('@/lib/db')
-    return (await (prisma as any).specialization.findMany({
+    return (await prisma.courseSpecialization.findMany({
       where: { status: true },
       select: { id: true, name: true, slug: true },
       orderBy: { id: 'asc' },
       take: 8,
-    })) as Specialization[]
-  } catch {
+    })) as unknown as Specialization[]
+  } catch (error) {
+    console.error('Error fetching specializations:', error)
     return []
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { apiSuccess, serializeBigInt } from '@/backend'
 
 export async function GET() {
   try {
@@ -14,8 +15,8 @@ export async function GET() {
       },
       orderBy: { category_name: 'asc' }
     })
-    return NextResponse.json(categories)
-  } catch (err) {
+    return apiSuccess(serializeBigInt(categories))
+  } catch (err: any) {
     console.error('[EMGS Categories API]', err)
     return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 })
   }

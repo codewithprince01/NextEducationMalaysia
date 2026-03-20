@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 }
 
 import { getUniversitiesByType } from '@/lib/queries/universities'
+import { serializeBigInt } from '@/lib/utils'
 
 export default async function UniversitiesPage() {
   const [publicUnis, privateUnis, foreignUnis] = await Promise.all([
@@ -19,11 +20,11 @@ export default async function UniversitiesPage() {
     getUniversitiesByType('foreign-universities-in-malaysia'),
   ])
 
-  const initialData = {
+  const initialData = serializeBigInt({
     public: publicUnis as any[],
     private: privateUnis as any[],
     foreign: foreignUnis as any[],
-  }
+  })
 
   return <UniversitiesHubClient pageTitle="TOP UNIVERSITIES IN MALAYSIA" initialData={initialData} />
 }

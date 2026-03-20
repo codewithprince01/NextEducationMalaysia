@@ -109,7 +109,7 @@ export default function ExamDetailClient({ exam, allExams }: Props) {
               {exam.imgpath && (
                 <div className="relative group mb-12 rounded-4xl overflow-hidden shadow-2xl border-4 border-white">
                   <img
-                    src={storageUrl(exam.imgpath) || '/default-banner.jpg'}
+                    src={storageUrl(exam.imgpath) || '/girl-banner.webp'}
                     alt={exam.page_name}
                     className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700"
                     loading="lazy"

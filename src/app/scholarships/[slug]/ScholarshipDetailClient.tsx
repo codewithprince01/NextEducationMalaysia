@@ -3,8 +3,9 @@
 import { useRef, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Info, Gift, Building2, FileEdit, CheckCircle, ChevronRight } from 'lucide-react'
+import { Info, Gift, Building2, FileEdit, CheckCircle, ChevronRight, Award, Calendar } from 'lucide-react'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
+import { storageUrl } from '@/lib/constants'
 
 const iconMap: Record<string, React.ReactNode> = {
   Overview: <Info size={16} />,
@@ -17,6 +18,7 @@ const iconMap: Record<string, React.ReactNode> = {
 interface ScholarshipData {
   title: string
   slug: string
+  thumbnail_path?: string | null
   contents: { tab: string; description: string }[]
   otherScholarships: { id: number; title: string; slug: string }[]
 }
@@ -65,15 +67,30 @@ export default function ScholarshipDetailClient({ data }: { data: ScholarshipDat
   return (
     <section className="bg-gradient-to-br from-blue-50 to-white px-4 py-10 md:px-10">
       <div className="max-w-7xl mx-auto">
-        {/* Title */}
-        <motion.h1
-          className="text-2xl md:text-5xl font-bold text-center text-blue-800 mb-10"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          {data.title}
-        </motion.h1>
+        {/* Hero Section with Image */}
+        <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl mb-12 bg-white">
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="p-8 md:p-12 flex flex-col justify-center bg-gradient-to-br from-blue-700 to-indigo-800 text-white">
+              <div className="flex items-center gap-2 mb-4 bg-white/10 backdrop-blur-sm w-fit px-3 py-1 rounded-full border border-white/20">
+                <Award size={14} className="text-blue-300" />
+                <span className="text-xs font-bold tracking-wider uppercase">Scholarship Program</span>
+              </div>
+              <h1 className="text-2xl md:text-5xl font-black leading-tight mb-6 break-words">
+                {data.title}
+              </h1>
+              <div className="h-1.5 w-24 bg-gradient-to-r from-blue-400 to-indigo-300 rounded-full mb-8"></div>
+            </div>
+            <div className="relative h-64 md:h-auto min-h-[300px]">
+              <img
+                src={data.thumbnail_path ? (data.thumbnail_path.startsWith('http') ? data.thumbnail_path : storageUrl(data.thumbnail_path) || '') : 'https://placehold.co/800x600/e2e8f0/475569?text=Scholarship'}
+                alt={data.title}
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).src = 'https://placehold.co/800x600/e2e8f0/475569?text=Scholarship' }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/20 md:block hidden"></div>
+            </div>
+          </div>
+        </div>
 
         {/* Tab Navigation */}
         <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md w-full flex items-center gap-3 overflow-x-auto border-b border-gray-200 py-3 mb-8 no-scrollbar px-2 rounded-xl shadow-sm">

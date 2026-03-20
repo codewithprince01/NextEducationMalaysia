@@ -1,94 +1,61 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Play, Film, AlertCircle } from 'lucide-react'
 
 interface Video {
-  id: number
   video_url: string
 }
 
-export default function UniversityVideosClient({ uname }: { uname: string }) {
-  const [videos, setVideos] = useState<Video[]>([])
+export default function UniversityVideosClient({ slug }: { slug: string }) {
+  const [videos, setVideos] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const response = await fetch(`/api/university/${uname}/videos`)
-        const json = await response.json()
-        if (json.data?.universityVideos) {
-          setVideos(json.data.universityVideos)
+    fetch(`/api/university/${slug}/videos`)
+      .then(r => r.json())
+      .then(json => {
+        if (json.data) {
+          setVideos(json.data)
         }
-      } catch (error) {
-        console.error('Error fetching videos:', error)
-      } finally {
         setLoading(false)
-      }
-    }
-    fetchVideos()
-  }, [uname])
+      })
+      .catch(() => setLoading(false))
+  }, [slug])
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[1, 2].map((i) => (
-          <div key={i} className="aspect-video bg-gray-100 rounded-3xl animate-pulse" />
-        ))}
+      <div className="mt-6 animate-pulse">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Videos</h2>
+        <div className="w-full h-64 bg-gray-100 rounded-lg shadow-sm" />
       </div>
     )
   }
 
   if (videos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200">
-        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
-          <Film className="w-8 h-8 text-gray-300" />
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold mb-4 text-gray-800">Videos</h2>
+        <div className="bg-white rounded-xl p-8 text-center text-gray-400 border border-gray-100">
+          <p>No videos available for this university.</p>
         </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">No Campus Videos</h3>
-        <p className="text-gray-500">There are no videos available for this institution at the moment.</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-12">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
-          <Play className="w-6 h-6 text-white fill-current" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-black text-gray-900">Virtual Campus Tour</h2>
-          <p className="text-gray-500">Explore campus life and facilities through these videos.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {videos.map((video) => {
-          // Normalize URL for embed if it's a standard youtube link
-          let embedUrl = video.video_url
-          if (embedUrl?.includes('youtube.com/watch?v=')) {
-            embedUrl = embedUrl.replace('watch?v=', 'embed/')
-          } else if (embedUrl?.includes('youtu.be/')) {
-            embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/')
-          }
-
-          return (
-            <div key={video.id} className="group relative">
-              <div className="aspect-video bg-black rounded-[2rem] overflow-hidden shadow-2xl shadow-blue-900/10 border border-gray-100">
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </div>
-              <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-white rounded-2xl shadow-xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
-                 <Film className="w-5 h-5" />
-              </div>
-            </div>
-          )
-        })}
+    <div className="mt-6 space-y-6">
+      <h2 className="text-xl font-bold text-gray-800">Videos</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {videos.map((url, i) => (
+          <div key={i} className="relative group rounded-xl overflow-hidden shadow-md bg-black">
+            <iframe
+              src={url}
+              title={`Campus Video ${i + 1}`}
+              className="w-full h-64 border-0"
+              allowFullScreen
+            />
+          </div>
+        ))}
       </div>
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -24,7 +24,17 @@ type Props = { banners: Banner[] }
 
 export default function HeroSwiper({ banners }: Props) {
   const swiperRef = useRef<SwiperType | null>(null)
-  const showArrows = banners.length > 1
+  const [isDesktop, setIsDesktop] = useState(false)
+  const showArrows = isDesktop && banners.length > 1
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)")
+    const handleChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+
+    setIsDesktop(mediaQuery.matches)
+    mediaQuery.addEventListener("change", handleChange)
+    return () => mediaQuery.removeEventListener("change", handleChange)
+  }, [])
 
   const src = (path: string) =>
     path.startsWith('/') || path.startsWith('http') ? path : `${IMAGE_BASE}/storage/${path}`
@@ -53,6 +63,11 @@ export default function HeroSwiper({ banners }: Props) {
                 fetchPriority={i === 0 ? 'high' : 'auto'}
                 loading={i === 0 ? 'eager' : 'lazy'}
                 sizes="100vw"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = "none"
+                  target.parentElement!.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                }}
               />
             </SwiperSlide>
           ))}

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getSpecializationBySlug, getAllSpecializationSlugs } from '@/lib/queries/specializations'
+import { serializeBigInt } from '@/lib/utils'
 import { resolveSpecializationMeta } from '@/lib/seo/metadata'
 import { specializationJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
@@ -24,8 +25,10 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function SpecializationDetailPage({ params }: Props) {
   const { slug, levelSlug } = await params
-  const spec = await getSpecializationBySlug(slug)
-  if (!spec) notFound()
+  const specData = await getSpecializationBySlug(slug)
+  if (!specData) notFound()
+
+  const spec = serializeBigInt(specData)
 
   return (
     <>

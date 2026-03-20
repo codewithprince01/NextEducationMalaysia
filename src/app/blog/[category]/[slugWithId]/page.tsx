@@ -5,6 +5,7 @@ import { blogJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
 import { SITE_URL } from '@/lib/constants'
 import BlogDetailClient from './BlogDetailClient'
+import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 21600
 
@@ -36,33 +37,26 @@ export async function generateMetadata({ params }: Props) {
   return resolveBlogMeta(blog, parsed.id)
 }
 
+import { blogService } from '@/backend'
+
 export default async function BlogDetailPage({ params }: Props) {
   const { category, slugWithId } = await params
   const parsed = parseSlugWithId(slugWithId)
   if (!parsed) notFound()
 
-  const blog = await getBlogBySlugAndId(parsed.slug, parsed.id)
-  if (!blog) notFound()
-
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
-  let initialData = null
-  try {
-    const res = await fetch(`${API_BASE}/blog-details/${category}/${slugWithId}`, { next: { revalidate: 21600 } })
-    initialData = await res.json()
-  } catch (e) {
-    console.error('Failed to fetch full blog data on server:', e)
-  }
+  const result = await blogService.getBlogDetail(category, slugWithId)
+  if (!result) notFound()
 
   return (
     <>
-      <JsonLd data={blogJsonLd(blog, parsed.id)} />
+      <JsonLd data={blogJsonLd(result.data, parsed.id)} />
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Home', url: SITE_URL },
         { name: 'Blog', url: `${SITE_URL}/blog` },
         { name: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), url: `${SITE_URL}/blog/${category}` },
-        { name: blog.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
+        { name: result.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
       ])} />
-      <BlogDetailClient category={category} slugWithId={slugWithId} initialData={initialData} />
+      <BlogDetailClient category={category} slugWithId={slugWithId} initialData={result} />
     </>
   )
 }

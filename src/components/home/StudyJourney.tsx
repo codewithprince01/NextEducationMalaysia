@@ -9,7 +9,7 @@ const steps = [
   { id: 2, title: 'Apply & Get Offer Letter', subtitle: 'Submit documents & complete application', icon: <FileCheck className="w-8 h-8" />, href: '/signup', color: 'from-[#0052CC] to-[#0066FF]' },
   { id: 3, title: 'Start Student Visa Process', subtitle: 'Begin EMGS approval', icon: <Compass className="w-8 h-8" />, href: '/signup', color: 'from-[#0066FF] to-[#3385FF]' },
   { id: 4, title: 'Pay Fees & Confirm Seat', subtitle: 'Complete payment to secure your admission', icon: <Wallet className="w-8 h-8" />, href: '/signup', color: 'from-[#3385FF] to-[#66A3FF]' },
-  { id: 5, title: 'Fly to Malaysia', subtitle: 'Start study in Malaysia', icon: <Plane className="w-8 h-8" />, href: '/signup', color: 'from-[#66A3FF] to-[#99C2FF]' },
+  { id: 5, title: ' Fly to Malaysia', subtitle: 'Start study in Malaysia', icon: <Plane className="w-8 h-8" />, href: '/signup', color: 'from-[#66A3FF] to-[#99C2FF]' },
 ]
 
 export default function StudyJourney() {

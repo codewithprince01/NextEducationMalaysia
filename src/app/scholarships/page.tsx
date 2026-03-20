@@ -4,6 +4,7 @@ import { getAllScholarships } from '@/lib/queries/scholarships'
 import ScholarshipsListingClient from './ScholarshipsListingClient'
 import { Metadata } from 'next'
 import { SITE_URL } from '@/lib/constants'
+import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 86400
 
@@ -14,7 +15,8 @@ export const metadata: Metadata = {
 }
 
 export default async function ScholarshipsPage() {
-  const scholarships = await getAllScholarships()
+  const scholarshipsData = await getAllScholarships()
+  const scholarships = serializeBigInt(scholarshipsData)
 
   return (
     <>

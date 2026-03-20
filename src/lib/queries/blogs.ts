@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { unstable_cache } from 'next/cache'
+import { serializeBigInt } from '@/lib/utils'
 
 export const getAllBlogSlugs = unstable_cache(
   () =>
@@ -28,7 +29,7 @@ export const getBlogBySlugAndId = unstable_cache(
         contents: { orderBy: { position: 'asc' } },
         faqs: { orderBy: { id: 'asc' } },
       },
-    }),
+    }).then(serializeBigInt),
   ['blog-detail'],
   { revalidate: 21600, tags: ['blog'] },
 )
@@ -53,7 +54,7 @@ export const getBlogsByCategory = unstable_cache(
       orderBy: { created_at: 'desc' },
       skip: (page - 1) * perPage,
       take: perPage,
-    }) as any,
+    }).then(serializeBigInt) as any,
   ['blogs-by-category'],
   { revalidate: 21600 },
 )
@@ -73,7 +74,7 @@ export const getRecentBlogs = unstable_cache(
       },
       orderBy: { created_at: 'desc' },
       take: limit,
-    }) as any,
+    }).then(serializeBigInt) as any,
   ['recent-blogs'],
   { revalidate: 21600 },
 )
@@ -88,7 +89,7 @@ export const getBlogCategories = unstable_cache(
         category_slug: true,
         _count: { select: { blogs: { where: { status: true as any } } } },
       },
-    }),
+    }).then(serializeBigInt),
   ['blog-categories'],
   { revalidate: 21600 },
 )

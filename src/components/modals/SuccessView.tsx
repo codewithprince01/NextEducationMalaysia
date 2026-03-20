@@ -27,6 +27,8 @@ const SuccessView: React.FC<SuccessViewProps> = ({ formType, onOk }) => {
         <p className="text-gray-600 mt-2 text-sm">
           {formType === "counselling"
             ? "Your counselling session has been booked successfully. We will contact you soon."
+            : formType === "compare" || formType === "comparison"
+            ? "Your comparison request has been submitted successfully. We will contact you soon."
             : "Your inquiry has been submitted successfully. We will contact you soon."}
         </p>
       </div>

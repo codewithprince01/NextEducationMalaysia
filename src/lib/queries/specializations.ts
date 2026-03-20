@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import { unstable_cache } from 'next/cache'
+import { serializeBigInt } from '@/lib/utils'
 
 export const getAllSpecializationSlugs = unstable_cache(
   () =>
@@ -24,7 +25,7 @@ export const getSpecializationBySlug = unstable_cache(
           orderBy: { id: 'asc' },
         },
       },
-    }),
+    }).then(serializeBigInt),
   ['specialization-detail'],
   { revalidate: 86400, tags: ['specialization'] },
 )
@@ -40,7 +41,7 @@ export const getSpecializationLevel = unstable_cache(
         specialization: { select: { name: true, slug: true } },
         contents: { orderBy: { position: 'asc' } },
       },
-    }),
+    }).then(serializeBigInt),
   ['specialization-level-detail'],
   { revalidate: 86400 },
 )
@@ -58,7 +59,7 @@ export const getAllSpecializations = unstable_cache(
         _count: { select: { programs: { where: { status: true } } } },
       },
       orderBy: { name: 'asc' },
-    }),
+    }).then(serializeBigInt),
   ['all-specializations'],
   { revalidate: 86400 },
 )
