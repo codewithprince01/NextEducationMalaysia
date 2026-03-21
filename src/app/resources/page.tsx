@@ -8,14 +8,11 @@ import {
   Sparkles,
   ArrowRight,
 } from 'lucide-react'
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Breadcrumb from '@/components/Breadcrumb'
 
-export const metadata: Metadata = {
-  title: 'Resources Hub | Education Malaysia',
-  description: 'Explore essential resources for studying in Malaysia, including exams, admission services, and student guidelines.',
-  alternates: { canonical: `${SITE_URL}/resources` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(['resources', 'Resources'], '/resources', 'Resources Hub | Education Malaysia')
 }
 
 const sections = [

@@ -1,11 +1,12 @@
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import GraduatePassClient from './GraduatePassClient'
 
-export const metadata: Metadata = {
-  title: 'Graduate Pass — Your Gateway to 12 Months in Malaysia | Education Malaysia',
-  description: 'Stay, work, and explore opportunities in Malaysia for up to one year after graduation — no employer sponsorship required.',
-  alternates: { canonical: `${SITE_URL}/resources/guidelines/graduate-pass` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['Graduate Pass', 'resources-guidelines-graduate-pass'],
+    '/resources/guidelines/graduate-pass',
+    'Graduate Pass - Your Gateway to 12 Months in Malaysia | Education Malaysia',
+  )
 }
 
 export default function GraduatePassPage() {

@@ -1,12 +1,13 @@
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import ExamsClient from './ExamsClient'
 import { getAllExams } from '@/lib/queries/resources'
 
-export const metadata: Metadata = {
-  title: 'English Language Exams Guide - IELTS, PTE, MUET, TOEFL | Education Malaysia',
-  description: 'Complete guide to English language exams for studying in Malaysia. Learn about IELTS, PTE Academic, MUET and TOEFL requirements and preparation tips.',
-  alternates: { canonical: `${SITE_URL}/resources/exams` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['exams', 'Exams', 'resources/exams'],
+    '/resources/exams',
+    'English Language Exams Guide - IELTS, PTE, MUET, TOEFL | Education Malaysia',
+  )
 }
 
 export default async function ExamsPage() {

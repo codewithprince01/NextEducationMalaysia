@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db-fresh';
-import { resolveSeoMeta } from './seo.service';
+import { resolveDetailPageSeo, resolveSeoMeta } from './seo.service';
 import { serializeBigInt } from '@/lib/utils';
 import { SITE_VAR } from '../utils/constants';
 
@@ -27,32 +27,128 @@ export class MalaysiaDiscoveryService {
     level?: string;
     category?: string;
     specialization?: string;
-    study_mode?: string;
-    intake?: string;
+    study_mode?: string | string[];
+    intake?: string | string[];
     search?: string;
     page?: number;
   }) {
     const { level, category, specialization, study_mode, intake, search, page = 1 } = params;
     const perPage = 10;
     const skip = (page - 1) * perPage;
+    // Resolve slug/name -> model records for filters (tolerant matching like old project)
+    const normalizedLevel = level ? String(level).toLowerCase().trim() : '';
+    const normalizedCategory = category ? String(category).toLowerCase().trim() : '';
+    const normalizedSpecialization = specialization ? String(specialization).toLowerCase().trim() : '';
 
-    // Resolve slug → model records for filters
-    const [curLevel, curCat, curSpc] = await Promise.all([
-      level ? prisma.level.findFirst({ where: { slug: level } }) : null,
-      category ? prisma.courseCategory.findFirst({ where: { slug: category } }) : null,
-      specialization ? prisma.courseSpecialization.findFirst({ where: { slug: specialization } }) : null
+    const [curLevelRows, curCatRows, curSpcRows] = await Promise.all([
+      normalizedLevel
+        ? prisma.$queryRawUnsafe(
+            `SELECT id, level, slug
+             FROM levels
+             WHERE slug = ?
+                OR LOWER(REPLACE(level, ' ', '-')) = ?
+             LIMIT 1`,
+            normalizedLevel,
+            normalizedLevel
+          )
+        : Promise.resolve([]),
+      normalizedCategory
+        ? prisma.$queryRawUnsafe(
+            `SELECT id, name, slug
+             FROM course_categories
+             WHERE slug = ?
+                OR LOWER(REPLACE(name, ' ', '-')) = ?
+             LIMIT 1`,
+            normalizedCategory,
+            normalizedCategory
+          )
+        : Promise.resolve([]),
+      normalizedSpecialization
+        ? prisma.$queryRawUnsafe(
+            `SELECT id, name, slug
+             FROM course_specializations
+             WHERE slug = ?
+                OR LOWER(REPLACE(name, ' ', '-')) = ?
+             LIMIT 1`,
+            normalizedSpecialization,
+            normalizedSpecialization
+          )
+        : Promise.resolve([])
     ]);
+
+    const curLevel: any = Array.isArray(curLevelRows) && curLevelRows.length > 0 ? (curLevelRows as any[])[0] : null;
+    const curCat: any = Array.isArray(curCatRows) && curCatRows.length > 0 ? (curCatRows as any[])[0] : null;
+    const curSpc: any = Array.isArray(curSpcRows) && curSpcRows.length > 0 ? (curSpcRows as any[])[0] : null;
 
     // ── Raw SQL for programs (avoids ALL Prisma type mismatches) ────────────
     let baseSqlWhere = `up.status = 1 AND up.website = ? AND u.status = 1`;
     const baseArgs: any[] = [SITE_VAR];
 
+    const curCatId = curCat?.id != null ? Number(curCat.id) : undefined;
+    const curSpcId = curSpc?.id != null ? Number(curSpc.id) : undefined;
+    // Category/Specialization SEO rows have their own meta in old project;
+    // use them as primary source when current filter resolves successfully.
+    let seoSourceModel: any = null;
+    try {
+      if (curSpcId != null && !Number.isNaN(curSpcId)) {
+        seoSourceModel = await prisma.courseSpecialization.findUnique({
+          where: { id: curSpcId },
+          select: {
+            name: true,
+            meta_title: true,
+            meta_keyword: true,
+            meta_description: true,
+            page_content: true,
+            courses_description: true,
+            content_image_path: true,
+            og_image_path: true,
+          },
+        });
+      } else if (curCatId != null && !Number.isNaN(curCatId)) {
+        seoSourceModel = await prisma.courseCategory.findUnique({
+          where: { id: curCatId },
+          select: {
+            name: true,
+            meta_title: true,
+            meta_keyword: true,
+            meta_description: true,
+            page_content: true,
+            courses_description: true,
+            content_image_path: true,
+            og_image_path: true,
+          },
+        });
+      }
+    } catch {
+      seoSourceModel = null;
+    }
+
     if (search) { baseSqlWhere += ' AND u.name LIKE ?'; baseArgs.push(`%${search}%`); }
     if (curLevel) { baseSqlWhere += ' AND up.level = ?'; baseArgs.push(curLevel.level); }
-    if (curCat) { baseSqlWhere += ' AND up.course_category_id = ?'; baseArgs.push(curCat.id); }
-    if (curSpc) { baseSqlWhere += ' AND up.specialization_id = ?'; baseArgs.push(curSpc.id); }
-    if (study_mode) { baseSqlWhere += ' AND up.study_mode LIKE ?'; baseArgs.push(`%${study_mode}%`); }
-    if (intake) { baseSqlWhere += ' AND up.intake LIKE ?'; baseArgs.push(`%${intake}%`); }
+    if (curCatId != null && !Number.isNaN(curCatId)) { baseSqlWhere += ' AND up.course_category_id = ?'; baseArgs.push(curCatId); }
+    if (curSpcId != null && !Number.isNaN(curSpcId)) { baseSqlWhere += ' AND up.specialization_id = ?'; baseArgs.push(curSpcId); }
+    const selectedStudyModes = Array.isArray(study_mode)
+      ? study_mode.filter(Boolean)
+      : study_mode
+        ? [study_mode]
+        : [];
+    const selectedIntakes = Array.isArray(intake)
+      ? intake.filter(Boolean)
+      : intake
+        ? [intake]
+        : [];
+
+    if (selectedStudyModes.length > 0) {
+      const modeClauses = selectedStudyModes.map(() => 'up.study_mode LIKE ?').join(' OR ');
+      baseSqlWhere += ` AND (${modeClauses})`;
+      selectedStudyModes.forEach((mode) => baseArgs.push(`%${mode}%`));
+    }
+
+    if (selectedIntakes.length > 0) {
+      const intakeClauses = selectedIntakes.map(() => 'up.intake LIKE ?').join(' OR ');
+      baseSqlWhere += ` AND (${intakeClauses})`;
+      selectedIntakes.forEach((month) => baseArgs.push(`%${month}%`));
+    }
 
     const programsSql = `
       SELECT 
@@ -86,6 +182,7 @@ export class MalaysiaDiscoveryService {
     const [
       rawPrograms,
       countResult,
+      universityCountResult,
       levelsRaw,
       categoriesRaw,
       specializationsRaw,
@@ -94,6 +191,12 @@ export class MalaysiaDiscoveryService {
     ] = await Promise.all([
       prisma.$queryRawUnsafe(programsSql, ...baseArgs, perPage, skip),
       prisma.$queryRawUnsafe(countSql, ...baseArgs),
+      prisma.$queryRawUnsafe(`
+        SELECT COUNT(DISTINCT u.id) AS total_universities
+        FROM university_programs up
+        INNER JOIN universities u ON up.university_id = u.id
+        WHERE ${baseSqlWhere}
+      `, ...baseArgs),
       prisma.level.findMany({
         select: { id: true, level: true, slug: true },
         orderBy: { id: 'asc' }
@@ -105,6 +208,7 @@ export class MalaysiaDiscoveryService {
               status: 1,
               website: SITE_VAR,
               level: curLevel?.level || undefined,
+              specialization_id: curSpcId != null && !Number.isNaN(curSpcId) ? curSpcId : undefined,
               university: { status: 1 }
             }
           }
@@ -119,7 +223,7 @@ export class MalaysiaDiscoveryService {
               status: 1,
               website: SITE_VAR,
               level: curLevel?.level || undefined,
-              course_category_id: curCat?.id || undefined,
+              course_category_id: curCatId != null && !Number.isNaN(curCatId) ? curCatId : undefined,
               university: { status: 1 }
             }
           }
@@ -165,18 +269,37 @@ export class MalaysiaDiscoveryService {
       programsRaw, levelsRaw, categoriesRaw, specializationsRaw, studyModesRaw, monthsRaw
     ]);
 
-    // Count unique universities for SEO stats
-    const nou = new Set((rawPrograms as any[]).map((r: any) => r.u_id)).size;
+    // Count unique universities for SEO stats (across full filtered result, not just current page)
+    const nou = Number((universityCountResult as any[])[0]?.total_universities ?? 0);
 
     // SEO
-    const pageContentKeyword = curLevel?.level || curCat?.name || curSpc?.name || 'courses';
-    const seo = await resolveSeoMeta('courses-in-malaysia', {
+    const pageContentKeyword = curSpc?.name || curCat?.name || curLevel?.level || 'courses';
+    const seoTags = {
       title: pageContentKeyword,
       currentmonth: new Date().toLocaleString('en-US', { month: 'short' }),
       currentyear: new Date().getFullYear().toString(),
       nou: nou.toString(),
       noc: total.toString()
-    });
+    };
+    const defaultSeo = await resolveSeoMeta('courses-in-malaysia', seoTags);
+    const detailSeoKey = curSpc
+      ? 'courses-in-malaysia-by-specialization'
+      : curCat
+        ? 'courses-in-malaysia-by-category'
+        : curLevel
+          ? 'courses-in-malaysia-by-level'
+          : null;
+    const seoModel = seoSourceModel
+      ? {
+          ...seoSourceModel,
+          page_content: seoSourceModel.page_content || seoSourceModel.courses_description || null,
+          og_image_path: seoSourceModel.content_image_path || seoSourceModel.og_image_path || null,
+        }
+      : null;
+    const detailSeo = detailSeoKey
+      ? await resolveDetailPageSeo(seoModel, detailSeoKey, seoTags)
+      : null;
+    const seo = detailSeo?.meta_title ? detailSeo : defaultSeo;
 
     return {
       rows: {
@@ -197,8 +320,8 @@ export class MalaysiaDiscoveryService {
         level: curLevel?.level || '',
         category: curCat ? { id: curCat.id.toString(), name: curCat.name, slug: curCat.slug } : null,
         specialization: curSpc ? { id: curSpc.id.toString(), name: curSpc.name, slug: curSpc.slug } : null,
-        study_mode,
-        intake
+        study_mode: selectedStudyModes,
+        intake: selectedIntakes
       },
       seo,
       nou,
@@ -213,26 +336,29 @@ export class MalaysiaDiscoveryService {
     let row: any;
     const numericId = Number(id);
 
-    if (type === 'category') {
-      row = await prisma.courseCategory.findUnique({
-        where: { id: numericId },
-        select: { description: true }
-      });
-    } else if (type === 'specialization') {
-      row = await prisma.courseSpecialization.findUnique({
-        where: { id: numericId },
-        select: { description: true }
-      });
-    } else {
-      row = await prisma.level.findUnique({
-        where: { id: numericId },
-        select: { description: true }
-      });
+    try {
+      if (type === 'category') {
+        row = await prisma.courseCategory.findUnique({
+          where: { id: numericId },
+          select: { courses_description: true, page_content: true }
+        });
+      } else if (type === 'specialization') {
+        row = await prisma.courseSpecialization.findUnique({
+          where: { id: numericId },
+          select: { courses_description: true, page_content: true }
+        });
+      } else {
+        // levels.description does not exist in this DB schema; keep graceful fallback
+        row = null;
+      }
+    } catch {
+      row = null;
     }
 
-    if (!row?.description) return { coursesDescription: '' };
+    const rawDesc = row?.courses_description || row?.page_content || '';
+    if (!rawDesc) return { coursesDescription: '' };
 
-    let desc = row.description;
+    let desc = rawDesc;
     desc = desc.replace(/\[nou\]/g, stats.nou).replace(/\[noc\]/g, stats.noc);
 
     return { coursesDescription: desc };
@@ -240,3 +366,7 @@ export class MalaysiaDiscoveryService {
 }
 
 export const malaysiaDiscoveryService = MalaysiaDiscoveryService.getInstance();
+
+
+
+

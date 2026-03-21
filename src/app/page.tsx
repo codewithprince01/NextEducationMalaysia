@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
-import { Metadata } from 'next'
 import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Hero from '@/components/home/Hero'
 import StudyJourney from '@/components/home/StudyJourney'
 import UniversitySliderClient from '@/components/home/UniversitySliderClient'
@@ -20,11 +20,12 @@ import JsonLd from '@/components/seo/JsonLd'
 
 export const revalidate = 43200 // 12 hours
 
-export const metadata: Metadata = {
-  title: 'Education Malaysia - Study in Top Malaysian Universities',
-  description:
-    'Discover top universities in Malaysia. Find courses, scholarships, exams, and expert guidance for studying in Malaysia. Your gateway to quality education in Malaysia.',
-  alternates: { canonical: SITE_URL },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['home', 'Home Page'],
+    '/',
+    'Education Malaysia - Study in Top Malaysian Universities',
+  )
 }
 
 const Skeleton = () => <div style={{ minHeight: 320 }} className="bg-slate-50" />

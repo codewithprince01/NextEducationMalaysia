@@ -1,16 +1,16 @@
 import Link from 'next/link'
 import OtherFeatures from '@/components/common/OtherFeatures'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Breadcrumb from '@/components/Breadcrumb'
 
-export const metadata: Metadata = {
-  title: 'Why Study in Malaysia for Higher Education? | Education Malaysia',
-  description: 'Discover why Malaysia is one of Asia\'s top study destinations — affordable tuition, English-medium universities, global recognition, and vibrant culture.',
-  alternates: { canonical: `${SITE_URL}/why-study-in-malaysia` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['Why Study in Malaysia', 'why-study-in-malaysia'],
+    '/why-study-in-malaysia',
+    'Why Study in Malaysia for Higher Education? | Education Malaysia',
+  )
 }
-
 const reasons = [
   { title: 'Affordable Education', desc: 'Lower tuition fees and living costs compared to UK, USA, and Australia.' },
   { title: 'English Medium', desc: 'Most universities use English as the primary medium of instruction.' },
@@ -117,3 +117,4 @@ export default function WhyStudyInMalaysiaPage() {
     </div>
   )
 }
+

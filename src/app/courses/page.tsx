@@ -1,13 +1,12 @@
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import QualificationsHubClient from './QualificationsHubClient'
 
-export const metadata: Metadata = {
-  title: 'Choose Your Qualification Level | Education Malaysia',
-  description: 'Select your current qualification level to find the best foundation, diploma, degree, or postgraduate courses in Malaysia.',
-  alternates: {
-    canonical: `${SITE_URL}/courses`,
-  },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['Courses', 'Choose Qualification', 'courses'],
+    '/courses',
+    'Choose Your Qualification Level | Education Malaysia',
+  )
 }
 
 export default function QualificationsHubPage() {

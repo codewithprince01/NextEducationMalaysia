@@ -2,6 +2,9 @@ import { Metadata } from 'next'
 import { SITE_URL } from '@/lib/constants'
 import CoursesListClient from '../../courses-in-malaysia/CoursesListClient'
 import { malaysiaDiscoveryService } from '@/backend'
+import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metadata'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
 
 export const revalidate = 86400
 
@@ -10,36 +13,91 @@ interface PageProps {
   searchParams: Promise<any>
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+const firstString = (value: any): string | undefined => {
+  if (Array.isArray(value)) return value[0] ? String(value[0]) : undefined
+  return value ? String(value) : undefined
+}
+
+const allStrings = (value: any): string[] => {
+  if (!value) return []
+  if (Array.isArray(value)) return value.map((v) => String(v)).filter(Boolean)
+  return [String(value)]
+}
+
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const formattedName = slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-  
-  return {
-    title: `${formattedName} Courses in Malaysia - Find the Best Programs | Education Malaysia`,
-    description: `Explore ${formattedName.toLowerCase()} courses and programs offered at universities across Malaysia. Filter by university, intake and more. Find your ideal ${formattedName.toLowerCase()} course today.`,
-    alternates: { canonical: `${SITE_URL}/${slug}-courses` },
-  }
+  const resolvedParams = await searchParams
+  const level = firstString(resolvedParams.level ?? resolvedParams.levels)
+  const category = firstString(resolvedParams.category ?? resolvedParams.categories)
+  const specialization = firstString(resolvedParams.specialization ?? resolvedParams.specializations)
+  const studyModes = allStrings(resolvedParams.study_mode ?? resolvedParams.study_modes)
+  const intakes = allStrings(resolvedParams.intake ?? resolvedParams.intakes)
+  const search = firstString(resolvedParams.search)
+
+  const filterResult = await malaysiaDiscoveryService.getCoursesInMalaysia({})
+  const levelMatch = filterResult.filters.levels.find((f: any) => f.slug === slug)
+  const categoryMatch = filterResult.filters.categories.find((f: any) => f.slug === slug)
+  const specializationMatch = filterResult.filters.specializations.find((f: any) => f.slug === slug)
+
+  let slugLevel: string | undefined
+  let slugCategory: string | undefined
+  let slugSpecialization: string | undefined
+
+  if (levelMatch) slugLevel = slug
+  else if (categoryMatch) slugCategory = slug
+  else slugSpecialization = slug
+
+  const result = await malaysiaDiscoveryService.getCoursesInMalaysia({
+    level: slugLevel ?? level,
+    category: slugCategory ?? category,
+    specialization: slugSpecialization ?? specialization,
+    study_mode: studyModes.length > 0 ? studyModes : undefined,
+    intake: intakes.length > 0 ? intakes : undefined,
+    search,
+    page: 1,
+  })
+
+  const slugTitle = `${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Courses in Malaysia - Find the Best Programs | Education Malaysia`
+  const rawSeoTitle = String(result.seo?.meta_title || '').trim()
+  const isGenericSeoTitle = /^find courses,\s*universities\/colleges/i.test(rawSeoTitle)
+  const title = rawSeoTitle && rawSeoTitle !== '%title%' && !isGenericSeoTitle
+    ? rawSeoTitle
+    : slugTitle
+  const description = result.seo?.meta_description || result.seo?.page_contents ||
+    `Explore courses and programs offered at universities across Malaysia. Filter by university, intake and more.`
+  const effectiveSeo = isGenericSeoTitle
+    ? { ...result.seo, meta_title: String(title), meta_description: description }
+    : result.seo
+
+  return buildCoursesDiscoveryMetadata({
+    seo: effectiveSeo,
+    fallbackTitle: String(title),
+    fallbackDescription: description,
+    canonicalPath: `/${slug}-courses`,
+  })
 }
 
 export default async function DynamicCoursesPage({ params, searchParams }: PageProps) {
   const { slug } = await params
   const resolvedParams = await searchParams
   const page = resolvedParams.page ? parseInt(resolvedParams.page) : 1
-  
-  // Extract first value from potential arrays for filter slugs
-  const getFirst = (val: any) => Array.isArray(val) ? val[0] : val
+  const level = firstString(resolvedParams.level ?? resolvedParams.levels)
+  const category = firstString(resolvedParams.category ?? resolvedParams.categories)
+  const specialization = firstString(resolvedParams.specialization ?? resolvedParams.specializations)
+  const studyModes = allStrings(resolvedParams.study_mode ?? resolvedParams.study_modes)
+  const intakes = allStrings(resolvedParams.intake ?? resolvedParams.intakes)
+  const search = firstString(resolvedParams.search)
 
   // Determine filter type based on slug
-  const { malaysiaDiscoveryService } = await import('@/backend')
-  const filterData = await malaysiaDiscoveryService.getCoursesInMalaysia({})
+  const filterResult = await malaysiaDiscoveryService.getCoursesInMalaysia({})
   
   // Find which filter type this slug belongs to
   let filterType = 'levels'
   let filterValue = slug
   
-  const levelMatch = filterData.filters.levels.find((f: any) => f.slug === slug)
-  const categoryMatch = filterData.filters.categories.find((f: any) => f.slug === slug)
-  const specializationMatch = filterData.filters.specializations.find((f: any) => f.slug === slug)
+  const levelMatch = filterResult.filters.levels.find((f: any) => f.slug === slug)
+  const categoryMatch = filterResult.filters.categories.find((f: any) => f.slug === slug)
+  const specializationMatch = filterResult.filters.specializations.find((f: any) => f.slug === slug)
   
   if (levelMatch) {
     filterType = 'levels'
@@ -52,14 +110,21 @@ export default async function DynamicCoursesPage({ params, searchParams }: PageP
     filterValue = specializationMatch.name || slug
   }
 
+  const serviceParams: any = {
+    level,
+    category,
+    specialization,
+    study_mode: studyModes.length > 0 ? studyModes : undefined,
+    intake: intakes.length > 0 ? intakes : undefined,
+    search,
+    page,
+  }
+  if (filterType === 'levels') serviceParams.level = slug
+  if (filterType === 'categories') serviceParams.category = slug
+  if (filterType === 'specializations') serviceParams.specialization = slug
+
   // Fetch data with the detected filter
-  const result = await malaysiaDiscoveryService.getCoursesInMalaysia({
-    [filterType]: slug,
-    study_mode: getFirst(resolvedParams.study_modes),
-    intake: getFirst(resolvedParams.intakes),
-    search: resolvedParams.search,
-    page: page
-  })
+  const result = await malaysiaDiscoveryService.getCoursesInMalaysia(serviceParams)
 
   const coursesData = {
     data: result.rows.data,
@@ -83,16 +148,25 @@ export default async function DynamicCoursesPage({ params, searchParams }: PageP
   }
 
   return (
-    <CoursesListClient 
-      initialFilterData={filterData} 
-      initialCoursesData={coursesData}
-      initialFilterType={filterType}
-      initialFilterValue={filterValue}
-      initialLevel={filterType === 'levels' ? slug : (resolvedParams.levels || resolvedParams.level)}
-      initialCategory={filterType === 'categories' ? slug : (resolvedParams.categories || resolvedParams.category)}
-      initialSpecialization={filterType === 'specializations' ? slug : (resolvedParams.specializations || resolvedParams.specialization)}
-      initialStudyMode={resolvedParams.study_modes || resolvedParams.study_mode}
-      initialIntake={resolvedParams.intakes || resolvedParams.intake}
-    />
+    <>
+      <JsonLd data={breadcrumbJsonLd([
+        { name: 'Home', url: SITE_URL },
+        { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
+        { name: filterValue || slug, url: `${SITE_URL}/${slug}-courses` },
+      ])} />
+      <CoursesListClient 
+        initialFilterData={result.filters} 
+        initialCoursesData={coursesData}
+        initialFilterType={filterType}
+        initialFilterValue={filterValue}
+        initialLevel={filterType === 'levels' ? slug : (resolvedParams.level ?? resolvedParams.levels)}
+        initialCategory={filterType === 'categories' ? slug : (resolvedParams.category ?? resolvedParams.categories)}
+        initialSpecialization={filterType === 'specializations' ? slug : (resolvedParams.specialization ?? resolvedParams.specializations)}
+        initialStudyMode={resolvedParams.study_mode ?? resolvedParams.study_modes}
+        initialIntake={resolvedParams.intake ?? resolvedParams.intakes}
+        initialSearch={resolvedParams.search}
+        initialYear={new Date().getFullYear()}
+      />
+    </>
   )
 }

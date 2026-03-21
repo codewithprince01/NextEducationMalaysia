@@ -94,21 +94,29 @@ function CourseCard({
     : typeof course.accreditations === 'string'
       ? course.accreditations.split(',').map((s: string) => s.replace(/[\\"\[\]]/g, '').trim()).filter(Boolean)
       : []
+  const courseDisplayName = String(course.course_name || '')
+    .split(' ')
+    .filter(Boolean)
+    .map((word: string) => {
+      if (word === word.toUpperCase()) return word
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(' ')
 
   const uniSlug = course.university?.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') || ''
 
     return (
     <div
-      className={`bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-blue-300 group relative ${
+      className={`bg-white rounded-xl shadow-md border border-blue-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-blue-300 group relative ${
         viewMode === "grid" ? "flex flex-col h-full" : "mb-4 w-full"
       }`}
     >
-      <div className="px-4 py-1.5">
+      <div className="px-4 sm:px-5 py-2.5 sm:py-3">
         {/* University Header */}
-        <div className="flex flex-col sm:flex-row items-start justify-between gap-2 mb-2">
-          <div className="flex items-center gap-3 w-full">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-2.5 mb-2.5">
+          <div className="flex items-center gap-4 w-full">
             {/* Logo */}
-            <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 shadow-sm overflow-hidden">
               {course.university?.logo_path ? (
                 <img
                   src={`${IMAGE_BASE}/storage/${course.university.logo_path}`}
@@ -127,25 +135,25 @@ function CourseCard({
             <div className="flex-1 min-w-0">
               <h3
                 onClick={() => onUniversityClick(course.university)}
-                className="text-sm sm:text-base font-bold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors truncate leading-tight"
+                className="text-lg sm:text-xl font-bold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors truncate leading-tight"
               >
                 {course.university?.name}
               </h3>
 
-              <div className="flex items-center text-gray-600 text-xs mt-0.5">
-                <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+              <div className="flex items-center text-gray-600 text-sm mt-0.5">
+                <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
                 <span className="truncate">
                   {course.university?.city}, {course.university?.state}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-gray-600 mt-0.5">
+              <div className="flex items-center gap-2.5 text-sm text-gray-600 mt-0.5">
                 <div className="flex items-center">
-                  <Building className="w-3 h-3 mr-0.5" />
+                  <Building className="w-3.5 h-3.5 mr-0.5" />
                   <span>{course.university?.inst_type || "Private"}</span>
                 </div>
                 <div className="flex items-center">
-                  <BookOpen className="w-3 h-3 mr-0.5" />
+                  <BookOpen className="w-3.5 h-3.5 mr-0.5" />
                   <span>{course.university?.programs_count} Courses</span>
                 </div>
               </div>
@@ -183,24 +191,24 @@ function CourseCard({
         </div>
 
         {/* Course Title + Specs */}
-        <div className="border-t border-gray-200 pt-2 mb-2">
+        <div className="border-t border-gray-200 pt-3 mb-2.5">
           <h4
             onClick={() => onViewDetail(course)}
-            className="text-sm font-bold text-blue-600 mb-2 hover:text-blue-700 cursor-pointer transition-colors line-clamp-2 leading-tight block"
+            className="text-lg sm:text-xl font-semibold text-blue-600 mb-2 hover:text-blue-700 cursor-pointer transition-colors line-clamp-2 leading-tight block"
           >
-            {course.course_name}
+            {courseDisplayName}
           </h4>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2.5">
             {[
               { label: 'Mode', value: course.study_mode },
               { label: 'Duration', value: course.duration },
               { label: 'Intakes', value: course.intake },
               { label: 'Tuition Fee', value: course.fee, },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-gray-50 rounded p-2 border border-gray-200 flex flex-col justify-center min-h-[60px]">
+              <div key={label} className="bg-gray-50 rounded p-2 border border-gray-200 flex flex-col justify-center min-h-[58px]">
                 <p className="text-xs text-gray-500 mb-0.5 font-semibold uppercase">{label}</p>
-                <p className="text-xs font-bold text-gray-900 line-clamp-1">{value || 'N/A'}</p>
+                <p className="text-sm sm:text-[15px] font-semibold text-gray-900 line-clamp-1">{value || 'N/A'}</p>
               </div>
             ))}
           </div>
@@ -208,9 +216,9 @@ function CourseCard({
 
         {/* Accreditation Badges */}
         {accreditations.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <div className="flex flex-wrap gap-1.5 mb-2.5">
             {accreditations.map((acc, i) => (
-              <span key={i} className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-green-300 whitespace-nowrap">
+              <span key={i} className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-green-300 whitespace-nowrap">
                 {acc}
               </span>
             ))}
@@ -221,7 +229,7 @@ function CourseCard({
         <div className="grid grid-cols-3 gap-1.5 w-full">
           <button
             onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
-            className={`font-bold py-2.5 px-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs ${
+            className={`font-bold py-2.5 px-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs sm:text-sm ${
               appliedCourses.has(course.id)
                 ? "bg-gray-400 text-white cursor-not-allowed"
                 : "bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
@@ -232,13 +240,13 @@ function CourseCard({
           </button>
           <button
             onClick={() => onViewDetail(course)}
-            className="cursor-pointer bg-white text-gray-800 font-bold py-2 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
+            className="cursor-pointer bg-white text-gray-800 font-bold py-2.5 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
           >
             View Details
           </button>
           <button
             onClick={() => onAddToCompare(course)}
-            className="cursor-pointer font-bold py-2 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
+            className="cursor-pointer font-bold py-2.5 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
           >
             Compare
           </button>
@@ -295,9 +303,9 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
                   return (item.label || item.name || item.slug || '').toLowerCase().includes(specializationSearch.toLowerCase())
                 }).map((item: any) => {
                   const value = item.value || item.slug || item.name || item.month || item.study_mode || item
-                  const display = item.label || item.name || item.slug || item.month || item.study_mode || item
-                  // Standardize all values to lower-kebab-case for matching
-                  const normalizedValue = String(value).toLowerCase().trim().replace(/\s+/g, '-')
+                  const displayRaw = item.label || item.name || item.slug || item.month || item.study_mode || item
+                  const display = formatFilterDisplayLabel(key, displayRaw)
+                  const normalizedValue = normalizeFilterValue(key, value)
                   const isChecked = selectedFilters[key]?.includes(normalizedValue) || false
                   const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
                   return (
@@ -360,8 +368,9 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                     return (item.label || item.name || item.slug || '').toLowerCase().includes(specializationSearch.toLowerCase())
                   }).map((item: any) => {
                     const value = item.value || item.slug || item.name || item.month || item.study_mode || item
-                    const display = item.label || item.name || item.slug || item.month || item.study_mode || item
-                    const normalizedValue = (key === 'intakes' || key === 'study_modes') ? String(value).trim() : String(value).toLowerCase().trim().replace(/\s+/g, '-')
+                    const displayRaw = item.label || item.name || item.slug || item.month || item.study_mode || item
+                    const display = formatFilterDisplayLabel(key, displayRaw)
+                    const normalizedValue = normalizeFilterValue(key, value)
                     const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
                     return (
                       <label key={item.id || value} className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-blue-50 rounded-lg pl-0 pr-2 transition-all group">
@@ -369,8 +378,8 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                           type={isSingleSelect ? "radio" : "checkbox"} 
                           name={`course-${key}-mobile`} 
                           className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-blue-500 shrink-0 rounded-full" 
-                          checked={selectedFilters[key].includes(String(value).toLowerCase().trim())} 
-                          onChange={() => onFilterChange(key, String(value).toLowerCase().trim(), item.id)} 
+                          checked={selectedFilters[key].includes(normalizedValue)} 
+                          onChange={() => onFilterChange(key, normalizedValue, item.id)} 
                         />
                         <span className="text-gray-700 text-sm font-medium group-hover:text-blue-700 text-left">{display}</span>
                       </label>
@@ -423,6 +432,8 @@ interface CoursesListClientProps {
   initialSpecialization?: string | string[]
   initialStudyMode?: string | string[]
   initialIntake?: string | string[]
+  initialSearch?: string | string[]
+  initialYear?: number
   initialFilterType?: string
   initialFilterValue?: string
   initialFilterData?: any
@@ -433,8 +444,34 @@ type FilterState = Record<string, string[]>
 
 const EMPTY_FILTERS: FilterState = { levels: [], categories: [], specializations: [], intakes: [], study_modes: [] }
 
-// Filter type mapping - OLD project uses radio buttons for ALL filters
-const SINGLE_SELECT_FILTERS = ['levels', 'categories', 'specializations', 'intakes', 'study_modes']
+const SINGLE_SELECT_FILTERS = ['levels', 'categories', 'specializations']
+
+const normalizeFilterValue = (key: string, value: any) => {
+  const raw = String(value ?? '').trim()
+  if (!raw) return ''
+  if (key === 'intakes' || key === 'study_modes') return raw
+  return raw.toLowerCase().replace(/\s+/g, '-')
+}
+
+const LEVEL_LABEL_OVERRIDES: Record<string, string> = {
+  diploma: 'Diploma',
+  'under-graduate': 'Under-Graduate',
+  'post-graduate': 'Post-Graduate',
+  'post-graduate-diploma': 'Post-Graduate-Diploma',
+}
+
+const formatFilterDisplayLabel = (key: string, value: any) => {
+  const raw = String(value ?? '').trim()
+  if (!raw) return ''
+  if (key !== 'levels') return raw
+  const normalized = raw.toLowerCase().replace(/\s+/g, '-')
+  if (LEVEL_LABEL_OVERRIDES[normalized]) return LEVEL_LABEL_OVERRIDES[normalized]
+  return normalized
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('-')
+}
 
 export default function CoursesListClient({ 
   initialLevel, 
@@ -442,11 +479,14 @@ export default function CoursesListClient({
   initialSpecialization,
   initialStudyMode,
   initialIntake,
+  initialSearch,
+  initialYear,
   initialFilterType,
   initialFilterValue,
   initialFilterData,
   initialCoursesData
 }: CoursesListClientProps) {
+  const renderYear = initialYear || 2026
   const [courses, setCourses] = useState<any[]>(initialCoursesData?.data || initialCoursesData?.courses?.data || [])
   const [filterData, setFilterData] = useState<any>(initialFilterData || {})
   const [filterLoading, setFilterLoading] = useState(!initialFilterData)
@@ -456,9 +496,16 @@ export default function CoursesListClient({
   const [totalCourses, setTotalCourses] = useState(initialCoursesData?.pagination?.total || initialCoursesData?.courses?.total || 0)
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>(EMPTY_FILTERS)
   const [lastSelectedFilter, setLastSelectedFilter] = useState<{key: string, value: string, id?: number} | null>(null)
-  const [openFilters, setOpenFilters] = useState<Record<string, boolean>>({ levels: true })
+  const [openFilters, setOpenFilters] = useState<Record<string, boolean>>({
+    levels: true,
+    categories: true,
+    specializations: true,
+    intakes: true,
+    study_modes: true,
+  })
   const [specializationSearch, setSpecializationSearch] = useState('')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(Array.isArray(initialSearch) ? String(initialSearch[0] || '') : String(initialSearch || ''))
+  const [searchInput, setSearchInput] = useState(Array.isArray(initialSearch) ? String(initialSearch[0] || '') : String(initialSearch || ''))
   const [sortBy, setSortBy] = useState('rating')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [showMobileFilter, setShowMobileFilter] = useState(false)
@@ -506,14 +553,14 @@ export default function CoursesListClient({
       return (
         `Discover a list of ${totalCourses > 0 ? totalCourses : "..."} ${activeFilterName} courses offered by the Top ${initialCoursesData?.nou || "..."} universities ` +
         `and colleges in Malaysia. Gather valuable information such as entry requirements, fee structures, ` +
-        `intake schedules for ${new Date().getFullYear()}, study modes, and recommendations for the best ` +
+        `intake schedules for ${renderYear}, study modes, and recommendations for the best ` +
         `universities and colleges offering ${activeFilterName} degree programs. Enroll directly in ` +
         `${activeFilterName} courses through EducationMalaysia.in.`
       )
     }
     return initialCoursesData?.seo?.page_contents || 
       "Discover thousands of courses offered by top universities and colleges in Malaysia. Compare programs, entry requirements, fee structures, intake dates, and study modes. Find the best degrees, diplomas, and certificates across all fields of study in Malaysia and enroll directly through EducationMalaysia.in."
-  }, [initialCoursesData, lastSelectedFilter, current_filters, totalCourses])
+  }, [initialCoursesData, lastSelectedFilter, current_filters, totalCourses, renderYear])
 
   const decodeHTMLEntities = (text: string) => {
     if (!text) return ''
@@ -556,6 +603,36 @@ export default function CoursesListClient({
     return params.toString()
   }, [])
 
+  const buildRouteFromFilters = useCallback((page: number, filters: Record<string, string[]>, q: string) => {
+    const primaryKeys = ['specializations', 'categories', 'levels']
+    const activePrimaryKey = primaryKeys.find((k) => filters[k]?.length > 0)
+
+    let basePath = '/courses-in-malaysia'
+    if (activePrimaryKey && filters[activePrimaryKey][0]) {
+      basePath = `/${filters[activePrimaryKey][0]}-courses`
+    }
+    if (page > 1) {
+      basePath = `${basePath}/page-${page}`
+    }
+
+    const params = new URLSearchParams()
+    if (q) params.set('search', q)
+    Object.entries(filters).forEach(([filterKey, values]) => {
+      if (filterKey === activePrimaryKey) return
+      const vals = values as string[]
+      if (vals.length > 0) {
+        const paramKey = filterKey === 'levels' ? 'level' :
+                        filterKey === 'categories' ? 'category' :
+                        filterKey === 'specializations' ? 'specialization' :
+                        filterKey === 'study_modes' ? 'study_mode' :
+                        filterKey === 'intakes' ? 'intake' : filterKey
+        vals.forEach((v) => params.append(paramKey, v))
+      }
+    })
+    const queryString = params.toString()
+    return queryString ? `${basePath}?${queryString}` : basePath
+  }, [])
+
   // ── Fetch filters ────────────────────────────────────────────────────────
   useEffect(() => {
     if (initialFilterData) return
@@ -583,16 +660,16 @@ export default function CoursesListClient({
   useEffect(() => {
     const init: Record<string, string[]> = { ...EMPTY_FILTERS }
     
-    const toArr = (val: any) => {
+    const toArr = (key: string, val: any) => {
       if (!val) return []
-      return (Array.isArray(val) ? val : [val]).map(v => String(v).toLowerCase().trim().replace(/\s+/g, '-'))
+      return (Array.isArray(val) ? val : [val]).map((v) => normalizeFilterValue(key, v)).filter(Boolean)
     }
 
-    if (initialLevel) init.levels = toArr(initialLevel)
-    if (initialCategory) init.categories = toArr(initialCategory)
-    if (initialSpecialization) init.specializations = toArr(initialSpecialization)
-    if (initialStudyMode) init.study_modes = toArr(initialStudyMode)
-    if (initialIntake) init.intakes = toArr(initialIntake)
+    if (initialLevel) init.levels = toArr('levels', initialLevel)
+    if (initialCategory) init.categories = toArr('categories', initialCategory)
+    if (initialSpecialization) init.specializations = toArr('specializations', initialSpecialization)
+    if (initialStudyMode) init.study_modes = toArr('study_modes', initialStudyMode)
+    if (initialIntake) init.intakes = toArr('intakes', initialIntake)
     
     // Set last selected filter for SEO
     if (initialFilterType && initialFilterValue) {
@@ -601,6 +678,41 @@ export default function CoursesListClient({
     
     setSelectedFilters(init)
   }, [initialLevel, initialCategory, initialSpecialization, initialStudyMode, initialIntake, initialFilterType, initialFilterValue])
+
+  // Keep category/specialization selections aligned with currently available options
+  // (same behavior as old project dependent filters)
+  useEffect(() => {
+    const availableCategories = Array.isArray(filterData?.categories) ? filterData.categories : []
+    const availableSpecializations = Array.isArray(filterData?.specializations) ? filterData.specializations : []
+    if (availableCategories.length === 0 && availableSpecializations.length === 0) return
+
+    const validCategoryValues = new Set(
+      availableCategories
+        .map((item: any) => normalizeFilterValue('categories', item?.value || item?.slug || item?.name))
+        .filter(Boolean),
+    )
+    const validSpecValues = new Set(
+      availableSpecializations
+        .map((item: any) => normalizeFilterValue('specializations', item?.value || item?.slug || item?.name))
+        .filter(Boolean),
+    )
+
+    const filteredCategories = selectedFilters.categories.filter((cat) => validCategoryValues.has(cat))
+    const filteredSpecializations = selectedFilters.specializations.filter((spec) => validSpecValues.has(spec))
+
+    const hasCategoryChange = filteredCategories.length !== selectedFilters.categories.length
+    const hasSpecChange = filteredSpecializations.length !== selectedFilters.specializations.length
+    if (!hasCategoryChange && !hasSpecChange) return
+
+    const nextFilters = {
+      ...selectedFilters,
+      categories: filteredCategories,
+      specializations: filteredSpecializations,
+    }
+    setSelectedFilters(nextFilters)
+    setCurrentPage(1)
+    router.push(buildRouteFromFilters(1, nextFilters, search))
+  }, [filterData, selectedFilters, router, buildRouteFromFilters, search])
 
   // Apply sorting like OLD project
   const applySorting = useCallback((coursesList: any[], sortType: string) => {
@@ -660,6 +772,7 @@ export default function CoursesListClient({
         const newLast = pagination?.last_page || 1
         const newTotal = pagination?.total || 0
         const newTitle = json.seo?.meta_title || json.title || 'Find Your Perfect Course'
+        if (json.filters) setFilterData(json.filters)
         setCourses(newCourses)
         setCurrentPage(page)
         setLastPage(newLast)
@@ -681,41 +794,33 @@ export default function CoursesListClient({
       return
     }
     fetchCourses(currentPage, selectedFilters, search, sortBy)
-  }, [currentPage, selectedFilters, sortBy, fetchCourses])
+  }, [currentPage, selectedFilters, search, sortBy, fetchCourses])
+
+  useEffect(() => {
+    if (searchInput === search) return
+    if (searchInput.trim() === '') {
+      setCurrentPage(1)
+      setSearch('')
+      router.push(buildRouteFromFilters(1, selectedFilters, ''))
+      return
+    }
+    const timer = setTimeout(() => {
+      setCurrentPage(1)
+      setSearch(searchInput)
+      router.push(buildRouteFromFilters(1, selectedFilters, searchInput))
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [searchInput, search, selectedFilters, router, buildRouteFromFilters])
 
   const handleSearch = () => {
     setCurrentPage(1)
-    
-    // Build URL with search
-    const primaryKeys = ['specializations', 'categories', 'levels']
-    const activePrimaryKey = primaryKeys.find(k => selectedFilters[k]?.length > 0)
-    
-    let basePath = '/courses-in-malaysia'
-    if (activePrimaryKey && selectedFilters[activePrimaryKey][0]) {
-      basePath = `/${selectedFilters[activePrimaryKey][0]}-courses`
-    }
-    
-    const params = new URLSearchParams()
-    if (search) params.set('search', search)
-    
-    Object.entries(selectedFilters).forEach(([filterKey, values]) => {
-      if (filterKey === activePrimaryKey) return
-      const vals = values as string[]
-      if (vals.length > 0) {
-        const paramKey = filterKey === 'levels' ? 'level' : 
-                        filterKey === 'categories' ? 'category' : 
-                        filterKey === 'specializations' ? 'specialization' : 
-                        filterKey === 'study_modes' ? 'study_mode' : 
-                        filterKey === 'intakes' ? 'intake' : filterKey
-        vals.forEach(v => params.append(paramKey, v))
-      }
-    })
-    
-    const queryString = params.toString()
-    const fullPath = queryString ? `${basePath}?${queryString}` : basePath
-    
+    const fullPath = buildRouteFromFilters(1, selectedFilters, searchInput)
     router.push(fullPath)
-    fetchCourses(1, selectedFilters, search, sortBy)
+    if (searchInput === search) {
+      fetchCourses(1, selectedFilters, searchInput, sortBy)
+      return
+    }
+    setSearch(searchInput)
   }
 
   const handleFilterChange = (key: string, value: string, filterId?: number) => {
@@ -740,36 +845,7 @@ export default function CoursesListClient({
       setLastSelectedFilter({ key, value, id: filterId })
     }
     
-    // 3. Build URL like OLD project
-    // Determine primary filter for path
-    const primaryKeys = ['specializations', 'categories', 'levels']
-    const activePrimaryKey = primaryKeys.find(k => nextFilters[k]?.length > 0)
-    
-    let basePath = '/courses-in-malaysia'
-    if (activePrimaryKey && nextFilters[activePrimaryKey][0]) {
-      basePath = `/${nextFilters[activePrimaryKey][0]}-courses`
-    }
-    
-    // Build query params for secondary filters
-    const params = new URLSearchParams()
-    if (search) params.set('search', search)
-    
-    Object.entries(nextFilters).forEach(([filterKey, values]) => {
-      if (filterKey === activePrimaryKey) return // Skip primary filter (in path)
-      const vals = values as string[]
-      if (vals.length > 0) {
-        const paramKey = filterKey === 'levels' ? 'level' : 
-                        filterKey === 'categories' ? 'category' : 
-                        filterKey === 'specializations' ? 'specialization' : 
-                        filterKey === 'study_modes' ? 'study_mode' : 
-                        filterKey === 'intakes' ? 'intake' : filterKey
-        vals.forEach(v => params.append(paramKey, v))
-      }
-    })
-    
-    const queryString = params.toString()
-    const fullPath = queryString ? `${basePath}?${queryString}` : basePath
-    
+    const fullPath = buildRouteFromFilters(1, nextFilters, search)
     router.push(fullPath)
     setCurrentPage(1)
   }
@@ -777,6 +853,7 @@ export default function CoursesListClient({
   const handleReset = () => {
     setSelectedFilters(EMPTY_FILTERS)
     setSearch('')
+    setSearchInput('')
     setSortBy('rating')
     setCurrentPage(1)
     setLastSelectedFilter(null)
@@ -844,16 +921,32 @@ export default function CoursesListClient({
     router.push(`/university/${universitySlug}/courses/${courseSlug}`)
   }, [router])
 
-  const toggleFilter = (key: string) => setOpenFilters(prev => ({ ...prev, [key]: !prev[key] }))
+  const toggleFilter = () =>
+    setOpenFilters({
+      levels: true,
+      categories: true,
+      specializations: true,
+      intakes: true,
+      study_modes: true,
+    })
 
-  const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Courses in Malaysia', href: '/courses-in-malaysia' },
-    ...(lastSelectedFilter?.value ? [{ label: String(lastSelectedFilter.value).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
-    ...(initialLevel ? [{ label: (Array.isArray(initialLevel) ? initialLevel[0] : initialLevel).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
-    ...(initialCategory ? [{ label: (Array.isArray(initialCategory) ? initialCategory[0] : initialCategory).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
-    ...(initialSpecialization ? [{ label: (Array.isArray(initialSpecialization) ? initialSpecialization[0] : initialSpecialization).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }] : []),
-  ]
+  const breadcrumbCurrent = useMemo(() => {
+    const dynamic =
+      lastSelectedFilter?.value ||
+      selectedFilters.specializations?.[0] ||
+      selectedFilters.categories?.[0] ||
+      selectedFilters.levels?.[0] ||
+      (Array.isArray(initialSpecialization) ? initialSpecialization[0] : initialSpecialization) ||
+      (Array.isArray(initialCategory) ? initialCategory[0] : initialCategory) ||
+      (Array.isArray(initialLevel) ? initialLevel[0] : initialLevel) ||
+      null
+    return dynamic
+      ? String(dynamic).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : null
+  }, [lastSelectedFilter, selectedFilters, initialLevel, initialCategory, initialSpecialization])
+
+  const startItem = totalCourses === 0 ? 0 : (currentPage - 1) * PER_PAGE + 1
+  const endItem = totalCourses === 0 ? 0 : Math.min(currentPage * PER_PAGE, totalCourses)
 
   return (
     <>
@@ -863,19 +956,18 @@ export default function CoursesListClient({
           <div className="flex items-center flex-nowrap gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto scrollbar-hide">
             <Link href="/" className="flex items-center gap-1 hover:underline hover:text-blue-500 shrink-0">
               <Home size={16} className="sm:w-[18px] sm:h-[18px]" />
-              <span className="hidden xs:inline">Home</span>
+              <span>Home</span>
             </Link>
             <span className="text-gray-400">/</span>
             <Link href="/courses-in-malaysia" className="flex items-center gap-1 hover:underline hover:text-blue-500 shrink-0">
               <Layers size={16} className="sm:w-[18px] sm:h-[18px]" />
-              <span className="hidden sm:inline">Courses in Malaysia</span>
-              <span className="sm:hidden">Courses</span>
+              <span>Courses in Malaysia</span>
             </Link>
-            {(initialLevel || initialCategory) && (
+            {breadcrumbCurrent && (
               <>
                 <ChevronRight className="shrink-0 w-4 h-4 text-gray-400 mx-1" />
                 <span className="shrink-0 text-blue-600 font-semibold whitespace-nowrap capitalize">
-                  {String(initialCategory || initialLevel || '').replace(/-/g, ' ')}
+                  {breadcrumbCurrent}
                 </span>
               </>
             )}
@@ -943,7 +1035,15 @@ export default function CoursesListClient({
                     <div>
                       <h1 className="text-2xl font-bold text-gray-900 mb-1">{pageHeading}</h1>
                       <p className="text-sm text-gray-600">
-                        Showing <span className="font-semibold text-blue-600">{totalCourses}</span> courses available in Malaysia
+                        {totalCourses > 0 ? (
+                          <>
+                            Showing <span className="font-semibold text-blue-600">{startItem}-{endItem}</span> of <span className="font-semibold text-blue-600">{totalCourses}</span> courses in Malaysia
+                          </>
+                        ) : (
+                          <>
+                            Showing <span className="font-semibold text-blue-600">0</span> courses available in Malaysia
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -987,8 +1087,8 @@ export default function CoursesListClient({
                         <input
                           type="text"
                           placeholder="Search courses..."
-                          value={search}
-                          onChange={e => setSearch(e.target.value)}
+                          value={searchInput}
+                          onChange={e => setSearchInput(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') handleSearch() }}
                           className="w-full pl-9 sm:pl-12 pr-3 py-2.5 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors font-medium text-sm"
                         />
@@ -1022,7 +1122,7 @@ export default function CoursesListClient({
                         {Object.entries(selectedFilters).map(([key, values]) => values.map(value => (
                           <div key={`${key}-${value}`} className="group flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg pl-2.5 pr-1.5 py-1.5 text-xs transition-all hover:bg-white hover:border-blue-300 hover:shadow-sm">
                             <span className="text-gray-500 font-medium uppercase tracking-wider text-[10px] mr-1">{key}:</span>
-                            <span className="font-semibold text-blue-900 leading-none">{value.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                            <span className="font-semibold text-blue-900 leading-none">{formatFilterDisplayLabel(key, value)}</span>
                             <button onClick={() => handleFilterChange(key, value)} className="w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all ml-1">
                               <X className="w-3 h-3" />
                             </button>
@@ -1060,7 +1160,16 @@ export default function CoursesListClient({
                 }
               </div>
 
-              <CoursePagination currentPage={currentPage} lastPage={lastPage} onPageChange={p => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }) }} />
+              <CoursePagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={(p) => {
+                  if (p < 1 || p > lastPage || p === currentPage) return
+                  setCurrentPage(p)
+                  router.push(buildRouteFromFilters(p, selectedFilters, search))
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+              />
             </div>
           </div>
         </div>

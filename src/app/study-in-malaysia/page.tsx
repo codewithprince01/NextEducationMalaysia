@@ -1,14 +1,15 @@
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Link from 'next/link'
 import Image from 'next/image'
 import { GraduationCap, Globe, BookOpen, Users, Award, Building2, CheckCircle, ArrowRight } from 'lucide-react'
 import Breadcrumb from '@/components/Breadcrumb'
 
-export const metadata: Metadata = {
-  title: 'Study in Malaysia - Complete Guide for International Students',
-  description: 'Your complete guide to studying in Malaysia. Explore top universities, courses, scholarships, visa requirements, and student life in Malaysia.',
-  alternates: { canonical: `${SITE_URL}/study-in-malaysia` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['study-in-malaysia', 'Study in Malaysia', 'team-education-malaysia'],
+    '/study-in-malaysia',
+    'Study in Malaysia - Complete Guide for International Students',
+  )
 }
 
 const HIGHLIGHTS = [

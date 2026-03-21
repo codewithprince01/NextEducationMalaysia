@@ -1,12 +1,13 @@
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import { getTeamEducationMalaysiaContent } from '@/lib/queries/resources'
 import TeamEducationMalaysiaClient from './TeamEducationMalaysiaClient'
 
-export const metadata: Metadata = {
-  title: 'Team Education Malaysia | Education Malaysia',
-  description: 'Meet the dedicated team behind Education Malaysia who support international students in their academic journey.',
-  alternates: { canonical: `${SITE_URL}/resources/guidelines/team-education-malaysia` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['Team Education Malaysia', 'resources-guidelines-team-education-malaysia'],
+    '/resources/guidelines/team-education-malaysia',
+    'Team Education Malaysia | Education Malaysia',
+  )
 }
 
 export default async function TeamEducationMalaysiaPage() {

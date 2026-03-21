@@ -58,6 +58,10 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
+        source: "/:slug-courses/page-:page",
+        destination: "/filtered-courses/:slug/page-:page",
+      },
+      {
         source: "/:slug-courses",
         destination: "/filtered-courses/:slug",
       },

@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import { GraduationCap, ShieldCheck, Users, ArrowRight } from 'lucide-react'
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'Student Guidelines | Education Malaysia',
-  description: 'Essential guidelines and information for international students studying in Malaysia, including immigration and quality standards.',
-  alternates: { canonical: `${SITE_URL}/resources/guidelines` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['Student Guidelines', 'Guidelines', 'resources-guidelines'],
+    '/resources/guidelines',
+    'Student Guidelines | Education Malaysia',
+  )
 }
 
 const guidelines = [

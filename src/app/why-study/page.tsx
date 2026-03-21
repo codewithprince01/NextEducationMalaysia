@@ -1,12 +1,13 @@
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Link from 'next/link'
 import Breadcrumb from '@/components/Breadcrumb'
 
-export const metadata: Metadata = {
-  title: 'Why Study in Malaysia? Top Reasons for International Students',
-  description: 'Discover why Malaysia is a top study destination: affordable fees, English-medium universities, globally recognized degrees, and vibrant culture.',
-  alternates: { canonical: `${SITE_URL}/why-study` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['why-study', 'Why Study In Malaysia?', 'why study in malaysia'],
+    '/why-study',
+    'Why Study in Malaysia? Top Reasons for International Students',
+  )
 }
 
 const REASONS = [

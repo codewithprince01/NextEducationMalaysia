@@ -5,12 +5,15 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     
+    const studyModes = searchParams.getAll('study_mode').filter(Boolean);
+    const intakes = searchParams.getAll('intake').filter(Boolean);
+
     const result = await malaysiaDiscoveryService.getCoursesInMalaysia({
       level: searchParams.get('level') || undefined,
       category: searchParams.get('category') || undefined,
       specialization: searchParams.get('specialization') || undefined,
-      study_mode: searchParams.get('study_mode') || undefined,
-      intake: searchParams.get('intake') || undefined,
+      study_mode: studyModes.length > 0 ? studyModes : undefined,
+      intake: intakes.length > 0 ? intakes : undefined,
       search: searchParams.get('search') || undefined,
       page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
     });

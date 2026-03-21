@@ -1,14 +1,11 @@
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import BlogListClient from './BlogListClient'
 import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 21600 // 6 hours
 
-export const metadata: Metadata = {
-  title: 'Blog - Education Malaysia',
-  description: 'Latest news, guides, and tips about studying in Malaysia. Read articles on universities, scholarships, visa, and student life.',
-  alternates: { canonical: `${SITE_URL}/blog` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(['blog', 'Blog'], '/blog', 'Blog - Education Malaysia')
 }
 
 import { blogService } from '@/backend'

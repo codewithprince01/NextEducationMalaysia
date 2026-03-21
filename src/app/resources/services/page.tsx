@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import { getAllServices } from '@/lib/queries/resources'
 
-export const metadata: Metadata = {
-  title: 'Services for International Students | Education Malaysia',
-  description: 'Explore Education Malaysia services including Discover Malaysia, Admission Guidance, and Visa Guidance.',
-  alternates: { canonical: `${SITE_URL}/resources/services` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['services', 'Services', 'resources/services'],
+    '/resources/services',
+    'Services for International Students | Education Malaysia',
+  )
 }
 
 const FALLBACK_SERVICES = [

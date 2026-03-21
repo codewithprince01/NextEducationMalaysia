@@ -1,12 +1,9 @@
 import Link from 'next/link'
 import { Users, Heart, Sparkles, Handshake, ArrowRight, MessageSquare } from 'lucide-react'
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'About Us | Education Malaysia',
-  description: 'Discover the team and the story behind Education Malaysia, and learn why thousands of students choose us for their educational journey.',
-  alternates: { canonical: `${SITE_URL}/resources/about` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(['about', 'About Us', 'resources/about'], '/resources/about', 'About Us | Education Malaysia')
 }
 
 const sections = [

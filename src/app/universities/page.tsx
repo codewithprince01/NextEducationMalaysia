@@ -1,13 +1,14 @@
-import { SITE_URL } from '@/lib/constants'
-import { Metadata } from 'next'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import UniversitiesHubClient from './UniversitiesHubClient'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'Top Universities in Malaysia - Education Malaysia',
-  description: 'Explore the best universities in Malaysia. Compare rankings, fees, and courses. Find private, public, and foreign universities.',
-  alternates: { canonical: `${SITE_URL}/universities` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['universities', 'Top Universities in Malaysia', 'universities-in-malaysia'],
+    '/universities',
+    'Top Universities in Malaysia - Education Malaysia',
+  )
 }
 
 import { getUniversitiesByType } from '@/lib/queries/universities'

@@ -1,4 +1,3 @@
-import { Metadata } from 'next'
 import Link from 'next/link'
 import {
   Shield,
@@ -19,13 +18,15 @@ import {
   Building2,
   Briefcase,
 } from 'lucide-react'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Breadcrumb from '@/components/Breadcrumb'
 
-export const metadata: Metadata = {
-  title: 'MQA - Malaysian Qualifications Agency | Education Malaysia',
-  description: "Learn about MQA accreditation in Malaysia - quality assurance for higher education since 2007. Verify your programme's accreditation status.",
-  alternates: { canonical: `${SITE_URL}/resources/guidelines/MQA` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['MQA', 'Malaysian Qualifications Agency', 'resources-guidelines-mqa'],
+    '/resources/guidelines/mqa',
+    'MQA - Malaysian Qualifications Agency | Education Malaysia',
+  )
 }
 
 const HERO_CARDS = [

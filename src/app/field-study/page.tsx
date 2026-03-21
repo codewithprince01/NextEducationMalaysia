@@ -1,11 +1,12 @@
-import { Metadata } from 'next'
 import FieldStudyClient from '@/components/home/FieldStudyClient'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'Top Study Areas Preferred by International Students in Malaysia - EMGS Stats',
-  description: 'Explore international student enrollment trends and popular fields of study in Malaysia using official EMGS data and interactive visualizations.',
-  alternates: { canonical: `${SITE_URL}/field-study` }
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['field-study', 'Field Study', 'top-study-area'],
+    '/field-study',
+    'Top Study Areas Preferred by International Students in Malaysia - EMGS Stats',
+  )
 }
 
 export default function FieldStudyPage() {

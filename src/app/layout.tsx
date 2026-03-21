@@ -7,10 +7,7 @@ import NavbarClient from '@/components/layout/NavbarClient'
 import Footer from '@/components/layout/Footer'
 
 export const metadata: Metadata = {
-  title: {
-    default: 'Education Malaysia - Study in Malaysia',
-    template: '%s | Education Malaysia',
-  },
+  title: 'Education Malaysia - Study in Malaysia',
   description: 'Find top universities, courses, and scholarships in Malaysia. Your complete guide to studying in Malaysia.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educationmalaysia.in'),
   openGraph: {

@@ -1,11 +1,12 @@
-import { Metadata } from 'next'
 import NationalityStatsClient from '@/components/home/NationalityStatsClient'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 
-export const metadata: Metadata = {
-  title: 'Global Footprint of International Students in Malaysia - Nationality Trends',
-  description: 'Analysis of international student enrollment in Malaysia by country of origin. Interactive data from official EMGS statistics.',
-  alternates: { canonical: `${SITE_URL}/nationality-stats` }
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['nationality-stats', 'Nationality Stats', 'global-footprint'],
+    '/nationality-stats',
+    'Global Footprint of International Students in Malaysia - Nationality Trends',
+  )
 }
 
 export default function NationalityStatsPage() {

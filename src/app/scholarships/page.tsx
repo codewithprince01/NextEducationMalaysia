@@ -2,16 +2,17 @@ import React from 'react'
 import Link from 'next/link'
 import { getAllScholarships } from '@/lib/queries/scholarships'
 import ScholarshipsListingClient from './ScholarshipsListingClient'
-import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 86400
 
-export const metadata: Metadata = {
-  title: 'Scholarships for International Students - Education Malaysia',
-  description: 'Explore verified scholarship opportunities for international students in Malaysia. Find merit-based, need-based, and university-specific grants.',
-  alternates: { canonical: `${SITE_URL}/scholarships` },
+export async function generateMetadata() {
+  return resolveStaticMetaAny(
+    ['scholarships', 'Scholarship', 'study-abroad-scholarship'],
+    '/scholarships',
+    'Scholarships for International Students - Education Malaysia',
+  )
 }
 
 export default async function ScholarshipsPage() {

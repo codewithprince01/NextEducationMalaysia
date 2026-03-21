@@ -42,7 +42,7 @@ function buildMeta(
   ogImage: string,
 ): Metadata {
   return {
-    title,
+    title: { absolute: title },
     description,
     keywords,
     alternates: { canonical },
@@ -264,6 +264,48 @@ export async function resolveStaticMeta(pageName: string, path: string): Promise
   const tags = baseTags()
 
   const title = replaceTag(seo?.meta_title || pageName, tags)
+  const desc = replaceTag(seo?.meta_description || '', tags)
+  const kw = replaceTag(seo?.meta_keyword || '', tags)
+  const canonical = `${SITE_URL}${path}`
+  const ogImage = buildOgImage(seo?.og_image_path, fallbackOg)
+
+  return buildMeta(title, desc, kw, canonical, ogImage)
+}
+
+export async function resolveStaticMetaAny(
+  pageNames: string[],
+  path: string,
+  fallbackTitle?: string,
+): Promise<Metadata> {
+  const normalized = Array.from(
+    new Set(
+      pageNames
+        .map((n) => String(n || '').trim())
+        .filter(Boolean)
+        .flatMap((n) => [n, n.toLowerCase(), n.replace(/\s+/g, '-').toLowerCase()]),
+    ),
+  )
+
+  let seo: any = null
+  for (const key of normalized) {
+    seo = await prisma.$queryRawUnsafe(
+      `SELECT meta_title, meta_keyword, meta_description, og_image_path, page
+       FROM static_page_seos
+       WHERE LOWER(page) = LOWER(?)
+       LIMIT 1`,
+      key,
+    ) as any[]
+    if (Array.isArray(seo) && seo.length > 0) {
+      seo = seo[0]
+      break
+    }
+    seo = null
+  }
+
+  const fallbackOg = await getDefaultOgImage()
+  const tags = baseTags()
+
+  const title = replaceTag(seo?.meta_title || fallbackTitle || pageNames[0] || 'Education Malaysia', tags)
   const desc = replaceTag(seo?.meta_description || '', tags)
   const kw = replaceTag(seo?.meta_keyword || '', tags)
   const canonical = `${SITE_URL}${path}`
