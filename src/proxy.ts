@@ -7,7 +7,19 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function proxy(request: NextRequest) {
-  const { searchParams } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Legacy Guidelines URL normalization (old project compatibility)
+  if (
+    pathname.startsWith("/resources/Guidelines") ||
+    pathname.startsWith("/resources/guidelines/MQA")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname
+      .replace("/resources/Guidelines", "/resources/guidelines")
+      .replace("/resources/guidelines/MQA", "/resources/guidelines/mqa");
+    return NextResponse.rewrite(url);
+  }
 
   // Block ?page= query parameter — use /page-N format instead
   if (searchParams.has("page")) {

@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
-import { Quote, User, Globe, Briefcase, Send, Star, ChevronRight } from 'lucide-react'
+import { Quote, User, Globe, Briefcase, Send, Star } from 'lucide-react'
 import Breadcrumb from '@/components/Breadcrumb'
 
 const initialTestimonials = [
@@ -34,10 +33,20 @@ export default function WhatPeopleSayClient() {
       alert('Please fill all required fields')
       return
     }
-    if (formData.phone.length < 10) { alert('Please enter a valid phone number'); return }
+    if (formData.phone.length < 10) {
+      alert('Please enter a valid phone number')
+      return
+    }
 
     setLoading(true)
-    const newReview: Review = { name: formData.name, role: formData.role, country: formData.country, rating: formData.rating, text: formData.review, date: 'Just now' }
+    const newReview: Review = {
+      name: formData.name,
+      role: formData.role,
+      country: formData.country,
+      rating: formData.rating,
+      text: formData.review,
+      date: 'Just now',
+    }
     setReviews([newReview, ...reviews])
     setSubmitted(true)
     setFormData({ name: '', email: '', phone: '', role: 'Student', country: '', review: '', rating: 5 })
@@ -52,19 +61,22 @@ export default function WhatPeopleSayClient() {
       params.append('source', `Testimonial - Role: ${formData.role} | Rating: ${formData.rating}/5 | Review: ${formData.review}`)
       params.append('source_path', window.location.href)
       await fetch('/api/inquiry/simple-form', { method: 'POST', body: params })
-    } catch (err) { console.error('Sync failed:', err) }
+    } catch (err) {
+      console.error('Sync failed:', err)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50/50 font-sans">
-      <Breadcrumb items={[
-        { label: 'Home', href: '/' },
-        { label: 'About Us', href: '/resources/about' },
-        { label: 'What People Say' }
-      ]} />
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'About Us', href: '/resources/about' },
+          { label: 'What People Say' },
+        ]}
+      />
 
-      {/* Hero Header */}
-      <section className="relative py-20 px-4 overflow-hidden bg-gradient-to-br from-blue-900 to-blue-700 text-white">
+      <section className="relative py-20 px-4 overflow-hidden bg-gradient-to-br from-blue-800 to-blue-600 text-white">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
         <div className="max-w-7xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
@@ -77,13 +89,18 @@ export default function WhatPeopleSayClient() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20 pb-20">
-        {/* Reviews Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
           <AnimatePresence>
             {reviews.map((review, index) => (
-              <motion.div key={index} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.4 }}
-                className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 p-8 flex flex-col justify-between border border-gray-100">
+              <motion.div
+                key={index}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4 }}
+                className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 p-8 flex flex-col justify-between border border-gray-100"
+              >
                 <div>
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
@@ -108,7 +125,7 @@ export default function WhatPeopleSayClient() {
                 </div>
                 <div className="border-t border-gray-100 pt-4 flex items-center justify-between text-sm text-gray-500">
                   <div className="flex items-center gap-2">
-                    <span className="text-blue-400">🌎</span>
+                    <Globe size={14} className="text-blue-400" />
                     <span className="font-medium">{review.country}</span>
                   </div>
                   <span className="text-xs bg-gray-100 px-2 py-1 rounded-full">{review.date}</span>
@@ -118,34 +135,47 @@ export default function WhatPeopleSayClient() {
           </AnimatePresence>
         </div>
 
-        {/* Submission Form Section */}
-        <section className="bg-white rounded-3xl shadow-2xl overflow-hidden md:flex">
-          {/* Left Side: Context */}
-          <div className="hidden md:flex md:w-1/3 bg-blue-900 text-white p-12 flex-col justify-center relative">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20" />
+        <section className="bg-white rounded-3xl shadow-2xl overflow-hidden md:flex border border-blue-100">
+          <div className="hidden md:flex md:w-1/3 bg-gradient-to-b from-sky-100 to-blue-50 text-slate-800 p-12 flex-col justify-center relative border-r border-blue-100">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10" />
             <div className="relative z-10">
               <h2 className="text-3xl font-bold mb-6">Share Your Story</h2>
-              <p className="text-blue-100 mb-8 leading-relaxed">Your feedback helps us improve and inspires others to pursue their dreams in Malaysia. Let the world know about your experience!</p>
+              <p className="text-slate-600 mb-8 leading-relaxed">
+                Your feedback helps us improve and inspires others to pursue their dreams in Malaysia. Let the world know about your experience!
+              </p>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center"><span className="text-yellow-400">💼</span></div>
-                  <div><h4 className="font-semibold">Professional Support</h4><p className="text-sm text-blue-200">Guidance at every step</p></div>
+                  <div className="w-10 h-10 rounded-full bg-white border border-blue-200 text-blue-600 flex items-center justify-center">
+                    <Briefcase size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-800">Professional Support</h4>
+                    <p className="text-sm text-slate-500">Guidance at every step</p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-800 flex items-center justify-center"><span className="text-yellow-400">🌎</span></div>
-                  <div><h4 className="font-semibold">Global Community</h4><p className="text-sm text-blue-200">Join students from everywhere</p></div>
+                  <div className="w-10 h-10 rounded-full bg-white border border-blue-200 text-blue-600 flex items-center justify-center">
+                    <Globe size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-slate-800">Global Community</h4>
+                    <p className="text-sm text-slate-500">Join students from everywhere</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Right Side: Form */}
           <div className="p-8 md:p-12 md:w-2/3">
             <h3 className="text-2xl font-bold text-gray-800 mb-8 flex items-center gap-2">
               Write a Review{' '}
               <span className="text-blue-600 text-sm font-normal bg-blue-50 px-3 py-1 rounded-full">It only takes a minute</span>
             </h3>
-            {submitted && <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-medium">✓ Review submitted successfully!</div>}
+            {submitted && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-medium">
+                Review submitted successfully!
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -185,7 +215,9 @@ export default function WhatPeopleSayClient() {
                     <Globe className="absolute left-4 top-3.5 text-gray-400" size={18} />
                     <select name="country" value={formData.country} onChange={handleChange} className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-gray-50 focus:bg-white appearance-none font-bold uppercase tracking-widest text-xs">
                       <option value="">Select Country</option>
-                      {['India','Pakistan','Bangladesh','Nepal','Sri Lanka','Malaysia','Nigeria','Middle East','Other'].map(c => <option key={c} value={c}>{c}</option>)}
+                      {['India', 'Pakistan', 'Bangladesh', 'Nepal', 'Sri Lanka', 'Malaysia', 'Nigeria', 'Middle East', 'Other'].map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -193,8 +225,14 @@ export default function WhatPeopleSayClient() {
                   <label className="text-sm font-semibold text-gray-700 ml-1 uppercase tracking-wider">Rating</label>
                   <div className="flex gap-2 pt-2">
                     {[1, 2, 3, 4, 5].map((s) => (
-                      <button key={s} type="button" onClick={() => handleRating(s)}
-                        className={`text-2xl transition-transform hover:scale-110 ${formData.rating >= s ? 'text-yellow-400' : 'text-gray-300'}`}><Star size={24} className={formData.rating >= s ? 'fill-yellow-400 text-yellow-400' : ''} /></button>
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => handleRating(s)}
+                        className={`text-2xl transition-transform hover:scale-110 ${formData.rating >= s ? 'text-yellow-400' : 'text-gray-300'}`}
+                      >
+                        <Star size={24} className={formData.rating >= s ? 'fill-yellow-400 text-yellow-400' : ''} />
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -203,8 +241,7 @@ export default function WhatPeopleSayClient() {
                 <label className="text-sm font-semibold text-gray-700 ml-1 uppercase tracking-wider">Your Review</label>
                 <textarea name="review" rows={4} value={formData.review} onChange={handleChange} placeholder="Share your experience..." className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-gray-50 focus:bg-white resize-none font-medium" />
               </div>
-              <button type="submit" disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white font-black py-5 rounded-2xl shadow-xl hover:shadow-blue-200 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-sm">
+              <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white font-black py-5 rounded-2xl shadow-xl hover:shadow-blue-200 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-sm">
                 {loading ? 'Submitting...' : <>Submit Review <Send size={20} /></>}
               </button>
             </form>

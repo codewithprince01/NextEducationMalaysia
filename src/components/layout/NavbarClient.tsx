@@ -21,9 +21,9 @@ const RESOURCES_LINKS = {
     { href: '/resources/services/visa-guidance', label: 'Visa Guidance' },
   ],
   guidelines: [
-    { href: '/resources/Guidelines/graduate-pass', label: 'Graduate Pass' },
-    { href: '/resources/Guidelines/MQA', label: 'MQA' },
-    { href: '/resources/Guidelines/team-education-malaysia', label: 'Study Malaysia' },
+    { href: '/resources/guidelines/graduate-pass', label: 'Graduate Pass' },
+    { href: '/resources/guidelines/MQA', label: 'MQA' },
+    { href: '/resources/guidelines/team-education-malaysia', label: 'Study Malaysia' },
   ],
   about: [
     { href: '/who-we-are', label: 'Who We Are' },

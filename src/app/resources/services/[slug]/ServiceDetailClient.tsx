@@ -40,6 +40,11 @@ export default function ServiceDetailClient({ service, slug }: { service: Servic
   const image = thumb?.startsWith?.('http') ? thumb : thumb ? `${ADMIN_URL}/storage/${String(thumb).replace(/^\/+/, '')}` : null
   const contents = service?.contents || []
   const showEnhancedTabs = contents.length >= 3
+  const isDiscoverMalaysia = slug === 'discover-malaysia'
+  const heroClass = isDiscoverMalaysia
+    ? 'relative bg-gradient-to-br from-blue-700 via-blue-800 to-blue-700 text-white overflow-hidden'
+    : 'relative bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 text-white overflow-hidden'
+  const editionTextClass = isDiscoverMalaysia ? 'text-blue-100' : 'text-emerald-100'
 
   const activeContentHtml = useMemo(() => {
     if (!contents.length) return service?.description || service?.shortnote || ''
@@ -71,18 +76,18 @@ export default function ServiceDetailClient({ service, slug }: { service: Servic
         .content-wrapper table tr:hover { background-color: #f1f5f9; }
       `}</style>
 
-      <section className="relative bg-linear-to-r from-blue-600 via-blue-500 to-blue-400 text-white overflow-hidden">
+      <section className={heroClass}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 relative z-10">
           <div className="text-center">
             <div className="flex justify-center mb-4 sm:mb-6">
-              <div className="bg-white/20 backdrop-blur-sm p-3 sm:p-4 rounded-2xl">
+              <div className="bg-white/15 backdrop-blur-sm p-3 sm:p-4 rounded-2xl border border-white/20">
                 <GraduationCap className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16" />
               </div>
             </div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 tracking-tight px-2">{title}</h1>
             <div className="flex items-center justify-center space-x-2 mb-4 sm:mb-6">
               <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
-              <p className="text-base sm:text-lg md:text-xl text-emerald-100">2025 Edition</p>
+              <p className={`text-base sm:text-lg md:text-xl ${editionTextClass}`}>2025 Edition</p>
             </div>
             {(service?.description || service?.shortnote) && (
               <p className="text-sm sm:text-base md:text-lg text-white/90 max-w-3xl mx-auto leading-relaxed px-4">

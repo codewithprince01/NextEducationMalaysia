@@ -33,10 +33,10 @@ import {
 export function DiscoverMalaysiaPage() {
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-gradient-to-r from-blue-600 to-blue-400 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <header className="bg-gradient-to-br from-blue-700 via-blue-800 to-blue-700 text-white border-b border-blue-900/20 min-h-[68vh] flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center w-full">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Jobs & Career Opportunities in Malaysia</h1>
-          <p className="text-xl text-emerald-50 max-w-3xl mx-auto">
+          <p className="text-xl text-blue-100 max-w-3xl mx-auto">
             Your complete guide to working in Malaysia as an international student - during studies, after graduation, and beyond
           </p>
         </div>

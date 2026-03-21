@@ -168,3 +168,68 @@ export const getAllServices = unstable_cache(
   ['all-services'],
   { revalidate: 86400 },
 )
+
+export const getTeamEducationMalaysiaContent = unstable_cache(
+  async () => {
+    const row = await firstSuccessfulQuery<any>([
+      {
+        sql: 'SELECT * FROM page_contents WHERE page_name = ? AND website = ? ORDER BY id DESC LIMIT 1',
+        params: ['home', SITE_VAR],
+      },
+      {
+        sql: 'SELECT * FROM page_contents WHERE page_name = ? ORDER BY id DESC LIMIT 1',
+        params: ['home'],
+      },
+      {
+        sql: 'SELECT * FROM page_contents WHERE page_name = ? AND website = ? ORDER BY id DESC LIMIT 1',
+        params: ['team-education-malaysia', SITE_VAR],
+      },
+      {
+        sql: 'SELECT * FROM page_contents WHERE page_name = ? ORDER BY id DESC LIMIT 1',
+        params: ['team-education-malaysia'],
+      },
+      {
+        sql: 'SELECT * FROM page_contents WHERE page_name = ? AND website = ? ORDER BY id DESC LIMIT 1',
+        params: ['resources/Guidelines/team-education-malaysia', SITE_VAR],
+      },
+      {
+        sql: 'SELECT * FROM page_contents WHERE page_name = ? ORDER BY id DESC LIMIT 1',
+        params: ['resources/Guidelines/team-education-malaysia'],
+      },
+      {
+        sql: 'SELECT page_content AS description, updated_at FROM static_page_seos WHERE page = ? AND website = ? LIMIT 1',
+        params: ['resources/Guidelines/team-education-malaysia', SITE_VAR],
+      },
+      {
+        sql: 'SELECT page_content AS description, updated_at FROM static_page_seos WHERE page = ? LIMIT 1',
+        params: ['resources/Guidelines/team-education-malaysia'],
+      },
+      {
+        sql: 'SELECT page_content AS description, updated_at FROM static_page_seos WHERE page = ? AND website = ? LIMIT 1',
+        params: ['guidelines/team-education-malaysia', SITE_VAR],
+      },
+      {
+        sql: 'SELECT page_content AS description, updated_at FROM static_page_seos WHERE page = ? LIMIT 1',
+        params: ['guidelines/team-education-malaysia'],
+      },
+      {
+        sql: 'SELECT page_content AS description, updated_at FROM static_page_seos WHERE page = ? AND website = ? LIMIT 1',
+        params: ['home', SITE_VAR],
+      },
+      {
+        sql: 'SELECT page_content AS description, updated_at FROM static_page_seos WHERE page = ? LIMIT 1',
+        params: ['home'],
+      },
+    ])
+
+    return serializeBigInt(
+      row ?? {
+        heading: 'Study in Malaysia: Discover Universities, Expenses, Programs, Visa, Admission Criteria, Scholarships',
+        description:
+          '<p>Malaysia is a preferred destination for international students because of affordable fees, quality education, and globally recognized universities.</p><p>Education Malaysia supports students in choosing institutions, understanding eligibility, and completing admission and visa steps with clarity.</p><p><img src="https://www.educationmalaysia.in/images/Study-in-Malaysia-2.webp" alt="Study in Malaysia" /></p>',
+      },
+    )
+  },
+  ['team-education-malaysia-content-v2'],
+  { revalidate: 43200 },
+)

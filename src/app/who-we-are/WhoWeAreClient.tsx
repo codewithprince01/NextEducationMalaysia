@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import Breadcrumb from '@/components/Breadcrumb'
 import {
   GraduationCap, FileText, Shield, DollarSign, Globe, Plane, ArrowRight
 } from 'lucide-react'
@@ -35,7 +36,16 @@ export default function WhoWeAreClient() {
   const tab = tabContent[activeTab]
 
   return (
-    <div className="px-6 md:px-12 py-10 max-w-7xl mx-auto bg-gray-50">
+    <div className="bg-gray-50">
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'About Us', href: '/resources/about' },
+          { label: 'Who We Are' },
+        ]}
+      />
+
+      <div className="px-6 md:px-12 py-10 max-w-7xl mx-auto">
       <h2 className="text-4xl font-bold text-center text-gray-800 mb-10">
         About <span className="text-blue-600">Education Malaysia</span>
       </h2>
@@ -174,6 +184,7 @@ export default function WhoWeAreClient() {
             ))}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

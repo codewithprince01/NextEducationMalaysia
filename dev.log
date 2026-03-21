@@ -1,0 +1,17 @@
+
+> next-education-malaysia@0.1.0 dev
+> next dev
+
+Error: spawn EPERM
+    at ChildProcess.spawn (node:internal/child_process:420:11)
+    at spawn (node:child_process:796:9)
+    at fork (node:child_process:174:10)
+    at D:\NEXT\NextEducationMalaysia\node_modules\next\dist\cli\next-dev.js:243:45
+    at new Promise (<anonymous>)
+    at startServer (D:\NEXT\NextEducationMalaysia\node_modules\next\dist\cli\next-dev.js:212:16)
+    at runDevServer (D:\NEXT\NextEducationMalaysia\node_modules\next\dist\cli\next-dev.js:334:23)
+    at Module.nextDev (D:\NEXT\NextEducationMalaysia\node_modules\next\dist\cli\next-dev.js:342:11) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'spawn'
+}

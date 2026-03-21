@@ -1,17 +1,10 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from '@/context/AuthContext'
 import { ToastContainer } from 'react-toastify';
 import NavbarClient from '@/components/layout/NavbarClient'
 import Footer from '@/components/layout/Footer'
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-})
 
 export const metadata: Metadata = {
   title: {
@@ -36,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <AuthProvider>
           <NavbarClient />

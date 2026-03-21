@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { SITE_URL } from '@/lib/constants'
-import CoursesListClient from '../../courses-in-malaysia/CoursesListClient'
-import { malaysiaDiscoveryService } from '@/backend'
+import CoursesListClient from '../../../courses-in-malaysia/CoursesListClient'
 
 export const revalidate = 86400
 
