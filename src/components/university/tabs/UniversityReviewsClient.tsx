@@ -20,6 +20,10 @@ interface ReviewStats {
 }
 
 const ReviewCard = ({ review }: { review: Review }) => {
+  const reviewerName = review.name || 'Anonymous'
+  const created = review.created_at ? new Date(review.created_at) : null
+  const hasValidDate = Boolean(created && !isNaN(created.getTime()))
+
   return (
     <div className="bg-white rounded-md border border-gray-200 p-4 mb-4 relative shadow-sm font-sans">
       {/* Floating Score */}
@@ -30,13 +34,13 @@ const ReviewCard = ({ review }: { review: Review }) => {
       <div className="flex items-center gap-3 mb-2">
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-[#0a1d37] flex items-center justify-center text-white text-xl font-bold shrink-0">
-          {review.name.charAt(0).toUpperCase()}
+          {reviewerName.charAt(0).toUpperCase()}
         </div>
 
         {/* Name + Verified + Stars */}
         <div>
           <div className="flex items-center gap-1 text-lg font-semibold text-gray-800">
-            {review.name}
+            {reviewerName}
             <CheckCircle className="text-green-600 fill-green-600/10" size={16} />
           </div>
           <div className="flex items-center text-green-600 text-sm mt-1">
@@ -56,11 +60,11 @@ const ReviewCard = ({ review }: { review: Review }) => {
 
       {/* Date */}
       <p className="text-sm text-gray-500 mb-2">
-        Post on - {new Date(review.created_at).toLocaleDateString('en-US', {
+        Post on - {hasValidDate ? created!.toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'short',
           day: 'numeric'
-        })} <span className="font-semibold text-gray-800">by {review.name}</span>
+        }) : 'N/A'} <span className="font-semibold text-gray-800">by {reviewerName}</span>
       </p>
 
       {/* Program & Year */}
@@ -83,7 +87,7 @@ const ReviewCard = ({ review }: { review: Review }) => {
   )
 }
 
-export default function UniversityReviewsClient({ uname }: { uname: string }) {
+export default function UniversityReviewsClient({ slug }: { slug: string }) {
   const [reviews, setReviews] = useState<Review[]>([])
   const [stats, setStats] = useState<ReviewStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -91,11 +95,19 @@ export default function UniversityReviewsClient({ uname }: { uname: string }) {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await fetch(`/api/university/${uname}/reviews`)
+        const response = await fetch(`/api/university/${slug}/reviews`)
         const json = await response.json()
-        if (json.data?.reviews) {
-          setReviews(json.data.reviews.items)
-          setStats(json.data.reviews.stats)
+        const payload = json?.data?.reviews
+        if (payload?.items) {
+          setReviews(payload.items)
+          setStats(payload.stats)
+        } else if (Array.isArray(json?.data)) {
+          const items = json.data as Review[]
+          setReviews(items)
+          if (items.length > 0) {
+            const avg = (items.reduce((sum, item) => sum + Number(item.rating || 0), 0) / items.length).toFixed(1)
+            setStats({ total_reviews: items.length, average_rating: avg })
+          }
         }
       } catch (error) {
         console.error('Error fetching reviews:', error)
@@ -104,7 +116,7 @@ export default function UniversityReviewsClient({ uname }: { uname: string }) {
       }
     }
     fetchReviews()
-  }, [uname])
+  }, [slug])
 
   if (loading) {
     return (
@@ -115,7 +127,15 @@ export default function UniversityReviewsClient({ uname }: { uname: string }) {
     )
   }
 
-  if (reviews.length === 0) return null
+  if (reviews.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-xl p-8 text-center text-gray-400 border border-gray-100">
+          <p>No reviews available for this university.</p>
+        </div>
+      </div>
+    )
+  }
 
   const avgRating = parseFloat(stats?.average_rating || '5')
   const ratingPercentage = Math.round((avgRating / 5) * 100)

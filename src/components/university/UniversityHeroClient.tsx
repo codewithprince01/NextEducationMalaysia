@@ -1,23 +1,53 @@
-'use client'
+﻿'use client'
 
 import { useState, useCallback, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   MapPin, Navigation, Star, Building, BedDouble,
-  Users, Phone, Mail, Printer, Image as ImageIcon,
+  Phone, Mail, Image as ImageIcon,
   Check
 } from 'lucide-react'
+import { FaBuilding, FaBed, FaUsers, FaPhoneAlt, FaFax, FaEnvelope } from 'react-icons/fa'
 import UniversityInfoCards from './UniversityInfoCards'
 import UniversityActionButtons from './UniversityActionButtons'
 import UniversityRankings from './UniversityRankings'
 import Breadcrumb, { BreadcrumbItem } from '@/components/Breadcrumb'
+import PopupForm from '@/components/modals/PopupForm'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
+const DEFAULT_PHONE_1 = '+60 1121376171'
+const DEFAULT_PHONE_2 = '+91 9818560331'
+const DEFAULT_EMAIL = 'info@educationmalaysia.in'
 
 function imgUrl(path: string | null | undefined) {
   if (!path) return null
   const clean = String(path).replace(/^\/+/, '')
   return `${IMAGE_BASE}/storage/${clean}`
+}
+
+function parseListValue(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).map(v => v.trim()).filter(Boolean)
+  if (typeof value !== 'string') return []
+  const text = value.trim()
+  if (!text) return []
+
+  try {
+    const parsed = JSON.parse(text)
+    if (Array.isArray(parsed)) return parsed.map(String).map(v => v.trim()).filter(Boolean)
+  } catch {}
+
+  return text
+    .replace(/<[^>]+>/g, ' ')
+    .split(/\r?\n|,|;|\u2022|\*/g)
+    .map(item => item.trim())
+    .filter(Boolean)
+}
+
+function toInt(value: unknown): number {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  if (typeof value !== 'string') return 0
+  const n = parseInt(value.replace(/[^\d]/g, ''), 10)
+  return Number.isFinite(n) ? n : 0
 }
 
 type Photo = { id?: number; photo_path: string; photo_name?: string | null; title?: string | null }
@@ -31,8 +61,10 @@ const STUDY_OPTIONS = [
 export default function UniversityHeroClient({ university, photos }: { university: any; photos: Photo[] }) {
   const pathname = usePathname()
   const [showGallery, setShowGallery] = useState(false)
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
+  const [popupType, setPopupType] = useState<'brochure' | 'fee' | 'counselling' | 'apply'>('brochure')
 
-  // ── Breadcrumb Logic ───────────────────────────────────────────────────────
+  // â”€â”€ Breadcrumb Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const breadcrumbItems = useMemo<BreadcrumbItem[]>(() => {
     const items: BreadcrumbItem[] = [
       { label: 'Home', href: '/' },
@@ -54,7 +86,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
     return items
   }, [pathname, university])
 
-  // ── Data Prep ──────────────────────────────────────────────────────────────
+  // â”€â”€ Data Prep â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const { mainPhoto, otherPhotos } = useMemo(() => {
     const seen = new Set<string>()
     const unique: Photo[] = []
@@ -73,6 +105,17 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const logoSrc = imgUrl(university.logo_path)
   const typeLabel = university.inst_type || university.institute_type?.type || 'University'
   const stars = Math.round(Number(university.rating) || 4)
+  const accreditedBy = parseListValue(university.accredited_by)
+  const hostelFacility = parseListValue(university.hostel_facility)
+  const phone1 = university.contact_number1 || DEFAULT_PHONE_1
+  const phone2 = university.contact_number2 || DEFAULT_PHONE_2
+  const email = university.email || DEFAULT_EMAIL
+  const approvedBy = university.approved_by || 'MQA'
+  const localStudents = toInt(university.local_students)
+  const internationalStudents = toInt(university.international_students)
+  const totalStudents = Math.max(localStudents + internationalStudents, 1)
+  const localWidth = `${Math.round((localStudents / totalStudents) * 100)}%`
+  const internationalWidth = `${Math.round((internationalStudents / totalStudents) * 100)}%`
 
   const handleDirections = useCallback(() => {
     if (university.google_map_link) {
@@ -82,13 +125,18 @@ export default function UniversityHeroClient({ university, photos }: { universit
     }
   }, [university])
 
+  const openPopup = useCallback((type: 'brochure' | 'fee' | 'counselling' | 'apply') => {
+    setPopupType(type)
+    setIsPopupOpen(true)
+  }, [])
+
   return (
     <div className="bg-gray-50 sm:bg-white overflow-x-hidden">
       <div className="hidden sm:block">
         <Breadcrumb items={breadcrumbItems} />
       </div>
 
-      {/* ── DESKTOP HERO ── */}
+      {/* â”€â”€ DESKTOP HERO â”€â”€ */}
       <div className="hidden sm:block max-w-[1400px] mx-auto px-2 md:px-4 py-4 bg-white">
         {/* Logo + Info Row */}
         <div className="flex flex-row items-center justify-between gap-4 mb-4">
@@ -135,7 +183,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
                 <span>Featured</span>
               </div>
               <div className="text-gray-500 text-[10px] font-bold uppercase tracking-tighter ml-1">
-                Approved By: <span className="text-gray-900 font-black">MQA</span>
+                Approved By: <span className="text-gray-900 font-black">{approvedBy}</span>
               </div>
             </div>
           </div>
@@ -170,112 +218,98 @@ export default function UniversityHeroClient({ university, photos }: { universit
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-20 pb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-20 pb-8">
           <div className="col-span-2 space-y-4">
             <UniversityInfoCards universityData={university} cols={4} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 flex flex-col hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-50 rounded-xl">
-                    <Building className="text-blue-600" size={20} />
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900">Accredited By</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 -mt-2">
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <FaBuilding className="text-blue-600 text-lg" />
+                  <h3 className="text-base font-semibold text-gray-900">Accredited By</h3>
                 </div>
-                <ul className="space-y-2.5 text-sm text-gray-700">
-                  {Array.isArray(university.accredited_by) ? (
-                    university.accredited_by.map((a: string, i: number) => (
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {accreditedBy.length > 0 ? (
+                    accreditedBy.map((a: string, i: number) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-1 font-black leading-none">•</span>
-                        <span className="font-medium">{a}</span>
+                        <span className="text-blue-600 mt-0.5">•</span>
+                        <span>{a}</span>
                       </li>
                     ))
                   ) : (
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-1 font-black leading-none">•</span>
-                      <span className="font-medium">{university.accredited_by || 'MQA'}</span>
+                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span>{approvedBy}</span>
                     </li>
                   )}
                 </ul>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 flex flex-col hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-green-50 rounded-xl">
-                    <BedDouble className="text-green-600" size={20} />
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900">Hostel Facility</h3>
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <FaBed className="text-green-600 text-lg" />
+                  <h3 className="text-base font-semibold text-gray-900">Hostel Facility</h3>
                 </div>
-                <ul className="space-y-2.5 text-sm text-gray-700">
-                  {Array.isArray(university.hostel_facility) ? (
-                    university.hostel_facility.map((f: string, i: number) => (
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {hostelFacility.length > 0 ? (
+                    hostelFacility.map((f: string, i: number) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-green-600 mt-1 font-black leading-none">•</span>
-                        <span className="font-medium">{f}</span>
+                        <span className="text-green-600 mt-0.5">•</span>
+                        <span>{f}</span>
                       </li>
                     ))
                   ) : (
                     <li className="flex items-start gap-2">
-                      <span className="text-green-600 mt-1 font-black leading-none">•</span>
-                      <span className="font-medium">{university.hostel_facility || 'Available'}</span>
+                      <span className="text-green-600 mt-0.5">•</span>
+                      <span>Available</span>
                     </li>
                   )}
                 </ul>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 flex flex-col hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-purple-50 rounded-xl">
-                    <Users className="text-purple-600" size={20} />
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900">Total Students</h3>
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <FaUsers className="text-purple-600 text-lg" />
+                  <h3 className="text-base font-semibold text-gray-900">Total Students</h3>
                 </div>
-                <div className="space-y-5 pt-1">
+                <div className="space-y-4">
                    <div>
-                     <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2.5">
+                     <div className="flex justify-between items-center mb-2">
                        <span>Local Students</span>
-                       <span className="font-black text-purple-700">{university.local_students || '0'}</span>
+                       <span className="text-sm font-bold text-purple-700">{localStudents}</span>
                      </div>
-                     <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                       <div className="bg-purple-600 h-full rounded-full transition-all duration-1000" style={{ width: university.local_students && university.local_students !== '0' ? '75%' : '0%' }} />
+                     <div className="w-full bg-gray-200 rounded-full h-2">
+                       <div className="bg-purple-600 h-2 rounded-full transition-all duration-1000" style={{ width: localStudents > 0 ? localWidth : '0%' }} />
                      </div>
                    </div>
                    <div>
-                     <div className="flex justify-between text-sm font-semibold text-gray-700 mb-2.5">
+                     <div className="flex justify-between items-center mb-2">
                        <span>International Students</span>
-                       <span className="font-black text-blue-700">{university.international_students || '0'}</span>
+                       <span className="text-sm font-bold text-blue-700">{internationalStudents}</span>
                      </div>
-                     <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                       <div className="bg-blue-600 h-full rounded-full transition-all duration-1000" style={{ width: university.international_students && university.international_students !== '0' ? '75%' : '0%' }} />
+                     <div className="w-full bg-gray-200 rounded-full h-2">
+                       <div className="bg-blue-600 h-2 rounded-full transition-all duration-1000" style={{ width: internationalStudents > 0 ? internationalWidth : '0%' }} />
                      </div>
                    </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl shadow-sm p-5 border border-gray-100 flex flex-col hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-orange-50 rounded-xl">
-                    <Phone className="text-orange-600" size={20} />
-                  </div>
-                  <h3 className="text-base font-bold text-gray-900">Contact Info</h3>
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <FaPhoneAlt className="text-orange-600 text-lg" />
+                  <h3 className="text-base font-semibold text-gray-900">Contact Info</h3>
                 </div>
                 <div className="space-y-4 text-sm text-gray-700">
                    <div className="flex items-center gap-3 group">
-                     <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                       <Phone size={14} className="text-emerald-500" />
-                     </div>
-                     <span className="font-semibold">+60 1121376171</span>
+                     <FaPhoneAlt className="text-orange-500" />
+                     <span>{phone1}</span>
                    </div>
                    <div className="flex items-center gap-3 group">
-                     <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-                       <Printer size={14} className="text-gray-400" />
-                     </div>
-                     <span className="font-semibold">+91 9818560331</span>
+                     <FaFax className="text-gray-500" />
+                     <span>{phone2}</span>
                    </div>
                    <div className="flex items-center gap-3 group">
-                     <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                       <Mail size={14} className="text-blue-500" />
-                     </div>
-                     <span className="font-semibold">info@educationmalaysia.in</span>
+                     <FaEnvelope className="text-blue-500" />
+                     <span>{email}</span>
                    </div>
                 </div>
               </div>
@@ -298,7 +332,12 @@ export default function UniversityHeroClient({ university, photos }: { universit
             )}
           </div>
           <div className="col-span-1 space-y-3">
-             <UniversityActionButtons variant="desktop" />
+             <UniversityActionButtons
+               variant="desktop"
+               onBrochure={() => openPopup('brochure')}
+               onFeeStructure={() => openPopup('fee')}
+               onCounselling={() => openPopup('counselling')}
+             />
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
              <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
                <h3 className="text-lg font-semibold text-gray-900 mb-4">Study Options</h3>
@@ -315,7 +354,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         </div>
       </div>
 
-      {/* ── MOBILE HERO ── */}
+      {/* â”€â”€ MOBILE HERO â”€â”€ */}
       <div className="sm:hidden bg-gray-50 pb-8">
         <div className="bg-white p-3">
           <div className="flex items-center gap-4 mb-5">
@@ -356,8 +395,8 @@ export default function UniversityHeroClient({ university, photos }: { universit
                   <h3 className="text-sm font-semibold text-gray-900">Accredited By</h3>
                 </div>
                 <ul className="space-y-1 text-xs text-gray-700">
-                  {Array.isArray(university.accredited_by) ? (
-                    university.accredited_by.slice(0, 3).map((a: string, i: number) => (
+                  {accreditedBy.length > 0 ? (
+                    accreditedBy.slice(0, 3).map((a: string, i: number) => (
                       <li key={i} className="flex items-start gap-2">
                         <span className="text-blue-600 mt-0.5">•</span>
                         <span>{a}</span>
@@ -366,7 +405,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
                   ) : (
                     <li className="flex items-start gap-2">
                       <span className="text-blue-600 mt-0.5">•</span>
-                      <span>{university.accredited_by || 'MQA'}</span>
+                      <span>{approvedBy}</span>
                     </li>
                   )}
                 </ul>
@@ -377,7 +416,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
                   <BedDouble className="text-green-600" size={16} />
                   <h3 className="text-sm font-semibold text-gray-900">Hostel Facility</h3>
                 </div>
-                <p className="text-xs text-gray-700">{university.hostel_facility || 'Available'}</p>
+                <p className="text-xs text-gray-700">{hostelFacility[0] || 'Available'}</p>
              </div>
 
              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
@@ -386,16 +425,30 @@ export default function UniversityHeroClient({ university, photos }: { universit
                   <h3 className="text-sm font-semibold text-gray-900">Contact Info</h3>
                 </div>
                 <div className="space-y-1.5 text-xs text-gray-700">
-                   <div className="flex items-center gap-2"><Phone size={12} className="text-orange-500" /><span>+60 1121376171</span></div>
-                   <div className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /><span>info@educationmalaysia.in</span></div>
+                   <div className="flex items-center gap-2"><Phone size={12} className="text-orange-500" /><span>{phone1}</span></div>
+                   <div className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /><span>{email}</span></div>
                 </div>
              </div>
 
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} compact={true} />
-             <UniversityActionButtons variant="mobile" />
+             <UniversityActionButtons
+               variant="mobile"
+               onBrochure={() => openPopup('brochure')}
+               onFeeStructure={() => openPopup('fee')}
+               onCounselling={() => openPopup('counselling')}
+             />
           </div>
         </div>
       </div>
+
+      <PopupForm
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        universityData={university}
+        formType={popupType}
+      />
     </div>
   )
 }
+
+

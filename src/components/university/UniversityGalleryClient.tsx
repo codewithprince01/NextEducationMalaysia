@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Search, X, ImageIcon } from 'lucide-react'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
@@ -19,19 +19,29 @@ export default function UniversityGalleryClient({ slug, initialPhotos = [] }: Pr
   const [photos, setPhotos] = useState<Photo[]>(initialPhotos)
   const [loading, setLoading] = useState(initialPhotos.length === 0)
   const [selectedImg, setSelectedImg] = useState<string | null>(null)
+  const fetchedForSlug = useRef<string | null>(null)
 
   useEffect(() => {
-    if (initialPhotos.length > 0) return
+    if (initialPhotos.length > 0) {
+      fetchedForSlug.current = slug
+      return
+    }
+    if (fetchedForSlug.current === slug) return
 
     setLoading(true)
+    fetchedForSlug.current = slug
     fetch(`/api/university/${slug}/gallery`)
       .then(r => r.json())
-      .then((data: Photo[]) => {
-        setPhotos(data)
+      .then((json: any) => {
+        const data: Photo[] = Array.isArray(json) ? json : (json?.data || json?.universityPhotos || [])
+        setPhotos(Array.isArray(data) ? data : [])
         setLoading(false)
       })
-      .catch(() => setLoading(false))
-  }, [slug, initialPhotos])
+      .catch(() => {
+        fetchedForSlug.current = null
+        setLoading(false)
+      })
+  }, [slug, initialPhotos.length])
 
   const getFullUrl = (path: string | null) => {
     if (!path) return ''

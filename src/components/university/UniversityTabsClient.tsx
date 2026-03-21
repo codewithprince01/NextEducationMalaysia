@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 
 const TABS = [
@@ -28,8 +28,8 @@ export default function UniversityTabsClient({ slug }: Props) {
   })?.id || 'overview'
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-14 z-20">
-      <div className="max-w-[1400px] mx-auto px-2 md:px-4 flex overflow-x-auto scrollbar-hide">
+    <div className="bg-white border-b border-gray-200 shadow-sm sticky top-14 z-10">
+      <div className="max-w-[1400px] mx-auto px-1 sm:px-2 lg:px-4 flex overflow-x-auto scrollbar-hide">
         {TABS.map((tab, index) => (
           <Link
             key={tab.id}

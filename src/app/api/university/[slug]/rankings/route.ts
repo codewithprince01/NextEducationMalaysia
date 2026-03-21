@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { prisma } from '@/lib/db-fresh'
 import { serializeBigInt } from '@/lib/utils'
 
 export async function GET(
@@ -9,24 +9,23 @@ export async function GET(
   try {
     const { slug } = await context.params
 
-    const university = await prisma.university.findFirst({
-      where: { uname: slug, status: true },
-      select: { 
-        id: true,
-        qs_rank: true,
-        times_rank: true,
-        qs_asia_rank: true
-      },
-    })
+    const uniRow = await prisma.$queryRawUnsafe(`
+      SELECT id, qs_rank, times_rank, qs_asia_rank
+      FROM universities
+      WHERE uname = ? AND status = 1
+      LIMIT 1
+    `, slug) as Promise<any[]>
 
-    if (!university) {
+    if (!uniRow.length) {
       return NextResponse.json({ error: 'University not found' }, { status: 404 })
     }
-
-    const rankings = await prisma.universityRanking.findMany({
-      where: { university_id: university.id },
-      orderBy: { position: 'asc' },
-    })
+    const university = uniRow[0]
+    const rankings = await prisma.$queryRawUnsafe(`
+      SELECT id, ranking_body, rank, year, position
+      FROM university_rankings
+      WHERE university_id = ?
+      ORDER BY position ASC, id ASC
+    `, Number(university.id)) as any[]
 
     return NextResponse.json({
       data: {

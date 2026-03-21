@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { universityService } from '@/backend'
 import { serializeBigInt } from '@/lib/utils'
 
 export async function GET(
@@ -8,23 +8,12 @@ export async function GET(
 ) {
   try {
     const { slug } = await params
-
-    const university = await prisma.university.findFirst({
-      where: { uname: slug, status: true as any },
-      select: { id: true },
-    })
-
-    if (!university) {
+    const result = await universityService.getUniversityVideos(slug)
+    if (!result) {
       return NextResponse.json({ error: 'University not found' }, { status: 404 })
     }
-
-    const videos = await prisma.universityVideo.findMany({
-      where: { university_id: university.id },
-      orderBy: { created_at: 'desc' },
-    })
-
-    // Map video_link to video_url as expected by client
-    const mappedVideos = videos.map(v => ({
+    const videos = Array.isArray(result.data) ? result.data : []
+    const mappedVideos = videos.map((v: any) => ({
       ...v,
       video_url: v.video_link
     }))

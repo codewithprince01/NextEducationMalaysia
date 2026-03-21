@@ -4,10 +4,10 @@ import React, { useState, useEffect } from 'react'
 
 interface Ranking {
   id: number
-  ranking_body: string
-  rank: string
-  year: string
-  score?: string
+  ranking_body: string | null
+  rank: string | null
+  year: string | null
+  score?: string | null
 }
 
 interface RankingsData {
@@ -32,18 +32,22 @@ const pastRankings = [
   { category: "Management", rank: "10", year: "2022" },
 ];
 
-export default function UniversityRankingClient({ uname }: { uname: string }) {
+export default function UniversityRankingClient({ slug }: { slug: string }) {
   const [data, setData] = useState<RankingsData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchRankings = async () => {
       try {
-        const response = await fetch(`/api/university/${uname}/rankings`)
+        const response = await fetch(`/api/university/${slug}/rankings`)
         const json = await response.json()
-        if (json.data) {
-          setData(json.data)
-        }
+        const payload = json?.data || {}
+        setData({
+          rankings: payload?.rankings || [],
+          qs_rank: payload?.qs_rank || null,
+          times_rank: payload?.times_rank || null,
+          qs_asia_rank: payload?.qs_asia_rank || null
+        })
       } catch (error) {
         console.error('Error fetching rankings:', error)
       } finally {
@@ -51,7 +55,7 @@ export default function UniversityRankingClient({ uname }: { uname: string }) {
       }
     }
     fetchRankings()
-  }, [uname])
+  }, [slug])
 
   if (loading) {
     return (
@@ -62,6 +66,8 @@ export default function UniversityRankingClient({ uname }: { uname: string }) {
       </div>
     )
   }
+
+  const rankings = data?.rankings || []
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-5">
@@ -102,57 +108,83 @@ export default function UniversityRankingClient({ uname }: { uname: string }) {
            </div>
         )}
 
-        {/* 2024 Ranking */}
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-          University NIRF Ranking 2024
-        </h2>
-        <div className="overflow-x-auto mb-10">
-          <table className="w-full border border-gray-200 rounded-lg shadow-md bg-white">
-            <thead className="bg-blue-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Category</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">NIRF Rank</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">NIRF Score</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Year</th>
-              </tr>
-            </thead>
-            <tbody>
-              {staticRankings2024.map((row, index) => (
-                <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.category}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-blue-700 border-b">{row.rank}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.score !== "-" ? row.score : "Not Available"}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.year}</td>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">University Rankings</h2>
+        {rankings.length > 0 ? (
+          <div className="overflow-x-auto mb-10">
+            <table className="w-full border border-gray-200 rounded-lg shadow-md bg-white">
+              <thead className="bg-blue-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Category</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Rank</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Score</th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Year</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rankings.map((row, index) => (
+                  <tr key={row.id || index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.ranking_body || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-blue-700 border-b">{row.rank || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.score || 'Not Available'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.year || 'N/A'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              University NIRF Ranking 2024
+            </h2>
+            <div className="overflow-x-auto mb-10">
+              <table className="w-full border border-gray-200 rounded-lg shadow-md bg-white">
+                <thead className="bg-blue-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Category</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">NIRF Rank</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">NIRF Score</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Year</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {staticRankings2024.map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.category}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-blue-700 border-b">{row.rank}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.score !== "-" ? row.score : "Not Available"}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.year}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Historical Rankings */}
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-          Previous Year Rankings (2022 - 2023)
-        </h2>
-        <div className="overflow-x-auto mb-10">
-          <table className="w-full border border-gray-200 rounded-lg shadow-md bg-white">
-            <thead className="bg-blue-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Category</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">NIRF Rank</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Year</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pastRankings.map((row, index) => (
-                <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.category}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-indigo-700 border-b">{row.rank}</td>
-                  <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.year}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Previous Year Rankings (2022 - 2023)
+            </h2>
+            <div className="overflow-x-auto mb-10">
+              <table className="w-full border border-gray-200 rounded-lg shadow-md bg-white">
+                <thead className="bg-blue-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Category</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">NIRF Rank</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-800 border-b">Year</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pastRankings.map((row, index) => (
+                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                      <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.category}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-indigo-700 border-b">{row.rank}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 border-b">{row.year}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
         {/* Additional Analysis */}
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">

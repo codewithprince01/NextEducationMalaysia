@@ -1,5 +1,6 @@
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import UniversityCoursesCard from './UniversityCoursesCard'
+import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 
 type Props = {
   children: React.ReactNode
@@ -22,6 +23,7 @@ export default function UniversitySectionContainer({ children, slug, universityN
       </div>
       <aside className="col-span-1 space-y-8">
         <SideInquiryForm type="university" context={{ slug, universityName }} />
+        <FeaturedUniversities variant="sidebar" />
         <UniversityCoursesCard />
       </aside>
     </div>

@@ -3,6 +3,7 @@ import { getUniversityFull } from '@/lib/queries/universities'
 import UniversityOverview from '@/components/university/UniversityOverview'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import UniversityCoursesCard from '@/components/university/UniversityCoursesCard'
+import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import { serializeBigInt } from '@/lib/utils'
 
 export const revalidate = 86400 // 24 hours
@@ -51,6 +52,7 @@ export default async function UniversityPage({ params }: Props) {
       </div>
       <aside className="col-span-1 space-y-8">
         <SideInquiryForm type="university" context={{ slug, universityName: university.name }} />
+        <FeaturedUniversities variant="sidebar" />
         <UniversityCoursesCard />
       </aside>
     </div>

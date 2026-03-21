@@ -2,8 +2,22 @@
 
 import React, { useState, useEffect } from 'react'
 
-interface Video {
-  video_url: string
+interface VideoItem {
+  video_url?: string
+  video_link?: string
+}
+
+const toEmbeddableUrl = (url: string) => {
+  if (!url) return ''
+  if (url.includes('youtube.com/watch?v=')) {
+    const id = url.split('v=')[1]?.split('&')[0]
+    return id ? `https://www.youtube.com/embed/${id}` : url
+  }
+  if (url.includes('youtu.be/')) {
+    const id = url.split('youtu.be/')[1]?.split('?')[0]
+    return id ? `https://www.youtube.com/embed/${id}` : url
+  }
+  return url
 }
 
 export default function UniversityVideosClient({ slug }: { slug: string }) {
@@ -14,9 +28,15 @@ export default function UniversityVideosClient({ slug }: { slug: string }) {
     fetch(`/api/university/${slug}/videos`)
       .then(r => r.json())
       .then(json => {
-        if (json.data) {
-          setVideos(json.data)
-        }
+        const rawVideos: VideoItem[] =
+          json?.data?.universityVideos ||
+          json?.data?.videos ||
+          json?.data ||
+          []
+        const mapped = rawVideos
+          .map(v => toEmbeddableUrl(v.video_url || v.video_link || ''))
+          .filter(Boolean)
+        setVideos(mapped)
         setLoading(false)
       })
       .catch(() => setLoading(false))

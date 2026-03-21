@@ -139,11 +139,24 @@ export const getUniversityFull = unstable_cache(
 
     const universityId = Number(university.id)
 
-    // 2. Fetch relations via raw SQL to bypass date validation
-    const [photos, programs, instituteType] = await Promise.all([
-      prisma.$queryRawUnsafe(`SELECT * FROM university_photos WHERE university_id = ?`, universityId) as Promise<any[]>,
+    // 2. Fetch relations via raw SQL to bypass zero-date validation issues.
+    // Avoid selecting created_at/updated_at columns because legacy rows may contain
+    // invalid values like 0000-00-00 00:00:00.
+    const [photos, programs, instituteType, overviews, scholarshipCount] = await Promise.all([
+      prisma.$queryRawUnsafe(
+        `SELECT id, university_id, photo_path, is_featured FROM university_photos WHERE university_id = ? ORDER BY is_featured DESC, id ASC`,
+        universityId
+      ) as Promise<any[]>,
       prisma.$queryRawUnsafe(`SELECT course_name FROM university_programs WHERE university_id = ? AND status = 1`, universityId) as Promise<any[]>,
-      prisma.$queryRawUnsafe(`SELECT type FROM institute_types WHERE id = ?`, Number(university.institute_type)) as Promise<any[]>
+      prisma.$queryRawUnsafe(`SELECT type FROM institute_types WHERE id = ?`, Number(university.institute_type)) as Promise<any[]>,
+      prisma.$queryRawUnsafe(
+        `SELECT id, title, description, position FROM university_overviews WHERE university_id = ? ORDER BY position ASC, id ASC`,
+        universityId
+      ) as Promise<any[]>,
+      prisma.$queryRawUnsafe(
+        `SELECT COUNT(*) as total FROM university_scholarships WHERE u_id = ?`,
+        universityId
+      ) as Promise<any[]>
     ])
 
     const typeData = instituteType[0]
@@ -152,6 +165,9 @@ export const getUniversityFull = unstable_cache(
       ...university,
       photos,
       programs,
+      overviews,
+      scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
+      active_programs_count: programs.length,
       instituteType: typeData
     })
   },

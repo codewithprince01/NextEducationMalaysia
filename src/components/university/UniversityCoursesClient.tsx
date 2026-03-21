@@ -61,6 +61,21 @@ const filterKeyMap: { [key: string]: string } = {
   'Study Mode': 'study_mode',
 }
 
+const normalizeAccreditations = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean)
+  if (typeof value !== 'string') return []
+  const raw = value.trim()
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) return parsed.map(v => String(v).trim()).filter(Boolean)
+  } catch {}
+  return raw
+    .split(/,|\r?\n|;|\|/g)
+    .map(v => v.trim())
+    .filter(Boolean)
+}
+
 export default function UniversityCoursesClient({ slug, initialPage = 1, initialData }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -105,9 +120,17 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
       })
 
       try {
-        const res = await fetch(`${API_BASE}/university-courses/${slug}?${params.toString()}`)
+        const res = await fetch(`/api/university/${slug}/courses?${params.toString()}`)
         const d = await res.json()
-        setData(d?.data || d)
+        const payload = d?.data || d
+        setData({
+          programs: payload?.programs || { data: [], current_page: 1, last_page: 1, total: 0 },
+          levels: payload?.levels || (payload?.filterOptions?.levels || []).map((level: string) => ({ level })),
+          categories: payload?.categories || payload?.filterOptions?.categories || [],
+          specializations: payload?.specializations || payload?.filterOptions?.specializations || [],
+          study_modes: payload?.study_modes || (payload?.filterOptions?.study_modes || []).map((study_mode: string) => ({ study_mode })),
+          university: payload?.university || (payload?.universityName ? { name: payload.universityName, id: 0 } : undefined)
+        })
       } catch (error) {
         console.error('Failed to fetch courses:', error)
       } finally {
@@ -135,7 +158,11 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
     fetchAppliedStatus();
   }, []);
 
-  const courses = data?.programs?.data ?? []
+  const courses = (data?.programs?.data ?? []).map((course: any) => ({
+    ...course,
+    tuition_fee: course?.tuition_fee ?? course?.tution_fee ?? '',
+    accreditations: normalizeAccreditations(course?.accreditations),
+  }))
   const pagination = data?.programs ?? { current_page: 1, last_page: 1, total: 0 }
   const universityName = data?.university?.name ?? slug
   const university = data?.university
@@ -281,7 +308,7 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
                   appliedCourses={new Set(appliedPrograms)}
                   onApplyNow={handleApplyNow}
                   onBrochureClick={handleBrochure}
-                  accreditations={Array.isArray(course.accreditations) ? course.accreditations : []}
+                  accreditations={course.accreditations}
                   universitySlug={slug}
                 />
               ))}

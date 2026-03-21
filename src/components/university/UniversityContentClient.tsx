@@ -81,9 +81,9 @@ export default function UniversityContentClient({ slug, overviews, universityNam
       case 'overview': return <OverviewContent overviews={overviews} universityName={universityName} />
       case 'courses': return <UniversityCoursesClient slug={slug} initialData={initialCourseData} />
       case 'gallery': return <UniversityGalleryClient slug={slug} />
-      case 'videos': return <UniversityVideosClient uname={slug} />
-      case 'ranking': return <UniversityRankingClient uname={slug} />
-      case 'reviews': return <UniversityReviewsClient uname={slug} />
+      case 'videos': return <UniversityVideosClient slug={slug} />
+      case 'ranking': return <UniversityRankingClient slug={slug} />
+      case 'reviews': return <UniversityReviewsClient slug={slug} />
       default: return <OverviewContent overviews={overviews} universityName={universityName} />
     }
   }
