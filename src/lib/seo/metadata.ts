@@ -184,21 +184,32 @@ export async function resolveScholarshipMeta(
 }
 
 export async function resolveExamMeta(
-  exam: { page_name?: string | null; uri?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image?: string | null }
+  exam: {
+    page_name?: string | null
+    name?: string | null
+    uri?: string | null
+    slug?: string | null
+    meta_title?: string | null
+    meta_description?: string | null
+    meta_keyword?: string | null
+    og_image?: string | null
+  }
 ): Promise<Metadata> {
   const dseo = await getDynamicSeo('exam')
   const fallbackOg = await getDefaultOgImage()
+  const examName = exam.page_name || exam.name || ''
+  const examSlug = exam.uri || exam.slug || ''
 
   const tags: TagMap = {
     ...baseTags(),
-    title: exam.page_name || '',
-    examname: exam.page_name || '',
+    title: examName,
+    examname: examName,
   }
 
   const title = replaceTag(exam.meta_title || dseo?.meta_title || '%examname%', tags)
   const desc = replaceTag(exam.meta_description || dseo?.meta_description || '', tags)
   const kw = replaceTag(exam.meta_keyword || dseo?.meta_keyword || '', tags)
-  const canonical = `${SITE_URL}/resources/exams/${exam.uri}`
+  const canonical = `${SITE_URL}/resources/exams/${examSlug}`
   const ogImage = buildOgImage(exam.og_image || (exam as any).og_image_path || dseo?.og_image_path, fallbackOg)
 
   return buildMeta(title, desc, kw, canonical, ogImage)

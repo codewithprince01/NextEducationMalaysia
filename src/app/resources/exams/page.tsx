@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { SITE_URL } from '@/lib/constants'
 import ExamsClient from './ExamsClient'
+import { getAllExams } from '@/lib/queries/resources'
 
 export const metadata: Metadata = {
   title: 'English Language Exams Guide - IELTS, PTE, MUET, TOEFL | Education Malaysia',
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/resources/exams` },
 }
 
-export default function ExamsPage() {
-  return <ExamsClient />
+export default async function ExamsPage() {
+  const exams = await getAllExams()
+  return <ExamsClient initialExams={(exams || []) as any} />
 }

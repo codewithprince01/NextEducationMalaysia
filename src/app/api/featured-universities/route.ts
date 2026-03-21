@@ -4,6 +4,12 @@ import { prisma } from '@/lib/db'
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+function serializeBigInt<T>(value: T): T {
+  return JSON.parse(
+    JSON.stringify(value, (_key, v) => (typeof v === 'bigint' ? Number(v) : v)),
+  )
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -50,10 +56,10 @@ export async function GET(request: Request) {
       `, ...(exclude ? [exclude] : []))
     }
 
-    return NextResponse.json({
+    return NextResponse.json(serializeBigInt({
       status: true,
       data: { universities: universities || [] },
-    })
+    }))
   } catch (error: any) {
     return NextResponse.json(
       { status: false, message: error?.message || 'Failed to fetch featured universities', data: { universities: [] } },

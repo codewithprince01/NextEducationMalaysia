@@ -34,7 +34,7 @@ export default async function ExamDetailPage({ params }: Params) {
         { name: 'Home', url: SITE_URL },
         { name: 'Resources', url: `${SITE_URL}/resources` },
         { name: 'Exams', url: `${SITE_URL}/resources/exams` },
-        { name: exam.page_name || '', url: `${SITE_URL}/resources/exams/${slug}` }
+        { name: (exam as any).page_name || (exam as any).name || '', url: `${SITE_URL}/resources/exams/${slug}` }
       ])} />
       <ExamDetailClient exam={exam as any} allExams={allExams as any} />
     </>

@@ -23,12 +23,28 @@ function getCache() {
     const raw = sessionStorage.getItem('exam_list_cache')
     if (!raw) return null
     const { data, ts } = JSON.parse(raw)
-    if (Date.now() - ts > EXAM_CACHE_TTL) { sessionStorage.removeItem('exam_list_cache'); return null }
+    if (Date.now() - ts > EXAM_CACHE_TTL) {
+      sessionStorage.removeItem('exam_list_cache')
+      return null
+    }
     return data
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
+
 function setCache(data: any) {
-  try { sessionStorage.setItem('exam_list_cache', JSON.stringify({ data, ts: Date.now() })) } catch {}
+  try {
+    sessionStorage.setItem('exam_list_cache', JSON.stringify({ data, ts: Date.now() }))
+  } catch {}
+}
+
+function imageSrc(path?: string) {
+  if (!path) return '/girl-banner.webp'
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  const base = (IMG_BASE || '').replace(/\/$/, '')
+  const clean = path.replace(/^\//, '')
+  return `${base}/${clean}`
 }
 
 const LoadingSkeleton = () => (
@@ -44,14 +60,24 @@ const LoadingSkeleton = () => (
   </div>
 )
 
-export default function ExamsClient() {
-  const [exams, setExams] = useState<Exam[]>([])
-  const [loading, setLoading] = useState(true)
+export default function ExamsClient({ initialExams = [] }: { initialExams?: Exam[] }) {
+  const [exams, setExams] = useState<Exam[]>(initialExams)
+  const [loading, setLoading] = useState(initialExams.length === 0)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const cached = getCache()
+
+    if (initialExams.length > 0 && !cached?.exams?.length) {
+      setCache({ exams: initialExams })
+    }
+
     const fetchData = async () => {
+      if (!API_BASE) {
+        setLoading(false)
+        return
+      }
+
       try {
         const res = await fetch(`${API_BASE}/exams`)
         if (!res.ok) throw new Error()
@@ -62,7 +88,7 @@ export default function ExamsClient() {
       } catch {
         if (cached?.exams?.length) {
           setExams(cached.exams)
-        } else {
+        } else if (initialExams.length === 0) {
           setError('Failed to load exams.')
         }
       } finally {
@@ -74,17 +100,22 @@ export default function ExamsClient() {
       setExams(cached.exams)
       setLoading(false)
     }
-    fetchData()
-  }, [])
+
+    if (!cached?.exams?.length && initialExams.length === 0) {
+      fetchData()
+    }
+  }, [initialExams])
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-100">
-      <Breadcrumb items={[
-        { label: 'Home', href: '/' },
-        { label: 'Resources', href: '/resources' },
-        { label: 'Exams' }
-      ]} />
-      
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Resources', href: '/resources' },
+          { label: 'Exams' },
+        ]}
+      />
+
       <div className="px-6 py-14">
         <h1 className="text-4xl font-bold text-center mb-12 text-gray-800">
           Explore Top <span className="text-blue-600">Study Abroad Exams</span>
@@ -92,7 +123,9 @@ export default function ExamsClient() {
 
         {loading && exams.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 max-w-7xl mx-auto">
-            {[...Array(8)].map((_, i) => <LoadingSkeleton key={i} />)}
+            {[...Array(8)].map((_, i) => (
+              <LoadingSkeleton key={i} />
+            ))}
           </div>
         ) : error && exams.length === 0 ? (
           <p className="text-center text-red-500 text-lg">{error}</p>
@@ -103,12 +136,7 @@ export default function ExamsClient() {
                 key={index}
                 className="bg-white/40 backdrop-blur-md shadow-lg rounded-xl overflow-hidden transform hover:-translate-y-1 hover:scale-105 transition duration-300 ease-in-out border border-gray-200"
               >
-                <img
-                  src={`${IMG_BASE}${exam.imgpath}`}
-                  alt={exam.page_name}
-                  className="w-full h-48 object-cover"
-                  loading="lazy"
-                />
+                <img src={imageSrc(exam.imgpath)} alt={exam.page_name} className="w-full h-48 object-cover" loading="lazy" />
                 <div className="p-5">
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">{exam.page_name}</h2>
                   <p className="text-sm text-gray-600 mb-4 h-16 overflow-hidden">{exam.headline}</p>
@@ -116,7 +144,7 @@ export default function ExamsClient() {
                     href={`/resources/exams/${exam.uri || exam.slug}`}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200 w-full text-center block"
                   >
-                    View Details →
+                    View Details
                   </Link>
                 </div>
               </div>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BookOpen, ArrowRight } from 'lucide-react'
+import { BookOpen, ArrowRight, Flame } from 'lucide-react'
 
 type Course = {
   id: number
@@ -13,6 +13,15 @@ type Course = {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
+function shuffleCourses<T>(items: T[]): T[] {
+  const arr = [...items]
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
 export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid' | 'sidebar' }) {
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
@@ -20,19 +29,40 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        const limit = variant === 'sidebar' ? 11 : 12
+
+        // Prefer local random endpoint to match old project behavior.
+        const localRes = await fetch(`/api/trending-courses?limit=${limit}`, { cache: 'no-store' })
+        if (localRes.ok) {
+          const localJson = await localRes.json().catch(() => ({}))
+          const localRows = Array.isArray(localJson?.data?.courses) ? localJson.data.courses : []
+          const normalizedLocal = localRows
+            .filter((row: any) => row?.id && row?.name && row?.slug)
+            .map((row: any) => ({ id: Number(row.id), name: String(row.name), slug: String(row.slug) }))
+
+          if (normalizedLocal.length > 0) {
+            setCourses(normalizedLocal.slice(0, limit))
+            return
+          }
+        }
+
+        if (!API_BASE) {
+          setCourses([])
+          return
+        }
+
         const res = await fetch(`${API_BASE}/home`, {
           headers: { 'x-api-key': API_KEY },
         })
         const json = await res.json()
         const fromHome = json?.data?.specializationsWithContent || json?.data?.specializations_with_content
         if (Array.isArray(fromHome) && fromHome.length > 0) {
-          const limit = variant === 'sidebar' ? 11 : 12
-          setCourses(fromHome.slice(0, limit))
+          setCourses(shuffleCourses(fromHome).slice(0, limit))
           return
         }
 
         // Fallback for environments where /home does not include specializationsWithContent
-        const fallbackRes = await fetch(`${API_BASE}/specializations?limit=12&orderBy=name&orderIn=asc`, {
+        const fallbackRes = await fetch(`${API_BASE}/specializations?limit=60`, {
           headers: { 'x-api-key': API_KEY },
         })
         const fallbackJson = await fallbackRes.json()
@@ -40,8 +70,7 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
         const normalized = fallbackRows
           .filter((row: any) => row?.id && row?.name && row?.slug)
           .map((row: any) => ({ id: Number(row.id), name: String(row.name), slug: String(row.slug) }))
-        const limit = variant === 'sidebar' ? 11 : 12
-        setCourses(normalized.slice(0, limit))
+        setCourses(shuffleCourses(normalized).slice(0, limit))
       } catch (error) {
         console.error('Failed to load trending courses:', error)
       } finally {
@@ -70,7 +99,7 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
     return (
       <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">🔥</span>
+          <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
           <h3 className="text-xl font-bold text-gray-800">Trending Courses</h3>
         </div>
         <div className="h-px bg-gray-200 w-full mb-6" />
@@ -96,7 +125,7 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
   // Grid variant
   if (loading) {
     return (
-      <section className="bg-white px-4 md:px-10 lg:px-24">
+      <section className="bg-white px-4 md:px-10 lg:px-24 pt-6 md:pt-8 pb-10 md:pb-12">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">
           List of Top Trending <span className="text-blue-600">Courses in Malaysia</span>
         </h2>
@@ -113,7 +142,7 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
   }
 
   return (
-    <section className="bg-white px-4 md:px-10 lg:px-24">
+    <section className="bg-white px-4 md:px-10 lg:px-24 pt-6 md:pt-8 pb-10 md:pb-12">
       <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-10">
         List of Top Trending <span className="text-blue-600">Courses in Malaysia</span>
       </h2>
@@ -147,7 +176,7 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
           </Link>
         ))}
       </div>
-      <div className="text-center mt-12">
+      <div className="text-center mt-12 mb-2">
         <Link
           href="/specialization"
           className="inline-flex items-center border-2 border-blue-800 text-blue-800 font-semibold px-6 py-2 rounded-full transition hover:bg-blue-800 hover:text-white"

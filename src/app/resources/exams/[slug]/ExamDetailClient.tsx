@@ -11,184 +11,176 @@ import { storageUrl } from '@/lib/constants'
 type Exam = {
   id: any
   page_name: string
+  name?: string
   headline?: string
   imgpath?: string
+  banner_path?: string
   description?: string
   uri?: string
+  slug?: string
   exam_page_contents?: any[]
+  contents?: any[]
   faqs?: any[]
 }
 
-type Props = { 
+type Props = {
   exam: Exam
   allExams: Exam[]
 }
 
 const formatDescription = (html: string) => {
   if (!html) return ''
+
   return html
     .replace(/<p>\s*<\/p>/g, '')
     .replace(/<p>&nbsp;<\/p>/g, '')
     .replace(/<br\s*\/?>\s*<br\s*\/?>/g, '<br/>')
     .replace(/(\s*<br\s*\/?>\s*)+/g, '<br/>')
-    .replace(/<p>/g, `<p class="mb-4 text-gray-700 leading-relaxed text-base md:text-lg">`)
-    .replace(/<ul>/g, `<ul class="list-disc pl-5 mb-6 space-y-2 text-gray-700">`)
-    .replace(/<li>/g, `<li class="ml-4">`)
-    .replace(/<ol>/g, `<ol class="list-decimal pl-5 mb-6 space-y-2 text-gray-700">`)
-    .replace(/<strong>/g, `<strong class="font-bold text-gray-900 border-b-2 border-blue-100 pb-0.5">`)
-    .replace(/<a href="(.*?)"/g, `<a href="$1" class="text-blue-600 hover:text-blue-800 underline transition font-semibold">`)
-    .replace(/<img src="(.*?)"/g, (_m: string, src: string) => {
-      return `<img src="${src}" class="w-full h-auto max-w-2xl mx-auto my-8 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300"`
+    .replace(/<p>/g, '<p class="mb-1 text-gray-700 leading-relaxed">')
+    .replace(/<ul>/g, '<ul class="list-disc pl-5 mb-1 space-y-1 text-gray-700">')
+    .replace(/<li>/g, '<li class="ml-4">')
+    .replace(/<ol>/g, '<ol class="list-decimal pl-5 mb-1 space-y-1 text-gray-700">')
+    .replace(/<strong>/g, '<strong class="font-semibold text-gray-900">')
+    .replace(/<a href="(.*?)"/g, '<a href="$1" class="text-blue-600 hover:text-blue-800 underline transition">')
+    .replace(/<img src="(.*?)"/g, (_match: string, src: string) => {
+      const fullSrc = src.startsWith('http') ? src : storageUrl(src) || src
+      return `<img src="${fullSrc}" class="w-full h-auto max-w-lg mx-auto my-2 rounded-lg shadow-md"`
     })
-    .replace(/<h2>(.*?)<\/h2>/g, `<h2 class="text-2xl sm:text-3xl font-extrabold text-blue-900 border-l-8 border-blue-600 pl-4 mb-6 mt-12">$1</h2>`)
-    .replace(/<h3>(.*?)<\/h3>/g, `<h3 class="text-xl sm:text-2xl font-bold text-gray-800 border-b-4 border-blue-50 pb-3 mb-5 mt-10">$1</h3>`)
-    .replace(/<h4>(.*?)<\/h4>/g, `<h4 class="text-lg sm:text-xl font-bold text-blue-800/80 mb-4 mt-8 uppercase tracking-wide">$1</h4>`)
-    .replace(/<table/g, `<div class="responsive-table-wrapper my-8 overflow-hidden rounded-2xl border border-blue-100 shadow-sm"><table class="w-full text-sm md:text-base border-collapse"`)
-    .replace(/<\/table>/g, `</table></div>`)
-    .replace(/<thead>/g, `<thead class="bg-blue-600 text-white text-left font-bold">`)
-    .replace(/<th>/g, `<th scope="col" class="px-4 md:px-6 py-4 font-bold tracking-wider">`)
-    .replace(/<tbody>/g, `<tbody class="bg-white divide-y divide-blue-50">`)
-    .replace(/<tr>/g, `<tr class="even:bg-blue-50/50 hover:bg-blue-100/30 transition-colors">`)
-    .replace(/<td>/g, `<td class="px-4 md:px-6 py-4 text-gray-700 font-medium">`)
+    .replace(
+      /<h2>(.*?)<\/h2>/g,
+      '<h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-blue-900 border-l-4 border-blue-600 pl-3 sm:pl-4 mb-2 mt-4">$1</h2>',
+    )
+    .replace(
+      /<h3>(.*?)<\/h3>/g,
+      '<h3 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 border-b-2 border-gray-200 pb-2 mb-2 mt-3">$1</h3>',
+    )
+    .replace(
+      /<h4>(.*?)<\/h4>/g,
+      '<h4 class="text-base sm:text-lg md:text-xl font-semibold text-gray-700 mb-1 mt-2">$1</h4>',
+    )
+    .replace(
+      /<table/g,
+      '<div class="responsive-table-wrapper"><table class="w-full text-xs sm:text-sm md:text-base border-collapse"',
+    )
+    .replace(/<\/table>/g, '</table></div>')
+    .replace(/<thead>/g, '<thead class="bg-blue-600 text-white text-left">')
+    .replace(
+      /<th>/g,
+      '<th scope="col" class="px-2 sm:px-4 md:px-6 py-2 sm:py-3 font-semibold text-xs sm:text-sm md:text-base">',
+    )
+    .replace(/<tbody>/g, '<tbody class="bg-white divide-y divide-gray-200">')
+    .replace(/<tr>/g, '<tr class="even:bg-blue-50 hover:bg-blue-100 transition">')
+    .replace(
+      /<td>/g,
+      '<td class="px-2 sm:px-4 md:px-6 py-2 sm:py-3 text-gray-800 text-xs sm:text-sm md:text-base border-b border-gray-200">',
+    )
 }
 
-const Sidebar = ({ exam, allExams }: { exam: Exam, allExams: Exam[] }) => (
-  <div className="space-y-6 lg:sticky lg:top-24">
-    <div className="bg-white rounded-3xl shadow-xl p-8 border border-blue-50 overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -z-1 opacity-50" />
-      <h2 className="text-2xl font-black text-blue-900 border-b-2 border-blue-100 pb-4 mb-6 flex items-center gap-2">
-        <span className="w-2 h-8 bg-blue-600 rounded-full" />
-        Explore Exams
+const Sidebar = ({ exam, allExams }: { exam: Exam; allExams: Exam[] }) => (
+  <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-20">
+    <div className="bg-white rounded-xl sm:rounded-2xl shadow p-4 sm:p-6">
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 border-b pb-3 sm:pb-4 mb-4 sm:mb-5">
+        Important Exams
       </h2>
-      <div className="space-y-2">
-        {allExams.slice(0, 6).map(e => (
+
+      {allExams.slice(0, 6).map((item) => {
+        const itemSlug = item.uri || item.slug
+        const active = (exam.uri || exam.slug) === itemSlug
+        return (
           <Link
-            key={e.id}
-            href={`/resources/exams/${e.uri}`}
-            className={`flex items-center justify-between px-4 py-4 rounded-2xl transition-all duration-300 group ${
-                exam.uri === e.uri 
-                ? 'bg-blue-600 text-white shadow-blue-200 shadow-lg' 
-                : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700 border border-transparent hover:border-blue-100'
+            key={item.id}
+            href={`/resources/exams/${itemSlug}`}
+            className={`flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition group border-b border-gray-100 last:border-b-0 ${
+              active ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
             }`}
           >
-            <span className="font-bold text-base group-hover:translate-x-1 transition-transform">{e.page_name}</span>
-            <FaArrowRight className={`${exam.uri === e.uri ? 'text-white' : 'text-blue-500'} group-hover:translate-x-1 transition-transform`} size={16} />
+            <span className="font-medium text-sm sm:text-base group-hover:translate-x-1 transition">{item.page_name}</span>
+            <FaArrowRight className="text-blue-500 group-hover:translate-x-1 transition" size={14} />
           </Link>
-        ))}
-      </div>
+        )
+      })}
     </div>
+
     <TrendingCourses variant="sidebar" />
     <FeaturedUniversities variant="sidebar" />
-    <SideInquiryForm context={`exam-${exam.id}`} />
+    <SideInquiryForm context={`exam-${exam?.id}`} />
   </div>
 )
 
 export default function ExamDetailClient({ exam, allExams }: Props) {
+  const title = exam.page_name || exam.name || ''
   const formattedHtml = formatDescription(exam.description || '')
+  const tabContents = exam.exam_page_contents || exam.contents || []
+  const examImg = exam.imgpath || exam.banner_path
+  const imgSrc = examImg?.startsWith?.('http') ? examImg : storageUrl(examImg) || '/girl-banner.webp'
 
   return (
-    <div className="min-h-screen bg-white">
-      <Breadcrumb items={[
-        { label: 'Home', href: '/' },
-        { label: 'Resources', href: '/resources' },
-        { label: 'Exams', href: '/resources/exams' },
-        { label: exam.page_name }
-      ]} />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-          <main className="lg:w-2/3">
-            <div className="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-blue-50 p-6 sm:p-10 md:p-14 overflow-hidden">
-              <div className="inline-block px-4 py-1.5 bg-blue-600 text-white text-xs font-black rounded-full uppercase tracking-widest mb-6">
-                Official Exam Portal 2025
-              </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-blue-950 mb-8 leading-[1.15]">
-                {exam.page_name}
-              </h1>
+    <div className="min-h-screen bg-gray-50">
+      <Breadcrumb
+        items={[
+          { label: 'Home', href: '/' },
+          { label: 'Resources', href: '/resources' },
+          { label: 'Exams', href: '/resources/exams' },
+          { label: title },
+        ]}
+      />
 
-              {exam.imgpath && (
-                <div className="relative group mb-12 rounded-4xl overflow-hidden shadow-2xl border-4 border-white">
-                  <img
-                    src={storageUrl(exam.imgpath) || '/girl-banner.webp'}
-                    alt={exam.page_name}
-                    className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-900/40 to-transparent pointer-events-none" />
-                </div>
-              )}
+      <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8 md:py-12">
+        <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10">
+          <div className="lg:col-span-2 bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-lg">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3 sm:mb-4 md:mb-6 leading-tight">
+              {title} - Exam Details
+            </h1>
 
-              {exam.headline && (
-                <div className="bg-blue-50/50 border-l-8 border-blue-600 rounded-2xl p-8 mb-12 italic">
-                  <p className="text-blue-900 text-lg sm:text-xl font-bold leading-relaxed">
-                    "{exam.headline}"
-                  </p>
-                </div>
-              )}
+            {examImg && (
+              <img
+                src={imgSrc}
+                alt={title}
+                className="w-full max-h-48 sm:max-h-64 md:max-h-96 object-cover rounded-lg shadow-md mb-4 sm:mb-6 md:mb-8"
+              />
+            )}
 
-              <div className="space-y-12">
-                {/* Main Body */}
-                <div
-                  className="content-rich text-gray-800"
-                  dangerouslySetInnerHTML={{ __html: formattedHtml }}
-                />
+            {exam.headline && (
+              <p className="text-gray-700 mb-4 sm:mb-6 md:mb-8 text-sm sm:text-base md:text-lg lg:text-xl font-medium leading-relaxed">
+                {exam.headline}
+              </p>
+            )}
 
-                {/* Tabs / Sections */}
-                {exam.exam_page_contents && exam.exam_page_contents.length > 0 && (
-                  <div className="space-y-10 pt-10 border-t border-blue-50">
-                    {exam.exam_page_contents.map((content: any, idx: number) => (
-                      <div key={idx} className="group">
-                        <h2 className="text-2xl md:text-3xl font-black text-blue-900 mb-6 flex items-baseline gap-4">
-                          <span className="text-blue-200 text-5xl font-black leading-none opacity-50 group-hover:opacity-100 transition-opacity">0{idx + 1}</span>
-                          <span className="border-b-4 border-blue-600/20 group-hover:border-blue-600 transition-all">{content.tab_title}</span>
-                        </h2>
-                        <div 
-                          className="prose prose-lg max-w-none text-gray-700 font-medium leading-[1.8]"
-                          dangerouslySetInnerHTML={{ __html: content.tab_content }}
-                        />
-                      </div>
-                    ))}
+            <div className="text-sm sm:text-base text-gray-800 prose-sm sm:prose" dangerouslySetInnerHTML={{ __html: formattedHtml }} />
+
+            {tabContents.length > 0 && (
+              <div className="mt-6 sm:mt-8 space-y-6">
+                {tabContents.map((content: any, idx: number) => (
+                  <div key={idx} className="border border-gray-100 rounded-lg p-4 sm:p-6 bg-white">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-3">{content.tab_title || content.tab}</h2>
+                    <div className="text-sm sm:text-base text-gray-800" dangerouslySetInnerHTML={{ __html: content.tab_content || content.description || '' }} />
                   </div>
-                )}
+                ))}
               </div>
+            )}
 
-              <div className="mt-16 flex flex-wrap gap-4 pt-10 border-t border-blue-50">
-                <Link
-                  href="/resources/exams"
-                  className="inline-flex items-center px-10 py-5 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition duration-300 shadow-xl shadow-blue-200 hover:-translate-y-1 active:translate-y-0"
-                >
-                  <FaArrowRight className="rotate-180 mr-3" size={18} /> BACK TO EXAMS
-                </Link>
-                <Link
-                  href="/contact-us"
-                  className="inline-flex items-center px-10 py-5 bg-white text-blue-900 border-4 border-blue-900 font-black rounded-2xl hover:bg-blue-50 transition duration-300 hover:-translate-y-1 active:translate-y-0"
-                >
-                  GET FREE COUNSELLING <FaArrowRight className="ml-3" size={18} />
-                </Link>
-              </div>
-            </div>
-          </main>
+            <Link
+              href="/resources/exams"
+              className="inline-flex items-center mt-6 sm:mt-8 md:mt-10 px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white text-sm sm:text-base font-semibold rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out shadow-md hover:shadow-lg"
+            >
+              <FaArrowRight className="rotate-180 mr-2" size={14} /> Back to Exams
+            </Link>
+          </div>
 
-          <aside className="lg:w-1/3">
             <Sidebar exam={exam} allExams={allExams} />
-          </aside>
+          </div>
+
+          <div className="space-y-12">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <TrendingCourses variant="grid" />
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden py-10">
+              <FeaturedUniversities variant="grid" />
+            </div>
+          </div>
         </div>
       </div>
-
-      <div className="bg-gray-50/50 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-24">
-          <TrendingCourses variant="grid" />
-          <FeaturedUniversities variant="grid" />
-        </div>
-      </div>
-
-      <style jsx global>{`
-        .content-rich p { margin-bottom: 1.5rem; line-height: 1.8; color: #374151; font-weight: 500; font-size: 1.125rem; }
-        .content-rich h2 { font-size: 1.875rem; font-weight: 800; color: #1e3a8a; margin-top: 2.5rem; margin-bottom: 1.25rem; }
-        .content-rich h3 { font-size: 1.5rem; font-weight: 700; color: #1e40af; margin-top: 2rem; margin-bottom: 1rem; }
-        .content-rich ul, .content-rich ol { margin-bottom: 2rem; }
-        .content-rich li { margin-bottom: 0.75rem; color: #4b5563; }
-      `}</style>
     </div>
   )
 }

@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { MapPin, GraduationCap, ArrowRight, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { storageUrl } from '@/lib/constants'
+import { ADMIN_URL } from '@/lib/constants'
 
 interface University {
   id: number
@@ -21,10 +20,27 @@ interface FeaturedUniversitiesProps {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
+
+function getImageUrl(path?: string | null) {
+  if (!path) return null
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    // Fix malformed legacy URLs like https://admin.educationmalaysia.inuploads/...
+    return path.replace('educationmalaysia.inuploads/', 'educationmalaysia.in/uploads/')
+  }
+
+  const base = (ADMIN_URL || '').replace(/\/$/, '')
+  const clean = String(path)
+    .replace(/^\/+/, '')
+    .replace(/^public\//, '')
+    .replace(/^storage\//, '')
+  const storageBase = `${base}/storage`
+  return `${storageBase}/${clean}`
+}
+
 const FALLBACK_UNIVERSITIES: University[] = [
   { id: 1, name: 'Universiti Malaya', uname: 'universiti-malaya', city: 'Kuala Lumpur', logo_path: '' },
   { id: 2, name: 'Monash University Malaysia', uname: 'monash-university-malaysia', city: 'Selangor', logo_path: '' },
-  { id: 3, name: 'Taylor’s University', uname: 'taylors-university', city: 'Subang Jaya', logo_path: '' },
+  { id: 3, name: "Taylor's University", uname: 'taylors-university', city: 'Subang Jaya', logo_path: '' },
   { id: 4, name: 'UCSI University', uname: 'ucsi-university', city: 'Kuala Lumpur', logo_path: '' },
   { id: 5, name: 'INTI International University', uname: 'inti-international-university', city: 'Nilai', logo_path: '' },
 ]
@@ -38,7 +54,6 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
       try {
         const parseList = (json: any) => json?.data?.universities || json?.universities || []
 
-        // Prefer local route so university detail sidebar always works.
         const query = excludeSlug ? `?exclude=${encodeURIComponent(excludeSlug)}` : ''
         const localRes = await fetch(`/api/featured-universities${query}`, { cache: 'no-store' })
         const localJson = await localRes.json().catch(() => ({}))
@@ -53,17 +68,18 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         }
 
         const filtered = (Array.isArray(list) ? list : []).filter((u: University) => u?.uname && u.uname !== excludeSlug)
-        const fallbackFiltered = FALLBACK_UNIVERSITIES.filter(u => u.uname !== excludeSlug)
+        const fallbackFiltered = FALLBACK_UNIVERSITIES.filter((u) => u.uname !== excludeSlug)
         const safeList = filtered.length > 0 ? filtered : fallbackFiltered
         setUniversities(variant === 'sidebar' ? safeList.slice(0, 5) : safeList)
       } catch (error) {
         console.error('Error fetching featured universities:', error)
-        const fallbackFiltered = FALLBACK_UNIVERSITIES.filter(u => u.uname !== excludeSlug)
+        const fallbackFiltered = FALLBACK_UNIVERSITIES.filter((u) => u.uname !== excludeSlug)
         setUniversities(variant === 'sidebar' ? fallbackFiltered.slice(0, 5) : fallbackFiltered)
       } finally {
         setLoading(false)
       }
     }
+
     fetchUnis()
   }, [variant, excludeSlug])
 
@@ -89,6 +105,7 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         </div>
       )
     }
+
     return (
       <div className="bg-white px-4 md:px-10 lg:px-24 py-16 flex justify-center">
         <div className="relative w-16 h-16">
@@ -106,29 +123,19 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mt-8 overflow-hidden">
         <div className="flex items-center gap-2 mb-6">
           <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-            Featured Universities
-          </h2>
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Featured Universities</h2>
         </div>
 
         <div className="space-y-4">
           {universities.map((uni) => {
-            const logo = uni.logo_path || uni.logo
-            const img = logo ? storageUrl(logo) : null
+            const img = getImageUrl(uni.logo_path || uni.logo)
             return (
               <Link key={uni.id} href={`/university/${uni.uname}`} className="block group">
                 <div className="p-4 rounded-xl border border-gray-50 bg-gray-50 group-hover:bg-white group-hover:border-blue-200 group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-300">
                   <div className="flex gap-4 items-center">
-                    <div className="w-16 h-16 shrink-0 rounded-xl border border-white p-2.5 flex items-center justify-center bg-white shadow-xs group-hover:border-blue-50 transition-colors overflow-hidden relative">
+                    <div className="w-16 h-16 shrink-0 rounded-xl border border-white p-2.5 flex items-center justify-center bg-white shadow-xs group-hover:border-blue-50 transition-colors overflow-hidden">
                       {img ? (
-                        <Image
-                          src={img}
-                          alt={uni.name}
-                          fill
-                          className="object-contain p-2.5"
-                          loading="lazy"
-                          sizes="64px"
-                        />
+                        <img src={img} alt={uni.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
                       ) : (
                         <GraduationCap className="text-gray-300 w-6 h-6" />
                       )}
@@ -164,12 +171,10 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
   }
 
   return (
-    <section className="bg-white px-4 md:px-10 lg:px-24">
+    <section className="bg-white px-4 md:px-10 lg:px-24 py-6 md:py-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            Featured Universities
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Featured Universities</h2>
           <div className="w-20 h-1.5 bg-blue-600 mx-auto rounded-full mb-6" />
           <p className="text-gray-600 max-w-2xl mx-auto text-base">
             Explore world-class educational institutions in Malaysia with proven excellence in global rankings and student satisfaction.
@@ -178,23 +183,15 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {universities.map((uni) => {
-            const logo = uni.logo_path || uni.logo
-            const img = logo ? storageUrl(logo) : null
+            const img = getImageUrl(uni.logo_path || uni.logo)
             return (
               <div
                 key={uni.id}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 p-6 flex flex-col items-center text-center group"
               >
-                <div className="w-24 h-24 bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-center mb-6 shadow-xs group-hover:border-blue-100 transition-colors relative overflow-hidden">
+                <div className="w-24 h-24 bg-white border border-gray-100 rounded-xl p-3 flex items-center justify-center mb-6 shadow-xs group-hover:border-blue-100 transition-colors overflow-hidden">
                   {img ? (
-                    <Image
-                      src={img}
-                      alt={uni.name}
-                      fill
-                      className="object-contain p-3"
-                      loading="lazy"
-                      sizes="(max-width: 640px) 96px, 96px"
-                    />
+                    <img src={img} alt={uni.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
                   ) : (
                     <GraduationCap className="text-gray-300 w-12 h-12" />
                   )}
