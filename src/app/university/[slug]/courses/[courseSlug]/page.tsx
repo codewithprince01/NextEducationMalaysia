@@ -36,7 +36,7 @@ export default async function CourseDetailPage({ params }: Props) {
   }
 
   // Case 2: Course Detail
-  const programData = await getProgramBySlug(courseSlug)
+  const programData = await getProgramBySlug(courseSlug, slug)
   if (!programData) notFound()
 
   const program = serializeBigInt(programData) as any

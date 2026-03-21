@@ -154,7 +154,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
                     {[
                       { icon: Clock, label: 'Duration', value: courseDetails.duration },
                       { icon: Award, label: 'Exam Accepted', value: courseDetails.exam_accepted },
-                      { icon: DollarSign, label: 'Tuition Fees', value: courseDetails.tuition_fee },
+                      { icon: DollarSign, label: 'Tuition Fees', value: courseDetails.tuition_fee || courseDetails.tution_fee },
                       { icon: Award, label: 'TOEFL', value: 'N/A' },
                     ].map(({ icon: Icon, label, value }) => (
                       <div key={label} className="flex items-center space-x-3">
@@ -222,7 +222,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
                         onClick={() => toggleSection(section.id)}
                         className="w-full flex justify-between items-center p-4 text-left hover:bg-gray-100 transition-colors cursor-pointer"
                       >
-                        <h2 className="text-lg font-medium text-blue-600">{section.tab_title}</h2>
+                        <h2 className="text-lg font-medium text-blue-600">{section.tab_title || section.tab || 'Details'}</h2>
                         <div className="text-blue-600">
                           {expandedSections[section.id] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                         </div>

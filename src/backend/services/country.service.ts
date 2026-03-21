@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db-fresh';
 
 export type CountryFilter = {
   search?: string;
@@ -27,23 +27,26 @@ export class CountryService {
    */
   async getCountries(filters: CountryFilter = {}) {
     const { search, orderBy = 'name', orderIn = 'asc', limit } = filters;
-
-    const where: any = {};
-    if (search) {
-      where.name = { contains: search };
-    }
-
-    // Prepare valid sort field
     const validSortFields = ['id', 'name', 'phonecode'];
     const sortField = validSortFields.includes(orderBy) ? orderBy : 'name';
+    const sortDirection = orderIn === 'desc' ? 'DESC' : 'ASC';
 
-    const countries = await prisma.countries.findMany({
-      where,
-      orderBy: { [sortField]: orderIn },
-      take: limit ? Number(limit) : undefined
-    });
+    const whereSql = search ? 'WHERE name LIKE ?' : '';
+    const limitSql = limit ? `LIMIT ${Number(limit)}` : '';
+    const args: any[] = [];
+    if (search) args.push(`%${search}%`);
 
-    return countries;
+    const countries = await prisma.$queryRawUnsafe(
+      `
+      SELECT id, name, phonecode
+      FROM countries
+      ${whereSql}
+      ORDER BY ${sortField} ${sortDirection}
+      ${limitSql}
+      `,
+      ...args
+    );
+    return countries as any[];
   }
 
   /**
@@ -51,29 +54,28 @@ export class CountryService {
    */
   async getPhoneCodes(filters: CountryFilter = {}) {
     const { search, orderBy = 'phonecode', orderIn = 'asc', limit } = filters;
-
-    const where: any = {
-      phonecode: { not: 0 }
-    };
-    if (search) {
-      where.name = { contains: search };
-    }
-
     const validSortFields = ['id', 'name', 'phonecode'];
     const sortField = validSortFields.includes(orderBy) ? orderBy : 'phonecode';
+    const sortDirection = orderIn === 'desc' ? 'DESC' : 'ASC';
 
-    const countries = await prisma.countries.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        phonecode: true
-      },
-      orderBy: { [sortField]: orderIn },
-      take: limit ? Number(limit) : undefined
-    });
+    const whereSql = search
+      ? 'WHERE phonecode IS NOT NULL AND phonecode <> 0 AND name LIKE ?'
+      : 'WHERE phonecode IS NOT NULL AND phonecode <> 0';
+    const limitSql = limit ? `LIMIT ${Number(limit)}` : '';
+    const args: any[] = [];
+    if (search) args.push(`%${search}%`);
 
-    return countries;
+    const countries = await prisma.$queryRawUnsafe(
+      `
+      SELECT id, name, phonecode
+      FROM countries
+      ${whereSql}
+      ORDER BY ${sortField} ${sortDirection}
+      ${limitSql}
+      `,
+      ...args
+    );
+    return countries as any[];
   }
 }
 

@@ -20,8 +20,14 @@ export class DropdownService {
    * Get distinct course levels.
    */
   async getLevels() {
-    // Falls back to raw query because 'short_name' or 'name' column mismatch in Prisma client
-    const levels = await prisma.$queryRawUnsafe('SELECT id, level, slug, short_name FROM levels GROUP BY level ORDER BY level ASC');
+    // Use deterministic aggregate to avoid ONLY_FULL_GROUP_BY issues
+    const levels = await prisma.$queryRawUnsafe(`
+      SELECT MIN(id) AS id, level, MIN(slug) AS slug, MIN(short_name) AS short_name
+      FROM levels
+      WHERE status = 1 OR status IS NULL
+      GROUP BY level
+      ORDER BY level ASC
+    `);
     return serializeBigInt(levels);
   }
 
@@ -29,7 +35,18 @@ export class DropdownService {
    * Get distinct course categories.
    */
   async getCourseCategories() {
-    const categories = await prisma.$queryRawUnsafe('SELECT id, name, slug, icon_class, thumbnail_path FROM course_categories GROUP BY name ORDER BY name ASC');
+    const categories = await prisma.$queryRawUnsafe(`
+      SELECT
+        MIN(id) AS id,
+        name,
+        MIN(slug) AS slug,
+        MIN(icon_class) AS icon_class,
+        MIN(thumbnail_path) AS thumbnail_path
+      FROM course_categories
+      WHERE status = 1 OR status IS NULL
+      GROUP BY name
+      ORDER BY name ASC
+    `);
     return serializeBigInt(categories);
   }
 

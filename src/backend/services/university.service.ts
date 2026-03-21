@@ -200,11 +200,13 @@ export class UniversityService {
     if (!res.length) return null;
     const university = res[0];
 
-    const [overviews, universitySpecsRaw, allSpecsRaw, specWithContentsRaw] = await Promise.all([
-      prisma.universityOverview.findMany({
-        where: { university_id: university.id } as any,
-        orderBy: { position: 'asc' },
-      }),
+    const [overviewsRaw, universitySpecsRaw, allSpecsRaw, specWithContentsRaw] = await Promise.all([
+      prisma.$queryRawUnsafe(`
+        SELECT id, title, description, position
+        FROM university_overviews
+        WHERE university_id = ?
+        ORDER BY position ASC, id ASC
+      `, university.id),
       prisma.$queryRawUnsafe(`
         SELECT DISTINCT cs.id, cs.name, cs.slug, up.specialization_id, up.course_category_id
         FROM course_specializations cs
@@ -219,13 +221,19 @@ export class UniversityService {
         WHERE up.status = 1
         LIMIT 15
       `),
-      prisma.courseSpecialization.findMany({
-        where: { contents: { some: {} } },
-        select: { id: true, name: true, slug: true },
-        take: 15,
-      }),
+      prisma.$queryRawUnsafe(`
+        SELECT DISTINCT cs.id, cs.name, cs.slug
+        FROM course_specializations cs
+        JOIN specialization_contents sc ON sc.specialization_id = cs.id
+        WHERE (cs.status = 1 OR cs.status IS NULL)
+          AND (sc.status = 1 OR sc.status IS NULL)
+          AND sc.website = 'MYS'
+        ORDER BY cs.name ASC
+        LIMIT 15
+      `),
     ]);
 
+    const overviews = Array.isArray(overviewsRaw) ? overviewsRaw as any[] : [];
     let universitySpecs: any[] = Array.isArray(universitySpecsRaw) ? universitySpecsRaw as any[] : [];
     let allSpecs: any[] = Array.isArray(allSpecsRaw) ? allSpecsRaw as any[] : [];
     let specWithContents: any[] = Array.isArray(specWithContentsRaw) ? specWithContentsRaw as any[] : [];
