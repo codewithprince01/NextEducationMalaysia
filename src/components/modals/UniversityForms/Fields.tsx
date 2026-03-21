@@ -17,6 +17,13 @@ const accent = {
     inputBorder: 'border-green-200 text-green-900',
     btnText: 'text-green-500 hover:text-green-700 border-green-100',
   },
+  slate: {
+    ring: 'focus:ring-slate-500/20 focus:border-slate-500',
+    captchaBox: 'border-slate-100 bg-slate-50/80',
+    captchaText: 'text-slate-900',
+    inputBorder: 'border-slate-200 text-slate-900',
+    btnText: 'text-slate-500 hover:text-slate-700 border-slate-100',
+  },
 } as const
 
 type AccentColor = keyof typeof accent
@@ -29,7 +36,6 @@ type CommonFieldsProps = {
   countriesData: any[]
   phonecode: any[]
   levels: any[]
-  courseCategories: any[]
   accentColor?: AccentColor
 }
 
@@ -41,7 +47,6 @@ export function CommonFields({
   countriesData,
   phonecode,
   levels,
-  courseCategories,
   accentColor = 'blue',
 }: CommonFieldsProps) {
   const a = accent[accentColor]
@@ -53,32 +58,11 @@ export function CommonFields({
       <div className="grid md:grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className={label}>Full Name</label>
-          <input type="text" name="firstName" required placeholder="Enter your full name" className={cls} />
+          <input type="text" name="name" required placeholder="Full Name*" className={cls} />
         </div>
         <div className="space-y-1">
           <label className={label}>Email Address</label>
-          <input type="email" name="email" required placeholder="Enter your email" className={cls} />
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className={label}>Nationality</label>
-          <select name="nationality" required value={nationality} onChange={onNationalityChange} className={`${cls} appearance-none`}>
-            <option value="">Select Nationality</option>
-            {(countriesData || []).map((c: any, i: number) => (
-              <option key={i} value={c.name}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1">
-          <label className={label}>Interested Course</label>
-          <select name="course" required className={`${cls} appearance-none`}>
-            <option value="">Select a course</option>
-            {(courseCategories || []).map((c: any, i: number) => (
-              <option key={i} value={c.name}>{c.name}</option>
-            ))}
-          </select>
+          <input type="email" name="email" required placeholder="Email*" className={cls} />
         </div>
       </div>
 
@@ -86,7 +70,7 @@ export function CommonFields({
         <label className={label}>Phone Number</label>
         <div className="flex gap-2">
           <select
-            name="countryCode"
+            name="c_code"
             required
             value={countryCode}
             onChange={onCountryCodeChange}
@@ -97,20 +81,55 @@ export function CommonFields({
               <option key={i} value={String(c.phonecode || c.phone_code || '')}>+{String(c.phonecode || c.phone_code || '')}</option>
             ))}
           </select>
-          <input name="phone" required type="tel" placeholder="Enter your mobile number" className={`flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-sm text-gray-800 placeholder:text-gray-400 font-medium`} />
+          <input name="mobile" required type="tel" placeholder="Mobile/WhatsApp No*" className={`flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-sm text-gray-800 placeholder:text-gray-400 font-medium`} />
         </div>
       </div>
 
-      <div className="space-y-1">
-        <label className={label}>Highest Qualification</label>
-        <select name="level" required className={`${cls} appearance-none`}>
-          <option value="">Select Qualification</option>
-          {(levels || []).map((l: any, i: number) => (
-            <option key={i} value={l.level || l.name}>{l.level || l.name}</option>
-          ))}
-        </select>
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className={label}>Nationality</label>
+          <select name="nationality" required value={nationality} onChange={onNationalityChange} className={`${cls} appearance-none`}>
+            <option value="">Nationality*</option>
+            {(countriesData || []).map((c: any, i: number) => (
+              <option key={i} value={c.name}>{c.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="space-y-1">
+          <label className={label}>Highest Qualification</label>
+          <select name="highest_qualification" required className={`${cls} appearance-none`}>
+            <option value="">Highest Qualification*</option>
+            {(levels || []).map((l: any, i: number) => (
+              <option key={i} value={l.level || l.name}>{l.level || l.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
     </>
+  )
+}
+
+type CourseCategoryFieldProps = {
+  courseCategories: any[]
+  accentColor?: AccentColor
+  className?: string
+}
+
+export function CourseCategoryField({ courseCategories, accentColor = 'blue', className = '' }: CourseCategoryFieldProps) {
+  const a = accent[accentColor]
+  const cls = `w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-sm text-gray-800 font-medium appearance-none`
+  const label = 'text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-1'
+
+  return (
+    <div className={`space-y-1 ${className}`}>
+      <label className={label}>Interested Course Category</label>
+      <select name="interested_course_category" required className={cls}>
+        <option value="">Interested Course Category*</option>
+        {(courseCategories || []).map((c: any, i: number) => (
+          <option key={i} value={c.name}>{c.name}</option>
+        ))}
+      </select>
+    </div>
   )
 }
 

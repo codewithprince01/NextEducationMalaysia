@@ -13,6 +13,10 @@ import UniversityActionButtons from './UniversityActionButtons'
 import UniversityRankings from './UniversityRankings'
 import Breadcrumb, { BreadcrumbItem } from '@/components/Breadcrumb'
 import PopupForm from '@/components/modals/PopupForm'
+import { BrochureForm } from '@/components/modals/UniversityForms/BrochureForm'
+import { FeeStructureForm } from '@/components/modals/UniversityForms/FeeStructureForm'
+import { CounsellingForm } from '@/components/modals/UniversityForms/CounsellingForm'
+import { ReviewForm } from '@/components/modals/UniversityForms/ReviewForm'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
 const DEFAULT_PHONE_1 = '+60 1121376171'
@@ -62,7 +66,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const pathname = usePathname()
   const [showGallery, setShowGallery] = useState(false)
   const [isPopupOpen, setIsPopupOpen] = useState(false)
-  const [popupType, setPopupType] = useState<'brochure' | 'fee' | 'counselling' | 'apply'>('brochure')
+  const [popupType, setPopupType] = useState<'brochure' | 'fee' | 'counselling' | 'apply' | 'review'>('brochure')
 
   // â”€â”€ Breadcrumb Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const breadcrumbItems = useMemo<BreadcrumbItem[]>(() => {
@@ -125,10 +129,12 @@ export default function UniversityHeroClient({ university, photos }: { universit
     }
   }, [university])
 
-  const openPopup = useCallback((type: 'brochure' | 'fee' | 'counselling' | 'apply') => {
+  const openPopup = useCallback((type: 'brochure' | 'fee' | 'counselling' | 'apply' | 'review') => {
     setPopupType(type)
     setIsPopupOpen(true)
   }, [])
+
+  const popupLogo = logoSrc || bannerSrc || null
 
   return (
     <div className="bg-gray-50 sm:bg-white overflow-x-hidden">
@@ -337,6 +343,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onBrochure={() => openPopup('brochure')}
                onFeeStructure={() => openPopup('fee')}
                onCounselling={() => openPopup('counselling')}
+               onReview={() => openPopup('review')}
              />
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
              <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
@@ -436,16 +443,49 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onBrochure={() => openPopup('brochure')}
                onFeeStructure={() => openPopup('fee')}
                onCounselling={() => openPopup('counselling')}
+               onReview={() => openPopup('review')}
              />
           </div>
         </div>
       </div>
 
+      <BrochureForm
+        universityId={university?.id}
+        universityName={university?.name}
+        universityLogo={popupLogo}
+        isOpen={isPopupOpen && popupType === 'brochure'}
+        onClose={() => setIsPopupOpen(false)}
+      />
+
+      <FeeStructureForm
+        universityId={university?.id}
+        universityName={university?.name}
+        universityLogo={popupLogo}
+        isOpen={isPopupOpen && popupType === 'fee'}
+        onClose={() => setIsPopupOpen(false)}
+      />
+
+      <CounsellingForm
+        universityId={university?.id}
+        universityName={university?.name}
+        universityLogo={popupLogo}
+        isOpen={isPopupOpen && popupType === 'counselling'}
+        onClose={() => setIsPopupOpen(false)}
+      />
+
+      <ReviewForm
+        universityId={university?.id}
+        universityName={university?.name}
+        universityLogo={popupLogo}
+        isOpen={isPopupOpen && popupType === 'review'}
+        onClose={() => setIsPopupOpen(false)}
+      />
+
       <PopupForm
-        isOpen={isPopupOpen}
+        isOpen={isPopupOpen && popupType === 'apply'}
         onClose={() => setIsPopupOpen(false)}
         universityData={university}
-        formType={popupType}
+        formType="apply"
       />
     </div>
   )

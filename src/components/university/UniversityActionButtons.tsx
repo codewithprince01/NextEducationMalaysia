@@ -32,7 +32,7 @@ export default function UniversityActionButtons({
         onClick={onBrochure}
         className="w-full bg-linear-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all flex items-center justify-center gap-2 text-sm font-bold shadow-lg hover:shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
       >
-        <Download size={18} />
+        <Download size={20} />
         Download Brochure
       </button>
 
@@ -40,7 +40,7 @@ export default function UniversityActionButtons({
         onClick={onFeeStructure}
         className="w-full bg-white border-2 border-blue-600/20 text-blue-700 px-5 py-3 rounded-xl hover:bg-blue-50 transition-all flex items-center justify-center gap-2 text-sm font-bold border-dashed hover:border-solid hover:border-blue-600 cursor-pointer"
       >
-        <FileText size={18} />
+        <FileText size={20} />
         Download Fee Structure
       </button>
 

@@ -17,30 +17,55 @@ interface University {
 
 interface FeaturedUniversitiesProps {
   variant?: 'grid' | 'sidebar'
+  excludeSlug?: string
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const FALLBACK_UNIVERSITIES: University[] = [
+  { id: 1, name: 'Universiti Malaya', uname: 'universiti-malaya', city: 'Kuala Lumpur', logo_path: '' },
+  { id: 2, name: 'Monash University Malaysia', uname: 'monash-university-malaysia', city: 'Selangor', logo_path: '' },
+  { id: 3, name: 'Taylor’s University', uname: 'taylors-university', city: 'Subang Jaya', logo_path: '' },
+  { id: 4, name: 'UCSI University', uname: 'ucsi-university', city: 'Kuala Lumpur', logo_path: '' },
+  { id: 5, name: 'INTI International University', uname: 'inti-international-university', city: 'Nilai', logo_path: '' },
+]
 
-export default function FeaturedUniversities({ variant = 'grid' }: FeaturedUniversitiesProps) {
+export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: FeaturedUniversitiesProps) {
   const [universities, setUniversities] = useState<University[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchUnis = async () => {
       try {
-        const res = await fetch(`${API_BASE}/featured-universities`)
-        if (!res.ok) throw new Error('Failed to fetch')
-        const json = await res.json()
-        const list = json.data?.universities || json.universities || []
-        setUniversities(variant === 'sidebar' ? list.slice(0, 5) : list)
+        const parseList = (json: any) => json?.data?.universities || json?.universities || []
+
+        // Prefer local route so university detail sidebar always works.
+        const query = excludeSlug ? `?exclude=${encodeURIComponent(excludeSlug)}` : ''
+        const localRes = await fetch(`/api/featured-universities${query}`, { cache: 'no-store' })
+        const localJson = await localRes.json().catch(() => ({}))
+        let list = parseList(localJson)
+
+        if ((!Array.isArray(list) || list.length === 0) && API_BASE) {
+          const remoteRes = await fetch(`${API_BASE}/featured-universities${query}`)
+          if (remoteRes.ok) {
+            const remoteJson = await remoteRes.json().catch(() => ({}))
+            list = parseList(remoteJson)
+          }
+        }
+
+        const filtered = (Array.isArray(list) ? list : []).filter((u: University) => u?.uname && u.uname !== excludeSlug)
+        const fallbackFiltered = FALLBACK_UNIVERSITIES.filter(u => u.uname !== excludeSlug)
+        const safeList = filtered.length > 0 ? filtered : fallbackFiltered
+        setUniversities(variant === 'sidebar' ? safeList.slice(0, 5) : safeList)
       } catch (error) {
         console.error('Error fetching featured universities:', error)
+        const fallbackFiltered = FALLBACK_UNIVERSITIES.filter(u => u.uname !== excludeSlug)
+        setUniversities(variant === 'sidebar' ? fallbackFiltered.slice(0, 5) : fallbackFiltered)
       } finally {
         setLoading(false)
       }
     }
     fetchUnis()
-  }, [variant])
+  }, [variant, excludeSlug])
 
   if (loading) {
     if (variant === 'sidebar') {

@@ -200,18 +200,112 @@ export class UniversityService {
     if (!res.length) return null;
     const university = res[0];
 
-    const [overviews, universitySpecs, allSpecs, specWithContents] = await Promise.all([
+    const [overviews, universitySpecsRaw, allSpecsRaw, specWithContentsRaw] = await Promise.all([
       prisma.universityOverview.findMany({
         where: { university_id: university.id } as any,
         orderBy: { position: 'asc' },
       }),
-      prisma.$queryRawUnsafe(`SELECT DISTINCT cs.* FROM course_specializations cs JOIN university_programs up ON up.specialization_id = cs.id WHERE up.university_id = ? LIMIT 15`, university.id),
-      prisma.$queryRawUnsafe(`SELECT DISTINCT cs.* FROM course_specializations cs JOIN university_programs up ON up.specialization_id = cs.id WHERE up.status = 1 LIMIT 15`),
+      prisma.$queryRawUnsafe(`
+        SELECT DISTINCT cs.id, cs.name, cs.slug, up.specialization_id, up.course_category_id
+        FROM course_specializations cs
+        JOIN university_programs up ON up.specialization_id = cs.id
+        WHERE up.university_id = ?
+        LIMIT 15
+      `, university.id),
+      prisma.$queryRawUnsafe(`
+        SELECT DISTINCT cs.id, cs.name, cs.slug, up.specialization_id, up.course_category_id
+        FROM course_specializations cs
+        JOIN university_programs up ON up.specialization_id = cs.id
+        WHERE up.status = 1
+        LIMIT 15
+      `),
       prisma.courseSpecialization.findMany({
         where: { contents: { some: {} } },
+        select: { id: true, name: true, slug: true },
         take: 15,
       }),
     ]);
+
+    let universitySpecs: any[] = Array.isArray(universitySpecsRaw) ? universitySpecsRaw as any[] : [];
+    let allSpecs: any[] = Array.isArray(allSpecsRaw) ? allSpecsRaw as any[] : [];
+    let specWithContents: any[] = Array.isArray(specWithContentsRaw) ? specWithContentsRaw as any[] : [];
+
+    // Fallback: some DB rows have missing specialization joins; derive streams from programs directly.
+    if (universitySpecs.length === 0) {
+      const universityProgramFallback: any = await prisma.$queryRawUnsafe(`
+        SELECT DISTINCT
+          COALESCE(cs.id, up.specialization_id, 0) AS id,
+          COALESCE(NULLIF(cs.name, ''), NULLIF(up.course_name, ''), 'General') AS name,
+          cs.slug,
+          up.specialization_id,
+          up.course_category_id
+        FROM university_programs up
+        LEFT JOIN course_specializations cs ON cs.id = up.specialization_id
+        WHERE up.university_id = ?
+        ORDER BY up.id DESC
+        LIMIT 15
+      `, university.id);
+      universitySpecs = Array.isArray(universityProgramFallback) ? universityProgramFallback : [];
+    }
+    if (universitySpecs.length === 0) {
+      const universityCourseNameFallback: any = await prisma.$queryRawUnsafe(`
+        SELECT DISTINCT
+          up.id,
+          TRIM(up.course_name) AS name,
+          NULL AS slug,
+          up.specialization_id,
+          up.course_category_id
+        FROM university_programs up
+        WHERE up.university_id = ?
+          AND up.course_name IS NOT NULL
+          AND TRIM(up.course_name) <> ''
+        ORDER BY up.id DESC
+        LIMIT 15
+      `, university.id);
+      universitySpecs = Array.isArray(universityCourseNameFallback) ? universityCourseNameFallback : [];
+    }
+
+    if (allSpecs.length === 0) {
+      const allProgramFallback: any = await prisma.$queryRawUnsafe(`
+        SELECT DISTINCT
+          COALESCE(cs.id, up.specialization_id, 0) AS id,
+          COALESCE(NULLIF(cs.name, ''), NULLIF(up.course_name, ''), 'General') AS name,
+          cs.slug,
+          up.specialization_id,
+          up.course_category_id
+        FROM university_programs up
+        LEFT JOIN course_specializations cs ON cs.id = up.specialization_id
+        WHERE up.status = 1
+        ORDER BY up.id DESC
+        LIMIT 15
+      `);
+      allSpecs = Array.isArray(allProgramFallback) ? allProgramFallback : [];
+    }
+    if (allSpecs.length === 0) {
+      const allCourseNameFallback: any = await prisma.$queryRawUnsafe(`
+        SELECT DISTINCT
+          up.id,
+          TRIM(up.course_name) AS name,
+          NULL AS slug,
+          up.specialization_id,
+          up.course_category_id
+        FROM university_programs up
+        WHERE up.status = 1
+          AND up.course_name IS NOT NULL
+          AND TRIM(up.course_name) <> ''
+        ORDER BY up.id DESC
+        LIMIT 15
+      `);
+      allSpecs = Array.isArray(allCourseNameFallback) ? allCourseNameFallback : [];
+    }
+
+    if (specWithContents.length === 0) {
+      specWithContents = allSpecs.slice(0, 15).map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        slug: s.slug || (typeof s.name === 'string' ? s.name.toLowerCase().trim().replace(/\s+/g, '-') : null),
+      }));
+    }
 
     const seo = await seoService.getStaticPageSeo('university-overview', {
       title: university.name || '',
@@ -221,7 +315,12 @@ export class UniversityService {
     });
 
     return {
-      data: serializeBigInt({ overviews, university_specializations_for_courses: universitySpecs, all_specializations_for_courses: allSpecs, specializations_with_contents: specWithContents }),
+      data: serializeBigInt({
+        overviews,
+        university_specializations_for_courses: universitySpecs,
+        all_specializations_for_courses: allSpecs,
+        specializations_with_contents: specWithContents
+      }),
       seo
     };
   }

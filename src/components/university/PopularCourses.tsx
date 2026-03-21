@@ -14,17 +14,110 @@ interface PopularCoursesProps {
 
 const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const hasCourseLists = (payload: any) => {
+      const university = payload?.university_specializations_for_courses;
+      const malaysia = payload?.all_specializations_for_courses;
+      const top = payload?.specializations_with_contents;
+      return (
+        (Array.isArray(university) && university.length > 0) ||
+        (Array.isArray(malaysia) && malaysia.length > 0) ||
+        (Array.isArray(top) && top.length > 0)
+      );
+    };
+
+    const buildFallbackFromUniversityCourses = (courses: any[]) => {
+      const items = Array.isArray(courses) ? courses : [];
+      const seen = new Set<string>();
+      const mapped = items
+        .map((course: any) => {
+          const name =
+            course?.course_name ||
+            course?.name ||
+            course?.courseSpecialization?.name ||
+            course?.spec_name ||
+            "";
+          const cleanedName = typeof name === "string" ? name.trim() : "";
+          if (!cleanedName) return null;
+          const key = cleanedName.toLowerCase();
+          if (seen.has(key)) return null;
+          seen.add(key);
+          return {
+            id: course?.specialization_id || course?.id || null,
+            name: cleanedName,
+            slug:
+              course?.courseSpecialization?.slug ||
+              course?.spec_slug ||
+              cleanedName.toLowerCase().replace(/\s+/g, "-"),
+            specialization_id: course?.specialization_id || course?.id || null,
+            course_category_id: course?.course_category_id || course?.courseCategory?.id || null,
+            category_slug: course?.courseCategory?.slug || course?.category_slug || null,
+            category: course?.courseCategory?.name || course?.category_name || null,
+          };
+        })
+        .filter(Boolean)
+        .slice(0, 15);
+
+      return {
+        university_specializations_for_courses: mapped,
+        all_specializations_for_courses: mapped,
+        specializations_with_contents: mapped,
+      };
+    };
+
+    const extractData = (payload: any) => {
+      if (!payload) return {};
+      if (payload?.data?.data && typeof payload.data.data === "object") return payload.data.data;
+      if (payload?.data && typeof payload.data === "object") return payload.data;
+      if (typeof payload === "object") return payload;
+      return {};
+    };
+
     const fetchPopularCourses = async () => {
       try {
         setLoading(true);
+        // Prefer local API to avoid remote schema mismatch and keep behavior consistent.
+        try {
+          const localRes: any = await axios.get(`/api/university/${slug}/popular-courses`, {
+            params: { _ts: Date.now() },
+          });
+          const localPayload = extractData(localRes);
+          if (localPayload && Object.keys(localPayload).length > 0 && hasCourseLists(localPayload)) {
+            setData(localPayload);
+            return;
+          }
+        } catch {
+          // Fallback to external API below
+        }
+
         const res: any = await axios.get(`${API_BASE}/university-overview/${slug}`);
-        setData(res.data?.data || res.data || {});
+        const payload = extractData(res);
+        if (hasCourseLists(payload)) {
+          setData(payload);
+          return;
+        }
+
+        const coursesRes: any = await axios.get(`/api/university/${slug}/courses`, {
+          params: { page: 1, limit: 50, _ts: Date.now() },
+        });
+        const coursesPayload = coursesRes?.data?.data || [];
+        const fallback = buildFallbackFromUniversityCourses(coursesPayload);
+        setData({ ...payload, ...fallback });
       } catch (err) {
         console.error("Failed to fetch popular courses:", err);
+        try {
+          const coursesRes: any = await axios.get(`/api/university/${slug}/courses`, {
+            params: { page: 1, limit: 50, _ts: Date.now() },
+          });
+          const coursesPayload = coursesRes?.data?.data || [];
+          const fallback = buildFallbackFromUniversityCourses(coursesPayload);
+          setData(fallback);
+        } catch {
+          setData({});
+        }
       } finally {
         setLoading(false);
       }
@@ -32,9 +125,9 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
     fetchPopularCourses();
   }, [slug]);
 
-  const universityCourses = data.university_specializations_for_courses || [];
-  const malaysiaCourses = data.all_specializations_for_courses || [];
-  const topCourses = data.specializations_with_contents || [];
+  const universityCourses = data?.university_specializations_for_courses || [];
+  const malaysiaCourses = data?.all_specializations_for_courses || [];
+  const topCourses = data?.specializations_with_contents || [];
 
   const sections = [
     {

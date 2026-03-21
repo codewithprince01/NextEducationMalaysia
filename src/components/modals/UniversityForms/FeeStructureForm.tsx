@@ -5,20 +5,34 @@ import axios from 'axios'
 import ModalWrapper from './ModalWrapper'
 import { useFormState } from './useFormState'
 import { useFetchFormData } from './useFetchFormData'
-import { CommonFields, CaptchaWidget } from './Fields'
+import { CommonFields, CourseCategoryField, CaptchaWidget } from './Fields'
 
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
+
+function normalizeLogoUrl(url?: string | null) {
+  if (!url) return null
+  const value = String(url).trim()
+  if (!value) return null
+  if (/^https?:\/\//i.test(value)) return value
+  const base = IMAGE_BASE.replace(/\/+$/, '')
+  const clean = value.replace(/^\/+/, '')
+  if (clean.startsWith('storage/')) return `${base}/${clean}`
+  if (clean.startsWith('uploads/')) return `${base}/${clean}`
+  return `${base}/storage/${clean}`
+}
 
 function withStorageFallback(url?: string | null) {
   if (!url) return null
-  if (!/^https?:\/\//i.test(url)) return url
+  if (!/^https?:\/\//i.test(url)) return normalizeLogoUrl(url)
   try {
     const u = new URL(url)
     const p = u.pathname.replace(/^\/+/, '')
     if (!p || p.startsWith('storage/')) return url
+    if (p.startsWith('uploads/')) return url
     return `${u.origin}/storage/${p}`
   } catch {
-    return url
+    return normalizeLogoUrl(url)
   }
 }
 
@@ -34,10 +48,10 @@ type Props = {
 export function FeeStructureForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
   const form = useFormState(isOpen)
   const { phonecode, levels, courseCategories, countriesData } = useFetchFormData()
-  const [logoSrc, setLogoSrc] = React.useState<string | null>(universityLogo || null)
+  const [logoSrc, setLogoSrc] = React.useState<string | null>(normalizeLogoUrl(universityLogo))
 
   React.useEffect(() => {
-    setLogoSrc(universityLogo || null)
+    setLogoSrc(normalizeLogoUrl(universityLogo))
   }, [universityLogo])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -49,13 +63,13 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
 
     try {
       await axios.post('/api/v1/inquiry/brochure-request', {
-        name: fd.get('firstName'),
+        name: fd.get('name'),
         email: fd.get('email'),
-        country_code: String(fd.get('countryCode') || '91').replace('+', ''),
-        mobile: fd.get('phone'),
+        country_code: String(fd.get('c_code') || '91').replace('+', ''),
+        mobile: fd.get('mobile'),
         nationality: fd.get('nationality'),
-        highest_qualification: fd.get('level'),
-        interested_course_category: fd.get('course'),
+        highest_qualification: fd.get('highest_qualification'),
+        interested_course_category: fd.get('interested_course_category'),
         university_id: universityId || null,
         requestfor: 'fee_structure',
         source_path: typeof window !== 'undefined' ? window.location.href : '',
@@ -107,11 +121,11 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
             countriesData={countriesData}
             phonecode={phonecode}
             levels={levels}
-            courseCategories={courseCategories}
             onNationalityChange={form.handleNationalityChange}
             onCountryCodeChange={form.handleCountryCodeChange}
             accentColor="blue"
           />
+          <CourseCategoryField courseCategories={courseCategories} accentColor="blue" />
           <CaptchaWidget
             captchaQuestion={form.captchaQuestion}
             captchaInput={form.captchaInput}

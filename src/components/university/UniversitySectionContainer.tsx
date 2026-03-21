@@ -11,7 +11,12 @@ type Props = {
 
 export default function UniversitySectionContainer({ children, slug, universityName, fullWidth = false }: Props) {
   if (fullWidth) {
-    return <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">{children}</div>
+    return (
+      <div className="space-y-8">
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">{children}</div>
+        <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
+      </div>
+    )
   }
 
   return (
@@ -23,7 +28,7 @@ export default function UniversitySectionContainer({ children, slug, universityN
       </div>
       <aside className="col-span-1 space-y-8">
         <SideInquiryForm type="university" context={{ slug, universityName }} />
-        <FeaturedUniversities variant="sidebar" />
+        <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
         <UniversityCoursesCard />
       </aside>
     </div>

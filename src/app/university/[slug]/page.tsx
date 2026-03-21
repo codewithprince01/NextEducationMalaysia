@@ -52,7 +52,7 @@ export default async function UniversityPage({ params }: Props) {
       </div>
       <aside className="col-span-1 space-y-8">
         <SideInquiryForm type="university" context={{ slug, universityName: university.name }} />
-        <FeaturedUniversities variant="sidebar" />
+        <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
         <UniversityCoursesCard />
       </aside>
     </div>

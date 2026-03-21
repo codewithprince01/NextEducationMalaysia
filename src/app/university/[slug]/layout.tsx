@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { getUniversityFull } from '@/lib/queries/universities'
 import UniversityHeroClient from '@/components/university/UniversityHeroClient'
 import UniversityTabsClient from '@/components/university/UniversityTabsClient'
+import UniversityScrollTop from '@/components/university/UniversityScrollTop'
 import { serializeBigInt } from '@/lib/utils'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import UniversityCoursesCard from '@/components/university/UniversityCoursesCard'
@@ -25,6 +26,7 @@ export default async function UniversityLayout({ children, params }: Props) {
 
   return (
     <div className="min-h-screen bg-white">
+      <UniversityScrollTop />
       {/* Shared Hero */}
       <UniversityHeroClient
         university={{ ...university, offeredCourses }}

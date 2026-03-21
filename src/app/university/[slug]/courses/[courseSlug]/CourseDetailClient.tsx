@@ -262,7 +262,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
             {/* Sidebar — 32% approx */}
             <div className="w-full lg:w-[32%] space-y-6 sticky top-24">
               <SideInquiryForm />
-              <FeaturedUniversities variant="sidebar" />
+              <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
               <UniversityCoursesCard />
             </div>
           </div>
