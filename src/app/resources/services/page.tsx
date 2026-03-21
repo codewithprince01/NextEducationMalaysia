@@ -1,117 +1,76 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Sparkles } from 'lucide-react'
-import Breadcrumb from '@/components/Breadcrumb'
 import { Metadata } from 'next'
 import { SITE_URL } from '@/lib/constants'
+import { getAllServices } from '@/lib/queries/resources'
 
-// Metadata should be in a separate layout or handled via a server component wrapper if possible,
-// but for now we follow the existing client component structure in this file.
-// Note: Metadata export in 'use client' files is ignored by Next.js.
-// We'll move it to a layout or page.tsx wrapper if needed, but since this file IS the page.tsx,
-// and it has 'use client', we should probably split it.
-// However, I will keep it as is for now and focus on UI fidelity.
+export const metadata: Metadata = {
+  title: 'Services for International Students | Education Malaysia',
+  description: 'Explore Education Malaysia services including Discover Malaysia, Admission Guidance, and Visa Guidance.',
+  alternates: { canonical: `${SITE_URL}/resources/services` },
+}
 
-const ServiceCardSkeleton = () => (
-  <div className="bg-gray-50 rounded-2xl shadow-md p-5 animate-pulse">
-    <div className="flex items-center justify-between mb-4">
-      <div className="w-12 h-12 rounded-full bg-gray-200"></div>
-      <div className="w-6 h-6 bg-gray-200 rounded"></div>
-    </div>
-    <div className="h-5 bg-gray-200 rounded-md w-3/4"></div>
-  </div>
-)
+const FALLBACK_SERVICES = [
+  { id: 1, page_name: 'Discover Malaysia', uri: 'discover-malaysia' },
+  { id: 2, page_name: 'Admission Guidance', uri: 'admission-guidance' },
+  { id: 3, page_name: 'Visa Guidance', uri: 'visa-guidance' },
+]
 
-export default function ServicesPage() {
-  const [services, setServices] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+function resolveServiceHref(item: any) {
+  const raw = String(item?.uri || item?.slug || '').trim()
+  if (!raw) return '/resources/services'
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/services`)
-        if (!response.ok) throw new Error('API failed')
-        const json = await response.json()
-        
-        if (Array.isArray(json.data?.services)) {
-          setServices(json.data.services)
-        } else {
-          // Fallback static list matching original intent
-          setServices([
-            { id: 1, page_name: "Discover Malaysia", uri: "discover-malaysia" },
-            { id: 2, page_name: "Admission Guidance", uri: "admission-guidance" },
-            { id: 3, page_name: "Visa & EMGS Guidance", uri: "visa-guidance" },
-            { id: 4, page_name: "Arrival Support", uri: "arrival-support" },
-            { id: 5, page_name: "Accommodation Assistance", uri: "accommodation-assistance" },
-            { id: 6, page_name: "Translation Services", uri: "translation-services" },
-            { id: 7, page_name: "Insurance Services", uri: "insurance-services" },
-            { id: 8, page_name: "Pre-departure Briefing", uri: "pre-departure-briefing" }
-          ])
-        }
-      } catch (error) {
-        console.error("Error fetching services:", error)
-        setServices([
-          { id: 1, page_name: "Discover Malaysia", uri: "discover-malaysia" },
-          { id: 2, page_name: "Admission Guidance", uri: "admission-guidance" },
-          { id: 3, page_name: "Visa & EMGS Guidance", uri: "visa-guidance" },
-          { id: 4, page_name: "Arrival Support", uri: "arrival-support" },
-          { id: 5, page_name: "Accommodation Assistance", uri: "accommodation-assistance" },
-          { id: 6, page_name: "Translation Services", uri: "translation-services" },
-          { id: 7, page_name: "Insurance Services", uri: "insurance-services" },
-          { id: 8, page_name: "Pre-departure Briefing", uri: "pre-departure-briefing" }
-        ])
-      } finally {
-        setLoading(false)
-      }
-    }
+  if (/^https?:\/\//i.test(raw)) return raw
 
-    fetchServices()
-  }, [])
+  const clean = raw.replace(/^\/+/, '').replace(/\/+$/, '')
+  if (!clean) return '/resources/services'
+
+  if (clean.startsWith('resources/')) return `/${clean}`
+  if (clean.startsWith('services/')) return `/resources/${clean}`
+
+  const encoded = clean.split('/').map(encodeURIComponent).join('/')
+  return `/resources/services/${encoded}`
+}
+
+export default async function ServicesPage() {
+  const servicesRaw = (await getAllServices()) as any[]
+  const services = (servicesRaw?.length ? servicesRaw : FALLBACK_SERVICES).filter(
+    (item) => (item?.uri || item?.slug) && item?.page_name,
+  )
 
   return (
-    <div className="min-h-screen bg-white">
-      <Breadcrumb items={[
-        { label: 'Home', href: '/' },
-        { label: 'Resources', href: '/resources' },
-        { label: 'Services' }
-      ]} />
-      
-      <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Heading */}
-          <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-3">
-            <span className="text-blue-600">What We Do</span>
-          </h2>
-          <p className="text-gray-700 text-center mb-10 max-w-3xl mx-auto">
-            Having and managing a correct marketing strategy is crucial in a fast-moving market.
-          </p>
+    <section className="py-12 bg-white min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-3">
+          <span className="text-blue-600">What We Do</span>
+        </h2>
+        <p className="text-gray-700 text-center mb-10 max-w-3xl mx-auto">
+          Having and managing a correct marketing strategy is crucial in a fast-moving market.
+        </p>
 
-          {/* Services Grid */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {loading
-              ? [...Array(8)].map((_, i) => <ServiceCardSkeleton key={i} />)
-              : services.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={`/resources/services/${item.uri}`}
-                    className="bg-gray-50 rounded-2xl shadow-md p-5 group hover:shadow-xl hover:-translate-y-1 transition duration-300"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-teal-500 text-white flex items-center justify-center text-xl">
-                        <Sparkles size={20} />
-                      </div>
-                      <ArrowRight className="text-orange-500 group-hover:text-blue-600 transition" size={20} />
-                    </div>
-                    <h3 className="text-gray-800 font-semibold text-base truncate group-hover:text-blue-600 transition">
-                      {item.page_name}
-                    </h3>
-                  </Link>
-                ))}
-          </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {services.map((item: any) => {
+            const href = resolveServiceHref(item)
+            return (
+              <Link
+                key={item.id ?? `${item.page_name}-${href}`}
+                href={href}
+                className="bg-gray-50 rounded-2xl shadow-md p-5 group hover:shadow-xl hover:-translate-y-1 transition duration-300"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-teal-500 text-white flex items-center justify-center text-xl">
+                    <Sparkles size={20} />
+                  </div>
+                  <ArrowRight className="text-orange-500 group-hover:text-orange-600 transition" />
+                </div>
+                <h3 className="text-gray-800 font-semibold text-base truncate group-hover:text-blue-600 transition">
+                  {item.page_name}
+                </h3>
+              </Link>
+            )
+          })}
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   )
 }

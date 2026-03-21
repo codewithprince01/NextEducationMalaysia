@@ -28,7 +28,12 @@ export default async function ServiceDetailPage({ params }: Params) {
   if (!data) notFound()
 
   const service = serializeBigInt(data) as any
-  const title = service?.headline || service?.page_name || service?.title || 'Service Details'
+  const breadcrumbTitleMap: Record<string, string> = {
+    'discover-malaysia': 'Discover Malaysia',
+    'admission-guidance': 'Admission Guidance',
+    'visa-guidance': 'Visa Guidance',
+  }
+  const title = breadcrumbTitleMap[slug] || service?.headline || service?.page_name || service?.title || 'Service Details'
 
   return (
     <div className="min-h-screen bg-white">

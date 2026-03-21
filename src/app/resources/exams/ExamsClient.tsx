@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Breadcrumb from '@/components/Breadcrumb'
+import { storageUrl } from '@/lib/constants'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const IMG_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || API_BASE
@@ -42,6 +43,8 @@ function setCache(data: any) {
 function imageSrc(path?: string) {
   if (!path) return '/girl-banner.webp'
   if (path.startsWith('http://') || path.startsWith('https://')) return path
+  const storage = storageUrl(path)
+  if (storage) return storage
   const base = (IMG_BASE || '').replace(/\/$/, '')
   const clean = path.replace(/^\//, '')
   return `${base}/${clean}`
@@ -133,19 +136,29 @@ export default function ExamsClient({ initialExams = [] }: { initialExams?: Exam
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 max-w-7xl mx-auto">
             {exams.map((exam, index) => (
               <div
-                key={index}
+                key={exam.id || index}
                 className="bg-white/40 backdrop-blur-md shadow-lg rounded-xl overflow-hidden transform hover:-translate-y-1 hover:scale-105 transition duration-300 ease-in-out border border-gray-200"
               >
                 <img src={imageSrc(exam.imgpath)} alt={exam.page_name} className="w-full h-48 object-cover" loading="lazy" />
                 <div className="p-5">
                   <h2 className="text-xl font-semibold text-gray-800 mb-2">{exam.page_name}</h2>
                   <p className="text-sm text-gray-600 mb-4 h-16 overflow-hidden">{exam.headline}</p>
-                  <Link
-                    href={`/resources/exams/${exam.uri || exam.slug}`}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200 w-full text-center block"
-                  >
-                    View Details
-                  </Link>
+                  {(exam.uri || exam.slug) ? (
+                    <Link
+                      href={`/resources/exams/${exam.uri || exam.slug}`}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200 w-full text-center block"
+                    >
+                      View Details →
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="bg-gray-300 text-white px-4 py-2 rounded-lg w-full text-center block cursor-not-allowed"
+                    >
+                      View Details
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
