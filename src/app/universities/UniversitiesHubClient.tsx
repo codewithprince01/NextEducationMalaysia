@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Shield, Award, BookOpen, Users, FileCheck, CheckCircle2, Loader2 } from 'lucide-react'
 import { FaUniversity, FaGraduationCap, FaGlobe, FaSchool } from 'react-icons/fa'
 import TrendingCourses from '@/components/common/TrendingCourses'
+import Pagination from '@/components/common/Pagination'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -120,6 +121,7 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
   const [universities, setUniversities] = useState<UniMap>(initialData || { public: [], private: [], foreign: [] })
   const [loading, setLoading] = useState(!initialData)
   const [currentPage, setCurrentPage] = useState({ public: 1, private: 1, foreign: 1 })
+  const tableSectionRef = useRef<HTMLDivElement | null>(null)
   const itemsPerPage = 10
 
   useEffect(() => {
@@ -184,7 +186,10 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
 
     const handlePage = (page: number) => {
       setCurrentPage(prev => ({ ...prev, [type]: page }))
-      window.scrollTo({ top: 600, behavior: 'smooth' })
+      if (tableSectionRef.current) {
+        const targetTop = tableSectionRef.current.getBoundingClientRect().top + window.scrollY - 90
+        window.scrollTo({ top: Math.max(0, targetTop), left: 0, behavior: 'auto' })
+      }
     }
 
     return (
@@ -258,68 +263,19 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
         </div>
 
         {totalPages > 1 && (
-          <div className="mt-8 mb-16">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-sm sm:text-base text-gray-700 font-medium">
-                  Showing <span className="font-bold text-blue-600">{indexOfFirst + 1}</span>-
-                  <span className="font-bold text-blue-600">{Math.min(indexOfLast, data.length)}</span> of{' '}
-                  <span className="font-bold text-blue-600">{data.length}</span> universities
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handlePage(currentPageNum - 1)}
-                    disabled={currentPageNum === 1}
-                    className={`flex items-center gap-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
-                      currentPageNum === 1
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg'
-                    }`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    <span className="hidden sm:inline">Previous</span>
-                  </button>
-
-                  <div className="flex items-center gap-1.5">
-                    {[...Array(totalPages)].map((_, i) => {
-                      const page = i + 1
-                      const show = page === 1 || page === totalPages || (page >= currentPageNum - 1 && page <= currentPageNum + 1)
-                      const isDot = page === currentPageNum - 2 || page === currentPageNum + 2
-                      if (show) return (
-                        <button
-                          key={page}
-                          onClick={() => handlePage(page)}
-                          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg font-bold text-sm sm:text-base transition-all duration-200 ${
-                            currentPageNum === page
-                              ? 'bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-110 ring-2 ring-blue-300'
-                              : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-md'
-                          }`}
-                        >{page}</button>
-                      )
-                      if (isDot) return <span key={page} className="px-1 text-gray-400 font-bold">•••</span>
-                      return null
-                    })}
-                  </div>
-
-                  <button
-                    onClick={() => handlePage(currentPageNum + 1)}
-                    disabled={currentPageNum === totalPages}
-                    className={`flex items-center gap-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
-                      currentPageNum === totalPages
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg'
-                    }`}
-                  >
-                    <span className="hidden sm:inline">Next</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
+          <div className="mt-3 mb-8 flex flex-col items-center gap-2">
+            <div className="text-sm sm:text-base text-gray-700 font-medium">
+              Showing <span className="font-bold text-blue-600">{indexOfFirst + 1}</span>-
+              <span className="font-bold text-blue-600">{Math.min(indexOfLast, data.length)}</span> of{' '}
+              <span className="font-bold text-blue-600">{data.length}</span> universities
             </div>
+
+            <Pagination
+              currentPage={currentPageNum}
+              totalPages={totalPages}
+              onPageChange={handlePage}
+              className="mt-0"
+            />
           </div>
         )}
       </div>
@@ -521,7 +477,7 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
           </div>
         ) : (
           <div className="p-3 sm:p-4 md:p-6 bg-white rounded-lg shadow-md">
-            <div>
+            <div ref={tableSectionRef}>
               <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
                 {activeTab === 'public' && 'List of Public Universities in Malaysia'}
                 {activeTab === 'private' && 'List of Private Universities in Malaysia'}
@@ -539,3 +495,4 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
     </div>
   )
 }
+

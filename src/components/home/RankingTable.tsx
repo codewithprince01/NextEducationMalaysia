@@ -4,44 +4,39 @@ type UniversityRank = {
   id: number
   name: string | null
   uname: string | null
-  qs_rank: number | null
-  times_rank?: number | null
-  qs_asia_rank?: number | null
+  qs_rank: string | number | null
+  times_rank?: string | number | null
+  qs_asia_rank?: string | number | null
 }
 
 async function getRankings(): Promise<UniversityRank[]> {
   try {
-    const { prisma } = await import('@/lib/db')
-    
-    console.log('Starting rankings query...')
-    
-    // First, try to get any universities to test connection
-    const allUnis = await prisma.university.findMany({
-      select: { 
-        id: true, 
-        name: true, 
-        uname: true, 
-        qs_rank: true,
-        times_rank: true,
-        qs_asia_rank: true 
-      },
-      orderBy: { name: 'asc' },
-      take: 10,
-    })
-    
-    console.log('Total universities found:', allUnis.length)
-    
-    if (allUnis.length > 0) {
-      console.log('Sample university:', allUnis[0])
-    }
-    
-    return allUnis.map((u) => ({
-      ...u,
+    const { prisma } = await import('@/lib/db-fresh')
+
+    // Match old project logic exactly:
+    // active + homeview + all 3 ranks available, ordered by QS rank, limit 30.
+    const rows = await prisma.$queryRawUnsafe(
+      `
+      SELECT id, name, uname, qs_rank, times_rank, qs_asia_rank
+      FROM universities
+      WHERE status = 1
+        AND homeview = 1
+        AND qs_rank IS NOT NULL AND TRIM(qs_rank) <> ''
+        AND times_rank IS NOT NULL AND TRIM(times_rank) <> ''
+        AND qs_asia_rank IS NOT NULL AND TRIM(qs_asia_rank) <> ''
+      ORDER BY CAST(qs_rank AS UNSIGNED) ASC, qs_rank ASC
+      LIMIT 30
+      `,
+    ) as any[]
+
+    return rows.map((u) => ({
       id: Number(u.id),
-      qs_rank: u.qs_rank,
-      times_rank: u.times_rank,
-      qs_asia_rank: u.qs_asia_rank
-    })) as UniversityRank[]
+      name: u.name ?? null,
+      uname: u.uname ?? null,
+      qs_rank: u.qs_rank ?? null,
+      times_rank: u.times_rank ?? null,
+      qs_asia_rank: u.qs_asia_rank ?? null,
+    }))
   } catch (e) {
     console.error('getRankings error:', e)
     return []
@@ -49,94 +44,7 @@ async function getRankings(): Promise<UniversityRank[]> {
 }
 
 export default async function RankingTable() {
-  const rankings = await getRankings()
-  console.log('RankingTable component - rankings length:', rankings.length)
-  
-  // All universities with full ranking data like OLD project
-  const displayRankings = rankings.length > 0 ? rankings : [
-    {
-      id: 1,
-      name: 'University of Malaya',
-      uname: 'university-of-malaya',
-      qs_rank: 65,
-      times_rank: 301,
-      qs_asia_rank: 9
-    },
-    {
-      id: 2,
-      name: 'Universiti Teknologi Malaysia',
-      uname: 'universiti-teknologi-malaysia',
-      qs_rank: 188,
-      times_rank: 401,
-      qs_asia_rank: 33
-    },
-    {
-      id: 3,
-      name: 'Universiti Putra Malaysia',
-      uname: 'universiti-putra-malaysia',
-      qs_rank: 187,
-      times_rank: 351,
-      qs_asia_rank: 36
-    },
-    {
-      id: 4,
-      name: 'Universiti Sains Malaysia',
-      uname: 'universiti-sains-malaysia',
-      qs_rank: 137,
-      times_rank: 401,
-      qs_asia_rank: 43
-    },
-    {
-      id: 5,
-      name: 'Universiti Kebangsaan Malaysia',
-      uname: 'universiti-kebangsaan-malaysia',
-      qs_rank: 129,
-      times_rank: 351,
-      qs_asia_rank: 36
-    },
-    {
-      id: 6,
-      name: 'Universiti Teknologi MARA',
-      uname: 'universiti-teknologi-mara',
-      qs_rank: 145,
-      times_rank: 401,
-      qs_asia_rank: 100
-    },
-    {
-      id: 7,
-      name: 'Universiti Utara Malaysia',
-      uname: 'universiti-utara-malaysia',
-      qs_rank: 194,
-      times_rank: 401,
-      qs_asia_rank: 120
-    },
-    {
-      id: 8,
-      name: 'Universiti Malaysia Sarawak',
-      uname: 'universiti-malaysia-sarawak',
-      qs_rank: 1201,
-      times_rank: 401,
-      qs_asia_rank: 150
-    },
-    {
-      id: 9,
-      name: 'Universiti Malaysia Sabah',
-      uname: 'universiti-malaysia-sabah',
-      qs_rank: 1001,
-      times_rank: 401,
-      qs_asia_rank: 180
-    },
-    {
-      id: 10,
-      name: 'Universiti Pendidikan Sultan Idris',
-      uname: 'universiti-pendidikan-sultan-idris',
-      qs_rank: 1201,
-      times_rank: 401,
-      qs_asia_rank: 200
-    }
-  ]
-  
-  console.log('Final display data length:', displayRankings.length)
+  const displayRankings = await getRankings()
 
   return (
     <div className="bg-gray-50 py-8 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6 lg:px-8">
@@ -159,7 +67,7 @@ export default async function RankingTable() {
               <div className="mb-3 pb-3 border-b border-gray-100">
                 <h3 className="font-semibold text-sm text-gray-900 leading-tight">{uni.name}</h3>
                 <Link href={`/university/${uni.uname}`} className="text-xs text-blue-600 hover:underline mt-1 inline-block">
-                  View All Courses →
+                  View All Courses ?
                 </Link>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
@@ -198,7 +106,7 @@ export default async function RankingTable() {
                     <td className="px-4 lg:px-6 py-3 lg:py-4 text-sm font-medium text-gray-900">
                       <div>{uni.name}</div>
                       <Link href={`/university/${uni.uname}`} className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1">
-                        View All Courses →
+                        View All Courses ?
                       </Link>
                     </td>
                     <td className="px-4 lg:px-6 py-3 lg:py-4 text-center">

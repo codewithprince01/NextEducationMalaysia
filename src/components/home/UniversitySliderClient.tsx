@@ -10,8 +10,8 @@ import {
 } from 'lucide-react'
 import type { Swiper as SwiperType } from 'swiper'
 import 'swiper/css'
-import PopupForm from '../modals/PopupForm'
 import CompareForm from '../modals/CompareForm'
+import { BrochureForm, FeeStructureForm } from '@/components/modals/UniversityForms'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 
@@ -48,9 +48,6 @@ function UniversityCard({
 }) {
   const [expanded, setExpanded] = useState(false)
   const banner = imageSrc(uni.banner_path || uni.logo_path)
-  const logo = imageSrc(uni.logo_path)
-  const typeLabel = uni.institute_type?.type || 'University'
-  const isPublic = typeLabel.toLowerCase().includes('public')
   
   const shortNote = uni.shortnote || "Explore this university."
   const shouldTruncate = shortNote.length > 100
@@ -71,15 +68,6 @@ function UniversityCard({
           className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
         />
 
-        {/* Type Badge */}
-        {uni.institute_type?.type && (
-          <div className="absolute top-4 left-4">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isPublic ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}`}>
-              <span className="mr-1">{isPublic ? '🏛️' : '🏢'}</span>
-              {typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Card Content */}
@@ -180,19 +168,28 @@ function UniversityCard({
 export default function UniversitySliderClient({ universities }: { universities: University[] }) {
   const swiperRef = useRef<SwiperType | null>(null)
   
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [modalType, setModalType] = useState<"brochure" | "fee">("brochure")
   const [selectedUni, setSelectedUni] = useState<University | null>(null)
+  const [feeModalOpen, setFeeModalOpen] = useState(false)
+  const [brochureModalOpen, setBrochureModalOpen] = useState(false)
   const [isCompareOpen, setIsCompareOpen] = useState(false)
 
   const openModal = useCallback((uni: University, type: "brochure" | "fee") => {
     setSelectedUni(uni)
-    setModalType(type)
-    setIsModalOpen(true)
+    if (type === 'fee') {
+      setFeeModalOpen(true)
+      return
+    }
+    setBrochureModalOpen(true)
   }, [])
 
   const openCompareModal = useCallback(() => {
     setIsCompareOpen(true)
+  }, [])
+
+  const getUniversityLogo = useCallback((uni: University | null) => {
+    if (!uni) return null
+    const path = uni.logo_path || uni.banner_path
+    return path ? String(path) : null
   }, [])
 
   return (
@@ -244,11 +241,20 @@ export default function UniversitySliderClient({ universities }: { universities:
           </Swiper>
         </div>
 
-        <PopupForm 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          universityData={selectedUni}
-          formType={modalType}
+        <FeeStructureForm
+          universityId={selectedUni?.id ?? null}
+          universityName={selectedUni?.name ?? ''}
+          universityLogo={getUniversityLogo(selectedUni)}
+          isOpen={feeModalOpen}
+          onClose={() => setFeeModalOpen(false)}
+        />
+
+        <BrochureForm
+          universityId={selectedUni?.id ?? null}
+          universityName={selectedUni?.name ?? ''}
+          universityLogo={getUniversityLogo(selectedUni)}
+          isOpen={brochureModalOpen}
+          onClose={() => setBrochureModalOpen(false)}
         />
 
         <CompareForm 
@@ -259,7 +265,7 @@ export default function UniversitySliderClient({ universities }: { universities:
 
         <div className="text-center mt-6">
           <Link
-            href="/universities/universities-in-malaysia"
+            href="/universities"
             className="cursor-pointer inline-flex items-center border-2 border-blue-800 text-blue-800 font-semibold px-8 py-3 rounded-full transition hover:bg-blue-800 hover:text-white shadow-md hover:shadow-lg"
           >
             EXPLORE ALL MALAYSIAN UNIVERSITIES

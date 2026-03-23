@@ -32,6 +32,36 @@ interface StatsData {
   years: YearData[];
 }
 
+const FIELD_COLOR_PALETTE = [
+  "bg-emerald-400",
+  "bg-orange-400",
+  "bg-blue-400",
+  "bg-purple-400",
+  "bg-pink-400",
+  "bg-cyan-400",
+  "bg-lime-400",
+  "bg-rose-400",
+  "bg-amber-400",
+  "bg-indigo-400",
+];
+
+function normalizeFieldColor(input: string | undefined, seed: number) {
+  const raw = String(input || "").trim();
+  const invalid =
+    !raw ||
+    /white|gray|slate|neutral|zinc|stone|transparent/i.test(raw) ||
+    !raw.startsWith("bg-");
+  if (!invalid) return raw;
+  const idx = Math.abs(Number(seed) || 0) % FIELD_COLOR_PALETTE.length;
+  return FIELD_COLOR_PALETTE[idx];
+}
+
+function categoryColorOverride(category: string | undefined) {
+  const c = String(category || "").trim().toLowerCase();
+  if (c === "education" || c === "engineering") return "bg-yellow-400";
+  return null;
+}
+
 export default function FieldStudyClient() {
   const [years, setYears] = useState<number[]>([]);
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
@@ -56,7 +86,18 @@ export default function FieldStudyClient() {
         const yearsData = yearsRes.data || [];
         setYears(yearsData);
         setSelectedYears(yearsData);
-        setStatsData(statsRes.data);
+        const rawStats = statsRes.data as StatsData;
+        const normalizedStats: StatsData = {
+          ...rawStats,
+          years: (rawStats?.years || []).map((yearData) => ({
+            ...yearData,
+            items: (yearData?.items || []).map((item) => ({
+              ...item,
+              color: categoryColorOverride(item.category) || normalizeFieldColor(item.color, item.category_id),
+            })),
+          })),
+        };
+        setStatsData(normalizedStats);
       } catch (err: any) {
         console.error("Error fetching data:", err);
         setError(err.message || "Failed to load data");

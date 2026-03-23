@@ -1,6 +1,6 @@
 import { SITE_URL } from '@/lib/constants'
 import { getInstituteTypes, getPageContent } from '@/lib/queries/universities'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import UniversityListClient from './UniversityListClient'
 import { serializeBigInt } from '@/lib/utils'
@@ -9,6 +9,25 @@ import { universityService } from '@/backend'
 export const revalidate = 3600
 
 type Props = { params: Promise<{ type: string }> }
+
+const findType = (types: any[], rawType: string) => {
+  const base = rawType.replace(/-in-malaysia$/, '')
+  const normalized = base.replace(/-universities$/, '-university').replace(/-institutions$/, '-institution')
+
+  const aliases = new Set<string>([
+    rawType,
+    base,
+    normalized,
+    normalized.replace(/-institution$/, ''),
+    normalized.replace(/-university$/, ''),
+    normalized.replace(/-university$/, '-universities'),
+    normalized.replace(/-institution$/, '-institutions'),
+    base.replace(/-university$/, '-universities'),
+    base.replace(/-institution$/, '-institutions'),
+  ])
+
+  return types.find((t: any) => aliases.has(String(t.slug || '')) || aliases.has(String(t.seo_title_slug || '')))
+}
 
 export async function generateStaticParams() {
   try {
@@ -33,17 +52,22 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props) {
   try {
     const { type } = await params
+    if (type === 'universities-in-malaysia') {
+      return {
+        title: 'Universities in Malaysia - Education Malaysia',
+        description: 'Explore universities in Malaysia. Compare rankings, fees, and more.',
+        alternates: { canonical: `${SITE_URL}/universities/international-school-in-malaysia` },
+      }
+    }
+    if (type === 'international-school-in-malaysia') {
+      return {
+        title: 'Universities in Malaysia - Education Malaysia',
+        description: 'Explore universities in Malaysia. Compare rankings, fees, and more.',
+        alternates: { canonical: `${SITE_URL}/universities/international-school-in-malaysia` },
+      }
+    }
     const types = await getInstituteTypes() as any[]
-    const base = type.replace(/-in-malaysia$/, '');
-    const normalized = base.replace(/-universities$/, '-university').replace(/-institutions$/, '-institution');
-    const current = types.find((t: any) => 
-      t.slug === normalized || 
-      t.seo_title_slug === normalized ||
-      t.slug === base ||
-      t.seo_title_slug === base ||
-      t.slug === normalized.replace(/-institution$/, '') ||
-      t.slug === normalized.replace(/-university$/, '')
-    )
+    const current = findType(types, type)
     const typeName = current?.type ?? type.replace(/-/g, ' ')
     return {
       title: `${typeName} in Malaysia - Education Malaysia`,
@@ -57,6 +81,9 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function UniversitiesByTypePage({ params }: Props) {
   const { type } = await params
+  if (type === 'universities-in-malaysia') {
+    redirect('/universities/international-school-in-malaysia')
+  }
 
   let types: any[] = []
   try {
@@ -65,27 +92,26 @@ export default async function UniversitiesByTypePage({ params }: Props) {
     types = []
   }
 
-  const normalized = type.replace(/-in-malaysia$/, '').replace(/-universities$/, '-university').replace(/-institutions$/, '-institution');
-  const current = types.find((t: any) => 
-    t.slug === normalized || 
-    t.seo_title_slug === normalized ||
-    t.slug === type.replace(/-in-malaysia$/, '') ||
-    t.seo_title_slug === type.replace(/-in-malaysia$/, '') ||
-    t.slug === normalized.replace(/-institution$/, '') ||
-    t.slug === normalized.replace(/-university$/, '')
-  )
+  const normalized = type.replace(/-in-malaysia$/, '').replace(/-universities$/, '-university').replace(/-institutions$/, '-institution')
+  const current = findType(types, type)
 
   if (!current && types.length > 0) {
     // Fallback for international schools or others not in DB
     if (normalized === 'international-school') {
       const typeName = 'International Schools';
+      const pageData =
+        (await getPageContent('universities-in-malaysia')) ||
+        (await getPageContent('universities')) ||
+        (await getPageContent(type))
+      const finalContent = pageData?.description || 'Explore the best universities in Malaysia.'
+      const finalHeading = pageData?.heading || typeName
       return (
         <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
           <UniversityListClient
             typeSlug={type}
-            typeName={typeName}
+            typeName={finalHeading}
             allTypes={serializeBigInt(types) as any[]}
-            pageContent="Explore international schools in Malaysia."
+            pageContent={finalContent}
           />
         </Suspense>
       )

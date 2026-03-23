@@ -43,7 +43,7 @@ export class DropdownService {
         MIN(icon_class) AS icon_class,
         MIN(thumbnail_path) AS thumbnail_path
       FROM course_categories
-      WHERE status = 1 OR status IS NULL
+      WHERE website = 'MYS' AND (status IN (0, 1) OR status IS NULL)
       GROUP BY name
       ORDER BY name ASC
     `);

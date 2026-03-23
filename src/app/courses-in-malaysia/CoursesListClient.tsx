@@ -13,6 +13,7 @@ import AuthModal from '@/components/modals/AuthModal'
 import PopupForm from '@/components/modals/PopupForm'
 import CourseCompareBar from './CourseCompareBar'
 import CourseComparisonModal from './CourseComparisonModal'
+import Pagination from '@/components/common/Pagination'
 import { toast } from 'react-toastify'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
@@ -1160,9 +1161,10 @@ export default function CoursesListClient({
                 }
               </div>
 
-              <CoursePagination
+              <Pagination
                 currentPage={currentPage}
-                lastPage={lastPage}
+                totalPages={lastPage}
+                className="mt-6"
                 onPageChange={(p) => {
                   if (p < 1 || p > lastPage || p === currentPage) return
                   setCurrentPage(p)

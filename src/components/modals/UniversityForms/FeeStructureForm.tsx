@@ -5,35 +5,43 @@ import axios from 'axios'
 import ModalWrapper from './ModalWrapper'
 import { useFormState } from './useFormState'
 import { useFetchFormData } from './useFetchFormData'
-import { CommonFields, CourseCategoryField, CaptchaWidget } from './Fields'
+import { CommonFields, CaptchaWidget } from './Fields'
 
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 
 function normalizeLogoUrl(url?: string | null) {
   if (!url) return null
-  const value = String(url).trim()
+  let value = String(url).trim()
   if (!value) return null
+  value = value.replace(/\\/g, '/')
+  value = value.replace(/^(https?:\/\/[^/]+)(?=(?:uploads|storage)\/)/i, '$1/')
+  value = value.replace(/educationmalaysia\.inuploads\//i, 'educationmalaysia.in/uploads/')
+  value = value.replace(/educationmalaysia\.instorage\//i, 'educationmalaysia.in/storage/')
   if (/^https?:\/\//i.test(value)) return value
   const base = IMAGE_BASE.replace(/\/+$/, '')
   const clean = value.replace(/^\/+/, '')
   if (clean.startsWith('storage/')) return `${base}/${clean}`
-  if (clean.startsWith('uploads/')) return `${base}/${clean}`
+  if (clean.startsWith('uploads/')) return `${base}/storage/${clean}`
   return `${base}/storage/${clean}`
 }
 
-function withStorageFallback(url?: string | null) {
-  if (!url) return null
-  if (!/^https?:\/\//i.test(url)) return normalizeLogoUrl(url)
+function getLogoCandidates(url?: string | null) {
+  const normalized = normalizeLogoUrl(url)
+  if (!normalized) return []
+  const candidates = [normalized]
   try {
-    const u = new URL(url)
-    const p = u.pathname.replace(/^\/+/, '')
-    if (!p || p.startsWith('storage/')) return url
-    if (p.startsWith('uploads/')) return url
-    return `${u.origin}/storage/${p}`
-  } catch {
-    return normalizeLogoUrl(url)
-  }
+    const u = new URL(normalized)
+    const path = u.pathname.replace(/^\/+/, '')
+    if (path.startsWith('uploads/')) {
+      candidates.push(`${u.origin}/storage/${path}`)
+    } else if (path.startsWith('storage/uploads/')) {
+      candidates.push(`${u.origin}/${path.replace(/^storage\//, '')}`)
+    } else if (!path.startsWith('storage/')) {
+      candidates.push(`${u.origin}/storage/${path}`)
+    }
+  } catch {}
+  return Array.from(new Set(candidates))
 }
 
 type Props = {
@@ -48,11 +56,15 @@ type Props = {
 export function FeeStructureForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
   const form = useFormState(isOpen)
   const { phonecode, levels, courseCategories, countriesData } = useFetchFormData()
-  const [logoSrc, setLogoSrc] = React.useState<string | null>(normalizeLogoUrl(universityLogo))
+  const [logoCandidates, setLogoCandidates] = React.useState<string[]>([])
+  const [logoIndex, setLogoIndex] = React.useState(0)
 
   React.useEffect(() => {
-    setLogoSrc(normalizeLogoUrl(universityLogo))
+    setLogoCandidates(getLogoCandidates(universityLogo))
+    setLogoIndex(0)
   }, [universityLogo])
+
+  const logoSrc = logoCandidates[logoIndex] || null
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -63,15 +75,16 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
 
     try {
       await axios.post('/api/v1/inquiry/brochure-request', {
-        name: fd.get('name'),
+        name: fd.get('firstName'),
         email: fd.get('email'),
-        country_code: String(fd.get('c_code') || '91').replace('+', ''),
-        mobile: fd.get('mobile'),
+        country_code: String(fd.get('countryCode') || '91').replace('+', ''),
+        mobile: fd.get('phone'),
         nationality: fd.get('nationality'),
-        highest_qualification: fd.get('highest_qualification'),
-        interested_course_category: fd.get('interested_course_category'),
+        highest_qualification: fd.get('level'),
+        interested_course_category: fd.get('course'),
         university_id: universityId || null,
-        requestfor: 'fee_structure',
+        university_name: universityName || '',
+        requestfor: 'fees',
         source_path: typeof window !== 'undefined' ? window.location.href : '',
       }, {
         headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
@@ -81,8 +94,9 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
       onSuccess?.('Fee Structure sent successfully!')
       e.currentTarget.reset()
       form.reset()
-    } catch {
-      alert('Something went wrong. Please try again.')
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Something went wrong. Please try again.'
+      alert(msg)
     } finally {
       form.setLoading(false)
     }
@@ -99,9 +113,7 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
                 alt={universityName || 'University'}
                 className="w-full h-full object-contain"
                 onError={() => {
-                  const fallback = withStorageFallback(logoSrc)
-                  if (fallback && fallback !== logoSrc) setLogoSrc(fallback)
-                  else setLogoSrc(null)
+                  setLogoIndex((prev) => prev + 1)
                 }}
               />
             ) : (
@@ -121,11 +133,11 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
             countriesData={countriesData}
             phonecode={phonecode}
             levels={levels}
+            courseCategories={courseCategories}
             onNationalityChange={form.handleNationalityChange}
             onCountryCodeChange={form.handleCountryCodeChange}
             accentColor="blue"
           />
-          <CourseCategoryField courseCategories={courseCategories} accentColor="blue" />
           <CaptchaWidget
             captchaQuestion={form.captchaQuestion}
             captchaInput={form.captchaInput}

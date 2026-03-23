@@ -11,7 +11,7 @@ body {
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 /* Content-visibility for off-screen sections (perf) */

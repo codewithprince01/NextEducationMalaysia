@@ -33,9 +33,75 @@ const Skeleton = () => <div style={{ minHeight: 320 }} className="bg-slate-50" /
 async function getHomeData() {
   try {
     const { getHomePageData } = await import('@/lib/queries/home')
-    return await getHomePageData()
+    const data: any = await getHomePageData()
+    if (Array.isArray(data?.featuredUniversities) && data.featuredUniversities.length > 0) {
+      return data
+    }
+
+    // Hard fallback: fetch trending universities directly when cached query returns empty.
+    const { prisma } = await import('@/lib/db-fresh')
+    const fallbackRows = await prisma.$queryRawUnsafe(`
+      SELECT
+        u.id, u.name, u.uname, u.logo_path, u.banner_path, u.city, u.state,
+        u.qs_rank, u.rating, u.shortnote, u.click,
+        it.type AS institute_type_name,
+        (
+          SELECT COUNT(*)
+          FROM university_programs up
+          WHERE up.university_id = u.id AND up.status = 1
+        ) AS active_programs_count
+      FROM universities u
+      LEFT JOIN institute_types it ON it.id = u.institute_type
+      WHERE u.status = 1 AND u.website = 'MYS'
+      ORDER BY u.click DESC, u.name ASC
+      LIMIT 12
+    `) as any[]
+
+    const featuredUniversities = (fallbackRows || []).map((u: any) => ({
+      ...u,
+      institute_type: { type: u.institute_type_name || null },
+    }))
+
+    return {
+      featuredUniversities,
+      totalUniversities: 0,
+      totalCourses: 0,
+      courseCategories: [],
+      pageContent: [],
+    }
   } catch {
-    return { featuredUniversities: [], totalUniversities: 0, totalCourses: 0, courseCategories: [], pageContent: [] }
+    try {
+      const { prisma } = await import('@/lib/db-fresh')
+      const fallbackRows = await prisma.$queryRawUnsafe(`
+        SELECT
+          u.id, u.name, u.uname, u.logo_path, u.banner_path, u.city, u.state,
+          u.qs_rank, u.rating, u.shortnote, u.click,
+          it.type AS institute_type_name,
+          (
+            SELECT COUNT(*)
+            FROM university_programs up
+            WHERE up.university_id = u.id AND up.status = 1
+          ) AS active_programs_count
+        FROM universities u
+        LEFT JOIN institute_types it ON it.id = u.institute_type
+        WHERE u.status = 1 AND u.website = 'MYS'
+        ORDER BY u.click DESC, u.name ASC
+        LIMIT 12
+      `) as any[]
+
+      return {
+        featuredUniversities: (fallbackRows || []).map((u: any) => ({
+          ...u,
+          institute_type: { type: u.institute_type_name || null },
+        })),
+        totalUniversities: 0,
+        totalCourses: 0,
+        courseCategories: [],
+        pageContent: [],
+      }
+    } catch {
+      return { featuredUniversities: [], totalUniversities: 0, totalCourses: 0, courseCategories: [], pageContent: [] }
+    }
   }
 }
 
@@ -75,13 +141,11 @@ export default async function Home() {
       <StudyJourney />
 
       {/* University slider — SSR data → client Swiper */}
-      {featuredUniversities.length > 0 && (
-        <LazySection>
-          <ErrorBoundary>
-            <UniversitySliderClient universities={featuredUniversities} />
-          </ErrorBoundary>
-        </LazySection>
-      )}
+      <LazySection>
+        <ErrorBoundary>
+          <UniversitySliderClient universities={featuredUniversities || []} />
+        </ErrorBoundary>
+      </LazySection>
 
       {/* Why Malaysia + stats + education pathway */}
       <LazySection>
@@ -149,3 +213,4 @@ export default async function Home() {
     </main>
   )
 }
+

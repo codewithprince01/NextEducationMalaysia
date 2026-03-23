@@ -6,6 +6,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Loader2, X, ChevronDown, Search, House, ChevronRight } from 'lucide-react'
 import UniversityListCard from '@/components/university/UniversityListCard'
 import { BrochureForm, FeeStructureForm } from '@/components/modals/UniversityForms'
+import CompareForm from '@/components/modals/CompareForm'
+import Pagination from '@/components/common/Pagination'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -80,7 +82,7 @@ function Dropdown({
             )}
             {options.map((opt) => (
               <button
-                key={opt.id}
+                key={opt.id || opt.name}
                 onClick={() => {
                   onSelect(opt.name)
                   setOpen(false)
@@ -161,6 +163,7 @@ export default function UniversityListClient({
     const match = pathname?.match(/\/page-(\d+)$/)
     return match ? Math.max(1, Number(match[1])) : 1
   }, [pathname])
+  const searchQuery = useMemo(() => searchParams.get('search') || '', [searchParams])
   const defaultInstituteType = useMemo(() => {
     const t = normalizedTypeSlug.toLowerCase()
     if (t.includes('private')) return 'Private Institution'
@@ -180,6 +183,7 @@ export default function UniversityListClient({
   const [selectedUniversity, setSelectedUniversity] = useState<Uni | null>(null)
   const [feeModalOpen, setFeeModalOpen] = useState(false)
   const [brochureModalOpen, setBrochureModalOpen] = useState(false)
+  const [compareModalOpen, setCompareModalOpen] = useState(false)
   const [successModalOpen, setSuccessModalOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 
@@ -191,6 +195,42 @@ export default function UniversityListClient({
   const [states, setStates] = useState<FilterOption[]>(initialFilters?.states || [])
   const [instituteTypes, setInstituteTypes] = useState<FilterOption[]>(initialFilters?.institute_types || [])
 
+  const formatTypeUrl = useCallback((instituteTypeName: string) => {
+    if (!instituteTypeName) return '/universities/international-school-in-malaysia'
+    const normalized = instituteTypeName.toLowerCase().trim()
+    const byExactType = allTypes.find((t) => String(t.type || '').toLowerCase().trim() === normalized)
+    const byKeyword = allTypes.find((t) => {
+      const v = String(t.type || '').toLowerCase()
+      if (normalized.includes('public')) return v.includes('public')
+      if (normalized.includes('private')) return v.includes('private')
+      if (normalized.includes('foreign')) return v.includes('foreign')
+      if (normalized.includes('international') || normalized.includes('school')) return v.includes('international') || v.includes('school')
+      return false
+    })
+    const match = byExactType || byKeyword
+
+    let slug = (match?.seo_title_slug || match?.slug || instituteTypeName)
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w-]/g, '')
+      .replace(/--+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+    // Ensure canonical category slugs when fallback text differs from DB naming
+    if (!match) {
+      if (normalized.includes('public')) slug = 'public-institution-in-malaysia'
+      if (normalized.includes('private')) slug = 'private-institution-in-malaysia'
+      if (normalized.includes('foreign')) slug = 'foreign-universities-in-malaysia'
+      if (normalized.includes('international') || normalized.includes('school')) slug = 'international-school-in-malaysia'
+    }
+
+    if (!slug.includes('-in-')) {
+      slug = `${slug}-in-malaysia`
+    }
+    return `/universities/${slug}`
+  }, [allTypes])
+
   useEffect(() => {
     const t = setTimeout(() => {
       setDebouncedSearch(search)
@@ -201,6 +241,18 @@ export default function UniversityListClient({
   useEffect(() => {
     if (pageFromPath !== currentPage) setCurrentPage(pageFromPath)
   }, [pageFromPath])
+
+  useEffect(() => {
+    setFilterType(defaultInstituteType)
+    setFilterState('')
+    setSearch(searchQuery)
+    setDebouncedSearch(searchQuery)
+    setCurrentPage(initialPage || pageFromPath || 1)
+    setUniversities(initialData)
+    setTotal(initialTotal)
+    setLastPage(initialLastPage)
+    setIsLoading(initialData.length === 0)
+  }, [typeSlug, defaultInstituteType, initialPage, pageFromPath, initialData, initialTotal, initialLastPage, searchQuery])
 
   useEffect(() => {
     if (states.length > 0 && instituteTypes.length > 0) return
@@ -290,10 +342,14 @@ export default function UniversityListClient({
   useEffect(() => {
     // Use SSR data for first paint, then fetch when user changes controls
     if (currentPage === 1 && !debouncedSearch && !filterState && filterType === defaultInstituteType && initialData.length > 0) {
+      setUniversities(initialData)
+      setTotal(initialTotal)
+      setLastPage(initialLastPage)
+      setIsLoading(false)
       return
     }
     fetchUniversities(currentPage, debouncedSearch, filterState, filterType)
-  }, [currentPage, debouncedSearch, filterState, filterType, fetchUniversities, initialData.length, defaultInstituteType])
+  }, [currentPage, debouncedSearch, filterState, filterType, fetchUniversities, initialData, initialTotal, initialLastPage, defaultInstituteType])
 
   const handleReset = () => {
     setSearch('')
@@ -310,9 +366,9 @@ export default function UniversityListClient({
     const basePath = `/universities/${typeSlug}`
     const targetPath = target === 1 ? basePath : `${basePath}/page-${target}`
     const query = searchParams.toString()
-    router.push(query ? `${targetPath}?${query}` : targetPath)
+    const targetUrl = query ? `${targetPath}?${query}` : targetPath
+    window.location.assign(targetUrl)
     setCurrentPage(target)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const openFeeModal = (uni: Uni) => {
@@ -323,6 +379,10 @@ export default function UniversityListClient({
   const openBrochureModal = (uni: Uni) => {
     setSelectedUniversity(uni)
     setBrochureModalOpen(true)
+  }
+
+  const openCompareModal = () => {
+    setCompareModalOpen(true)
   }
 
   const showSuccess = (message: string) => {
@@ -338,10 +398,7 @@ export default function UniversityListClient({
     if (!uni) return null
     const path = uni.logo_path || uni.banner_path
     if (!path) return null
-    if (String(path).startsWith('http://') || String(path).startsWith('https://')) return String(path)
-    const base = IMAGE_BASE.replace(/\/+$/, '')
-    const clean = String(path).replace(/^\/+/, '')
-    return `${base}/${clean}`
+    return String(path)
   }
 
   const dynamicTitle = (() => {
@@ -367,10 +424,6 @@ export default function UniversityListClient({
   })()
 
   const plainText = (() => {
-    const t = normalizedTypeSlug.toLowerCase()
-    if (t.includes('school') || t.includes('international')) {
-      return 'International schools in Malaysia offer globally recognized curriculums like IGCSE, IB, and American diplomas.'
-    }
     return pageContent ? plainTextFromHtml(pageContent) : ''
   })()
   const hasLongContent = plainText.length > 150
@@ -406,7 +459,14 @@ export default function UniversityListClient({
           </p>
 
           {pageContent && (
-            <div className="border border-gray-200 rounded-xl p-4 md:p-6 mt-6 relative" style={showMore ? { height: 'auto', overflow: 'visible' } : { height: 176, overflow: 'hidden' }}>
+            <div
+              className="border border-gray-200 rounded-xl p-4 md:p-6 mt-6 relative"
+              style={
+                hasLongContent
+                  ? (showMore ? { height: 'auto', overflow: 'visible' } : { height: 176, overflow: 'hidden' })
+                  : { height: 'auto', overflow: 'visible' }
+              }
+            >
               <div className="text-gray-700 text-sm leading-relaxed">
                 {showMore && (
                   <button
@@ -425,10 +485,7 @@ export default function UniversityListClient({
                     <div
                       className="prose prose-sm max-w-none text-gray-600"
                       dangerouslySetInnerHTML={{
-                        __html:
-                          normalizedTypeSlug.toLowerCase().includes('school') || normalizedTypeSlug.toLowerCase().includes('international')
-                            ? '<p>International schools in Malaysia offer globally recognized curriculums like IGCSE, IB, and American diplomas.</p>'
-                            : pageContent.replace(/<h[1-3][^>]*>.*?<\/h[1-3]>/gi, ''),
+                        __html: pageContent.replace(/<h[1-3][^>]*>.*?<\/h[1-3]>/gi, ''),
                       }}
                     />
                   ) : (
@@ -477,9 +534,21 @@ export default function UniversityListClient({
               options={instituteTypes}
               selectedValue={filterType}
               onSelect={(v) => {
-                if (currentPage !== 1) handlePageChange(1)
-                setFilterType(v)
+                const targetUrl = formatTypeUrl(v)
+                const normalize = (p: string) => p.replace(/\/+$/, '')
+                const currentPath = normalize(pathname || '')
+                const nextPath = normalize(targetUrl)
+
+                setFilterType(v || defaultInstituteType)
+                setFilterState('')
                 setCurrentPage(1)
+
+                if (nextPath !== currentPath) {
+                  window.location.assign(targetUrl)
+                  return
+                }
+
+                if (currentPage !== 1) handlePageChange(1)
               }}
               showAllOption
             />
@@ -522,6 +591,7 @@ export default function UniversityListClient({
                   priority={index < 3}
                   onOpenFeeModal={openFeeModal}
                   onOpenBrochureModal={openBrochureModal}
+                  onOpenCompareModal={openCompareModal}
                 />
               ))}
             </div>
@@ -534,57 +604,11 @@ export default function UniversityListClient({
                   <div className="text-sm sm:text-base text-gray-700 font-medium">
                     Showing <span className="font-bold text-blue-600">{startItem}</span>-<span className="font-bold text-blue-600">{endItem}</span> of <span className="font-bold text-blue-600">{total}</span> universities
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className={`flex items-center gap-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
-                        currentPage === 1
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg'
-                      }`}
-                    >
-                      <span className="hidden sm:inline">Previous</span>
-                    </button>
-
-                    <div className="flex items-center gap-1.5">
-                      {[...Array(lastPage)].map((_, i) => {
-                        const page = i + 1
-                        const show = page === 1 || page === lastPage || (page >= currentPage - 1 && page <= currentPage + 1)
-                        const isDot = page === currentPage - 2 || page === currentPage + 2
-                        if (show) {
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => handlePageChange(page)}
-                              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-lg font-bold text-sm sm:text-base transition-all duration-200 ${
-                                currentPage === page
-                                  ? 'bg-linear-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-110 ring-2 ring-blue-300'
-                                  : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-600 hover:shadow-md'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          )
-                        }
-                        if (isDot) return <span key={page} className="px-1 text-gray-400 font-bold">...</span>
-                        return null
-                      })}
-                    </div>
-
-                    <button
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === lastPage}
-                      className={`flex items-center gap-1 px-4 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${
-                        currentPage === lastPage
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg'
-                      }`}
-                    >
-                      <span className="hidden sm:inline">Next</span>
-                    </button>
-                  </div>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={lastPage}
+                    onPageChange={handlePageChange}
+                  />
                 </div>
               </div>
             </div>
@@ -608,6 +632,12 @@ export default function UniversityListClient({
         isOpen={brochureModalOpen}
         onClose={() => setBrochureModalOpen(false)}
         onSuccess={showSuccess}
+      />
+
+      <CompareForm
+        isOpen={compareModalOpen}
+        onClose={() => setCompareModalOpen(false)}
+        universities={universities}
       />
 
       {successModalOpen && (

@@ -13,7 +13,7 @@ type Banner = {
 
 const DEFAULT_BANNER: Banner = {
   id: 0,
-  title: 'Explore Top Universities',
+  title: 'Explore Top Universities In-Demand Courses & Global Career Pathways',
   description:
     'Begin your study journey in Malaysia with expert guidance for admissions, course selection, and fast-track visa processing.',
   banner_path: '/girl-banner.webp',
@@ -28,7 +28,12 @@ function src(bannerPath: string) {
 }
 
 export default async function Hero() {
-  const banners = await getHeroBanners() as unknown as Banner[]
+  const banners = (await getHeroBanners() as unknown as Banner[]).map((b) => ({
+    ...b,
+    title: b.title || DEFAULT_BANNER.title,
+    description: b.description || DEFAULT_BANNER.description,
+    alt_text: b.alt_text || DEFAULT_BANNER.alt_text,
+  }))
   const firstBanner = banners[0] || DEFAULT_BANNER
 
   return (
@@ -59,11 +64,11 @@ export default async function Hero() {
           </p>
 
           <h1 className="text-4xl md:text-6xl lg:text-6xl font-bold leading-tight mb-4 md:mb-6">
-            <span className="block">{firstBanner.title}</span>
+            <span className="block">{firstBanner.title || DEFAULT_BANNER.title}</span>
           </h1>
 
           <p className="text-base md:text-lg text-gray-100 max-w-2xl mb-8 md:mb-10 leading-relaxed">
-            {firstBanner.description}
+            {firstBanner.description || DEFAULT_BANNER.description}
           </p>
 
           <div className="flex flex-wrap gap-4 pointer-events-auto">
@@ -73,7 +78,7 @@ export default async function Hero() {
               </button>
             </Link>
 
-            <Link href="/courses-in-malaysias">
+            <Link href="/courses-in-malaysia">
               <button className="cursor-pointer bg-transparent border-2 border-white hover:bg-white/10 text-white font-bold px-8 py-3 rounded-full transition-all duration-300 backdrop-blur-sm hover:scale-105 active:scale-95 flex items-center gap-2">
                 EXPLORE COURSES
               </button>

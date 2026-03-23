@@ -34,9 +34,10 @@ type Props = {
   priority?: boolean
   onOpenFeeModal?: (uni: University) => void
   onOpenBrochureModal?: (uni: University) => void
+  onOpenCompareModal?: () => void
 }
 
-export default function UniversityListCard({ uni, priority = false, onOpenFeeModal, onOpenBrochureModal }: Props) {
+export default function UniversityListCard({ uni, priority = false, onOpenFeeModal, onOpenBrochureModal, onOpenCompareModal }: Props) {
   const [isExpanded, setIsExpanded] = useState(false)
   const slug = uni.uname || uni.slug
   const imageUrl = imgUrl(uni.banner_path) ?? imgUrl(uni.logo_path) ?? '/placeholder-university.jpg'
@@ -161,6 +162,13 @@ export default function UniversityListCard({ uni, priority = false, onOpenFeeMod
               </Link>
             )}
           </div>
+          <button
+            type="button"
+            onClick={onOpenCompareModal}
+            className="cursor-pointer w-full py-2 px-4 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-all duration-200 text-sm"
+          >
+            Compare Universities
+          </button>
         </div>
       </div>
     </div>

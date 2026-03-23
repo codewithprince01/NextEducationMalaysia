@@ -9,13 +9,30 @@ type Specialization = {
 
 async function getSpecializations(): Promise<Specialization[]> {
   try {
-    const { prisma } = await import('@/lib/db')
-    return (await prisma.courseSpecialization.findMany({
-      where: { status: true },
-      select: { id: true, name: true, slug: true },
-      orderBy: { id: 'asc' },
-      take: 8,
-    })) as unknown as Specialization[]
+    const { prisma } = await import('@/lib/db-fresh')
+    const rows = await prisma.$queryRawUnsafe(`
+      SELECT DISTINCT cs.id, cs.name, cs.slug
+      FROM course_specializations cs
+      JOIN specialization_contents sc ON sc.specialization_id = cs.id
+      WHERE (cs.status IN (0,1) OR cs.status IS NULL)
+        AND (sc.status IN (0,1) OR sc.status IS NULL)
+        AND sc.website = 'MYS'
+      ORDER BY RAND()
+      LIMIT 8
+    `) as any[]
+
+    if (rows.length > 0) {
+      return rows.map((r) => ({ id: Number(r.id), name: r.name, slug: r.slug }))
+    }
+
+    const fallback = await prisma.$queryRawUnsafe(`
+      SELECT id, name, slug
+      FROM course_specializations
+      WHERE (status IN (0,1) OR status IS NULL)
+      ORDER BY RAND()
+      LIMIT 8
+    `) as any[]
+    return fallback.map((r) => ({ id: Number(r.id), name: r.name, slug: r.slug }))
   } catch (error) {
     console.error('Error fetching specializations:', error)
     return []

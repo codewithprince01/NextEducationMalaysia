@@ -160,7 +160,7 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         </div>
 
         <Link
-          href="/universities"
+          href="/universities/international-school-in-malaysia"
           className="flex items-center justify-center gap-2 mt-6 py-2.5 w-full text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-blue-50"
         >
           <span>Explore All Institutions</span>
