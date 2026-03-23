@@ -6,7 +6,8 @@ import UniversityListClient from './UniversityListClient'
 import { serializeBigInt } from '@/lib/utils'
 import { universityService } from '@/backend'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 type Props = { params: Promise<{ type: string }> }
 
@@ -52,27 +53,47 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props) {
   try {
     const { type } = await params
-    if (type === 'universities-in-malaysia') {
-      return {
-        title: 'Universities in Malaysia - Education Malaysia',
-        description: 'Explore universities in Malaysia. Compare rankings, fees, and more.',
-        alternates: { canonical: `${SITE_URL}/universities/international-school-in-malaysia` },
-      }
-    }
-    if (type === 'international-school-in-malaysia') {
-      return {
-        title: 'Universities in Malaysia - Education Malaysia',
-        description: 'Explore universities in Malaysia. Compare rankings, fees, and more.',
-        alternates: { canonical: `${SITE_URL}/universities/international-school-in-malaysia` },
-      }
-    }
-    const types = await getInstituteTypes() as any[]
-    const current = findType(types, type)
-    const typeName = current?.type ?? type.replace(/-/g, ' ')
+    const isAllAlias = type === 'universities-in-malaysia' || type === 'international-school-in-malaysia'
+    const canonicalType = isAllAlias ? 'international-school-in-malaysia' : type
+    const cleanTypeSlug = canonicalType.replace(/-in-malaysia$/, '')
+
+    const listing = await universityService.getUniversitiesInMalaysia({
+      type_slug: cleanTypeSlug,
+      page: 1,
+      limit: 21,
+    })
+    const seo = listing?.seo || {}
+    const title = seo.meta_title || `${type.replace(/-/g, ' ')} in Malaysia - Education Malaysia`
+    const description = seo.meta_description || `Explore the best ${type.replace(/-/g, ' ')} in Malaysia.`
+    const keywords = seo.meta_keyword || undefined
+    const ogImage = seo.og_image_path || `${SITE_URL}/og-default.png`
+    const canonical = `${SITE_URL}/universities/${canonicalType}`
+
     return {
-      title: `${typeName} in Malaysia - Education Malaysia`,
-      description: `Explore the best ${typeName.toLowerCase()} in Malaysia. Compare rankings, fees, and more.`,
-      alternates: { canonical: `${SITE_URL}/universities/${type}` },
+      title,
+      description,
+      keywords,
+      robots: 'index, follow',
+      alternates: { canonical },
+      openGraph: {
+        type: 'website',
+        title,
+        description,
+        url: canonical,
+        siteName: 'Education Malaysia',
+        locale: 'en_US',
+        images: [{ url: ogImage }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        site: '@educatemalaysia',
+        title,
+        description,
+        images: [ogImage],
+      },
+      other: {
+        'server-rendered-meta': 'true',
+      },
     }
   } catch {
     return { title: 'Universities in Malaysia' }
@@ -121,6 +142,13 @@ export default async function UniversitiesByTypePage({ params }: Props) {
 
   const typeName = current?.type ?? type.replace(/-/g, ' ')
   const cleanTypeSlug = type.replace(/-in-malaysia$/, '')
+  const normalizedForFilter = cleanTypeSlug.toLowerCase()
+  const backendTypeSlug =
+    normalizedForFilter === 'universities' ||
+    normalizedForFilter.includes('international') ||
+    normalizedForFilter.includes('school')
+      ? undefined
+      : cleanTypeSlug
 
   const serializedTypes = serializeBigInt(types)
 
@@ -128,7 +156,7 @@ export default async function UniversitiesByTypePage({ params }: Props) {
   const finalContent = pageData?.description || current?.description || ''
   const finalHeading = pageData?.heading || typeName
   const initialListing = await universityService.getUniversitiesInMalaysia({
-    type_slug: cleanTypeSlug,
+    type_slug: backendTypeSlug,
     page: 1,
     limit: 21,
   })

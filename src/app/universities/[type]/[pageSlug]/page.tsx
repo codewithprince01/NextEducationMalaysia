@@ -6,7 +6,8 @@ import UniversityListClient from '../UniversityListClient'
 import { serializeBigInt } from '@/lib/utils'
 import { universityService } from '@/backend'
 
-export const revalidate = 3600
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 type Props = { params: Promise<{ type: string; pageSlug: string }> }
 
@@ -40,29 +41,50 @@ export async function generateMetadata({ params }: Props) {
     const { type, pageSlug } = await params
     const pageNum = parsePageSlug(pageSlug)
     if (!pageNum) return { title: 'Universities in Malaysia' }
-    if (type === 'universities-in-malaysia') {
-      return {
-        title: `Universities in Malaysia - Page ${pageNum} - Education Malaysia`,
-        description: `Explore the best universities in Malaysia. Page ${pageNum}.`,
-        alternates: { canonical: `${SITE_URL}/universities/international-school-in-malaysia/page-${pageNum}` },
-      }
-    }
-    if (type === 'international-school-in-malaysia') {
-      return {
-        title: `Universities in Malaysia - Page ${pageNum} - Education Malaysia`,
-        description: `Explore the best universities in Malaysia. Page ${pageNum}.`,
-        alternates: { canonical: `${SITE_URL}/universities/international-school-in-malaysia/page-${pageNum}` },
-      }
-    }
+    const isAllAlias = type === 'universities-in-malaysia' || type === 'international-school-in-malaysia'
+    const canonicalType = isAllAlias ? 'international-school-in-malaysia' : type
+    const cleanTypeSlug = canonicalType.replace(/-in-malaysia$/, '')
 
-    const types = (await getInstituteTypes()) as any[]
-    const current = findType(types, type)
-    const typeName = current?.type ?? type.replace(/-/g, ' ')
+    const listing = await universityService.getUniversitiesInMalaysia({
+      type_slug: cleanTypeSlug,
+      page: pageNum,
+      limit: 21,
+    })
+    const seo = listing?.seo || {}
+    const baseTitle = seo.meta_title || `${type.replace(/-/g, ' ')} in Malaysia - Education Malaysia`
+    const title = pageNum > 1 ? `${baseTitle} - Page ${pageNum}` : baseTitle
+    const description =
+      seo.meta_description ||
+      `Explore the best ${type.replace(/-/g, ' ')} in Malaysia. Page ${pageNum}.`
+    const keywords = seo.meta_keyword || undefined
+    const ogImage = seo.og_image_path || `${SITE_URL}/og-default.png`
+    const canonical = `${SITE_URL}/universities/${canonicalType}/page-${pageNum}`
 
     return {
-      title: `${typeName} in Malaysia - Page ${pageNum} - Education Malaysia`,
-      description: `Explore the best ${typeName.toLowerCase()} in Malaysia. Page ${pageNum}.`,
-      alternates: { canonical: `${SITE_URL}/universities/${type}/page-${pageNum}` },
+      title,
+      description,
+      keywords,
+      robots: 'index, follow',
+      alternates: { canonical },
+      openGraph: {
+        type: 'website',
+        title,
+        description,
+        url: canonical,
+        siteName: 'Education Malaysia',
+        locale: 'en_US',
+        images: [{ url: ogImage }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        site: '@educatemalaysia',
+        title,
+        description,
+        images: [ogImage],
+      },
+      other: {
+        'server-rendered-meta': 'true',
+      },
     }
   } catch {
     return { title: 'Universities in Malaysia' }
@@ -123,6 +145,13 @@ export default async function UniversitiesByTypePaginatedPage({ params }: Props)
 
   const typeName = current?.type ?? type.replace(/-/g, ' ')
   const cleanTypeSlug = type.replace(/-in-malaysia$/, '')
+  const normalizedForFilter = cleanTypeSlug.toLowerCase()
+  const backendTypeSlug =
+    normalizedForFilter === 'universities' ||
+    normalizedForFilter.includes('international') ||
+    normalizedForFilter.includes('school')
+      ? undefined
+      : cleanTypeSlug
   const serializedTypes = serializeBigInt(types)
 
   const pageData =
@@ -134,7 +163,7 @@ export default async function UniversitiesByTypePaginatedPage({ params }: Props)
   const finalHeading = pageData?.heading || typeName
 
   const initialListing = await universityService.getUniversitiesInMalaysia({
-    type_slug: cleanTypeSlug,
+    type_slug: backendTypeSlug,
     page: pageNum,
     limit: 21,
   })

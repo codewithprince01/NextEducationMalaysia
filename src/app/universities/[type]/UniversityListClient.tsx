@@ -12,6 +12,8 @@ import Pagination from '@/components/common/Pagination'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
+const USE_CLIENT_CACHE = false
+const LOCAL_UNIVERSITIES_API = '/api/universities/universities-in-malaysia'
 
 type Uni = { id: number } & Record<string, any>
 type FilterOption = { id: number; name: string; slug?: string }
@@ -172,6 +174,13 @@ export default function UniversityListClient({
     if (t.includes('international') || t.includes('school')) return 'International School'
     return ''
   }, [normalizedTypeSlug])
+  const effectiveTypeSlug = useMemo(() => {
+    const t = normalizedTypeSlug.toLowerCase()
+    if (!t) return ''
+    // "All Institutions" listing should not force institute-type filter.
+    if (t === 'universities' || t.includes('international') || t.includes('school')) return ''
+    return normalizedTypeSlug
+  }, [normalizedTypeSlug])
 
   const [universities, setUniversities] = useState<Uni[]>(initialData)
   const [total, setTotal] = useState(initialTotal)
@@ -194,6 +203,7 @@ export default function UniversityListClient({
 
   const [states, setStates] = useState<FilterOption[]>(initialFilters?.states || [])
   const [instituteTypes, setInstituteTypes] = useState<FilterOption[]>(initialFilters?.institute_types || [])
+  const lastSyncKeyRef = useRef<string>('')
 
   const formatTypeUrl = useCallback((instituteTypeName: string) => {
     if (!instituteTypeName) return '/universities/international-school-in-malaysia'
@@ -243,6 +253,10 @@ export default function UniversityListClient({
   }, [pageFromPath])
 
   useEffect(() => {
+    const syncKey = `${typeSlug}|${pageFromPath}|${searchQuery}`
+    if (lastSyncKeyRef.current === syncKey) return
+    lastSyncKeyRef.current = syncKey
+
     setFilterType(defaultInstituteType)
     setFilterState('')
     setSearch(searchQuery)
@@ -252,27 +266,34 @@ export default function UniversityListClient({
     setTotal(initialTotal)
     setLastPage(initialLastPage)
     setIsLoading(initialData.length === 0)
-  }, [typeSlug, defaultInstituteType, initialPage, pageFromPath, initialData, initialTotal, initialLastPage, searchQuery])
+  }, [typeSlug, defaultInstituteType, initialPage, pageFromPath, searchQuery])
 
   useEffect(() => {
     if (states.length > 0 && instituteTypes.length > 0) return
 
-    const cacheKey = 'uni_filters_all'
-    const cached = sessionStorage.getItem(cacheKey)
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached)
-        setStates(Array.isArray(parsed?.states) ? parsed.states : [])
-        setInstituteTypes(Array.isArray(parsed?.institute_types) ? parsed.institute_types : [])
-        return
-      } catch {}
+    if (USE_CLIENT_CACHE) {
+      const cacheKey = 'uni_filters_all'
+      const cached = sessionStorage.getItem(cacheKey)
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          setStates(Array.isArray(parsed?.states) ? parsed.states : [])
+          setInstituteTypes(Array.isArray(parsed?.institute_types) ? parsed.institute_types : [])
+          return
+        } catch {}
+      }
     }
 
     const loadFilters = async () => {
       try {
-        const res = await fetch(`${API_BASE}/universities/universities-in-malaysia?per_page=1&page=1`, {
-          headers: { 'x-api-key': API_KEY },
-        })
+        const remoteUrl = `${API_BASE}/universities/universities-in-malaysia?per_page=1&page=1`
+        const localUrl = `${LOCAL_UNIVERSITIES_API}?per_page=1&page=1`
+        let res = await fetch(localUrl, { cache: 'no-store' })
+        if (!res.ok && API_BASE) {
+          res = await fetch(remoteUrl, {
+            headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
+          })
+        }
         if (!res.ok) return
         const json = await res.json()
         const filters = json?.data?.filters || {}
@@ -280,7 +301,9 @@ export default function UniversityListClient({
         const nextTypes = Array.isArray(filters?.institute_types) ? filters.institute_types : []
         setStates(nextStates)
         setInstituteTypes(nextTypes)
-        sessionStorage.setItem(cacheKey, JSON.stringify({ states: nextStates, institute_types: nextTypes }))
+        if (USE_CLIENT_CACHE) {
+          sessionStorage.setItem('uni_filters_all', JSON.stringify({ states: nextStates, institute_types: nextTypes }))
+        }
       } catch {}
     }
 
@@ -290,28 +313,36 @@ export default function UniversityListClient({
   const fetchUniversities = useCallback(async (page: number, q: string, state: string, instType: string) => {
     setIsLoading(true)
 
-    const cacheKey = `uni_list_${normalizedTypeSlug}_p${page}_q${q}_s${state}_t${instType}`
-    const cached = sessionStorage.getItem(cacheKey)
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached)
-        setUniversities(Array.isArray(parsed?.data) ? parsed.data : [])
-        setTotal(Number(parsed?.total || 0))
-        setLastPage(Number(parsed?.last_page || 1))
-        setIsLoading(false)
-        return
-      } catch {}
+    if (USE_CLIENT_CACHE) {
+      const cacheKey = `uni_list_${normalizedTypeSlug}_p${page}_q${q}_s${state}_t${instType}`
+      const cached = sessionStorage.getItem(cacheKey)
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          setUniversities(Array.isArray(parsed?.data) ? parsed.data : [])
+          setTotal(Number(parsed?.total || 0))
+          setLastPage(Number(parsed?.last_page || 1))
+          setIsLoading(false)
+          return
+        } catch {}
+      }
     }
 
     try {
-      const params = new URLSearchParams({ per_page: String(perPage), page: String(page), type_slug: normalizedTypeSlug })
+      const params = new URLSearchParams({ per_page: String(perPage), page: String(page) })
+      if (effectiveTypeSlug) params.append('type_slug', effectiveTypeSlug)
       if (q) params.append('search', q)
       if (state) params.append('state', state)
       if (instType && instType !== defaultInstituteType) params.append('institute_type', instType)
 
-      const res = await fetch(`${API_BASE}/universities/universities-in-malaysia?${params.toString()}`, {
-        headers: { 'x-api-key': API_KEY },
-      })
+      const remoteUrl = `${API_BASE}/universities/universities-in-malaysia?${params.toString()}`
+      const localUrl = `${LOCAL_UNIVERSITIES_API}?${params.toString()}`
+      let res = await fetch(localUrl, { cache: 'no-store' })
+      if (!res.ok && API_BASE) {
+        res = await fetch(remoteUrl, {
+          headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
+        })
+      }
       if (!res.ok) throw new Error('Failed university listing request')
       const json = await res.json()
 
@@ -329,7 +360,10 @@ export default function UniversityListClient({
       setTotal(totalCount)
       setLastPage(last)
 
-      sessionStorage.setItem(cacheKey, JSON.stringify({ data: rows, total: totalCount, last_page: last }))
+      if (USE_CLIENT_CACHE) {
+        const cacheKey = `uni_list_${normalizedTypeSlug}_p${page}_q${q}_s${state}_t${instType}`
+        sessionStorage.setItem(cacheKey, JSON.stringify({ data: rows, total: totalCount, last_page: last }))
+      }
     } catch {
       setUniversities([])
       setTotal(0)
@@ -337,7 +371,7 @@ export default function UniversityListClient({
     } finally {
       setIsLoading(false)
     }
-  }, [normalizedTypeSlug, perPage, defaultInstituteType])
+  }, [effectiveTypeSlug, perPage, defaultInstituteType])
 
   useEffect(() => {
     // Use SSR data for first paint, then fetch when user changes controls
@@ -349,7 +383,7 @@ export default function UniversityListClient({
       return
     }
     fetchUniversities(currentPage, debouncedSearch, filterState, filterType)
-  }, [currentPage, debouncedSearch, filterState, filterType, fetchUniversities, initialData, initialTotal, initialLastPage, defaultInstituteType])
+  }, [currentPage, debouncedSearch, filterState, filterType, fetchUniversities, defaultInstituteType, initialData.length, initialTotal, initialLastPage])
 
   const handleReset = () => {
     setSearch('')
