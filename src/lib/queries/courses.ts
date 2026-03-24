@@ -5,7 +5,7 @@ import { serializeBigInt } from '@/lib/utils'
 export const getAllCourseCategorySlugs = unstable_cache(
   () =>
     prisma.courseCategory.findMany({
-      where: { status: true as any },
+      where: { status: 1 as any },
       select: { slug: true },
     }).then(rows => rows.map(r => r.slug).filter(Boolean) as string[]),
   ['course-category-slugs'],
@@ -15,15 +15,20 @@ export const getAllCourseCategorySlugs = unstable_cache(
 export const getCourseCategory = unstable_cache(
   (slug: string) =>
     prisma.courseCategory.findFirst({
-      where: { slug, status: true as any },
-      include: {
-        contents: { orderBy: { position: 'asc' } },
-        faqs: { orderBy: { id: 'asc' } },
-        specializations: {
-          where: { status: true as any },
-          select: { id: true, name: true, slug: true },
-          orderBy: { name: 'asc' },
-        },
+      where: { slug, status: 1 as any },
+      // IMPORTANT:
+      // Do NOT use `include` here because Prisma then fetches all scalar
+      // columns from `course_categories` (including schema-drifted columns
+      // like `description` that do not exist in current DB).
+      // Keep explicit, schema-safe selects only.
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        meta_title: true,
+        meta_description: true,
+        meta_keyword: true,
+        og_image_path: true,
       },
     }).then(serializeBigInt),
   ['course-category-detail'],
@@ -33,13 +38,13 @@ export const getCourseCategory = unstable_cache(
 export const getAllCourseCategories = unstable_cache(
   () =>
     prisma.courseCategory.findMany({
-      where: { status: true as any },
+      where: { status: 1 as any },
       select: {
         id: true,
         name: true,
         slug: true,
         og_image_path: true,
-        _count: { select: { programs: { where: { status: true as any } } } },
+        _count: { select: { programs: { where: { status: 1 as any } } } },
       },
       orderBy: { name: 'asc' },
     }).then(serializeBigInt),

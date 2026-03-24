@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
@@ -13,7 +12,6 @@ interface PopularCoursesProps {
 }
 
 const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
-  const router = useRouter();
   const [data, setData] = useState<any>({});
   const [loading, setLoading] = useState(true);
 
@@ -220,7 +218,8 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
 
             <div className="text-right">
               <button
-                onClick={() => router.push("/courses")}
+                type="button"
+                onClick={() => window.location.assign('/courses?from=popular-courses')}
                 className="bg-[#003366] text-white px-4 sm:px-5 py-2 text-xs sm:text-sm rounded-full hover:bg-[#002244] transition font-medium cursor-pointer"
               >
                 View All

@@ -92,13 +92,8 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: "/courses",
-        destination: "/courses-in-malaysia",
-        permanent: true,
-      },
-      {
         source: "/select-level",
-        destination: "/courses-in-malaysia",
+        destination: "/courses",
         permanent: true,
       },
     ];

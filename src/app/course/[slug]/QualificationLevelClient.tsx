@@ -9,8 +9,18 @@ import {
   ChevronUp,
 } from 'lucide-react'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
+const COURSE_PLACEHOLDER = '/course-placeholder.svg'
+
+function resolveCategoryImage(path?: string | null) {
+  const raw = String(path || '').trim()
+  if (!raw) return COURSE_PLACEHOLDER
+
+  if (/^https?:\/\//i.test(raw)) return raw
+  if (raw.startsWith('/storage/')) return `${IMAGE_BASE}${raw}`
+  if (raw.startsWith('storage/')) return `${IMAGE_BASE}/${raw}`
+  return `${IMAGE_BASE}/storage/${raw.replace(/^\/+/, '')}`
+}
 
 interface QualificationLevelClientProps {
   slug: string
@@ -26,7 +36,7 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE}/courses-in-malaysia/level-content/${slug}`)
+        const res = await fetch(`/api/courses/level/${slug}`, { cache: 'no-store' })
         if (!res.ok) throw new Error('Failed to fetch')
         const json = await res.json()
         setData(json.data || json)
@@ -156,8 +166,12 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
                 >
                   <div className="md:flex">
                     <img
-                      src={card.thumbnail_path ? `${IMAGE_BASE}/storage/${card.thumbnail_path}` : "https://via.placeholder.com/300x200?text=Course"}
+                      src={resolveCategoryImage(card.thumbnail_path)}
                       alt={card.name}
+                      onError={(e) => {
+                        const target = e.currentTarget
+                        if (target.src !== COURSE_PLACEHOLDER) target.src = COURSE_PLACEHOLDER
+                      }}
                       className="w-full md:w-1/3 object-cover h-64 md:h-72"
                     />
                     <div className="p-6 flex flex-col justify-center flex-1">

@@ -1,7 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumb from '@/components/Breadcrumb'
 import { 
   FaUserGraduate,
@@ -58,6 +59,15 @@ const qualificationLevels = [
 ]
 
 export default function QualificationsHubClient() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get('from') === 'popular-courses') {
+      router.replace('/courses', { scroll: false })
+    }
+  }, [router, searchParams])
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Courses', href: '/courses' },
