@@ -61,7 +61,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const title = rawSeoTitle && rawSeoTitle !== '%title%' && !isGenericSeoTitle
     ? rawSeoTitle
     : slugTitle
-  const description = result.seo?.meta_description || result.seo?.page_contents ||
+  const description = result.seo?.meta_description || result.seo?.page_content ||
     `Page ${page} of courses and programs offered at universities across Malaysia.`
   const effectiveSeo = isGenericSeoTitle
     ? { ...result.seo, meta_title: String(title), meta_description: description }
@@ -99,13 +99,13 @@ export default async function DynamicCoursesPageWithPagination({ params, searchP
   
   if (levelMatch) {
     filterType = 'levels'
-    filterValue = levelMatch.level
+    filterValue = levelMatch.level || slug
   } else if (categoryMatch) {
     filterType = 'categories'
-    filterValue = categoryMatch.name
+    filterValue = categoryMatch.name || slug
   } else if (specializationMatch) {
     filterType = 'specializations'
-    filterValue = specializationMatch.name
+    filterValue = specializationMatch.name || slug
   }
 
   const serviceParams: any = {

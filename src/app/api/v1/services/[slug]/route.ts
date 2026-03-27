@@ -10,7 +10,7 @@ async function getHandler(
   { params }: { params: { slug: string } }
 ) {
   try {
-    const data = await serviceService.getServiceDetail(params.slug);
+    const data = await serviceService.getServiceBySlug(params.slug);
     if (!data) return apiError('Service not found', 404);
     
     return apiSuccess(data, 'Service details fetched successfully');

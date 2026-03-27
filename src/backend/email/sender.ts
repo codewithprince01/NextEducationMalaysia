@@ -11,13 +11,31 @@ let _transporter: nodemailer.Transporter | null = null;
 function getTransporter(): nodemailer.Transporter {
   if (_transporter) return _transporter;
 
+  const host = process.env.SMTP_HOST || process.env.MAIL_HOST || 'smtp.gmail.com';
+  const port = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587);
+  const user = process.env.SMTP_USER || process.env.MAIL_USERNAME;
+  const pass = process.env.SMTP_PASS || process.env.MAIL_PASSWORD;
+  const encryption = (process.env.SMTP_ENCRYPTION || process.env.MAIL_ENCRYPTION || '').toLowerCase();
+  const explicitSecure = process.env.SMTP_SECURE || process.env.MAIL_SECURE;
+  const secure =
+    explicitSecure != null && explicitSecure !== ''
+      ? explicitSecure === 'true' || explicitSecure === '1'
+      : port === 465 || encryption === 'ssl' || encryption === 'smtps';
+
   _transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === 'true',
+    host,
+    port,
+    secure,
+    requireTLS: !secure && encryption === 'tls',
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user,
+      pass,
+    },
+    tls: {
+      rejectUnauthorized: false,
     },
   });
 
@@ -47,8 +65,17 @@ export interface MailOptions {
  */
 export async function sendMail(options: MailOptions): Promise<void> {
   const transporter = getTransporter();
-  const fromName = process.env.SMTP_FROM_NAME ?? 'Education Malaysia';
-  const fromEmail = process.env.SMTP_FROM_EMAIL ?? process.env.SMTP_USER ?? '';
+  const fromName =
+    process.env.SMTP_FROM_NAME ??
+    process.env.MAIL_FROM_NAME ??
+    'Education Malaysia';
+  const fromEmail =
+    process.env.SMTP_FROM_EMAIL ??
+    process.env.MAIL_FROM ??
+    process.env.MAIL_FROM_ADDRESS ??
+    process.env.SMTP_USER ??
+    process.env.MAIL_USERNAME ??
+    '';
 
   await transporter.sendMail({
     from: `"${fromName}" <${fromEmail}>`,

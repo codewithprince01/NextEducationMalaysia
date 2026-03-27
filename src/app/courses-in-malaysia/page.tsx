@@ -46,12 +46,12 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const title = result.seo?.meta_title && result.seo.meta_title !== '%title%'
     ? result.seo.meta_title
     : DEFAULT_META.title
-  const description = result.seo?.meta_description || result.seo?.page_contents || DEFAULT_META.description
+  const description = result.seo?.meta_description || result.seo?.page_content || DEFAULT_META.description
 
   return buildCoursesDiscoveryMetadata({
     seo: result.seo,
     fallbackTitle: String(title),
-    fallbackDescription: description,
+    fallbackDescription: String(description ?? ''),
     canonicalPath: '/courses-in-malaysia',
   })
 }

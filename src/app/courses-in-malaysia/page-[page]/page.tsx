@@ -46,7 +46,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const title = result.seo?.meta_title && result.seo.meta_title !== '%title%'
     ? result.seo.meta_title
     : `Courses in Malaysia - Page ${page} | Education Malaysia`
-  const description = result.seo?.meta_description || result.seo?.page_contents ||
+  const description = result.seo?.meta_description || result.seo?.page_content ||
     `Page ${page} of courses and programs offered at universities across Malaysia. Find your ideal course today.`
   
   return buildCoursesDiscoveryMetadata({

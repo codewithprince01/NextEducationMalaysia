@@ -14,7 +14,7 @@ export async function GET(
       FROM universities
       WHERE uname = ? AND status = 1
       LIMIT 1
-    `, slug) as Promise<any[]>
+    `, slug) as any[]
 
     if (!uniRow.length) {
       return NextResponse.json({ error: 'University not found' }, { status: 404 })

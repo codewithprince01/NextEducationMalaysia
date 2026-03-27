@@ -7,7 +7,7 @@ export const GET = withMiddleware(checkApiKey)(async (request: Request) => {
   if (authResult instanceof NextResponse) return authResult;
 
   try {
-    const result = await studentProfileService.getAppliedPrograms(authResult.student.sub);
+    const result = await studentProfileService.getAppliedPrograms(Number(authResult.student.sub));
     return apiSuccess(result.data, result.message);
   } catch (error: any) {
     return apiError(error.message || 'Failed to fetch applied programs', 500);

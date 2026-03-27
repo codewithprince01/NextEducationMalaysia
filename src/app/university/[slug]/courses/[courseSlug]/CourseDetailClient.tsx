@@ -18,12 +18,12 @@ import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import UniversityCoursesCard from '@/components/university/UniversityCoursesCard'
 import PopularCourses from '@/components/university/PopularCourses'
-import PopupForm from '@/components/modals/PopupForm'
 import AuthModal from '@/components/modals/AuthModal'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 interface CourseDetailClientProps {
   slug: string
@@ -44,8 +44,6 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
   
   // Modal states
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [isPopupFormOpen, setIsPopupFormOpen] = useState(false)
-  const [popupFormType, setPopupFormType] = useState<'brochure' | 'fee' | 'apply' | 'counselling'>('brochure')
 
   useEffect(() => {
     const checkApplicationStatus = async () => {
@@ -53,10 +51,17 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
         const token = localStorage.getItem('token')
         if (token && program?.id) {
            const appliedRes: any = await axios.get(`${API_BASE}/student/applied-college`, {
-             headers: { Authorization: `Bearer ${token}` }
+             headers: {
+               Authorization: `Bearer ${token}`,
+               ...(API_KEY ? { 'x-api-key': API_KEY } : {})
+             }
            });
-           const appliedCourses = appliedRes.data?.data || [];
-           const alreadyApplied = appliedCourses.some((c: any) => c.program_id === program.id);
+           const appliedCourses = Array.isArray(appliedRes?.data?.data?.applied_programs)
+             ? appliedRes.data.data.applied_programs
+             : Array.isArray(appliedRes?.data?.applied_programs)
+               ? appliedRes.data.applied_programs
+               : [];
+           const alreadyApplied = appliedCourses.some((c: any) => Number(c?.prog_id) === Number(program.id));
            setIsApplied(alreadyApplied);
         }
       } catch (err) {
@@ -81,7 +86,10 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
   const applyDirectly = async (token: string) => {
     try {
       await axios.get(`${API_BASE}/student/apply-program/${courseDetails.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(API_KEY ? { 'x-api-key': API_KEY } : {})
+        }
       });
       toast.success("Applied successfully!");
       setIsApplied(true);
@@ -95,11 +103,6 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
     }
   }
 
-  const handlePopupRequest = (type: 'brochure' | 'fee') => {
-    setPopupFormType(type)
-    setIsPopupFormOpen(true)
-  }
-
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Universities', href: '/universities' },
@@ -111,8 +114,20 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
 
   if (!courseDetails) return null
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const element =
+        document.getElementById('course-summary-card') ||
+        document.getElementById('course-detail-section')
+      if (!element) return
+      const y = element.getBoundingClientRect().top + window.pageYOffset - 92
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+    }, 120)
+    return () => clearTimeout(timer)
+  }, [slug, courseSlug])
+
   return (
-    <div className="min-h-screen bg-transparent">
+    <div id="course-detail-section" className="min-h-screen bg-transparent scroll-mt-24">
       
       <div className="py-6 px-1 lg:px-6">
         <div className="max-w-7xl mx-auto">
@@ -128,7 +143,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
               </button>
 
               {/* Summary card */}
-              <div className="bg-white rounded-lg p-6 border border-gray-300 shadow-sm">
+              <div id="course-summary-card" className="bg-white rounded-lg p-6 border border-gray-300 shadow-sm">
                 <h1 className="text-xl font-medium text-gray-800 mb-6">
                   {courseDetails.course_name} Fees Structure, Admission, Intake, Deadline
                 </h1>
@@ -173,22 +188,16 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
                     onClick={handleApplyNow}
                     disabled={isApplied}
                     className={`px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer ${
-                      isApplied ? 'bg-green-600 text-white cursor-default' : 'bg-blue-600 text-white hover:bg-blue-700'
+                      isApplied ? 'bg-green-600 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                   >
                     {isApplied ? 'Applied' : 'Apply Now'}
                   </button>
                   <button
-                    onClick={() => handlePopupRequest('brochure')}
-                    className="bg-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors text-center cursor-pointer"
+                    onClick={() => router.push(`/university/${slug}/courses`)}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors text-center cursor-pointer"
                   >
-                    Download Brochure
-                  </button>
-                  <button
-                    onClick={() => handlePopupRequest('fee')}
-                    className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors text-center cursor-pointer"
-                  >
-                    Fee Structure
+                    View all courses
                   </button>
                 </div>
               </div>
@@ -275,16 +284,6 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
         onClose={() => setIsAuthModalOpen(false)} 
         courseId={courseDetails.id}
         onSuccess={() => setIsApplied(true)}
-      />
-      <PopupForm
-        isOpen={isPopupFormOpen}
-        onClose={() => setIsPopupFormOpen(false)}
-        formType={popupFormType}
-        universityData={courseDetails.university || {
-          id: courseDetails.university_id,
-          name: courseDetails.university_name,
-          logo_path: courseDetails.university_logo
-        }}
       />
     </div>
   )

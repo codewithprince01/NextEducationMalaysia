@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { BiConversation } from "react-icons/bi";
 import { MdPersonSearch } from "react-icons/md";
 import {
@@ -15,11 +15,11 @@ import {
 import { useAuth } from "@/context/AuthContext";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 export default function StudentSidebar() {
   const { logout, user } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
   const [studentData, setStudentData] = useState<any>(null);
 
   useEffect(() => {
@@ -31,10 +31,17 @@ export default function StudentSidebar() {
         const res = await fetch(`${API_BASE}/student/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
+            ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
           },
         });
         const data = await res.json();
-        setStudentData(data.data.student);
+        if (res.ok && data?.data?.student) {
+          setStudentData(data.data.student);
+        } else if (res.status === 401) {
+          console.warn("Profile fetch unauthorized, clearing session.");
+          logout();
+          router.push("/login");
+        }
       } catch (err) {
         console.error("Profile fetch error:", err);
       }
@@ -48,7 +55,10 @@ export default function StudentSidebar() {
     try {
       await fetch(`${API_BASE}/student/logout`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+        },
       });
     } catch (error) {
       console.error("Logout failed:", error);
@@ -67,7 +77,7 @@ export default function StudentSidebar() {
   ];
 
   return (
-    <div className="w-full md:w-1/4 bg-gradient-to-b from-blue-800 via-blue-700 to-blue-900 text-white rounded-2xl p-8 shadow-2xl flex flex-col items-center h-fit sticky top-24">
+    <div className="w-full md:w-1/4 bg-gradient-to-b from-blue-800 via-blue-700 to-blue-900 text-white rounded-2xl p-8 shadow-2xl flex flex-col items-center">
       {/* Profile Section */}
       <div className="relative">
         <FaUserCircle className="w-28 h-28 text-white drop-shadow-lg" />
@@ -90,11 +100,7 @@ export default function StudentSidebar() {
           <Link
             key={link.href}
             href={link.href}
-            className={`flex items-center gap-3 w-full backdrop-blur-sm text-white rounded-xl py-3 px-4 shadow transition ${
-              pathname === link.href 
-                ? "bg-white/30 font-bold border border-white/20" 
-                : "bg-white/10 hover:bg-white/20"
-            }`}
+            className="flex items-center gap-3 w-full bg-white/10 backdrop-blur-sm text-white rounded-xl py-3 px-4 shadow hover:bg-white/20 transition"
           >
             {link.icon} {link.label}
           </Link>

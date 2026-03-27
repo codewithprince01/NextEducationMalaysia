@@ -26,38 +26,51 @@ export class ApplicationService {
   async applyProgram(studentId: bigint, programId: string | number | bigint) {
     const progId = BigInt(programId);
 
-    // Fetch program info to populate required fields
-    const program = await prisma.universityProgram.findUnique({
-      where: { id: progId },
-      select: { course_name: true, uname: true }
-    });
+    const [program] = await prisma.$queryRawUnsafe(
+      `SELECT course_name, uname FROM university_programs WHERE id = ? LIMIT 1`,
+      Number(progId)
+    ) as any[];
 
-    // Check if already applied
-    const existing = await prisma.student_applications.findFirst({
-      where: { stdid: studentId, prog_id: progId }
-    });
-    if (existing) throw new Error('ALREADY_APPLIED');
+    if (!program) {
+      throw new Error('PROGRAM_NOT_FOUND');
+    }
 
-    // Fetch student name for the required std_name field
-    const student = await prisma.leads.findUnique({
-      where: { id: studentId },
-      select: { name: true }
-    });
+    const existingRows = await prisma.$queryRawUnsafe(
+      `SELECT id FROM student_applications WHERE stdid = ? AND prog_id = ? LIMIT 1`,
+      Number(studentId),
+      Number(progId)
+    ) as any[];
+    if (existingRows.length > 0) throw new Error('ALREADY_APPLIED');
 
-    return await prisma.student_applications.create({
-      data: {
-        stdid: studentId,
-        prog_id: progId,
-        program: program?.course_name?.substring(0, 50) || 'N/A',
-        university: program?.uname?.substring(0, 50) ?? null,
-        status: STATUS_APPLIED,
-        std_name: student?.name || 'Student',
-        payment_date: 'N/A',
-        recruitment_by: 'Portal',
-        sent_status: 'not_sent',
-        website: SITE_VAR
-      }
-    });
+    const [student] = await prisma.$queryRawUnsafe(
+      `SELECT name FROM leads WHERE id = ? LIMIT 1`,
+      Number(studentId)
+    ) as any[];
+
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO student_applications
+        (stdid, prog_id, program, university, status, app_status, std_name, payment_date, recruitment_by, stage, sent_status, website)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      Number(studentId),
+      Number(progId),
+      String(program?.course_name || 'N/A').substring(0, 50),
+      program?.uname ? String(program.uname).substring(0, 50) : null,
+      STATUS_APPLIED ? 1 : 0,
+      'Not-Paid',
+      String(student?.name || 'Student'),
+      'N/A',
+      'Portal',
+      'Pre-Payment',
+      'not-sent',
+      SITE_VAR
+    );
+
+    const createdRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM student_applications WHERE stdid = ? AND prog_id = ? ORDER BY id DESC LIMIT 1`,
+      Number(studentId),
+      Number(progId)
+    ) as any[];
+    return createdRows[0] || null;
   }
 
   /**
@@ -66,37 +79,50 @@ export class ApplicationService {
   async shortlistProgram(studentId: bigint, programId: string | number | bigint) {
     const progId = BigInt(programId);
 
-    // Fetch program info
-    const program = await prisma.universityProgram.findUnique({
-      where: { id: progId },
-      select: { course_name: true, uname: true }
-    });
+    const [program] = await prisma.$queryRawUnsafe(
+      `SELECT course_name, uname FROM university_programs WHERE id = ? LIMIT 1`,
+      Number(progId)
+    ) as any[];
+    if (!program) {
+      throw new Error('PROGRAM_NOT_FOUND');
+    }
 
-    // Check if already exists
-    const existing = await prisma.student_applications.findFirst({
-      where: { stdid: studentId, prog_id: progId }
-    });
-    if (existing) throw new Error('ALREADY_SHORTLISTED_OR_APPLIED');
+    const existingRows = await prisma.$queryRawUnsafe(
+      `SELECT id FROM student_applications WHERE stdid = ? AND prog_id = ? LIMIT 1`,
+      Number(studentId),
+      Number(progId)
+    ) as any[];
+    if (existingRows.length > 0) throw new Error('ALREADY_SHORTLISTED_OR_APPLIED');
 
-    const student = await prisma.leads.findUnique({
-      where: { id: studentId },
-      select: { name: true }
-    });
+    const [student] = await prisma.$queryRawUnsafe(
+      `SELECT name FROM leads WHERE id = ? LIMIT 1`,
+      Number(studentId)
+    ) as any[];
 
-    return await prisma.student_applications.create({
-      data: {
-        stdid: studentId,
-        prog_id: progId,
-        program: program?.course_name?.substring(0, 50) || 'N/A',
-        university: program?.uname?.substring(0, 50) ?? null,
-        status: STATUS_SHORTLISTED,
-        std_name: student?.name || 'Student',
-        payment_date: 'N/A',
-        recruitment_by: 'Portal',
-        sent_status: 'not_sent',
-        website: SITE_VAR
-      }
-    });
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO student_applications
+        (stdid, prog_id, program, university, status, app_status, std_name, payment_date, recruitment_by, stage, sent_status, website)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      Number(studentId),
+      Number(progId),
+      String(program?.course_name || 'N/A').substring(0, 50),
+      program?.uname ? String(program.uname).substring(0, 50) : null,
+      STATUS_SHORTLISTED ? 1 : 0,
+      'Not-Paid',
+      String(student?.name || 'Student'),
+      'N/A',
+      'Portal',
+      'Pre-Payment',
+      'not-sent',
+      SITE_VAR
+    );
+
+    const createdRows = await prisma.$queryRawUnsafe(
+      `SELECT * FROM student_applications WHERE stdid = ? AND prog_id = ? ORDER BY id DESC LIMIT 1`,
+      Number(studentId),
+      Number(progId)
+    ) as any[];
+    return createdRows[0] || null;
   }
 
   /**
@@ -105,10 +131,16 @@ export class ApplicationService {
   async deleteApplication(applicationId: string | number | bigint) {
     const id = BigInt(applicationId);
 
-    const application = await prisma.student_applications.findUnique({ where: { id } });
-    if (!application) throw new Error('NOT_FOUND');
+    const existingRows = await prisma.$queryRawUnsafe(
+      `SELECT id FROM student_applications WHERE id = ? LIMIT 1`,
+      Number(id)
+    ) as any[];
+    if (existingRows.length === 0) throw new Error('NOT_FOUND');
 
-    await prisma.student_applications.delete({ where: { id } });
+    await prisma.$executeRawUnsafe(
+      `DELETE FROM student_applications WHERE id = ?`,
+      Number(id)
+    );
     return true;
   }
 }

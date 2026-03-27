@@ -3,33 +3,39 @@ import { prisma } from '@/lib/db'
 
 export async function GET() {
   try {
+    const website = process.env.SITE_VAR || 'MYS'
     const [universityRanks, testimonials] = await Promise.all([
-      prisma.university.findMany({
-        where: {
-          status: true,
-          homeview: true,
-          OR: [
-            { qs_rank: { not: '' } },
-            { times_rank: { not: '' } },
-            { qs_asia_rank: { not: '' } },
-          ],
-        },
-        select: {
-          id: true,
-          name: true,
-          uname: true,
-          qs_rank: true,
-          times_rank: true,
-          qs_asia_rank: true,
-          _count: {
-            select: { programs: { where: { status: true } } }
-          }
-        },
-        orderBy: { qs_rank: 'asc' },
-        take: 30,
-      }),
+      prisma.$queryRawUnsafe(
+        `
+        SELECT
+          u.id,
+          u.name,
+          u.uname,
+          u.qs_rank,
+          u.times_rank,
+          u.qs_asia_rank,
+          (
+            SELECT COUNT(*)
+            FROM university_programs up
+            WHERE up.university_id = u.id
+              AND up.status = 1
+          ) AS programs_count
+        FROM universities u
+        WHERE u.status = 1
+          AND u.homeview = 1
+          AND u.website = ?
+          AND (
+            COALESCE(TRIM(u.qs_rank), '') <> ''
+            OR COALESCE(TRIM(u.times_rank), '') <> ''
+            OR COALESCE(TRIM(u.qs_asia_rank), '') <> ''
+          )
+        ORDER BY CAST(NULLIF(u.qs_rank, '') AS UNSIGNED) ASC, u.name ASC
+        LIMIT 30
+        `,
+        website,
+      ) as Promise<any[]>,
       prisma.review.findMany({
-        where: { status: true },
+        where: { status: 1 as any },
         include: {
            university: { select: { name: true, uname: true } }
         },
@@ -45,7 +51,7 @@ export async function GET() {
         universityRanks: universityRanks.map((u: any) => ({
           ...u,
           id: Number(u.id),
-          _count: { programs: Number(u._count?.programs || 0) }
+          _count: { programs: Number(u.programs_count || 0) }
         })),
         testimonials: testimonials.map((t: any) => ({
           ...t,

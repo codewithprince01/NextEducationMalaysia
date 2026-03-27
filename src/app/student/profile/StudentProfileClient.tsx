@@ -1,25 +1,32 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
+import React, { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import PersonalInfoForm from "@/components/student/PersonalInfoForm";
 import EducationForm from "@/components/student/EducationForm";
 import TestScoresForm from "@/components/student/TestScoresForm";
 import BackgroundForm from "@/components/student/BackgroundForm";
 import DocumentUploadForm from "@/components/student/DocumentUploadForm";
 import {
+  validateDateOfBirth,
   validateEmail,
+  validateName,
+  validatePassport,
+  validatePhone,
   validateRequired,
+  validateSelect,
+  validateZipcode,
 } from "@/utils/validation";
-import { toast } from "react-toastify";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://admin.educationmalaysia.in/api";
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || "";
 
 const INITIAL_FORM = {
   name: "",
   email: "",
   mobile: "",
   c_code: "",
+  country_code: "",
   father: "",
   mother: "",
   dob: "",
@@ -41,55 +48,122 @@ const TABS = [
   { id: "general", label: "General Information" },
   { id: "education", label: "Education History" },
   { id: "testScores", label: "Test Scores" },
-  { id: "background", label: "Background Information" },
-  { id: "documents", label: "Upload Documents" },
+  { id: "Background Information", label: "Background Information" },
+  { id: "Upload Documents", label: "Upload Documents" },
 ];
 
 export default function StudentProfileClient() {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("general");
   const [formData, setFormData] = useState<any>(INITIAL_FORM);
   const [errors, setErrors] = useState<any>({});
   const [touched, setTouched] = useState<any>({});
+  const [student, setStudent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [countriesData, setCountriesData] = useState<any[]>([]);
   const [phoneCode, setPhoneCode] = useState<any[]>([]);
 
+  const refs = {
+    general: useRef<HTMLDivElement | null>(null),
+    education: useRef<HTMLDivElement | null>(null),
+    testScores: useRef<HTMLDivElement | null>(null),
+    "Background Information": useRef<HTMLDivElement | null>(null),
+    "Upload Documents": useRef<HTMLDivElement | null>(null),
+  };
+
   useEffect(() => {
-    const loadData = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      window.location.href = "/login";
+      return;
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      ...(API_KEY ? { "x-api-key": API_KEY } : {}),
+    };
+
+    const loadProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-
-        const [pRes, cRes, pcRes] = await Promise.all([
-          fetch(`${API_BASE}/student/profile`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-          fetch(`${API_BASE}/countries`).then(r => r.json()),
-          fetch(`${API_BASE}/phonecodes`).then(r => r.json())
-        ]);
-
-        const safeArray = (res: any) => Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-        
-        if (pRes.data?.student) {
-          setFormData({ ...INITIAL_FORM, ...pRes.data.student });
+        const res = await fetch(`${API_BASE}/student/profile`, { headers });
+        const json = await res.json();
+        if (!res.ok || !json?.data?.student) {
+          toast.error(json?.message || "Failed to load profile");
+          return;
         }
-        setCountriesData(safeArray(cRes));
-        setPhoneCode(safeArray(pcRes));
-      } catch (error) {
-        console.error("Error loading profile data:", error);
+
+        const studentData = json.data.student;
+        setStudent(studentData);
+        setFormData({
+          ...INITIAL_FORM,
+          ...studentData,
+          c_code: studentData.c_code || studentData.country_code || "",
+          country_code: studentData.country_code || studentData.c_code || "",
+        });
+      } catch (err) {
+        toast.error("Failed to load profile detail");
       } finally {
         setLoading(false);
       }
     };
-    loadData();
+
+    const loadMeta = async () => {
+      try {
+        const [countriesRes, phoneRes] = await Promise.all([
+          fetch(`${API_BASE}/countries`, { headers: API_KEY ? { "x-api-key": API_KEY } : undefined }).then((r) => r.json()),
+          fetch(`${API_BASE}/phonecodes`, { headers: API_KEY ? { "x-api-key": API_KEY } : undefined }).then((r) => r.json()),
+        ]);
+        const safeArray = (res: any) => (Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : []);
+        setCountriesData(safeArray(countriesRes));
+        setPhoneCode(safeArray(phoneRes));
+      } catch (err) {
+        console.error("Error fetching profile meta:", err);
+      }
+    };
+
+    loadProfile();
+    loadMeta();
+  }, []);
+
+  useEffect(() => {
+    const handler = () => {
+      for (const [id, ref] of Object.entries(refs)) {
+        const el = ref.current;
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 180 && rect.bottom >= 180) {
+            setActiveTab((prev) => (prev !== id ? id : prev));
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener("scroll", handler);
+    return () => window.removeEventListener("scroll", handler);
   }, []);
 
   const validateField = (name: string, value: any) => {
     let error = "";
-    if (name === "name") error = validateRequired(value, "Full name");
+    if (name === "name") error = validateName(value, "Full name");
     else if (name === "email") error = validateEmail(value);
-    else if (["mobile", "father", "mother", "dob", "nationality", "home_address", "city", "state", "country", "zipcode"].includes(name)) {
-      error = validateRequired(value, name.replace('_', ' '));
-    }
+    else if (name === "mobile") error = validatePhone(value, "Mobile number");
+    else if (name === "home_contact_number") error = validatePhone(value, "Home contact number");
+    else if (name === "c_code") error = validateSelect(value, "code");
+    else if (name === "nationality") error = validateSelect(value, "nationality");
+    else if (name === "country") error = validateSelect(value, "country");
+    else if (name === "marital_status") error = validateSelect(value, "marital status");
+    else if (name === "gender") error = validateSelect(value, "gender");
+    else if (name === "father") error = validateName(value, "Father name");
+    else if (name === "mother") error = validateName(value, "Mother name");
+    else if (name === "dob") error = validateDateOfBirth(value, "Date of birth");
+    else if (name === "first_language") error = validateRequired(value, "First language");
+    else if (name === "home_address") error = validateRequired(value, "Home address");
+    else if (name === "city") error = validateRequired(value, "City");
+    else if (name === "state") error = validateRequired(value, "State");
+    else if (name === "passport_expiry") error = validateRequired(value, "Passport expiry");
+    else if (name === "passport_number") error = validatePassport(value);
+    else if (name === "zipcode") error = validateZipcode(value);
+
     setErrors((p: any) => ({ ...p, [name]: error }));
     return error;
   };
@@ -108,125 +182,175 @@ export default function StudentProfileClient() {
   };
 
   const handleNationalityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    setFormData((p: any) => ({ ...p, nationality: val }));
-    // Auto-sync country code
-    if (val && Array.isArray(countriesData)) {
-      const match = countriesData.find(c => c.name?.toLowerCase() === val.toLowerCase());
+    const selectedCountry = e.target.value;
+    setFormData((p: any) => ({ ...p, nationality: selectedCountry }));
+    if (selectedCountry && Array.isArray(countriesData)) {
+      const match = countriesData.find((c) => c.name?.toLowerCase() === selectedCountry.toLowerCase());
       if (match && Array.isArray(phoneCode)) {
-        const codeMatch = phoneCode.find(c => c.iso === match.code || c.name?.toLowerCase() === match.name?.toLowerCase());
-        if (codeMatch) setFormData((p: any) => ({ ...p, c_code: codeMatch.phonecode }));
+        const codeMatch = phoneCode.find(
+          (c) => c.iso === match.code || c.name?.toLowerCase() === match.name?.toLowerCase(),
+        );
+        if (codeMatch) {
+          setFormData((p: any) => ({
+            ...p,
+            c_code: codeMatch.phonecode,
+            country_code: codeMatch.phonecode,
+            nationality: selectedCountry,
+          }));
+        }
       }
     }
+    if (touched.nationality) validateField("nationality", selectedCountry);
   };
 
   const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    setFormData((p: any) => ({ ...p, c_code: val }));
-    if (val && Array.isArray(phoneCode)) {
-      const phoneMatch = phoneCode.find(c => String(c.phonecode) === String(val));
+    const selectedCode = e.target.value;
+    setFormData((p: any) => ({ ...p, c_code: selectedCode, country_code: selectedCode }));
+    if (selectedCode && Array.isArray(phoneCode)) {
+      const phoneMatch = phoneCode.find((c) => String(c.phonecode) === String(selectedCode));
       if (phoneMatch && Array.isArray(countriesData)) {
-        const countryMatch = countriesData.find(c => 
-          c.name?.toLowerCase() === phoneMatch.name?.toLowerCase() || 
-          c.name?.toLowerCase() === phoneMatch.country?.toLowerCase()
+        const countryMatch = countriesData.find(
+          (c) =>
+            c.name?.toLowerCase() === phoneMatch.name?.toLowerCase() ||
+            c.name?.toLowerCase() === phoneMatch.country?.toLowerCase(),
         );
-        if (countryMatch) setFormData((p: any) => ({ ...p, nationality: countryMatch.name }));
+        if (countryMatch) {
+          setFormData((p: any) => ({ ...p, nationality: countryMatch.name, c_code: selectedCode, country_code: selectedCode }));
+        }
       }
     }
+    if (touched.c_code) validateField("c_code", selectedCode);
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      "name",
+      "email",
+      "mobile",
+      "home_contact_number",
+      "c_code",
+      "father",
+      "mother",
+      "dob",
+      "first_language",
+      "nationality",
+      "passport_number",
+      "passport_expiry",
+      "marital_status",
+      "gender",
+      "home_address",
+      "city",
+      "state",
+      "country",
+      "zipcode",
+    ];
+    const newErrors: any = {};
+    requiredFields.forEach((k) => {
+      newErrors[k] = validateField(k, formData[k]);
+    });
+    setErrors(newErrors);
+    setTouched((prev: any) => ({ ...prev, ...Object.fromEntries(requiredFields.map((k) => [k, true])) }));
+    return !Object.values(newErrors).some(Boolean);
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      toast.error("Please fix the errors before submitting");
+      return;
+    }
     const token = localStorage.getItem("token");
+    if (!token) return;
+    const payload = {
+      ...formData,
+      country_code: formData.country_code || formData.c_code || "",
+    };
+
     try {
       const res = await fetch(`${API_BASE}/student/personal-information`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...(API_KEY ? { "x-api-key": API_KEY } : {}),
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload),
       });
-      if (res.ok) {
-        toast.success("Profile updated successfully! ✅");
-      } else {
-        toast.error("Failed to update profile.");
+      const json = await res.json();
+      if (!res.ok) {
+        toast.error(json?.message || "Failed to update profile");
+        return;
       }
-    } catch (error) {
-      toast.error("An error occurred.");
+      toast.success("Personal Information Updated Successfully!");
+    } catch (err) {
+      toast.error("Failed to update. Please try again.");
     }
   };
 
-  if (loading) return <div className="flex justify-center py-24"><div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
+  const handleCancel = () => setFormData(INITIAL_FORM);
+
+  const handleTabClick = (id: string, ref: React.RefObject<HTMLDivElement | null>) => {
+    setActiveTab(id);
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  if (loading) {
+    return (
+      <p className="text-center">
+        <span className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </p>
+    );
+  }
+
+  if (!student) {
+    return <p className="text-center mt-6 text-red-500">No profile data</p>;
+  }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Complete Profile</h1>
-          <p className="text-gray-500 mt-1 font-medium">Keep your professional and educational info up to date</p>
-        </div>
-      </div>
-
-      {/* Sticky Tabs */}
-      <div className="sticky top-0 md:top-4 z-40 bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-lg border border-white/20">
-        <div className="flex overflow-x-auto gap-2 scrollbar-hide">
-          {TABS.map((tab) => (
+    <div className="relative w-full bg-white rounded-2xl">
+      <div className="sticky top-14 z-20 bg-white border-b md:border-none shadow-sm md:shadow-none">
+        <div className="flex overflow-x-auto md:flex-wrap gap-3 py-3 px-4 text-sm font-semibold max-w-5xl mx-auto scrollbar-hide">
+          {TABS.map(({ id, label }) => (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-300 font-bold text-sm ${
-                activeTab === tab.id
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-600/30 scale-105"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-blue-600"
+              key={id}
+              onClick={() => handleTabClick(id, (refs as any)[id])}
+              className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-300 whitespace-nowrap ${
+                activeTab === id
+                  ? "bg-blue-100 text-blue-700 shadow-md"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-blue-600"
               }`}
             >
-              {tab.label}
+              {label}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="min-h-[500px]">
-        {activeTab === 'general' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <PersonalInfoForm
-              formData={formData}
-              errors={errors}
-              countriesData={countriesData}
-              phoneCode={phoneCode}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              onNationalityChange={handleNationalityChange}
-              onCountryCodeChange={handleCountryCodeChange}
-              onSave={handleSave}
-              onCancel={() => setFormData(INITIAL_FORM)}
-            />
-          </div>
-        )}
+      <div ref={refs.general} className="mb-10 pt-4">
+        <PersonalInfoForm
+          formData={formData}
+          errors={errors}
+          countriesData={countriesData}
+          phoneCode={phoneCode}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onNationalityChange={handleNationalityChange}
+          onCountryCodeChange={handleCountryCodeChange}
+          onSave={handleSave}
+          onCancel={handleCancel}
+        />
+      </div>
 
-        {activeTab === 'education' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <EducationForm />
-          </div>
-        )}
-
-        {activeTab === 'testScores' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <TestScoresForm />
-          </div>
-        )}
-
-        {activeTab === 'background' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <BackgroundForm />
-          </div>
-        )}
-
-        {activeTab === 'documents' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <DocumentUploadForm />
-          </div>
-        )}
+      <div ref={refs.education}>
+        <EducationForm />
+      </div>
+      <div ref={refs.testScores} className="mt-10">
+        <TestScoresForm />
+      </div>
+      <div ref={refs["Background Information"]} className="mt-10">
+        <BackgroundForm />
+      </div>
+      <div ref={refs["Upload Documents"]} className="mt-10">
+        <DocumentUploadForm />
       </div>
     </div>
   );

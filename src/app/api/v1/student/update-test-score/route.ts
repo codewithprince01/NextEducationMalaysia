@@ -17,7 +17,8 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
     return apiSuccess(null, result.message);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return apiError(error.errors[0].message, 422);
+      const first = error?.errors?.[0]?.message || error?.issues?.[0]?.message || 'Invalid request';
+      return apiError(first, 422);
     }
     return apiError(error.message || 'Failed to update test score', 500);
   }

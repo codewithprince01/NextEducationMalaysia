@@ -4,6 +4,7 @@ import { serializeBigInt } from '@/lib/utils'
 
 export const getHomePageData = unstable_cache(
   async () => {
+    const website = process.env.SITE_VAR || 'MYS'
     const [
       featuredOrHomeUniversities,
       trendingUniversities,
@@ -12,44 +13,49 @@ export const getHomePageData = unstable_cache(
       courseCategories,
       pageContent,
     ] = await Promise.all([
-      prisma.university.findMany({
-        where: {
-          status: 1 as any,
-          OR: [
-            { featured: 1 as any },
-            { homeview: 1 as any },
-          ],
-        },
-        select: {
-          id: true,
-          name: true,
-          uname: true,
-          logo_path: true,
-          banner_path: true,
-          city: true,
-          qs_rank: true,
-          rating: true,
-          instituteType: { select: { type: true } },
-        },
-        orderBy: { name: 'asc' },
-        take: 12,
-      }),
-      prisma.university.findMany({
-        where: { status: 1 as any },
-        select: {
-          id: true,
-          name: true,
-          uname: true,
-          logo_path: true,
-          banner_path: true,
-          city: true,
-          qs_rank: true,
-          rating: true,
-          instituteType: { select: { type: true } },
-        },
-        orderBy: [{ click: 'desc' }, { name: 'asc' }],
-        take: 12,
-      }),
+      prisma.$queryRawUnsafe(
+        `
+        SELECT
+          u.id,
+          u.name,
+          u.uname,
+          u.logo_path,
+          u.banner_path,
+          u.city,
+          u.qs_rank,
+          CAST(u.rating AS CHAR) AS rating,
+          it.type AS institute_type
+        FROM universities u
+        LEFT JOIN institute_types it ON it.id = u.institute_type
+        WHERE u.status = 1
+          AND u.website = ?
+          AND (u.featured = 1 OR u.homeview = 1)
+        ORDER BY u.name ASC
+        LIMIT 12
+        `,
+        website,
+      ) as Promise<any[]>,
+      prisma.$queryRawUnsafe(
+        `
+        SELECT
+          u.id,
+          u.name,
+          u.uname,
+          u.logo_path,
+          u.banner_path,
+          u.city,
+          u.qs_rank,
+          CAST(u.rating AS CHAR) AS rating,
+          it.type AS institute_type
+        FROM universities u
+        LEFT JOIN institute_types it ON it.id = u.institute_type
+        WHERE u.status = 1
+          AND u.website = ?
+        ORDER BY COALESCE(u.click, 0) DESC, u.name ASC
+        LIMIT 12
+        `,
+        website,
+      ) as Promise<any[]>,
       prisma.university.count({ where: { status: 1 as any } }),
       prisma.universityProgram.count({ where: { status: 1 as any } }),
       prisma.courseCategory.findMany({
@@ -57,10 +63,14 @@ export const getHomePageData = unstable_cache(
         select: { id: true, name: true, slug: true, og_image_path: true },
         orderBy: { name: 'asc' },
       }),
-      prisma.pageContent.findMany({
-        where: { page_name: 'home' },
-        orderBy: { id: 'asc' },
-      }),
+      prisma.$queryRawUnsafe(
+        `
+        SELECT id, page_name, heading, description, author_id, status, website, created_at, updated_at
+        FROM page_contents
+        WHERE page_name = 'home'
+        ORDER BY id ASC
+        `,
+      ) as Promise<any[]>,
     ])
 
     const featuredUniversities =
@@ -89,10 +99,15 @@ export const getPageBanner = unstable_cache(
 
 export const getPageContent = unstable_cache(
   (pageName: string) =>
-    prisma.pageContent.findMany({
-      where: { page_name: pageName },
-      orderBy: { id: 'asc' },
-    }),
+    prisma.$queryRawUnsafe(
+      `
+      SELECT id, page_name, heading, description, author_id, status, website, created_at, updated_at
+      FROM page_contents
+      WHERE page_name = ?
+      ORDER BY id ASC
+      `,
+      pageName,
+    ),
   ['page-content'],
   { revalidate: 43200 },
 )

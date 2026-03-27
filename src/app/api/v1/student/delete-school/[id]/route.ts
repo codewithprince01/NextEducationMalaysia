@@ -4,13 +4,14 @@ import {
 
 export const DELETE = withMiddleware(checkApiKey)(async (
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) => {
   const authResult = await requireAuth(request);
   if (authResult instanceof NextResponse) return authResult;
 
   try {
-    const schoolId = parseInt(params.id);
+    const { id } = await params;
+    const schoolId = parseInt(id, 10);
     if (isNaN(schoolId)) return apiError('Invalid school ID', 400);
 
     const result = await studentProfileService.deleteSchool(authResult.student.sub, schoolId);

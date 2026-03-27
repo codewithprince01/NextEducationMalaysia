@@ -63,7 +63,15 @@ const PersonalInfoForm = ({
         <div className="flex">
           <select name="c_code" value={formData.c_code || ''} onChange={onCountryCodeChange} onBlur={onBlur} className={`border rounded-l-xl p-3 focus:ring-2 outline-none transition ${errors.c_code ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}>
             <option value="">Code</option>
-            {Array.isArray(phoneCode) && phoneCode.map((code, idx) => (<option key={idx} value={code.phonecode}>+{code.phonecode}</option>))}
+            {Array.isArray(phoneCode) &&
+              phoneCode.map((code, idx) => (
+                <option
+                  key={`${code?.id ?? code?.iso ?? code?.phonecode ?? 'pc'}-${idx}`}
+                  value={code.phonecode}
+                >
+                  +{code.phonecode}
+                </option>
+              ))}
           </select>
           <input type="text" name="mobile" placeholder="Mobile" value={formData.mobile || ''} onChange={onChange} onBlur={onBlur} className={`border rounded-r-xl p-3 w-full focus:ring-2 outline-none transition ${errors.mobile ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`} />
         </div>
@@ -78,7 +86,15 @@ const PersonalInfoForm = ({
       <div className="space-y-1">
         <select name="nationality" value={formData.nationality || ''} onChange={onNationalityChange} onBlur={onBlur} className={inputCls(!!errors.nationality)}>
           <option value="">Country of Citizenship</option>
-          {Array.isArray(countriesData) && countriesData.map((c) => (<option key={c.code} value={c.name}>{c.name}</option>))}
+          {Array.isArray(countriesData) &&
+            countriesData.map((c, idx) => (
+              <option
+                key={`${c?.id ?? c?.code ?? c?.name ?? 'country'}-${idx}`}
+                value={c.name}
+              >
+                {c.name}
+              </option>
+            ))}
         </select>
         <FieldError msg={errors.nationality} />
       </div>
@@ -117,7 +133,15 @@ const PersonalInfoForm = ({
         <div className="space-y-1">
           <select name="country" value={formData.country || ''} onChange={onChange} onBlur={onBlur} className={inputCls(!!errors.country)}>
             <option value="">Select Country</option>
-            {Array.isArray(countriesData) && countriesData.map((c) => (<option key={c.id || c.code} value={c.name}>{c.name}</option>))}
+            {Array.isArray(countriesData) &&
+              countriesData.map((c, idx) => (
+                <option
+                  key={`${c?.id ?? c?.code ?? c?.name ?? 'country2'}-${idx}`}
+                  value={c.name}
+                >
+                  {c.name}
+                </option>
+              ))}
           </select>
           <FieldError msg={errors.country} />
         </div>

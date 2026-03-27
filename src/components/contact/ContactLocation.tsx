@@ -15,31 +15,31 @@ export default function ContactLocation({ locations }: { locations: Location[] }
       {locations.map((loc, index) => (
         <div
           key={index}
-          className="bg-slate-50 p-6 rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-white transition-all duration-300 group"
+          className="bg-slate-50 p-5 rounded-xl border border-gray-200 hover:border-blue-200 hover:bg-white transition-all duration-200 group"
         >
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-white text-blue-600 rounded-2xl border border-blue-100 shadow-sm shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <MapPin className="w-5 h-5" />
+            <div className="p-3 bg-white text-blue-600 rounded-lg border border-blue-100 shadow-sm shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <MapPin className="w-4 h-4" />
             </div>
             <div className="flex-1">
-              <h4 className="text-lg font-black text-slate-900 mb-1 leading-tight">
+              <h4 className="text-base font-semibold text-slate-900 mb-1 leading-tight">
                 {loc.city}
               </h4>
-              <p className="text-xs text-slate-500 leading-relaxed mb-6 font-medium italic">
+              <p className="text-sm text-slate-600 leading-relaxed mb-4">
                 {loc.address}
               </p>
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-y-3 gap-x-8 pt-4 border-t border-gray-200/50">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-y-3 gap-x-6 pt-3 border-t border-gray-200/60">
                 <a
                   href={`tel:${loc.contact}`}
-                  className="flex items-center gap-2 text-[11px] font-black text-slate-600 hover:text-blue-600 transition-colors uppercase tracking-widest group/link"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-700 hover:text-blue-600 transition-colors group/link"
                 >
                   <Phone className="text-blue-500 w-3.5 h-3.5 group-hover/link:scale-110 transition-transform" />
                   {loc.contact}
                 </a>
                 <a
                   href={`mailto:${loc.email}`}
-                  className="flex items-center gap-2 text-[11px] font-black text-slate-600 hover:text-blue-600 transition-colors uppercase tracking-widest group/link"
+                  className="flex items-center gap-2 text-xs font-medium text-slate-700 hover:text-blue-600 transition-colors group/link"
                 >
                   <Mail className="text-blue-500 w-3.5 h-3.5 group-hover/link:scale-110 transition-transform" />
                   {loc.email}

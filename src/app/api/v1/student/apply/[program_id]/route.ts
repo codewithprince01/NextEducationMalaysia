@@ -19,6 +19,9 @@ export const POST = withMiddleware(checkApiKey)(async (
       201
     );
   } catch (error: any) {
+    if (error.message === 'PROGRAM_NOT_FOUND') {
+      return apiError('Program not found.', 404);
+    }
     if (error.message === 'ALREADY_APPLIED') {
       return apiError('You have already applied for this program.', 409);
     }

@@ -4,16 +4,16 @@ import {
 
 export const POST = withMiddleware(checkApiKey)(async (request: NextRequest) => {
   try {
-    const { email } = await request.json();
-    if (!email) return apiError('Email is required', 422);
+    const { id, email } = await request.json();
+    if (!id && !email) return apiError('id or email is required', 422);
 
-    const result = await studentAuthService.resendOtp(email);
+    const result = await studentAuthService.resendOtp(id ? Number(id) : email);
 
     if (!result.status) {
       return apiError(result.message, 400);
     }
 
-    return apiSuccess(null, result.message);
+    return apiSuccess(result.data ?? null, result.message);
   } catch (error: any) {
     return apiError(error.message || 'Failed to resend OTP', 500);
   }

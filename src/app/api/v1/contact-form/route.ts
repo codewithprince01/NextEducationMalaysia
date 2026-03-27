@@ -17,8 +17,7 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       mobile: body.mobile,
       source: body.requestfor === 'comparison' ? 'Comparison Request' : 'Contact Form',
       source_path: body.source_path || '',
-      message: body.message,
-      requestfor: body.requestfor
+      message: body.message
     });
 
     return apiSuccess({ lead: serializeBigInt(lead) }, 'Request submitted successfully', 201);

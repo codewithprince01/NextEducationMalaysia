@@ -31,6 +31,7 @@ import {
 import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 interface ModalSignUpProps {
   onSuccess: (studentId: any) => void;
@@ -73,10 +74,10 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     const fetchData = async () => {
       try {
         const [pcRes, cRes, lRes, catRes] = await Promise.all([
-          axios.get(`${API_BASE}/phonecodes`),
-          axios.get(`${API_BASE}/countries`),
-          axios.get(`${API_BASE}/levels`),
-          axios.get(`${API_BASE}/course-categories`),
+          axios.get(`${API_BASE}/phonecodes`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
+          axios.get(`${API_BASE}/countries`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
+          axios.get(`${API_BASE}/levels`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
+          axios.get(`${API_BASE}/course-categories`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
         ]);
 
         const safeArray = (res: any) => Array.isArray(res.data) ? res.data : Array.isArray(res.data?.data) ? res.data.data : [];
@@ -331,7 +332,9 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     }
 
     try {
-      const response = await axios.post(`${API_BASE}/student/register`, formData);
+      const response = await axios.post(`${API_BASE}/student/register`, formData, {
+        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
+      });
       const resData: any = response.data;
       const studentId =
         resData?.id ||

@@ -10,7 +10,6 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import AuthModal from '@/components/modals/AuthModal'
-import PopupForm from '@/components/modals/PopupForm'
 import CourseCompareBar from './CourseCompareBar'
 import CourseComparisonModal from './CourseComparisonModal'
 import Pagination from '@/components/common/Pagination'
@@ -513,8 +512,6 @@ export default function CoursesListClient({
   const [showMore, setShowMore] = useState(false)
   const [comparisonCourses, setComparisonCourses] = useState<any[]>([])
   const [showComparisonModal, setShowComparisonModal] = useState(false)
-  const [isApplyOpen, setIsApplyOpen] = useState(false)
-  const [selectedCourseForApply, setSelectedCourseForApply] = useState<any>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [pendingCourse, setPendingCourse] = useState<any>(null)
   const [appliedCourses, setAppliedCourses] = useState<Set<number>>(new Set())
@@ -900,14 +897,49 @@ export default function CoursesListClient({
     router.push(`/university/${slug}`)
   }, [router])
 
-  const handleApplyNow = useCallback((course: any) => {
+  const handleApplyNow = useCallback(async (course: any) => {
     const token = localStorage.getItem('token')
-    if (token) {
-      setSelectedCourseForApply(course)
-      setIsApplyOpen(true)
-    } else {
+    if (!token) {
       setPendingCourse(course)
       setShowAuthModal(true)
+      return
+    }
+
+    try {
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+      }
+
+      if (API_KEY) {
+        headers['x-api-key'] = API_KEY
+      }
+
+      const response = await fetch(`${API_BASE}/student/apply-program/${course.id}`, {
+        method: 'GET',
+        headers,
+      })
+
+      if (response.ok) {
+        toast.success('Course applied successfully!')
+        setAppliedCourses(prev => new Set([...prev, course.id]))
+        return
+      }
+
+      if (response.status === 409) {
+        toast.warn('You have already applied for this course.')
+        setAppliedCourses(prev => new Set([...prev, course.id]))
+        return
+      }
+
+      if (response.status === 401) {
+        setPendingCourse(course)
+        setShowAuthModal(true)
+        return
+      }
+
+      toast.error('Failed to apply. Please try again.')
+    } catch {
+      toast.error('Failed to apply. Please try again.')
     }
   }, [])
 
@@ -948,6 +980,64 @@ export default function CoursesListClient({
 
   const startItem = totalCourses === 0 ? 0 : (currentPage - 1) * PER_PAGE + 1
   const endItem = totalCourses === 0 ? 0 : Math.min(currentPage * PER_PAGE, totalCourses)
+
+  const syncAppliedCourses = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setAppliedCourses(new Set())
+        return
+      }
+
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+      }
+      if (API_KEY) headers['x-api-key'] = API_KEY
+
+      const res = await fetch(`${API_BASE}/student/applied-college`, { headers })
+      if (!res.ok) return
+
+      const json = await res.json()
+      const appliedList = Array.isArray(json?.data?.applied_programs)
+        ? json.data.applied_programs
+        : Array.isArray(json?.applied_programs)
+          ? json.applied_programs
+          : []
+
+      const ids = new Set<number>(
+        appliedList
+          .map((item: any) => Number(item?.prog_id ?? item?.program_id ?? item?.university_program?.id))
+          .filter((id: number) => Number.isFinite(id) && id > 0),
+      )
+
+      setAppliedCourses(ids)
+    } catch {
+      // no-op
+    }
+  }, [])
+
+  // Keep Apply button state updated across navigation/deletes
+  useEffect(() => {
+    syncAppliedCourses()
+
+    const onFocus = () => syncAppliedCourses()
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') syncAppliedCourses()
+    }
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === 'applied_colleges_updated') syncAppliedCourses()
+    }
+
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('storage', onStorage)
+
+    return () => {
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('storage', onStorage)
+    }
+  }, [syncAppliedCourses])
 
   return (
     <>
@@ -1203,18 +1293,6 @@ export default function CoursesListClient({
           setPendingCourse(null)
         }} 
       />
-
-      {isApplyOpen && (
-        <PopupForm 
-          isOpen={isApplyOpen} 
-          onClose={() => setIsApplyOpen(false)} 
-          universityData={{
-            ...selectedCourseForApply?.university,
-            id: selectedCourseForApply?.university_id || selectedCourseForApply?.university?.id
-          }}
-          formType="apply"
-        />
-      )}
     </>
   )
 }

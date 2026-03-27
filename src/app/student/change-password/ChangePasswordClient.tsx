@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { FaKey, FaCheckCircle } from "react-icons/fa";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 export default function ChangePasswordClient() {
   const [oldPassword, setOldPassword] = useState("");
@@ -33,19 +34,20 @@ export default function ChangePasswordClient() {
         return;
       }
 
-      // Replicating the old project's approach of using query params for this POST request
-      const url = `${API_BASE}/student/change-password?old_password=${encodeURIComponent(
-        oldPassword,
-      )}&new_password=${encodeURIComponent(
-        newPassword,
-      )}&confirm_new_password=${encodeURIComponent(confirmPassword)}`;
+      const url = `${API_BASE}/student/change-password`;
 
       const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+        },
+        body: JSON.stringify({
+          old_password: oldPassword,
+          new_password: newPassword,
+          confirm_new_password: confirmPassword,
+        }),
       });
 
       const data = await res.json();

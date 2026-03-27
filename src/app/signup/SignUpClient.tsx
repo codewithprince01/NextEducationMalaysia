@@ -25,6 +25,7 @@ import {
   validateRequired,
   getPasswordStrength,
 } from "@/utils/validation";
+import { toast } from "react-toastify";
 import {
   ModernInput,
   ModernSelect,
@@ -32,6 +33,7 @@ import {
 } from "@/components/auth/AuthFormInputs";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 export default function SignUpClient() {
   const { login } = useAuth();
@@ -77,10 +79,10 @@ export default function SignUpClient() {
     const fetchData = async () => {
       try {
         const [pcRes, cRes, lRes, catRes] = await Promise.all([
-          fetch(`${API_BASE}/phonecodes`).then(r => r.json()),
-          fetch(`${API_BASE}/countries`).then(r => r.json()),
-          fetch(`${API_BASE}/levels`).then(r => r.json()),
-          fetch(`${API_BASE}/course-categories`).then(r => r.json())
+          fetch(`${API_BASE}/phonecodes`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }).then(r => r.json()),
+          fetch(`${API_BASE}/countries`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }).then(r => r.json()),
+          fetch(`${API_BASE}/levels`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }).then(r => r.json()),
+          fetch(`${API_BASE}/course-categories`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }).then(r => r.json())
         ]);
 
         const safeArray = (res: any) => Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
@@ -297,15 +299,35 @@ export default function SignUpClient() {
     try {
       const response = await fetch(`${API_BASE}/student/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(API_KEY ? { 'x-api-key': API_KEY } : {}) },
         body: JSON.stringify(formData)
       });
 
       const resData: any = await response.json();
+      if (!response.ok) {
+        const message = resData?.message || "Registration failed";
+        const isEmailAlreadyExists =
+          /email/i.test(message) && /already/i.test(message);
+
+        if (isEmailAlreadyExists) {
+          setErrors((prev: any) => ({
+            ...prev,
+            email: "Email already registered. Please login.",
+          }));
+        }
+
+        toast.error(message);
+        return;
+      }
+
       const studentId = resData.id || resData.data?.id || resData.student_id;
 
       if (studentId) {
-        login(resData.token || resData.data?.token, studentId, formData.email);
+        localStorage.setItem('student_id', String(studentId));
+        localStorage.setItem('student_email', formData.email);
+        if (resData.token || resData.data?.token) {
+          login(resData.token || resData.data?.token, String(studentId), formData.email);
+        }
         const programId = pathProgramId || searchParams.get("program_id");
         const redirect = pathRedirect || searchParams.get("redirect");
 
@@ -314,9 +336,12 @@ export default function SignUpClient() {
         } else {
           router.push("/confirmed-email");
         }
+      } else {
+        toast.error(resData?.message || "Registration failed");
       }
     } catch (error) {
       console.error(error);
+      toast.error("Unable to register right now. Please try again.");
     } finally {
       setLoading(false);
     }

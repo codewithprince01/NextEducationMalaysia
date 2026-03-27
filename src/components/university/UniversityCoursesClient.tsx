@@ -94,6 +94,10 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
   const [popupFormType, setPopupFormType] = useState<'brochure' | 'fee' | 'apply' | 'counselling'>('brochure')
   const [selectedCourseId, setSelectedCourseId] = useState<number | string | null>(null)
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [])
+
   // Initial filters from URL
   useEffect(() => {
     const init: { [key: string]: any[] } = {}

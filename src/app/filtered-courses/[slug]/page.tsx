@@ -63,7 +63,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const title = rawSeoTitle && rawSeoTitle !== '%title%' && !isGenericSeoTitle
     ? rawSeoTitle
     : slugTitle
-  const description = result.seo?.meta_description || result.seo?.page_contents ||
+  const description = result.seo?.meta_description || result.seo?.page_content ||
     `Explore courses and programs offered at universities across Malaysia. Filter by university, intake and more.`
   const effectiveSeo = isGenericSeoTitle
     ? { ...result.seo, meta_title: String(title), meta_description: description }

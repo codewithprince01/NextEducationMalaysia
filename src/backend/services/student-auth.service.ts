@@ -1,21 +1,34 @@
 import { prisma } from '@/lib/db';
-import { 
-  StudentRegisterInput, 
-  StudentLoginInput, 
+import {
+  StudentRegisterInput,
+  StudentLoginInput,
   OtpVerifyInput,
-  ResetPasswordInput 
+  ResetPasswordInput,
 } from '../validators/auth';
 import { hashPassword, verifyPassword, generateOtp } from '../utils/auth';
 import { sendMail } from '../email/sender';
 import { otpEmailHtml } from '../email/templates/otp';
+import { forgotPasswordLinkEmailHtml } from '../email/templates/forgot-password-link';
 import { issueToken } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { serializeBigInt } from '@/lib/utils';
+import crypto from 'crypto';
 
-/**
- * Service to handle student authentication, registration, and OTP flows.
- * Ported from StudentAuthApi.php
- */
+const SITE_VAR = process.env.SITE_VAR || 'MYS';
+
+type LeadRow = {
+  id: bigint | number;
+  name: string | null;
+  email: string | null;
+  password: string | null;
+  otp: number | null;
+  otp_expire_at: Date | string | null;
+  email_verify: number | boolean | null;
+  status: number | boolean | null;
+  login_count?: number | null;
+  [key: string]: any;
+};
+
 export class StudentAuthService {
   private static instance: StudentAuthService;
 
@@ -28,240 +41,306 @@ export class StudentAuthService {
     return StudentAuthService.instance;
   }
 
-  /**
-   * Register a new student (Lead).
-   * Generates OTP, hashes password, and sends verification email.
-   */
-  async register(input: StudentRegisterInput): Promise<ApiResponse> {
-    const existing = await prisma.leads.findFirst({
-      where: { email: input.email },
-    });
+  private async findLeadByEmail(email: string): Promise<LeadRow | null> {
+    const rows = (await prisma.$queryRawUnsafe(
+      'SELECT * FROM leads WHERE email = ? AND website = ? LIMIT 1',
+      email,
+      SITE_VAR,
+    )) as LeadRow[];
+    return rows[0] ?? null;
+  }
 
-    if (existing) {
-      if (existing.email_verify) {
-        return { status: false, message: 'Email already registered and verified. Please log in.' };
-      }
+  private async findLeadById(id: number): Promise<LeadRow | null> {
+    const rows = (await prisma.$queryRawUnsafe(
+      'SELECT * FROM leads WHERE id = ? AND website = ? LIMIT 1',
+      id,
+      SITE_VAR,
+    )) as LeadRow[];
+    return rows[0] ?? null;
+  }
+
+  async register(input: StudentRegisterInput): Promise<ApiResponse> {
+    const existing = await this.findLeadByEmail(input.email);
+    if (existing && Number(existing.email_verify || 0) === 1) {
+      return { status: false, message: 'Email already registered and verified. Please log in.' };
     }
 
     const otp = generateOtp();
     const hashedPassword = await hashPassword(input.password);
-    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-    const data = {
-      name: input.name,
-      email: input.email,
-      password: hashedPassword,
-      country_code: input.country_code,
-      mobile: input.mobile,
-      nationality: input.nationality,
-      website: input.website,
-      otp: otp,
-      otp_expire_at: otpExpiry.toISOString(),
-      email_verify: false,
-      status: 1,
-      lead_type: 'new',
-      lead_status: 'Fresh',
-    };
 
     if (existing) {
-      await prisma.leads.update({
-        where: { id: existing.id },
-        data,
-      });
+      await prisma.$executeRawUnsafe(
+        `UPDATE leads
+         SET name = ?, password = ?, country_code = ?, mobile = ?, nationality = ?,
+             highest_qualification = ?, interested_course_category = ?,
+             otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), email_verify = 0, email_verified = 0,
+             registered = 0, status = 0, lead_type = 'new', lead_status = 'Fresh',
+             source = 'Education Malaysia - Signup', source_path = ?, updated_at = NOW()
+         WHERE id = ?`,
+        input.name,
+        hashedPassword,
+        input.country_code || null,
+        input.mobile || null,
+        input.nationality || null,
+        input.highest_qualification || null,
+        input.interested_course_category || null,
+        otp,
+        input.source_path || null,
+        Number(existing.id),
+      );
     } else {
-      await prisma.leads.create({ data });
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO leads
+         (name, website, email, country_code, mobile, password, nationality,
+          highest_qualification, interested_course_category, otp, otp_expire_at,
+          email_verify, email_verified, registered, status, lead_type, lead_status,
+          source, source_path, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0, 0, 0, 0, 'new', 'Fresh',
+                 'Education Malaysia - Signup', ?, NOW(), NOW())`,
+        input.name,
+        input.website || SITE_VAR,
+        input.email,
+        input.country_code || null,
+        input.mobile || null,
+        hashedPassword,
+        input.nationality || null,
+        input.highest_qualification || null,
+        input.interested_course_category || null,
+        otp,
+        input.source_path || null,
+      );
     }
 
-    // Send OTP Email
-    try {
-      await sendMail({
-        to: input.email,
-        toName: input.name,
-        subject: 'Your Verification Code - Education Malaysia',
-        html: otpEmailHtml(input.name, otp),
-      });
-    } catch (err) {
-      console.error('Failed to send OTP email:', err);
-    }
+    const saved = await this.findLeadByEmail(input.email);
 
-    return { status: 1, message: 'OTP sent to your email. Please verify to complete registration.' };
+    void sendMail({
+      to: input.email,
+      toName: input.name,
+      subject: 'Your Verification Code - Education Malaysia',
+      html: otpEmailHtml(input.name, otp),
+    }).catch((err) => console.error('Failed to send OTP email:', err));
+
+    return {
+      status: true,
+      message: 'OTP sent to your email. Please verify to complete registration.',
+      data: {
+        id: saved ? Number(saved.id) : null,
+        email: input.email,
+      } as any,
+    };
   }
 
-  /**
-   * Verify OTP and activate account.
-   */
   async verifyOtp(input: OtpVerifyInput): Promise<ApiResponse<{ token: string; student: any }>> {
-    const student = await prisma.leads.findFirst({
-      where: { email: input.email },
-    });
+    const student = input.id
+      ? await this.findLeadById(Number(input.id))
+      : await this.findLeadByEmail(String(input.email || ''));
 
     if (!student) {
       return { status: false, message: 'Student record not found.' };
     }
 
-    if (student.otp !== Number(input.otp)) {
+    if (Number(student.otp || 0) !== Number(String(input.otp).trim())) {
       return { status: false, message: 'Invalid OTP code.' };
     }
-
-    if (student.otp_expire_at && new Date(student.otp_expire_at) < new Date()) {
+    const validRows = (await prisma.$queryRawUnsafe(
+      `SELECT id FROM leads
+       WHERE id = ? AND otp = ? AND otp_expire_at IS NOT NULL AND otp_expire_at >= NOW()
+       LIMIT 1`,
+      Number(student.id),
+      Number(String(input.otp).trim()),
+    )) as Array<{ id: number | bigint }>;
+    if (!validRows.length) {
       return { status: false, message: 'OTP has expired. Please request a new one.' };
     }
 
-    const updated = await prisma.leads.update({
-      where: { id: student.id },
-      data: {
-        email_verify: true,
-        otp: null,
-        otp_expire_at: null,
-      },
-    });
+    await prisma.$executeRawUnsafe(
+      `UPDATE leads
+       SET email_verify = 1, email_verified = 1, registered = 1, status = 1,
+           otp = NULL, otp_expire_at = NULL, email_verified_at = NOW(), updated_at = NOW()
+       WHERE id = ?`,
+      Number(student.id),
+    );
 
-    const token = issueToken({ id: Number(updated.id), email: updated.email ?? '' });
+    const updated = await this.findLeadById(Number(student.id));
+    const token = issueToken({ id: Number(student.id), email: updated?.email ?? '' });
 
     return {
       status: true,
       message: 'Email verified successfully.',
       data: {
         token,
+        id: Number(student.id),
+        email: updated?.email,
         student: serializeBigInt(updated),
-      },
+      } as any,
     };
   }
 
-  /**
-   * Login student and return JWT token.
-   */
   async login(input: StudentLoginInput): Promise<ApiResponse<{ token: string; student: any }>> {
-    const student = await prisma.leads.findFirst({
-      where: { email: input.email },
-    });
-
+    const student = await this.findLeadByEmail(input.email);
     if (!student) {
       return { status: false, message: 'Invalid email or password.' };
     }
 
-    if (!student.email_verify) {
-      return { status: false, message: 'Email not verified. Please verify your email first.' };
+    const verified = Number(student.email_verify || 0) === 1;
+    const active = Number(student.status || 0) === 1;
+    if (!verified || !active) {
+      const otp = generateOtp();
+      await prisma.$executeRawUnsafe(
+        'UPDATE leads SET otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), updated_at = NOW() WHERE id = ?',
+        otp,
+        Number(student.id),
+      );
+      void sendMail({
+        to: student.email || '',
+        toName: student.name || 'Student',
+        subject: 'Your OTP Code - Education Malaysia',
+        html: otpEmailHtml(student.name || 'Student', otp),
+      }).catch((err) => console.error('Failed to send OTP email on unverified login:', err));
+      return {
+        status: true,
+        message: 'Account not verified. Please verify your email. OTP sent to your email.',
+        data: {
+          id: Number(student.id),
+          email: student.email,
+          otp_required: true,
+          needs_otp: true,
+        } as any,
+      };
     }
 
-    const isMatch = await verifyPassword(input.password, student.password ?? '');
+    const storedPassword = student.password ?? '';
+    const isMatch = (await verifyPassword(input.password, storedPassword)) || input.password === storedPassword;
     if (!isMatch) {
       return { status: false, message: 'Invalid email or password.' };
     }
 
-    // Update login count
-    await prisma.leads.update({
-      where: { id: student.id },
-      data: { login_count: (student.login_count ?? 0) + 1 },
-    });
+    await prisma.$executeRawUnsafe(
+      'UPDATE leads SET login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), updated_at = NOW() WHERE id = ?',
+      Number(student.id),
+    );
 
     const token = issueToken({ id: Number(student.id), email: student.email ?? '' });
+    const latest = await this.findLeadById(Number(student.id));
 
     return {
       status: true,
       message: 'Logged in successfully.',
       data: {
         token,
-        student: serializeBigInt(student),
-      },
+        id: Number(student.id),
+        email: student.email,
+        student: serializeBigInt(latest),
+      } as any,
     };
   }
 
-  /**
-   * Resend OTP code.
-   */
-  async resendOtp(email: string): Promise<ApiResponse> {
-    const student = await prisma.leads.findFirst({
-      where: { email },
-    });
+  async resendOtp(identifier: string | number): Promise<ApiResponse> {
+    const student =
+      typeof identifier === 'number'
+        ? await this.findLeadById(Number(identifier))
+        : await this.findLeadByEmail(identifier);
 
     if (!student) {
       return { status: false, message: 'Email not found.' };
     }
 
     const otp = generateOtp();
-    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
-    await prisma.leads.update({
-      where: { id: student.id },
-      data: {
-        otp: otp,
-        otp_expire_at: otpExpiry.toISOString(),
-      },
-    });
+    await prisma.$executeRawUnsafe(
+      'UPDATE leads SET otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), updated_at = NOW() WHERE id = ?',
+      otp,
+      Number(student.id),
+    );
 
-    await sendMail({
-      to: student.email!,
-      toName: student.name,
+    void sendMail({
+      to: student.email || '',
+      toName: student.name || 'Student',
       subject: 'Your New Verification Code - Education Malaysia',
-      html: otpEmailHtml(student.name, otp),
-    });
+      html: otpEmailHtml(student.name || 'Student', otp),
+    }).catch((err) => console.error('Failed to send resend OTP email:', err));
 
-    return { status: true, message: 'A new OTP has been sent to your email.' };
+    return {
+      status: true,
+      message: 'A new OTP has been sent to your email.',
+    };
   }
 
-  /**
-   * Handle forgot password request.
-   */
-  async forgotPassword(email: string): Promise<ApiResponse> {
-    const student = await prisma.leads.findFirst({
-      where: { email },
-    });
-
+  async forgotPassword(email: string, baseUrl?: string): Promise<ApiResponse> {
+    const student = await this.findLeadByEmail(email);
     if (!student) {
-      return { status: false, message: 'Email not found.' };
+      return { status: false, message: 'Entered wrong email address. Please check.' };
     }
 
-    const otp = generateOtp();
-    const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
+    const rememberToken = crypto.randomBytes(24).toString('hex');
+    const siteUrl = (baseUrl || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    const resetPath = `/password/reset?uid=${Number(student.id)}&token=${rememberToken}`;
+    const resetLink = `${siteUrl}${resetPath}`;
+    const loginLink = `${siteUrl}/login`;
 
-    await prisma.leads.update({
-      where: { id: student.id },
+    await prisma.$executeRawUnsafe(
+      'UPDATE leads SET remember_token = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 30 MINUTE), updated_at = NOW() WHERE id = ?',
+      rememberToken,
+      Number(student.id),
+    );
+    const tokenExpiry = new Date(Date.now() + 30 * 60 * 1000);
+
+    void sendMail({
+      to: student.email || '',
+      toName: student.name || 'Student',
+      subject: 'Password Reset',
+      html: forgotPasswordLinkEmailHtml({
+        name: student.name || 'Student',
+        resetPasswordLink: resetLink,
+        loginLink,
+      }),
+    }).catch((err) => console.error('Failed to send password reset link email:', err));
+
+    return {
+      status: true,
+      message: 'Password reset email sent successfully.',
       data: {
-        otp: otp,
-        otp_expire_at: otpExpiry.toISOString(),
-      },
-    });
-
-    await sendMail({
-      to: student.email!,
-      toName: student.name,
-      subject: 'Password Reset OTP - Education Malaysia',
-      html: otpEmailHtml(student.name, otp),
-    });
-
-    return { status: true, message: 'OTP for password reset sent to your email.' };
+        email,
+        reset_link: resetLink,
+        token_expiry: tokenExpiry.toISOString(),
+      } as any,
+    };
   }
 
-  /**
-   * Reset password using OTP.
-   */
   async resetPassword(input: ResetPasswordInput): Promise<ApiResponse> {
-    const student = await prisma.leads.findFirst({
-      where: { email: input.email },
-    });
-
-    if (!student || student.otp !== Number(input.otp)) {
-      return { status: false, message: 'Invalid OTP or email.' };
+    const student = await this.findLeadById(Number(input.uid));
+    if (!student) {
+      return { status: false, message: 'Invalid password reset link.' };
     }
 
-    if (student.otp_expire_at && new Date(student.otp_expire_at) < new Date()) {
-      return { status: false, message: 'OTP has expired.' };
+    if ((student.remember_token || '') !== input.token) {
+      return { status: false, message: 'Invalid password reset link.' };
     }
 
-    const hashedPassword = await hashPassword(input.password);
+    const validRows = (await prisma.$queryRawUnsafe(
+      `SELECT id FROM leads
+       WHERE id = ? AND remember_token = ? AND otp_expire_at IS NOT NULL AND otp_expire_at >= NOW()
+       LIMIT 1`,
+      Number(student.id),
+      String(input.token),
+    )) as Array<{ id: number | bigint }>;
+    if (!validRows.length) {
+      return { status: false, message: 'This reset link has expired. Please request a new one.' };
+    }
 
-    await prisma.leads.update({
-      where: { id: student.id },
-      data: {
-        password: hashedPassword,
-        otp: null,
-        otp_expire_at: null,
-        email_verify: true, // Auto-verify if they can reset password
-      },
-    });
+    const hashedPassword = await hashPassword(input.new_password);
 
-    return { status: true, message: 'Password has been reset successfully. You can now log in.' };
+    await prisma.$executeRawUnsafe(
+      `UPDATE leads
+       SET password = ?, remember_token = NULL, otp = NULL, otp_expire_at = NULL,
+           email_verify = 1, email_verified = 1, status = 1,
+           login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), updated_at = NOW()
+       WHERE id = ?`,
+      hashedPassword,
+      Number(student.id),
+    );
+
+    return { status: true, message: 'Password reset successful. You are now logged in.' };
   }
 }
 

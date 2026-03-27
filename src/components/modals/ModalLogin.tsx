@@ -12,6 +12,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 interface ModalLoginProps {
   onSuccess: (data: any) => void;
@@ -176,17 +177,21 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE}/student/login`, formData);
+      const response = await axios.post(`${API_BASE}/student/login`, formData, {
+        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
+      });
       const resData: any = response.data;
       const responseData = resData.data || resData;
 
       if (responseData.token) {
         localStorage.setItem("token", responseData.token);
-        localStorage.setItem("student_id", responseData.id);
+        localStorage.setItem("student_id", String(responseData.id));
         
         toast.success("Login successful!");
         onSuccess({ token: responseData.token, studentId: responseData.id });
       } else if (responseData.needs_otp || responseData.otp_required) {
+        if (responseData.id) localStorage.setItem("student_id", String(responseData.id));
+        if (responseData.email) localStorage.setItem("student_email", String(responseData.email));
         onSuccess({ needsOTP: true, studentId: responseData.id });
       } else {
         toast.error(resData.message || "Login failed. Please try again.");

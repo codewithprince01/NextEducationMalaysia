@@ -52,6 +52,7 @@ export const schoolSchema = z.object({
 
 export const testScoreSchema = z.object({
   english_exam_type: z.enum([
+    "I don't have this",
     'I dont have this',
     'I will provide this later',
     'TOEFL',
@@ -69,32 +70,32 @@ export const testScoreSchema = z.object({
 
 export const greSchema = z.object({
   gre_exam_date: z.string().or(z.date()),
-  gre_v_score: z.number().min(0).max(170),
-  gre_v_rank: z.number().min(0).max(100),
-  gre_q_score: z.number().min(0).max(170),
-  gre_q_rank: z.number().min(0).max(100),
-  gre_w_score: z.number().min(0).max(6),
-  gre_w_rank: z.number().min(0).max(100),
+  gre_v_score: z.coerce.number().min(0).max(170),
+  gre_v_rank: z.coerce.number().min(0).max(100),
+  gre_q_score: z.coerce.number().min(0).max(170),
+  gre_q_rank: z.coerce.number().min(0).max(100),
+  gre_w_score: z.coerce.number().min(0).max(6),
+  gre_w_rank: z.coerce.number().min(0).max(100),
 });
 
 export const gmatSchema = z.object({
   gmat_exam_date: z.string().or(z.date()),
-  gmat_v_score: z.number().min(0).max(51),
-  gmat_v_rank: z.number().min(0).max(100),
-  gmat_q_score: z.number().min(0).max(51),
-  gmat_q_rank: z.number().min(0).max(100),
-  gmat_w_score: z.number().min(0).max(6),
-  gmat_w_rank: z.number().min(0).max(100),
-  gmat_ir_score: z.number().min(0).max(8),
-  gmat_ir_rank: z.number().min(0).max(100),
-  gmat_total_score: z.number().min(200).max(800),
-  gmat_total_rank: z.number().min(0).max(100),
+  gmat_v_score: z.coerce.number().min(0).max(51),
+  gmat_v_rank: z.coerce.number().min(0).max(100),
+  gmat_q_score: z.coerce.number().min(0).max(51),
+  gmat_q_rank: z.coerce.number().min(0).max(100),
+  gmat_w_score: z.coerce.number().min(0).max(6),
+  gmat_w_rank: z.coerce.number().min(0).max(100),
+  gmat_ir_score: z.coerce.number().min(0).max(8),
+  gmat_ir_rank: z.coerce.number().min(0).max(100),
+  gmat_total_score: z.coerce.number().min(200).max(800),
+  gmat_total_rank: z.coerce.number().min(0).max(100),
 });
 
 export const satSchema = z.object({
   sat_exam_date: z.string().or(z.date()),
-  sat_reasoning_point: z.number().min(0).max(1600),
-  sat_subject_point: z.number().min(0).max(800),
+  sat_reasoning_point: z.coerce.number().min(0).max(1600),
+  sat_subject_point: z.coerce.number().min(0).max(800),
 });
 
 export const backgroundInfoSchema = z.object({

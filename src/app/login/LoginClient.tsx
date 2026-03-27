@@ -13,6 +13,7 @@ import {
 import { useAuth } from '@/context/AuthContext'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 // Modern Clean Input
 const ModernInput = ({
@@ -178,7 +179,7 @@ export default function LoginClient() {
     try {
       const response = await fetch(`${API_BASE}/student/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(API_KEY ? { 'x-api-key': API_KEY } : {}) },
         body: JSON.stringify(formData),
       });
 
@@ -186,8 +187,12 @@ export default function LoginClient() {
       const responseData = resData.data || resData;
 
       if (response.ok && responseData.token) {
-        login(responseData.token, responseData.id, responseData.email);
+        login(responseData.token, String(responseData.id), responseData.email);
         router.push('/student/profile');
+      } else if (response.ok && (responseData.needs_otp || responseData.otp_required || responseData.id)) {
+        if (responseData.id) localStorage.setItem('student_id', String(responseData.id));
+        if (responseData.email) localStorage.setItem('student_email', String(responseData.email));
+        router.push('/confirmed-email');
       } else {
         setErrors({ form: resData.message || "Login failed. Please try again." });
       }

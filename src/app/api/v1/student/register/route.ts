@@ -13,10 +13,14 @@ export const POST = withMiddleware(checkApiKey)(async (request: NextRequest) => 
     const result = await studentAuthService.register(validatedData);
 
     if (!result.status) {
-      return apiError(result.message, 422);
+      const message = result.message || 'Registration failed';
+      const lower = message.toLowerCase();
+      const statusCode =
+        lower.includes('email') && lower.includes('already') ? 409 : 422;
+      return apiError(message, statusCode);
     }
 
-    return apiSuccess(null, result.message);
+    return apiSuccess(result.data ?? null, result.message);
   } catch (error: any) {
     if (error.name === 'ZodError') {
       return apiError(error.errors[0].message, 422);

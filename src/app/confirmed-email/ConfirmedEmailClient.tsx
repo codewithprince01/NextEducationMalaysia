@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import Link from 'next/link'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 export default function ConfirmedEmailClient() {
   const [otp, setOtp] = useState("")
@@ -40,7 +41,7 @@ export default function ConfirmedEmailClient() {
 
       const response = await fetch(`${API_BASE}/student/verify-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(API_KEY ? { 'x-api-key': API_KEY } : {}) },
         body: JSON.stringify({ id: studentId, otp }),
       })
 
@@ -48,7 +49,8 @@ export default function ConfirmedEmailClient() {
 
       if (response.ok && resData?.data?.token) {
         localStorage.setItem("token", resData.data.token)
-        localStorage.setItem("student_email", resData.data.email)
+        if (resData?.data?.id) localStorage.setItem("student_id", String(resData.data.id))
+        if (resData?.data?.email) localStorage.setItem("student_email", resData.data.email)
         setMessage(resData.message || "OTP Verified Successfully!")
         
         // Wait a bit before redirecting
@@ -85,7 +87,7 @@ export default function ConfirmedEmailClient() {
 
       const response = await fetch(`${API_BASE}/student/resend-otp`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(API_KEY ? { 'x-api-key': API_KEY } : {}) },
         body: JSON.stringify({ id: studentId }),
       })
       
@@ -117,7 +119,6 @@ export default function ConfirmedEmailClient() {
         <p className="text-xs text-gray-500 text-center mt-1">
           OTP will expire in <span className="font-semibold">5 minutes</span>
         </p>
-
         <form onSubmit={handleSubmit} className="mt-6">
           <div className="flex items-center border border-gray-200 rounded-lg px-3 py-2 focus-within:border-blue-500 transition-colors">
             <KeyRound className="w-5 h-5 text-gray-400" />

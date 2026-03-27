@@ -10,7 +10,7 @@ async function getHandler(
   { params }: { params: { uri: string } }
 ) {
   try {
-    const data = await examService.getExamDetail(params.uri);
+    const data = await examService.getExamBySlug(params.uri);
     if (!data) return apiError('Exam not found', 404);
     
     return apiSuccess(data, 'Exam details fetched successfully');
