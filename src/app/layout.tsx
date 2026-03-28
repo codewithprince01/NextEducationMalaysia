@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/AuthContext'
 import { ToastContainer } from 'react-toastify';
 import NavbarClient from '@/components/layout/NavbarClient'
 import Footer from '@/components/layout/Footer'
+import FloatingActions from '@/components/ui/FloatingActions'
 
 export const metadata: Metadata = {
   title: 'Education Malaysia - Study in Malaysia',
@@ -31,6 +32,7 @@ export default function RootLayout({
         <AuthProvider>
           <NavbarClient />
           {children}
+          <FloatingActions />
           <Footer />
           <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
         </AuthProvider>
