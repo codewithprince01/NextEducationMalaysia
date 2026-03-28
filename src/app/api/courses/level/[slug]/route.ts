@@ -32,6 +32,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const { slug } = await params
     const normalizedSlug = String(slug || '').toLowerCase().trim()
+    const compactSlug = normalizedSlug.replace(/[^a-z0-9]/g, '')
     if (!normalizedSlug) {
       return NextResponse.json({ status: false, message: 'Invalid level slug' }, { status: 400 })
     }
@@ -43,10 +44,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
       FROM levels
       WHERE slug = ?
          OR LOWER(REPLACE(level, ' ', '-')) = ?
+         OR LOWER(REPLACE(REPLACE(REPLACE(slug, '-', ''), '.', ''), ' ', '')) = ?
+         OR LOWER(REPLACE(REPLACE(REPLACE(level, '-', ''), '.', ''), ' ', '')) = ?
       LIMIT 1
       `,
       normalizedSlug,
-      normalizedSlug
+      normalizedSlug,
+      compactSlug,
+      compactSlug
     )) as any[]
 
     const level = levelRows?.[0]
@@ -82,7 +87,34 @@ export async function GET(_req: NextRequest, { params }: Params) {
       ? 'cc.og_image_path'
       : 'NULL'
 
-    const exactLevel = String(level.level || normalizedSlug).trim().toUpperCase()
+    const normalizeLevelKey = (value: unknown) =>
+      String(value || '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+
+    const levelCandidates = new Set<string>()
+    levelCandidates.add(String(level.level || '').trim())
+    levelCandidates.add(String(level.slug || '').trim())
+    levelCandidates.add(normalizedSlug)
+
+    // Old-project compatibility: /courses/phd should match PHD/Ph.D variants in programs
+    if (compactSlug === 'phd' || compactSlug === 'doctorate' || normalizeLevelKey(level.level) === 'PHD') {
+      levelCandidates.add('PHD')
+      levelCandidates.add('Ph.D')
+      levelCandidates.add('Phd')
+      levelCandidates.add('Doctorate')
+    }
+
+    const normalizedLevelCandidates = [...levelCandidates]
+      .map((v) => normalizeLevelKey(v))
+      .filter(Boolean)
+
+    const levelNormExpr =
+      "REPLACE(REPLACE(REPLACE(REPLACE(UPPER(TRIM(up.level)), '.', ''), '-', ''), ' ', ''), '/', '')"
+    const levelWhereSql =
+      normalizedLevelCandidates.length > 0
+        ? `${levelNormExpr} IN (${normalizedLevelCandidates.map(() => '?').join(', ')})`
+        : '1 = 0'
     // Old-project equivalent: strict level + active university + website
     let categories = (await prisma.$queryRawUnsafe(
       `
@@ -101,12 +133,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
             AND up.status = 1
             AND up.website = ?
             AND u.status = 1
-            AND UPPER(TRIM(up.level)) = ?
+            AND ${levelWhereSql}
         )
       ORDER BY cc.name ASC
       `,
       SITE_VAR,
-      exactLevel
+      ...normalizedLevelCandidates
     )) as any[]
 
     // Safety fallback only when strict website-scoped result is empty.
@@ -127,11 +159,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
             WHERE up.course_category_id = cc.id
               AND up.status = 1
               AND u.status = 1
-              AND UPPER(TRIM(up.level)) = ?
+              AND ${levelWhereSql}
           )
         ORDER BY cc.name ASC
         `,
-        exactLevel
+        ...normalizedLevelCandidates
       )) as any[]
     }
 
@@ -201,12 +233,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
           WHERE cs.course_category_id = ?
             AND up.status = 1
             AND u.status = 1
-            AND UPPER(TRIM(up.level)) = ?
+            AND ${levelWhereSql}
             AND up.website = ?
           ORDER BY cs.name ASC
           `,
           catId,
-          exactLevel,
+          ...normalizedLevelCandidates,
           SITE_VAR
         )) as any[]
 
@@ -257,9 +289,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
       )) as any[]
     }
 
-    const levelLabel = String(level.level || normalizedSlug)
-      .toLowerCase()
-      .replace(/\b\w/g, (m) => m.toUpperCase())
+    const levelLabel =
+      compactSlug === 'phd'
+        ? 'PhD'
+        : String(level.level || normalizedSlug)
+            .toLowerCase()
+            .replace(/\b\w/g, (m) => m.toUpperCase())
     const fallbackHeading = `${levelLabel} Courses in Malaysia`
     const fallbackDescription = hasLevelCoursesDescription
       ? String((level as any).courses_description || '').trim()

@@ -54,22 +54,48 @@ export class MalaysiaDiscoveryService {
         : Promise.resolve([]),
       normalizedCategory
         ? prisma.$queryRawUnsafe(
-            `SELECT id, name, slug
-             FROM course_categories
-             WHERE slug = ?
-                OR LOWER(REPLACE(name, ' ', '-')) = ?
+            `SELECT 
+               cc.id, 
+               cc.name, 
+               cc.slug,
+               (
+                 SELECT COUNT(*)
+                 FROM university_programs up
+                 INNER JOIN universities u ON u.id = up.university_id AND u.status = 1
+                 WHERE up.course_category_id = cc.id
+                   AND up.status = 1
+                   AND up.website = ?
+               ) AS active_count
+             FROM course_categories cc
+             WHERE cc.slug = ?
+                OR LOWER(REPLACE(cc.name, ' ', '-')) = ?
+             ORDER BY active_count DESC, id ASC
              LIMIT 1`,
+            SITE_VAR,
             normalizedCategory,
             normalizedCategory
           )
         : Promise.resolve([]),
       normalizedSpecialization
         ? prisma.$queryRawUnsafe(
-            `SELECT id, name, slug
-             FROM course_specializations
-             WHERE slug = ?
-                OR LOWER(REPLACE(name, ' ', '-')) = ?
+            `SELECT 
+               cs.id, 
+               cs.name, 
+               cs.slug,
+               (
+                 SELECT COUNT(*)
+                 FROM university_programs up
+                 INNER JOIN universities u ON u.id = up.university_id AND u.status = 1
+                 WHERE up.specialization_id = cs.id
+                   AND up.status = 1
+                   AND up.website = ?
+               ) AS active_count
+             FROM course_specializations cs
+             WHERE cs.slug = ?
+                OR LOWER(REPLACE(cs.name, ' ', '-')) = ?
+             ORDER BY active_count DESC, id ASC
              LIMIT 1`,
+            SITE_VAR,
             normalizedSpecialization,
             normalizedSpecialization
           )

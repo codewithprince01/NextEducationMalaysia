@@ -64,6 +64,8 @@ interface QualificationLevelClientProps {
 }
 
 function formatBreadcrumbLevel(slug: string) {
+  const normalized = String(slug || '').toLowerCase().trim()
+  if (normalized === 'phd' || normalized === 'ph-d') return 'PhD'
   return String(slug || '')
     .replace(/-/g, ' ')
     .replace(/\b\w/g, (ch) => ch.toUpperCase())

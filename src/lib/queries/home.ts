@@ -113,17 +113,53 @@ export const getPageContent = unstable_cache(
 )
 
 export const getFaqs = unstable_cache(
-  (categorySlug?: string) =>
-    categorySlug
-      ? prisma.faq.findMany({
-          where: { category: { category_slug: categorySlug } },
-          include: { category: true },
-          orderBy: { id: 'asc' },
-        })
-      : prisma.faq.findMany({
-          include: { category: true },
-          orderBy: { id: 'asc' },
-        }),
+  async (categorySlug?: string) => {
+    const rows = categorySlug
+      ? await prisma.$queryRawUnsafe(
+          `
+          SELECT
+            f.id,
+            f.question,
+            f.answer,
+            f.category_id,
+            fc.id AS category_ref_id,
+            fc.category_name,
+            fc.category_slug
+          FROM faqs f
+          INNER JOIN faq_categories fc ON fc.id = f.category_id
+          WHERE fc.category_slug = ?
+          ORDER BY f.id ASC
+          `,
+          categorySlug
+        )
+      : await prisma.$queryRawUnsafe(
+          `
+          SELECT
+            f.id,
+            f.question,
+            f.answer,
+            f.category_id,
+            fc.id AS category_ref_id,
+            fc.category_name,
+            fc.category_slug
+          FROM faqs f
+          INNER JOIN faq_categories fc ON fc.id = f.category_id
+          ORDER BY f.id ASC
+          `
+        )
+
+    return (rows as any[]).map((row) => ({
+      id: Number(row.id),
+      question: row.question,
+      answer: row.answer,
+      category_id: row.category_id != null ? Number(row.category_id) : null,
+      category: {
+        id: Number(row.category_ref_id),
+        category_name: row.category_name,
+        category_slug: row.category_slug,
+      },
+    }))
+  },
   ['faqs'],
   { revalidate: 86400 },
 )

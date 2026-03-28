@@ -7,11 +7,15 @@ interface Props {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const titleCase = slug
-    .split('-')
-    .filter(Boolean)
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join(' ')
+  const normalized = String(slug || '').toLowerCase().trim()
+  const titleCase =
+    normalized === 'phd' || normalized === 'ph-d'
+      ? 'PhD'
+      : slug
+          .split('-')
+          .filter(Boolean)
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(' ')
   return resolveStaticMetaAny(
     ['Courses in Malaysia', 'courses-level'],
     `/courses/${slug}`,
