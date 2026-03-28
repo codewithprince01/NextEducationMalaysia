@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 import {
-  withMiddleware, checkApiKey, apiSuccess, apiError, partnerService } from '@/backend';
+  withMiddleware, apiSuccess, apiError, partnerService } from '@/backend';
 
-export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
+export const GET = withMiddleware()(async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const country = searchParams.get('country') || undefined;
@@ -13,3 +13,4 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
     return apiError(error.message || 'Failed to fetch states', 500);
   }
 });
+

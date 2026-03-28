@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { ArrowLeft, Send, User, Mail, Phone, Briefcase, GraduationCap, Building, Globe, Calendar, Target, Award, FileText, AlertCircle } from "lucide-react"
 import { toast } from "react-toastify"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
 const TOTAL_STEPS = 5
 
 const STATES = [
@@ -302,21 +301,31 @@ export default function PartnerApplicationClient() {
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      const response = await fetch(`${API_BASE}/inquiry/partner-application`, {
+      const response = await fetch('/api/v1/inquiry/partner-application', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
-      const data = await response.json()
-      if (data.status) {
+
+      const contentType = response.headers.get('content-type') || ''
+      const isJson = contentType.includes('application/json')
+      const data = isJson ? await response.json() : null
+
+      if (!response.ok) {
+        const fallbackText = isJson ? '' : await response.text().catch(() => '')
+        const message = data?.message || (fallbackText ? 'Route not found (HTML response)' : 'Submission failed.')
+        throw new Error(message)
+      }
+
+      if (data?.status) {
         toast.success(data.message || "Application submitted successfully!")
         router.push("/view-our-partners")
       } else {
-        toast.error(data.message || "Submission failed.")
+        toast.error(data?.message || "Submission failed.")
       }
     } catch (error) {
       console.error("Submission error:", error)
-      toast.error("Submission failed. Please try again.")
+      toast.error((error as Error)?.message || "Submission failed. Please try again.")
     } finally {
       setIsSubmitting(false)
     }

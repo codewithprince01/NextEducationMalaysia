@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Breadcrumb from '@/components/Breadcrumb'
 
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 const DEFAULT_AVATAR =
   'https://media.istockphoto.com/id/1337144146/vector/default-avatar-profile-icon-vector.jpg?s=612x612&w=0&k=20&c=BIbFwuv7FxTWvh5S3vB6bkT0Qv8Vn8N5Ffseq84ClGI='
 
@@ -58,8 +59,26 @@ const resolveImage = (partner: Partner) => {
     partner.company_logopath ||
     ''
   if (!raw || !String(raw).trim()) return DEFAULT_AVATAR
-  if (String(raw).startsWith('http')) return String(raw)
-  return DEFAULT_AVATAR
+  const v = String(raw).trim()
+  const base = IMAGE_BASE.replace(/\/+$/, '')
+
+  if (v.startsWith('http://localhost/')) {
+    const parsed = v.replace(/^https?:\/\/localhost\/?/i, '').replace(/^\/+/, '')
+    if (!parsed) return DEFAULT_AVATAR
+    if (parsed.startsWith('storage/')) return `${base}/${parsed}`
+    if (parsed.startsWith('uploads/')) return `${base}/storage/${parsed}`
+    if (parsed.startsWith('assets/uploadFiles/agent/')) return `${base}/${parsed}`
+    return `${base}/storage/${parsed}`
+  }
+
+  if (v.startsWith('http://') || v.startsWith('https://')) return v
+
+  const clean = v.replace(/^\/+/, '')
+  if (clean.startsWith('storage/')) return `${base}/${clean}`
+  if (clean.startsWith('uploads/')) return `${base}/storage/${clean}`
+  if (clean.startsWith('assets/uploadFiles/agent/')) return `${base}/${clean}`
+
+  return `${base}/storage/${clean}`
 }
 
 const PartnerGridCard = ({ partner }: { partner: Partner }) => {
@@ -180,7 +199,7 @@ const PartnerListCard = ({ partner }: { partner: Partner }) => {
 export default function PartnersClient() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCountry, setSelectedCountry] = useState('All Countries')
+  const [selectedCountry, setSelectedCountry] = useState('IN')
   const [selectedState, setSelectedState] = useState('All States')
   const [selectedCity, setSelectedCity] = useState('All Cities')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -200,7 +219,12 @@ export default function PartnersClient() {
         })
         const json = await res.json()
         const list = extractList(json, ['countries', 'data'])
-        if (list.length) setCountries(['All Countries', ...list])
+        if (list.length) {
+          const merged = ['All Countries', ...list]
+          setCountries(merged)
+          if (merged.includes('IN')) setSelectedCountry('IN')
+          else if (!merged.includes(selectedCountry)) setSelectedCountry('All Countries')
+        }
       } catch {
         // keep defaults
       }

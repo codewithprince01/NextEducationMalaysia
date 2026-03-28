@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 import {
-  withMiddleware, checkApiKey, apiSuccess, apiError, partnerService } from '@/backend';
+  withMiddleware, apiSuccess, apiError, partnerService } from '@/backend';
 
-export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
+export const GET = withMiddleware()(async (req: NextRequest) => {
   try {
     const countries = await partnerService.getCountries();
     return apiSuccess(countries, 'Success', 200, { status: true });
@@ -10,3 +10,4 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
     return apiError(error.message || 'Failed to fetch countries', 500);
   }
 });
+
