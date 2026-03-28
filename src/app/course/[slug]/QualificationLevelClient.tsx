@@ -12,18 +12,62 @@ import {
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 const COURSE_PLACEHOLDER = '/course-placeholder.svg'
 
+function formatHTML(html?: string | null) {
+  if (!html) return ''
+  let decoded = String(html)
+    .replace(/<span[^>]*>/gi, '')
+    .replace(/<\/span>/gi, '')
+    .replace(/style="[^"]*"/gi, '')
+    .replace(/&nbsp;/gi, ' ')
+  decoded = decoded.replace(
+    /<h([1-6])[^>]*>([^<]*?)\s*:\s*<\/h\1>/gi,
+    (_m, level, title) => `<h${level} class="text-xl font-bold mb-3 mt-6 text-gray-900">${String(title).trim()}</h${level}>`
+  )
+  decoded = decoded.replace(/<p>\s*:\s*/gi, '<p>')
+  decoded = decoded.replace(
+    /<strong>(.*?)<\/strong>/gi,
+    '<h4 class="text-lg font-semibold mb-2 mt-4 text-gray-800">$1</h4>'
+  )
+  decoded = decoded.replace(
+    /<b>(.*?)<\/b>/gi,
+    '<h4 class="text-lg font-semibold mb-2 mt-4 text-gray-800">$1</h4>'
+  )
+  decoded = decoded.replace(/<h2>/gi, '<h2 class="text-xl font-bold mb-3 mt-6 text-gray-900">')
+  decoded = decoded.replace(/<h3>/gi, '<h3 class="text-lg font-semibold mb-2 mt-4 text-gray-800">')
+  decoded = decoded.replace(
+    /<a\s+href="([^"]*)"/gi,
+    '<a href="$1" class="text-blue-600 hover:text-blue-800 underline font-medium"'
+  )
+  decoded = decoded.replace(/(?:\r\n|\r|\n)/g, '</p><p>')
+  decoded = `<p>${decoded}</p>`
+  decoded = decoded.replace(/<p><\/p>/g, '')
+  return decoded
+}
+
 function resolveCategoryImage(path?: string | null) {
   const raw = String(path || '').trim()
   if (!raw) return COURSE_PLACEHOLDER
 
+  if (/^https?:\/\/admin\.educationmalaysia\.inuploads/i.test(raw)) {
+    return raw.replace(/https?:\/\/admin\.educationmalaysia\.inuploads/i, `${IMAGE_BASE}/storage/uploads`)
+  }
   if (/^https?:\/\//i.test(raw)) return raw
   if (raw.startsWith('/storage/')) return `${IMAGE_BASE}${raw}`
   if (raw.startsWith('storage/')) return `${IMAGE_BASE}/${raw}`
+  if (raw.startsWith('/uploads/')) return `${IMAGE_BASE}/storage${raw}`
+  if (raw.startsWith('uploads/')) return `${IMAGE_BASE}/storage/${raw}`
   return `${IMAGE_BASE}/storage/${raw.replace(/^\/+/, '')}`
 }
 
 interface QualificationLevelClientProps {
   slug: string
+}
+
+function formatBreadcrumbLevel(slug: string) {
+  return String(slug || '')
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (ch) => ch.toUpperCase())
+    .trim()
 }
 
 export default function QualificationLevelClient({ slug }: QualificationLevelClientProps) {
@@ -85,7 +129,7 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Courses', href: '/courses' },
-    { label: pageContent?.heading || slug },
+    { label: formatBreadcrumbLevel(slug) },
   ]
 
   const visibleCategories = isMobile && !showAllCategories ? categories.slice(0, 4) : categories
@@ -131,25 +175,27 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
             }`}
           >
             <div
-              className="prose prose-blue max-w-none text-gray-800"
-              dangerouslySetInnerHTML={{ __html: pageContent?.description || "" }}
+              className="prose prose-blue max-w-none text-gray-800 [&_table]:w-full [&_table]:border-collapse [&_th]:bg-blue-800 [&_th]:text-white [&_th]:p-3 [&_th]:text-left [&_td]:p-3 [&_td]:border-b [&_tr:nth-child(even)]:bg-gray-50"
+              dangerouslySetInnerHTML={{ __html: formatHTML(pageContent?.description || "") }}
             />
             {!isExpanded && (
               <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-white to-transparent pointer-events-none"></div>
             )}
           </div>
 
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-4 flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 font-sans"
-          >
-            <span>{isExpanded ? "Show Less" : "Show More"}</span>
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
+          {pageContent?.description && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="mt-4 flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 font-sans"
+            >
+              <span>{isExpanded ? "Show Less" : "Show More"}</span>
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+          )}
         </div>
 
         {/* Categories List */}
@@ -168,6 +214,7 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
                     <img
                       src={resolveCategoryImage(card.thumbnail_path)}
                       alt={card.name}
+                      loading="lazy"
                       onError={(e) => {
                         const target = e.currentTarget
                         if (target.src !== COURSE_PLACEHOLDER) target.src = COURSE_PLACEHOLDER
@@ -175,10 +222,10 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
                       className="w-full md:w-1/3 object-cover h-64 md:h-72"
                     />
                     <div className="p-6 flex flex-col justify-center flex-1">
-                      <h3 className="text-xl font-semibold text-blue-700 mb-2 font-sans">
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2 font-sans">
                         {card.name}
                       </h3>
-                      <p className="text-gray-700 mb-3 text-sm leading-relaxed font-sans">
+                      <p className="text-gray-700 mb-3 text-sm leading-relaxed wrap-break-word font-sans">
                         {card.shortnote || "No description available."}
                       </p>
 
@@ -188,7 +235,7 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
                             Specializations:
                           </h4>
                           <div className="flex flex-wrap gap-2">
-                            {card.specializations.slice(0, 10).map((spec: any) => (
+                            {card.specializations.map((spec: any) => (
                               <span
                                 key={spec.id}
                                 className="text-sm px-3 py-1 rounded-full border border-gray-300 text-gray-800 hover:bg-blue-50 hover:text-blue-600 transition font-sans"

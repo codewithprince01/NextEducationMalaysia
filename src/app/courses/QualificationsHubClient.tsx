@@ -4,9 +4,8 @@ import React, { useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Breadcrumb from '@/components/Breadcrumb'
-import { 
+import {
   FaUserGraduate,
-  FaBookOpen,
   FaUniversity,
   FaGraduationCap,
   FaChalkboardTeacher,
@@ -14,13 +13,6 @@ import {
 } from "react-icons/fa"
 
 const qualificationLevels = [
-  {
-    title: "CERTIFICATEs",
-    slug: "pre-university",
-    icon: <FaBookOpen size={40} />,
-    description:
-      "A certificate course is the shortest course of study. It is designed to give candidate’s proficiency over a single subject area or topic.",
-  },
   {
     title: "PRE UNIVERSITY",
     slug: "pre-university",
@@ -105,3 +97,4 @@ export default function QualificationsHubClient() {
     </div>
   )
 }
+

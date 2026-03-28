@@ -28,32 +28,6 @@ function stripHtml(input: unknown): string {
     .trim()
 }
 
-function buildLevelPatterns(levelLabel: string, normalizedSlug: string): string[] {
-  const patterns = new Set<string>()
-  const add = (v?: string) => {
-    const n = String(v || '').trim().toLowerCase()
-    if (n) patterns.add(n)
-  }
-
-  add(levelLabel)
-  add(normalizedSlug.replace(/-/g, ' '))
-  add(normalizedSlug)
-
-  if (normalizedSlug.includes('pre-university')) {
-    ;['pre university', 'a-level', 'foundation', 'matriculation', 'stpm'].forEach(add)
-  } else if (normalizedSlug.includes('under-graduate')) {
-    ;['under graduate', 'bachelor', 'undergraduate'].forEach(add)
-  } else if (normalizedSlug.includes('post-graduate')) {
-    ;['post graduate', 'masters', 'master', 'mba', 'phd', 'doctorate', 'pgd'].forEach(add)
-  } else if (normalizedSlug.includes('diploma')) {
-    ;['diploma'].forEach(add)
-  } else if (normalizedSlug.includes('certificate')) {
-    ;['certificate'].forEach(add)
-  }
-
-  return Array.from(patterns)
-}
-
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const { slug } = await params
@@ -62,9 +36,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ status: false, message: 'Invalid level slug' }, { status: 400 })
     }
 
+    const hasLevelCoursesDescription = await hasColumn('levels', 'courses_description')
     const levelRows = (await prisma.$queryRawUnsafe(
       `
-      SELECT id, level, slug
+      SELECT id, level, slug ${hasLevelCoursesDescription ? ', courses_description' : ''}
       FROM levels
       WHERE slug = ?
          OR LOWER(REPLACE(level, ' ', '-')) = ?
@@ -107,24 +82,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
       ? 'cc.og_image_path'
       : 'NULL'
 
-    const levelPatterns = buildLevelPatterns(level.level, normalizedSlug)
-    const levelWhereSql =
-      levelPatterns.length > 0
-        ? `(${levelPatterns.map(() => `LOWER(TRIM(up.level)) LIKE ?`).join(' OR ')})`
-        : `(
-            up.level = ?
-            OR LOWER(
-              REPLACE(
-                REPLACE(
-                  REPLACE(TRIM(up.level), ' ', '-'),
-                  '--', '-'
-                ),
-                '--', '-'
-              )
-            ) = ?
-          )`
-    const levelArgs = levelPatterns.length > 0 ? levelPatterns.map((p) => `%${p}%`) : [level.level, normalizedSlug]
-
+    const exactLevel = String(level.level || normalizedSlug).trim().toUpperCase()
+    // Old-project equivalent: strict level + active university + website
     let categories = (await prisma.$queryRawUnsafe(
       `
       SELECT
@@ -134,23 +93,24 @@ export async function GET(_req: NextRequest, { params }: Params) {
         ${shortnoteExpr} AS shortnote,
         ${thumbExpr} AS thumbnail_path
       FROM course_categories cc
-      WHERE cc.status = 1
-        AND EXISTS (
+      WHERE EXISTS (
           SELECT 1
           FROM university_programs up
+          JOIN universities u ON u.id = up.university_id
           WHERE up.course_category_id = cc.id
             AND up.status = 1
             AND up.website = ?
-            AND ${levelWhereSql}
+            AND u.status = 1
+            AND UPPER(TRIM(up.level)) = ?
         )
       ORDER BY cc.name ASC
       `,
       SITE_VAR,
-      ...levelArgs
+      exactLevel
     )) as any[]
 
-    // Fallback for legacy rows where website/status/level formatting differs.
-    if (!Array.isArray(categories) || categories.length < 4) {
+    // Safety fallback only when strict website-scoped result is empty.
+    if (!Array.isArray(categories) || categories.length === 0) {
       categories = (await prisma.$queryRawUnsafe(
         `
         SELECT
@@ -160,78 +120,20 @@ export async function GET(_req: NextRequest, { params }: Params) {
           ${shortnoteExpr} AS shortnote,
           ${thumbExpr} AS thumbnail_path
         FROM course_categories cc
-        WHERE cc.status = 1
-          AND EXISTS (
+        WHERE EXISTS (
             SELECT 1
             FROM university_programs up
+            JOIN universities u ON u.id = up.university_id
             WHERE up.course_category_id = cc.id
               AND up.status = 1
-              AND ${levelWhereSql}
+              AND u.status = 1
+              AND UPPER(TRIM(up.level)) = ?
           )
         ORDER BY cc.name ASC
         `,
-        ...levelArgs
+        exactLevel
       )) as any[]
     }
-
-    // Final fallback: show active categories that have any active programs.
-    if (!Array.isArray(categories) || categories.length < 4) {
-      categories = (await prisma.$queryRawUnsafe(
-        `
-        SELECT
-          cc.id,
-          cc.name,
-          cc.slug,
-          ${shortnoteExpr} AS shortnote,
-          ${thumbExpr} AS thumbnail_path
-        FROM course_categories cc
-        WHERE cc.status = 1
-          AND EXISTS (
-            SELECT 1
-            FROM university_programs up
-            WHERE up.course_category_id = cc.id
-              AND up.status = 1
-          )
-        ORDER BY cc.name ASC
-        LIMIT 24
-        `
-      )) as any[]
-    }
-
-    // Absolute fallback: raw category list (no relational constraints).
-    if (!Array.isArray(categories) || categories.length < 4) {
-      categories = (await prisma.$queryRawUnsafe(
-        `
-        SELECT
-          cc.id,
-          cc.name,
-          cc.slug,
-          ${shortnoteExpr} AS shortnote,
-          ${thumbExpr} AS thumbnail_path
-        FROM course_categories cc
-        WHERE cc.status = 1
-        ORDER BY cc.name ASC
-        LIMIT 24
-        `
-      )) as any[]
-    }
-
-    // Force stable old-project-like listing from master category data.
-    // Local DB level mappings are inconsistent and often collapse to only one item.
-    categories = (await prisma.$queryRawUnsafe(
-      `
-      SELECT
-        cc.id,
-        cc.name,
-        cc.slug,
-        ${shortnoteExpr} AS shortnote,
-        ${thumbExpr} AS thumbnail_path
-      FROM course_categories cc
-      WHERE cc.status = 1
-      ORDER BY cc.name ASC
-      LIMIT 48
-      `
-    )) as any[]
 
     const categoryIds = (categories || [])
       .map((c: any) => Number(c?.id))
@@ -292,31 +194,21 @@ export async function GET(_req: NextRequest, { params }: Params) {
         const catId = Number(cat.id)
         let specs = (await prisma.$queryRawUnsafe(
           `
-          SELECT cs.id, cs.name, cs.slug
+          SELECT DISTINCT cs.id, cs.name, cs.slug
           FROM course_specializations cs
+          JOIN university_programs up ON up.specialization_id = cs.id
+          JOIN universities u ON u.id = up.university_id
           WHERE cs.course_category_id = ?
-            AND cs.status = 1
+            AND up.status = 1
+            AND u.status = 1
+            AND UPPER(TRIM(up.level)) = ?
+            AND up.website = ?
           ORDER BY cs.name ASC
-          LIMIT 12
           `,
-          catId
+          catId,
+          exactLevel,
+          SITE_VAR
         )) as any[]
-
-        // Fallback: take specializations through programs when direct relation is sparse.
-        if (!Array.isArray(specs) || specs.length === 0) {
-          specs = (await prisma.$queryRawUnsafe(
-            `
-            SELECT DISTINCT cs.id, cs.name, cs.slug
-            FROM course_specializations cs
-            JOIN university_programs up ON up.specialization_id = cs.id
-            WHERE up.course_category_id = ?
-              AND up.status = 1
-            ORDER BY cs.name ASC
-            LIMIT 12
-            `,
-            catId
-          )) as any[]
-        }
 
         const normalizedSpecs = (Array.isArray(specs) ? specs : []).map((s: any) => ({
           id: s?.id != null ? Number(s.id) : null,
@@ -342,20 +234,41 @@ export async function GET(_req: NextRequest, { params }: Params) {
     )
 
     // Level pages vary across legacy data; keep robust fallback heading/description.
-    const pageContentRows = (await prisma.$queryRawUnsafe(
+    let pageContentRows = (await prisma.$queryRawUnsafe(
       `
       SELECT heading, description, updated_at
       FROM page_contents
-      WHERE page_name = ? AND status = 1
+      WHERE page_name = ? AND website = ? AND status = 1
       LIMIT 1
       `,
-      normalizedSlug
+      normalizedSlug,
+      SITE_VAR
     )) as any[]
 
-    const pageContent = pageContentRows?.[0] || {
-      heading: `${level.level} Courses in Malaysia`,
-      description: '',
-      updated_at: null,
+    if (!pageContentRows?.length) {
+      pageContentRows = (await prisma.$queryRawUnsafe(
+        `
+        SELECT heading, description, updated_at
+        FROM page_contents
+        WHERE page_name = ? AND status = 1
+        LIMIT 1
+        `,
+        normalizedSlug
+      )) as any[]
+    }
+
+    const levelLabel = String(level.level || normalizedSlug)
+      .toLowerCase()
+      .replace(/\b\w/g, (m) => m.toUpperCase())
+    const fallbackHeading = `${levelLabel} Courses in Malaysia`
+    const fallbackDescription = hasLevelCoursesDescription
+      ? String((level as any).courses_description || '').trim()
+      : ''
+
+    const pageContent = {
+      heading: String(pageContentRows?.[0]?.heading || '').trim() || fallbackHeading,
+      description: String(pageContentRows?.[0]?.description || '').trim() || fallbackDescription,
+      updated_at: pageContentRows?.[0]?.updated_at || null,
       author: { name: 'Team Education Malaysia' },
     }
 
