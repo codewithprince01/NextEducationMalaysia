@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import AuthModal from '@/components/modals/AuthModal'
+import PopupForm from '@/components/modals/PopupForm'
 import CourseCompareBar from './CourseCompareBar'
 import CourseComparisonModal from './CourseComparisonModal'
 import Pagination from '@/components/common/Pagination'
@@ -78,7 +79,8 @@ function CourseCard({
   appliedCourses,
   onApplyNow,
   onViewDetail,
-  onAddToCompare,
+  onBrochureClick,
+  onFeeStructureClick,
   onUniversityClick,
 }: { 
   course: any; 
@@ -86,7 +88,8 @@ function CourseCard({
   appliedCourses: Set<number>;
   onApplyNow: (c: any) => void;
   onViewDetail: (c: any) => void;
-  onAddToCompare: (c: any) => void;
+  onBrochureClick: (c: any) => void;
+  onFeeStructureClick: (c: any) => void;
   onUniversityClick: (u: any) => void;
 }) {
   const accreditations: string[] = Array.isArray(course.accreditations)
@@ -225,13 +228,19 @@ function CourseCard({
           </div>
         )}
 
-        {/* Action Buttons (Old Style: py-2.5 rounded-lg) */}
-        <div className="grid grid-cols-3 gap-1.5 w-full">
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 w-full">
+          <button
+            onClick={() => onViewDetail(course)}
+            className="cursor-pointer bg-white text-gray-800 font-bold py-2.5 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
+          >
+            View Detail
+          </button>
           <button
             onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
             className={`font-bold py-2.5 px-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs sm:text-sm ${
               appliedCourses.has(course.id)
-                ? "bg-gray-400 text-white cursor-not-allowed"
+                ? "bg-green-600 text-white cursor-not-allowed hover:transform-none hover:shadow-md"
                 : "bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             }`}
             disabled={appliedCourses.has(course.id)}
@@ -239,16 +248,16 @@ function CourseCard({
             {appliedCourses.has(course.id) ? "Applied" : "Apply Now"}
           </button>
           <button
-            onClick={() => onViewDetail(course)}
-            className="cursor-pointer bg-white text-gray-800 font-bold py-2.5 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
-          >
-            View Details
-          </button>
-          <button
-            onClick={() => onAddToCompare(course)}
+            onClick={() => onBrochureClick(course)}
             className="cursor-pointer font-bold py-2.5 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
           >
-            Compare
+            Brochure
+          </button>
+          <button
+            onClick={() => onFeeStructureClick(course)}
+            className="cursor-pointer font-bold py-2.5 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
+          >
+            Fee Structure
           </button>
         </div>
       </div>
@@ -515,6 +524,9 @@ export default function CoursesListClient({
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [pendingCourse, setPendingCourse] = useState<any>(null)
   const [appliedCourses, setAppliedCourses] = useState<Set<number>>(new Set())
+  const [isPopupFormOpen, setIsPopupFormOpen] = useState(false)
+  const [popupFormType, setPopupFormType] = useState<'brochure' | 'fee' | 'apply' | 'counselling'>('brochure')
+  const [popupUniversityData, setPopupUniversityData] = useState<any>(null)
   const router = useRouter()
   
   const current_filters = useMemo(() => ({
@@ -954,6 +966,16 @@ export default function CoursesListClient({
     router.push(`/university/${universitySlug}/courses/${courseSlug}`)
   }, [router])
 
+  const openPopup = useCallback((course: any, type: 'brochure' | 'fee') => {
+    setPopupFormType(type)
+    setPopupUniversityData({
+      id: course?.university?.id ?? course?.university_id ?? null,
+      name: course?.university?.name ?? '',
+      logo_path: course?.university?.logo_path ?? '',
+    })
+    setIsPopupFormOpen(true)
+  }, [])
+
   const toggleFilter = () =>
     setOpenFilters({
       levels: true,
@@ -1238,7 +1260,8 @@ export default function CoursesListClient({
                           appliedCourses={appliedCourses}
                           onApplyNow={handleApplyNow}
                           onViewDetail={handleViewDetail}
-                          onAddToCompare={handleAddToCompare}
+                          onBrochureClick={(course) => openPopup(course, 'brochure')}
+                          onFeeStructureClick={(course) => openPopup(course, 'fee')}
                           onUniversityClick={handleUniversityClick}
                         />
                       ))
@@ -1289,9 +1312,17 @@ export default function CoursesListClient({
         onClose={() => setShowAuthModal(false)} 
         courseId={pendingCourse?.id || null}
         onSuccess={() => {
-          if (pendingCourse) handleApplyNow(pendingCourse)
+          if (pendingCourse?.id) {
+            setAppliedCourses(prev => new Set([...prev, pendingCourse.id]))
+          }
           setPendingCourse(null)
         }} 
+      />
+      <PopupForm
+        isOpen={isPopupFormOpen}
+        onClose={() => setIsPopupFormOpen(false)}
+        formType={popupFormType}
+        universityData={popupUniversityData || { id: null, name: '', logo_path: '' }}
       />
     </>
   )

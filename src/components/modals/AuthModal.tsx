@@ -9,6 +9,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -57,19 +58,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
     };
   }, [isOpen]);
 
-  const applyCourse = async (token: string) => {
+  const applyCourse = async (token: string, showLoader = true) => {
     if (!courseId) {
       console.error("No course ID provided");
       return;
     }
 
-    setIsApplying(true);
+    if (showLoader) {
+      setIsApplying(true);
+    }
 
     try {
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+      };
+      if (API_KEY) headers['x-api-key'] = API_KEY;
+
       await axios.get(`${API_BASE}/student/apply-program/${courseId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
       });
 
       toast.success("Course applied successfully!");
@@ -79,11 +85,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
       }
 
       onClose();
-
-      // Automatically reload page to update applied courses and navbar
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error: any) {
       if (error.response?.status === 409) {
         toast.warn("You have already applied for this course.");
@@ -91,15 +92,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
           onSuccess();
         }
         onClose();
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
       } else {
         console.error("Course application failed:", error);
         toast.error("Failed to apply for course. Please try again.");
       }
     } finally {
-      setIsApplying(false);
+      if (showLoader) {
+        setIsApplying(false);
+      }
     }
   };
 
@@ -113,15 +113,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
       setStudentId(data.studentId);
       setAuthStep("otp");
     } else if (data.token) {
-      // Login successful, apply course immediately
-      applyCourse(data.token);
+      toast.success("Login successfully!");
+      onClose();
+      // Login successful, apply course in background
+      applyCourse(data.token, false);
     }
   };
 
   const handleOTPSuccess = (data: any) => {
     if (data.token) {
-      // OTP verified, apply course immediately
-      applyCourse(data.token);
+      toast.success("Login successfully!");
+      onClose();
+      // OTP verified, apply course in background
+      applyCourse(data.token, false);
     }
   };
 

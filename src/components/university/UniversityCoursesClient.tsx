@@ -13,6 +13,7 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 type Course = {
   id: number
@@ -149,10 +150,30 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
       const token = localStorage.getItem("token");
       if (token) {
         try {
+          const headers: Record<string, string> = {
+            Authorization: `Bearer ${token}`,
+          }
+          if (API_KEY) headers['x-api-key'] = API_KEY
+
           const res = await axios.get(`${API_BASE}/student/applied-college`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers
           }) as any;
-          const programs = res.data?.data?.map((item: any) => item.program_id) || [];
+          const appliedList = Array.isArray(res.data?.data?.applied_programs)
+            ? res.data.data.applied_programs
+            : Array.isArray(res.data?.applied_programs)
+              ? res.data.applied_programs
+              : Array.isArray(res.data?.data)
+                ? res.data.data
+                : [];
+
+          const programs = Array.from(
+            new Set(
+              appliedList
+                .map((item: any) => Number(item?.prog_id ?? item?.program_id ?? item?.university_program?.id))
+                .filter((id: number) => Number.isFinite(id) && id > 0)
+            )
+          );
+
           setAppliedPrograms(programs);
         } catch (err) {
           console.error("Failed to fetch applied programs:", err);
@@ -203,15 +224,23 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
 
   const applyDirectly = async (token: string, courseId: number | string) => {
     try {
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+      }
+      if (API_KEY) headers['x-api-key'] = API_KEY
+
       await axios.get(`${API_BASE}/student/apply-program/${courseId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       });
       toast.success("Applied successfully!");
-      setAppliedPrograms(prev => [...prev, Number(courseId)]);
+      setAppliedPrograms(prev => (prev.includes(Number(courseId)) ? prev : [...prev, Number(courseId)]));
     } catch (err: any) {
       if (err.response?.status === 409) {
         toast.warn("Already applied!");
-        setAppliedPrograms(prev => [...prev, Number(courseId)]);
+        setAppliedPrograms(prev => (prev.includes(Number(courseId)) ? prev : [...prev, Number(courseId)]));
+      } else if (err.response?.status === 401) {
+        localStorage.removeItem('token')
+        setIsAuthModalOpen(true)
       } else {
         toast.error("Application failed. Try again.");
       }

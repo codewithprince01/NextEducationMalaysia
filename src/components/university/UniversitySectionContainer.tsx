@@ -14,7 +14,6 @@ export default function UniversitySectionContainer({ children, slug, universityN
     return (
       <div className="space-y-8">
         <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">{children}</div>
-        <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
       </div>
     )
   }
