@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import ModalWrapper from "./UniversityForms/ModalWrapper";
 import { CaptchaWidget } from "./UniversityForms/Fields";
+import { toast } from "react-toastify";
 
 type University = {
   id?: number | string;
@@ -107,7 +108,7 @@ export default function CompareForm({ isOpen, onClose, universities }: CompareFo
     }
 
     if (baseSelected.length < 2) {
-      alert("Please select at least 2 different universities.");
+      toast.error("Please select at least 2 different universities.");
       return;
     }
     const selectedUnames = baseSelected.map((u) => u?.uname).filter(Boolean) as string[];

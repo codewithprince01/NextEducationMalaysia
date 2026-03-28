@@ -4,7 +4,7 @@ import axios from "axios";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
-export const usePopupFormState = (isOpen: boolean, formType: string, onClose: () => void) => {
+export const usePopupFormState = (isOpen: boolean, formType: string) => {
   const [captcha, setCaptcha] = useState("");
   const [userInput, setUserInput] = useState("");
   const [countriesData, setCountriesData] = useState<any[]>([]);
@@ -12,7 +12,6 @@ export const usePopupFormState = (isOpen: boolean, formType: string, onClose: ()
   const [levels, setLevels] = useState<any[]>([]);
   const [courseCategories, setCourseCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -36,25 +35,6 @@ export const usePopupFormState = (isOpen: boolean, formType: string, onClose: ()
     const operator = operators[Math.floor(Math.random() * operators.length)];
     setCaptcha(`${num1} ${operator} ${num2}`);
   }, []);
-
-  const resetForm = useCallback(() => {
-    setFormData({
-      name: "",
-      email: "",
-      c_code: "",
-      mobile: "",
-      nationality: "",
-      highest_qualification: "",
-      interested_course_category: "",
-      preferred_date: "",
-      time_zone: "",
-      preferred_time: "",
-      message: "",
-      requestfor: formType === "counselling" ? "counselling" : formType === "fee" ? "fees" : "brochure",
-    });
-    setUserInput("");
-    generateCaptcha();
-  }, [formType, generateCaptcha]);
 
   useEffect(() => {
     if (isOpen) {
@@ -144,12 +124,6 @@ export const usePopupFormState = (isOpen: boolean, formType: string, onClose: ()
     setFormData(newFormData);
   };
 
-  const onSuccessOk = () => {
-    setShowSuccess(false);
-    resetForm();
-    onClose();
-  };
-
   return {
     captcha,
     userInput,
@@ -160,13 +134,10 @@ export const usePopupFormState = (isOpen: boolean, formType: string, onClose: ()
     courseCategories,
     loading,
     setLoading,
-    showSuccess,
-    setShowSuccess,
     formData,
     generateCaptcha,
     handleChange,
     handleCountryCodeChange,
     handleNationalityChange,
-    onSuccessOk,
   };
 };

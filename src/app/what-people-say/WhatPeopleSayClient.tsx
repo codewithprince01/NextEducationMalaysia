@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Quote, User, Globe, Briefcase, Send, Star } from 'lucide-react'
 import Breadcrumb from '@/components/Breadcrumb'
+import { toast } from 'react-toastify'
 
 const initialTestimonials = [
   { name: 'HASEEB', role: 'Student', country: 'PAKISTAN', rating: 5, text: 'As a student I am really thankful that I got contacted with them. Their co-operation with students is really impressive and my overall experience is excellent with them.', date: '2 months ago' },
@@ -30,11 +31,11 @@ export default function WhatPeopleSayClient() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name || !formData.email || !formData.phone || !formData.country || !formData.review) {
-      alert('Please fill all required fields')
+      toast.error('Please fill all required fields')
       return
     }
     if (formData.phone.length < 10) {
-      alert('Please enter a valid phone number')
+      toast.error('Please enter a valid phone number')
       return
     }
 

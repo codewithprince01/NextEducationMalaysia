@@ -1,14 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { User, Mail, Phone, Flag, Send, CheckCircle } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { User, Mail, Phone, Flag, Send } from 'lucide-react'
+import { toast } from 'react-toastify'
 
-const COUNTRIES = ['India', 'Pakistan', 'Bangladesh', 'Nepal', 'Sri Lanka', 'Malaysia', 'Nigeria', 'Middle East', 'Other']
-const PHONE_CODES = ['+91', '+60', '+92', '+880', '+977', '+94', '+971']
+type CountryRow = {
+  id?: number | string
+  name?: string
+  phonecode?: string | number
+}
 
 function createSecurityCheck() {
-  const first = Math.floor(Math.random() * 9) + 1
-  const second = Math.floor(Math.random() * first)
+  const first = Math.floor(Math.random() * 10) + 5
+  const second = Math.floor(Math.random() * 5)
   return { first, second, answer: first - second }
 }
 
@@ -18,7 +22,7 @@ type Props = {
   context?: string | { slug: string; universityName?: string | null }
 }
 
-export default function SideInquiryForm({ title = "Get In Touch", context = "", type = "general" }: Props) {
+export default function SideInquiryForm({ title = 'Get In Touch', context = '', type = 'general' }: Props) {
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -29,56 +33,174 @@ export default function SideInquiryForm({ title = "Get In Touch", context = "", 
     agree: false
   })
   const [securityCheck, setSecurityCheck] = useState(createSecurityCheck)
-  const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [countriesData, setCountriesData] = useState<CountryRow[]>([])
+  const [phoneValid, setPhoneValid] = useState(false)
 
-  const set = (k: 'name' | 'email' | 'phoneCode' | 'phone' | 'country' | 'captcha', v: string) =>
+  const phoneCodeOptions = useMemo(() => {
+    const s = new Set<string>()
+    for (const c of countriesData) {
+      const code = String(c.phonecode || '').trim()
+      if (!code) continue
+      s.add(`+${code.replace(/^\+/, '')}`)
+    }
+    if (s.size === 0) s.add('+91')
+    return Array.from(s).sort((a, b) => a.localeCompare(b))
+  }, [countriesData])
+
+  useEffect(() => {
+    let active = true
+    const fetchCountries = async () => {
+      try {
+        const [resCountries, resPhoneCodes] = await Promise.all([
+          fetch('/api/v1/countries'),
+          fetch('/api/v1/countries/phonecodes')
+        ])
+
+        const countriesJson = await resCountries.json().catch(() => ({}))
+        const phonecodesJson = await resPhoneCodes.json().catch(() => ({}))
+        const countries = Array.isArray(countriesJson?.data)
+          ? countriesJson.data
+          : Array.isArray(countriesJson)
+            ? countriesJson
+            : []
+        const phonecodes = Array.isArray(phonecodesJson?.data)
+          ? phonecodesJson.data
+          : Array.isArray(phonecodesJson)
+            ? phonecodesJson
+            : []
+
+        // Prefer country records with both name+phonecode. Fallback to whatever is available.
+        const merged: CountryRow[] =
+          countries.length > 0
+            ? countries
+            : phonecodes
+
+        if (!active) return
+        setCountriesData(merged)
+      } catch {
+        if (!active) return
+        setCountriesData([])
+      }
+    }
+    fetchCountries()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const syncNationalityFromCode = (code: string) => {
+    const numericCode = code.replace(/^\+/, '')
+    const match = countriesData.find((c) => String(c.phonecode || '') === numericCode)
+    if (match?.name) {
+      setForm((f) => ({ ...f, country: String(match.name) }))
+    }
+  }
+
+  const syncCodeFromNationality = (name: string) => {
+    const match = countriesData.find((c) => String(c.name || '') === name)
+    if (match?.phonecode) {
+      const code = `+${String(match.phonecode).replace(/^\+/, '')}`
+      setForm((f) => ({ ...f, phoneCode: code }))
+    }
+  }
+
+  const setField = (k: 'name' | 'email' | 'phoneCode' | 'phone' | 'country' | 'captcha', v: string) => {
     setForm(f => ({ ...f, [k]: v }))
+  }
+
   const setAgree = (v: boolean) => setForm(f => ({ ...f, agree: v }))
+
+  const handlePhoneChange = async (value: string) => {
+    const numeric = value.replace(/\D/g, '')
+    setForm((f) => ({ ...f, phone: numeric }))
+    if (numeric.length < 6) {
+      setPhoneValid(false)
+      return
+    }
+    try {
+      const { isValidPhoneNumber } = await import('libphonenumber-js')
+      const full = `${form.phoneCode}${numeric}`
+      setPhoneValid(isValidPhoneNumber(full))
+    } catch {
+      // If validator is unavailable, keep basic length validation.
+      setPhoneValid(numeric.length >= 7)
+    }
+  }
+
+  const getSource = () => {
+    if (type === 'university') return 'Education Malaysia - University Profile Page'
+    if (type === 'exam') return 'Education Malaysia - Exam Detail Page'
+    if (type === 'contact') return 'Education Malaysia - Contact Us Page'
+    const contextStr = typeof context === 'string' ? context : `${context.universityName || ''} (${context.slug})`
+    return contextStr ? `Education Malaysia - General Inquiry - ${contextStr}` : 'Education Malaysia - General Inquiry'
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const captchaValid = Number(form.captcha) === securityCheck.answer
-    if (!form.name || !form.email || !form.phone || !form.country || !form.agree || !captchaValid) {
-      if (!captchaValid) {
-        setForm((f) => ({ ...f, captcha: '' }))
-        setSecurityCheck(createSecurityCheck())
-      }
+
+    if (!captchaValid) {
+      toast.error('Captcha is incorrect.')
+      setForm((f) => ({ ...f, captcha: '' }))
+      setSecurityCheck(createSecurityCheck())
       return
     }
-    setStatus('loading')
-
-    try {
-      const contextStr = typeof context === 'string' 
-        ? context 
-        : `${context.universityName || ''} (${context.slug})`
-
-      const params = new URLSearchParams()
-      params.append('name', form.name)
-      params.append('email', form.email)
-      params.append('mobile', `${form.phoneCode}${form.phone}`)
-      params.append('nationality', form.country)
-      params.append('source', `${type === 'university' ? 'University' : 'Scholarship'} Inquiry - ${contextStr}`)
-      params.append('source_path', window.location.href)
-      
-      const res = await fetch('/api/inquiry/simple-form', { method: 'POST', body: params })
-      if (res.ok) setStatus('done')
-      else setStatus('error')
-    } catch {
-      setStatus('error')
+    if (!form.agree) {
+      toast.error('You must agree to the Terms.')
+      return
     }
-  }
+    if (!form.name || !form.email || !form.phone || !form.country) {
+      toast.error('Please fill all required fields.')
+      return
+    }
+    if (!phoneValid && form.phone.length >= 7) {
+      toast.error('Please enter a valid phone number.')
+      return
+    }
 
-  if (status === 'done') {
-    return (
-      <div className="bg-white p-8 rounded-[40px] border border-green-100 shadow-xl text-center space-y-4">
-        <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto">
-          <CheckCircle className="w-8 h-8 text-green-600" />
-        </div>
-        <h4 className="text-xl font-black text-gray-900">Request Received!</h4>
-        <p className="text-gray-500 text-sm">Our counselor will contact you shortly regarding the details.</p>
-        <button onClick={() => setStatus('idle')} className="text-blue-600 font-bold text-xs hover:underline cursor-pointer">Send another inquiry</button>
-      </div>
-    )
+    setStatus('loading')
+    try {
+      const res = await fetch('/api/v1/inquiry/simple-form', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          country_code: form.phoneCode.replace(/^\+/, ''),
+          mobile: form.phone,
+          nationality: form.country,
+          source: getSource(),
+          source_path: window.location.href
+        })
+      })
+
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(json?.message || 'Failed to submit. Please try again.')
+        setStatus('error')
+        return
+      }
+
+      toast.success('Form submitted successfully!')
+      setForm({
+        name: '',
+        email: '',
+        phoneCode: form.phoneCode || '+91',
+        phone: '',
+        country: '',
+        captcha: '',
+        agree: false
+      })
+      setSecurityCheck(createSecurityCheck())
+      setPhoneValid(false)
+      setStatus('idle')
+    } catch {
+      toast.error('Failed to submit. Please try again.')
+      setStatus('error')
+    } finally {
+      setStatus((prev) => (prev === 'error' ? 'error' : 'idle'))
+    }
   }
 
   return (
@@ -105,7 +227,7 @@ export default function SideInquiryForm({ title = "Get In Touch", context = "", 
                 required
                 placeholder="Full Name"
                 value={form.name}
-                onChange={e => set('name', e.target.value)}
+                onChange={e => setField('name', e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 placeholder:text-gray-400 placeholder:font-medium shadow-xs"
               />
             </div>
@@ -119,7 +241,7 @@ export default function SideInquiryForm({ title = "Get In Touch", context = "", 
                 required
                 placeholder="Email Address"
                 value={form.email}
-                onChange={e => set('email', e.target.value)}
+                onChange={e => setField('email', e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 placeholder:text-gray-400 placeholder:font-medium shadow-xs"
               />
             </div>
@@ -129,10 +251,13 @@ export default function SideInquiryForm({ title = "Get In Touch", context = "", 
             <select
               required
               value={form.phoneCode}
-              onChange={e => set('phoneCode', e.target.value)}
+              onChange={e => {
+                setField('phoneCode', e.target.value)
+                syncNationalityFromCode(e.target.value)
+              }}
               className="w-24 px-3 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-800 shadow-xs appearance-none text-center"
             >
-              {PHONE_CODES.map((code) => (
+              {phoneCodeOptions.map((code) => (
                 <option key={code} value={code}>
                   {code}
                 </option>
@@ -148,7 +273,7 @@ export default function SideInquiryForm({ title = "Get In Touch", context = "", 
                 required
                 placeholder="Phone Number"
                 value={form.phone}
-                onChange={e => set('phone', e.target.value.replace(/\D/g, ''))}
+                onChange={e => void handlePhoneChange(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 placeholder:text-gray-400 placeholder:font-medium shadow-xs"
               />
             </div>
@@ -161,11 +286,18 @@ export default function SideInquiryForm({ title = "Get In Touch", context = "", 
             <select
               required
               value={form.country}
-              onChange={e => set('country', e.target.value)}
+              onChange={e => {
+                setField('country', e.target.value)
+                syncCodeFromNationality(e.target.value)
+              }}
               className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 appearance-none shadow-xs"
             >
               <option value="">Select Nationality</option>
-              {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {countriesData.map((c, idx) => {
+                const name = String(c?.name || '').trim()
+                if (!name) return null
+                return <option key={`${name}-${idx}`} value={name}>{name}</option>
+              })}
             </select>
           </div>
 
@@ -188,7 +320,7 @@ export default function SideInquiryForm({ title = "Get In Touch", context = "", 
               value={form.captcha}
               onChange={(e) => {
                 if (!/^\d*$/.test(e.target.value)) return
-                set('captcha', e.target.value)
+                setField('captcha', e.target.value)
               }}
               className="w-full max-w-[110px] px-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-black text-lg text-center text-gray-700 placeholder:text-gray-300 shadow-xs"
             />

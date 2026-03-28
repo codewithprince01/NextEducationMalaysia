@@ -3,9 +3,10 @@
 import React from "react";
 import { X } from "lucide-react";
 import { usePopupFormState } from "./usePopupFormState";
-import SuccessView from "./SuccessView";
 import { CommonFields, CounsellingFields, CaptchaSection } from "./FormFields";
 import axios from "axios";
+import { toast } from "react-toastify";
+import { showInquirySuccessToast } from "@/components/common/inquiryToast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in';
@@ -41,15 +42,12 @@ const PopupForm: React.FC<PopupFormProps> = ({
     courseCategories,
     loading,
     setLoading,
-    showSuccess,
-    setShowSuccess,
     formData,
     generateCaptcha,
     handleChange,
     handleCountryCodeChange,
     handleNationalityChange,
-    onSuccessOk,
-  } = usePopupFormState(isOpen, formType, onClose);
+  } = usePopupFormState(isOpen, formType);
 
   const formTitle =
     formType === "counselling"
@@ -82,13 +80,13 @@ const PopupForm: React.FC<PopupFormProps> = ({
       else correctAnswer = parseInt(n1) * parseInt(n2);
 
       if (parseInt(userInput) !== correctAnswer) {
-        alert("Invalid captcha answer");
+        toast.error("Invalid captcha answer");
         generateCaptcha();
         setUserInput("");
         return;
       }
     } catch {
-      alert("Captcha error");
+      toast.error("Captcha error");
       generateCaptcha();
       setUserInput("");
       return;
@@ -144,7 +142,8 @@ const PopupForm: React.FC<PopupFormProps> = ({
       }
 
       await axios.post(`${API_BASE}${endpoint}`, submitData);
-      setShowSuccess(true);
+      showInquirySuccessToast();
+      onClose();
     } catch (error: any) {
       console.error("❌ Submission Failed:", error);
       let errorMsg = "Something went wrong, please try again.";
@@ -154,7 +153,7 @@ const PopupForm: React.FC<PopupFormProps> = ({
       } else if (error.response?.data?.message) {
         errorMsg = error.response.data.message;
       }
-      alert(errorMsg);
+      toast.error(errorMsg);
       generateCaptcha();
       setUserInput("");
     } finally {
@@ -168,10 +167,7 @@ const PopupForm: React.FC<PopupFormProps> = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-[9999] px-4">
-      {showSuccess ? (
-        <SuccessView formType={formType} onOk={onSuccessOk} />
-      ) : (
-        <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl p-4 relative flex flex-col overflow-y-auto">
+      <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl p-4 relative flex flex-col overflow-y-auto">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-600 hover:text-red-500 transition z-10 cursor-pointer"
@@ -262,7 +258,6 @@ const PopupForm: React.FC<PopupFormProps> = ({
             </form>
           </div>
         </div>
-      )}
     </div>
   );
 };

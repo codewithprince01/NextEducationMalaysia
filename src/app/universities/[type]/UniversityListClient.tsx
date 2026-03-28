@@ -8,6 +8,7 @@ import UniversityListCard from '@/components/university/UniversityListCard'
 import { BrochureForm, FeeStructureForm } from '@/components/modals/UniversityForms'
 import CompareForm from '@/components/modals/CompareForm'
 import Pagination from '@/components/common/Pagination'
+import FormSuccessPopup from '@/components/common/FormSuccessPopup'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -193,8 +194,8 @@ export default function UniversityListClient({
   const [feeModalOpen, setFeeModalOpen] = useState(false)
   const [brochureModalOpen, setBrochureModalOpen] = useState(false)
   const [compareModalOpen, setCompareModalOpen] = useState(false)
-  const [successModalOpen, setSuccessModalOpen] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
+  const [showFormSuccess, setShowFormSuccess] = useState(false)
+  const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
   const [search, setSearch] = useState(searchParams.get('search') || '')
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('search') || '')
@@ -420,12 +421,8 @@ export default function UniversityListClient({
   }
 
   const showSuccess = (message: string) => {
-    setSuccessMessage(message)
-    setSuccessModalOpen(true)
-    setTimeout(() => {
-      setSuccessModalOpen(false)
-      setSuccessMessage('')
-    }, 3500)
+    setFormSuccessMessage(message || 'Your inquiry has been submitted successfully. We will contact you soon.')
+    setShowFormSuccess(true)
   }
 
   const getUniversityLogo = (uni: Uni | null) => {
@@ -674,19 +671,11 @@ export default function UniversityListClient({
         universities={universities}
       />
 
-      {successModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-xl p-6 text-center max-w-sm">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">{successMessage}</h3>
-            <p className="text-gray-600">We'll get back to you soon.</p>
-          </div>
-        </div>
-      )}
+      <FormSuccessPopup
+        open={showFormSuccess}
+        message={formSuccessMessage}
+        onClose={() => setShowFormSuccess(false)}
+      />
     </div>
   )
 }

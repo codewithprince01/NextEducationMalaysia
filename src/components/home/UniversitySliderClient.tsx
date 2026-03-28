@@ -12,6 +12,7 @@ import type { Swiper as SwiperType } from 'swiper'
 import 'swiper/css'
 import CompareForm from '../modals/CompareForm'
 import { BrochureForm, FeeStructureForm } from '@/components/modals/UniversityForms'
+import FormSuccessPopup from '@/components/common/FormSuccessPopup'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 
@@ -172,6 +173,8 @@ export default function UniversitySliderClient({ universities }: { universities:
   const [feeModalOpen, setFeeModalOpen] = useState(false)
   const [brochureModalOpen, setBrochureModalOpen] = useState(false)
   const [isCompareOpen, setIsCompareOpen] = useState(false)
+  const [showFormSuccess, setShowFormSuccess] = useState(false)
+  const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
   const openModal = useCallback((uni: University, type: "brochure" | "fee") => {
     setSelectedUni(uni)
@@ -184,6 +187,10 @@ export default function UniversitySliderClient({ universities }: { universities:
 
   const openCompareModal = useCallback(() => {
     setIsCompareOpen(true)
+  }, [])
+  const handleFormSuccess = useCallback((message: string) => {
+    setFormSuccessMessage(message || 'Your inquiry has been submitted successfully. We will contact you soon.')
+    setShowFormSuccess(true)
   }, [])
 
   const getUniversityLogo = useCallback((uni: University | null) => {
@@ -247,6 +254,7 @@ export default function UniversitySliderClient({ universities }: { universities:
           universityLogo={getUniversityLogo(selectedUni)}
           isOpen={feeModalOpen}
           onClose={() => setFeeModalOpen(false)}
+          onSuccess={handleFormSuccess}
         />
 
         <BrochureForm
@@ -255,12 +263,19 @@ export default function UniversitySliderClient({ universities }: { universities:
           universityLogo={getUniversityLogo(selectedUni)}
           isOpen={brochureModalOpen}
           onClose={() => setBrochureModalOpen(false)}
+          onSuccess={handleFormSuccess}
         />
 
         <CompareForm 
           isOpen={isCompareOpen}
           onClose={() => setIsCompareOpen(false)}
           universities={universities}
+        />
+
+        <FormSuccessPopup
+          open={showFormSuccess}
+          message={formSuccessMessage}
+          onClose={() => setShowFormSuccess(false)}
         />
 
         <div className="text-center mt-6">

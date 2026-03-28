@@ -24,6 +24,7 @@ interface CourseCardProps {
   appliedCourses: Set<number>
   onApplyNow: (course: any) => void
   onBrochureClick: (course: any) => void
+  onFeeStructureClick: (course: any) => void
   accreditations: string[]
   universitySlug: string
 }
@@ -40,6 +41,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   appliedCourses,
   onApplyNow,
   onBrochureClick,
+  onFeeStructureClick,
   accreditations,
   universitySlug
 }) => {
@@ -167,7 +169,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         </button>
 
         <button
-          onClick={() => onBrochureClick(course)}
+          onClick={() => onFeeStructureClick(course)}
           className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-blue-600 text-blue-700 font-medium hover:bg-blue-50 transition text-sm"
         >
           <MdCompareArrows className="text-blue-700" />

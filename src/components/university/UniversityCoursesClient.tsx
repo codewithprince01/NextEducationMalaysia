@@ -7,8 +7,10 @@ import { IoFilter, IoClose } from 'react-icons/io5'
 import { MdSearch, MdSchool, MdLocationOn } from 'react-icons/md'
 import CoursesSidebar from './CoursesSidebar'
 import CourseCard from './CourseCard'
-import PopupForm from '@/components/modals/PopupForm'
 import AuthModal from '@/components/modals/AuthModal'
+import { BrochureForm } from '@/components/modals/UniversityForms/BrochureForm'
+import { FeeStructureForm } from '@/components/modals/UniversityForms/FeeStructureForm'
+import FormSuccessPopup from '@/components/common/FormSuccessPopup'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 
@@ -91,9 +93,12 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
 
   // Modal states
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [isPopupFormOpen, setIsPopupFormOpen] = useState(false)
-  const [popupFormType, setPopupFormType] = useState<'brochure' | 'fee' | 'apply' | 'counselling'>('brochure')
+  const [isBrochureOpen, setIsBrochureOpen] = useState(false)
+  const [isFeeOpen, setIsFeeOpen] = useState(false)
   const [selectedCourseId, setSelectedCourseId] = useState<number | string | null>(null)
+  const [popupUniversityData, setPopupUniversityData] = useState<{ id?: number | null; name?: string; logo_path?: string | null } | null>(null)
+  const [showFormSuccess, setShowFormSuccess] = useState(false)
+  const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -260,8 +265,27 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
 
   const handleBrochure = (course: any) => {
     setSelectedCourseId(course.id)
-    setPopupFormType('brochure')
-    setIsPopupFormOpen(true)
+    setPopupUniversityData({
+      id: course?.university_id ?? university?.id ?? null,
+      name: course?.university_name || university?.name || '',
+      logo_path: course?.university_logo || null,
+    })
+    setIsBrochureOpen(true)
+  }
+
+  const handleFeeStructure = (course: any) => {
+    setSelectedCourseId(course.id)
+    setPopupUniversityData({
+      id: course?.university_id ?? university?.id ?? null,
+      name: course?.university_name || university?.name || '',
+      logo_path: course?.university_logo || null,
+    })
+    setIsFeeOpen(true)
+  }
+
+  const handleFormSuccess = (message: string) => {
+    setFormSuccessMessage(message || 'Your inquiry has been submitted successfully. We will contact you soon.')
+    setShowFormSuccess(true)
   }
 
   if (loading && courses.length === 0) {
@@ -341,6 +365,7 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
                   appliedCourses={new Set(appliedPrograms)}
                   onApplyNow={handleApplyNow}
                   onBrochureClick={handleBrochure}
+                  onFeeStructureClick={handleFeeStructure}
                   accreditations={course.accreditations}
                   universitySlug={slug}
                 />
@@ -389,16 +414,29 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
           }
         }}
       />
-      
-      <PopupForm
-        isOpen={isPopupFormOpen}
-        onClose={() => setIsPopupFormOpen(false)}
-        formType={popupFormType}
-        universityData={university || {
-          id: courses[0]?.university_id,
-          name: courses[0]?.university_name,
-          logo_path: courses[0]?.university_logo
-        }}
+
+      <BrochureForm
+        universityId={popupUniversityData?.id ?? university?.id ?? null}
+        universityName={popupUniversityData?.name || university?.name || ''}
+        universityLogo={popupUniversityData?.logo_path || null}
+        isOpen={isBrochureOpen}
+        onClose={() => setIsBrochureOpen(false)}
+        onSuccess={handleFormSuccess}
+      />
+
+      <FeeStructureForm
+        universityId={popupUniversityData?.id ?? university?.id ?? null}
+        universityName={popupUniversityData?.name || university?.name || ''}
+        universityLogo={popupUniversityData?.logo_path || null}
+        isOpen={isFeeOpen}
+        onClose={() => setIsFeeOpen(false)}
+        onSuccess={handleFormSuccess}
+      />
+
+      <FormSuccessPopup
+        open={showFormSuccess}
+        message={formSuccessMessage}
+        onClose={() => setShowFormSuccess(false)}
       />
     </div>
   )

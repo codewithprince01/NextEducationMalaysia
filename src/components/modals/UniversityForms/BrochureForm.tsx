@@ -2,6 +2,8 @@
 
 import React from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
+import { INQUIRY_SUCCESS_MESSAGE, showInquirySuccessToast } from '@/components/common/inquiryToast'
 import ModalWrapper from './ModalWrapper'
 import { useFormState } from './useFormState'
 import { useFetchFormData } from './useFetchFormData'
@@ -54,8 +56,8 @@ type Props = {
 }
 
 export function BrochureForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
-  const form = useFormState(isOpen)
   const { phonecode, levels, courseCategories, countriesData } = useFetchFormData()
+  const form = useFormState(isOpen, countriesData as any[], phonecode as any[])
   const [logoCandidates, setLogoCandidates] = React.useState<string[]>([])
   const [logoIndex, setLogoIndex] = React.useState(0)
 
@@ -70,11 +72,12 @@ export function BrochureForm({ universityId, universityName, universityLogo, isO
     e.preventDefault()
     if (!form.validateCaptcha()) return
 
-    const fd = new FormData(e.currentTarget)
+    const formEl = e.currentTarget
+    const fd = new FormData(formEl)
     form.setLoading(true)
 
     try {
-      await axios.post('/api/v1/inquiry/brochure-request', {
+      const response = await axios.post('/api/v1/inquiry/brochure-request', {
         name: fd.get('firstName'),
         email: fd.get('email'),
         country_code: String(fd.get('countryCode') || '91').replace('+', ''),
@@ -90,13 +93,23 @@ export function BrochureForm({ universityId, universityName, universityLogo, isO
         headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
       })
 
-      onClose()
-      onSuccess?.('Brochure request sent successfully!')
-      e.currentTarget.reset()
+      if (response?.status < 200 || response?.status >= 300) {
+        throw new Error('Submission failed')
+      }
+
+      const successMessage = INQUIRY_SUCCESS_MESSAGE
+      formEl.reset()
       form.reset()
+      if (onSuccess) onSuccess(successMessage)
+      else showInquirySuccessToast(successMessage)
+      onClose()
     } catch (error: any) {
-      const msg = error?.response?.data?.message || 'Submission failed. Please check your connection or contact support.'
-      alert(msg)
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.response?.data?.details ||
+        'Submission failed. Please check your connection or contact support.'
+      toast.error(msg)
     } finally {
       form.setLoading(false)
     }

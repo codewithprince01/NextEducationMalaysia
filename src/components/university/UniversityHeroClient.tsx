@@ -12,6 +12,7 @@ import UniversityInfoCards from './UniversityInfoCards'
 import UniversityActionButtons from './UniversityActionButtons'
 import UniversityRankings from './UniversityRankings'
 import Breadcrumb, { BreadcrumbItem } from '@/components/Breadcrumb'
+import FormSuccessPopup from '@/components/common/FormSuccessPopup'
 import PopupForm from '@/components/modals/PopupForm'
 import { BrochureForm } from '@/components/modals/UniversityForms/BrochureForm'
 import { FeeStructureForm } from '@/components/modals/UniversityForms/FeeStructureForm'
@@ -67,6 +68,8 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const [showGallery, setShowGallery] = useState(false)
   const [isPopupOpen, setIsPopupOpen] = useState(false)
   const [popupType, setPopupType] = useState<'brochure' | 'fee' | 'counselling' | 'apply' | 'review'>('brochure')
+  const [showFormSuccess, setShowFormSuccess] = useState(false)
+  const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
   // â”€â”€ Breadcrumb Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const breadcrumbItems = useMemo<BreadcrumbItem[]>(() => {
@@ -132,6 +135,10 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const openPopup = useCallback((type: 'brochure' | 'fee' | 'counselling' | 'apply' | 'review') => {
     setPopupType(type)
     setIsPopupOpen(true)
+  }, [])
+  const handleFormSuccess = useCallback((message: string) => {
+    setFormSuccessMessage(message || 'Your inquiry has been submitted successfully. We will contact you soon.')
+    setShowFormSuccess(true)
   }, [])
 
   const popupLogo = logoSrc || bannerSrc || null
@@ -455,6 +462,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         universityLogo={popupLogo}
         isOpen={isPopupOpen && popupType === 'brochure'}
         onClose={() => setIsPopupOpen(false)}
+        onSuccess={handleFormSuccess}
       />
 
       <FeeStructureForm
@@ -463,6 +471,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         universityLogo={popupLogo}
         isOpen={isPopupOpen && popupType === 'fee'}
         onClose={() => setIsPopupOpen(false)}
+        onSuccess={handleFormSuccess}
       />
 
       <CounsellingForm
@@ -471,6 +480,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         universityLogo={popupLogo}
         isOpen={isPopupOpen && popupType === 'counselling'}
         onClose={() => setIsPopupOpen(false)}
+        onSuccess={handleFormSuccess}
       />
 
       <ReviewForm
@@ -479,6 +489,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         universityLogo={popupLogo}
         isOpen={isPopupOpen && popupType === 'review'}
         onClose={() => setIsPopupOpen(false)}
+        onSuccess={handleFormSuccess}
       />
 
       <PopupForm
@@ -486,6 +497,12 @@ export default function UniversityHeroClient({ university, photos }: { universit
         onClose={() => setIsPopupOpen(false)}
         universityData={university}
         formType="apply"
+      />
+
+      <FormSuccessPopup
+        open={showFormSuccess}
+        message={formSuccessMessage}
+        onClose={() => setShowFormSuccess(false)}
       />
     </div>
   )

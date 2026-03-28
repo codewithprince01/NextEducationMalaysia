@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 import {
-  withMiddleware, checkApiKey, apiSuccess, apiError, countryService, serializeBigInt } from '@/backend';
+  withMiddleware, apiSuccess, apiError, countryService, serializeBigInt } from '@/backend';
 
-export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
+export const GET = withMiddleware()(async (req: NextRequest) => {
   try {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search') || undefined;

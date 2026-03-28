@@ -2,6 +2,8 @@
 
 import React from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
+import { INQUIRY_SUCCESS_MESSAGE, showInquirySuccessToast } from '@/components/common/inquiryToast'
 import ModalWrapper from './ModalWrapper'
 import { useFormState } from './useFormState'
 import { useFetchFormData } from './useFetchFormData'
@@ -46,8 +48,8 @@ type Props = {
 }
 
 export function CounsellingForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
-  const form = useFormState(isOpen)
   const { phonecode, levels, courseCategories, countriesData } = useFetchFormData()
+  const form = useFormState(isOpen, countriesData as any[], phonecode as any[])
   const [logoSrc, setLogoSrc] = React.useState<string | null>(normalizeLogoUrl(universityLogo))
 
   React.useEffect(() => {
@@ -58,19 +60,21 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
     e.preventDefault()
     if (!form.validateCaptcha()) return
 
-    const fd = new FormData(e.currentTarget)
+    const formEl = e.currentTarget
+    const fd = new FormData(formEl)
     form.setLoading(true)
 
     try {
-      await axios.post('/api/v1/inquiry/book-session', {
-        name: fd.get('name'),
+      const response = await axios.post('/api/v1/inquiry/book-session', {
+        name: fd.get('firstName'),
         email: fd.get('email'),
-        country_code: String(fd.get('c_code') || '91').replace('+', ''),
-        mobile: fd.get('mobile'),
+        country_code: String(fd.get('countryCode') || '91').replace('+', ''),
+        mobile: fd.get('phone'),
         nationality: fd.get('nationality'),
-        highest_qualification: fd.get('highest_qualification'),
-        interested_course_category: fd.get('interested_course_category'),
+        highest_qualification: fd.get('level'),
+        interested_course_category: fd.get('interested_course_category') || fd.get('course'),
         university_id: universityId || null,
+        university_name: universityName || '',
         requestfor: 'counselling',
         dayslot: fd.get('preferred_date'),
         timeslot: fd.get('preferred_time'),
@@ -81,12 +85,23 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
         headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
       })
 
-      onClose()
-      onSuccess?.('Counselling session booked successfully!')
-      e.currentTarget.reset()
+      if (response?.status < 200 || response?.status >= 300) {
+        throw new Error('Submission failed')
+      }
+
+      const successMessage = INQUIRY_SUCCESS_MESSAGE
+      formEl.reset()
       form.reset()
-    } catch {
-      alert('Something went wrong. Please try again.')
+      if (onSuccess) onSuccess(successMessage)
+      else showInquirySuccessToast(successMessage)
+      onClose()
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.response?.data?.details ||
+        'Something went wrong. Please try again.'
+      toast.error(msg)
     } finally {
       form.setLoading(false)
     }
@@ -126,6 +141,7 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
             countriesData={countriesData}
             phonecode={phonecode}
             levels={levels}
+            courseCategories={courseCategories}
             onNationalityChange={form.handleNationalityChange}
             onCountryCodeChange={form.handleCountryCodeChange}
             accentColor="green"

@@ -3,6 +3,7 @@
 import React from 'react'
 import axios from 'axios'
 import { FaUser, FaEnvelope, FaMobileAlt, FaBriefcase, FaPen } from 'react-icons/fa'
+import { toast } from 'react-toastify'
 import ModalWrapper from './ModalWrapper'
 
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -87,23 +88,23 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
 
   const validate = () => {
     if (!form.name || !form.email || !form.mobile) {
-      alert('Please fill in Name, Email and Mobile.')
+      toast.error('Please fill in Name, Email and Mobile.')
       return false
     }
     if (!form.program || !form.passing_year) {
-      alert('Please select Program and Passing Year.')
+      toast.error('Please select Program and Passing Year.')
       return false
     }
     if (!rating) {
-      alert('Please provide your rating.')
+      toast.error('Please provide your rating.')
       return false
     }
     if (form.review_title.length < 20 || form.review_title.length > 100) {
-      alert('Review title must be between 20 and 100 characters.')
+      toast.error('Review title must be between 20 and 100 characters.')
       return false
     }
     if (form.description.length < 150) {
-      alert('Review description must be at least 150 characters.')
+      toast.error('Review description must be at least 150 characters.')
       return false
     }
     return true
@@ -128,11 +129,17 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
         headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
       })
 
-      onClose()
-      onSuccess?.('Review submitted successfully! Pending approval.')
       resetForm()
-    } catch {
-      alert('Failed to submit review. Please try again.')
+      const msg = 'Review submitted successfully! Pending approval.'
+      if (onSuccess) onSuccess(msg)
+      else toast.success(msg)
+      onClose()
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        'Failed to submit review. Please try again.'
+      toast.error(msg)
     } finally {
       setLoading(false)
     }

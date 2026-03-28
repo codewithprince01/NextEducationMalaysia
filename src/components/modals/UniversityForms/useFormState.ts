@@ -4,7 +4,23 @@ import { useState, useEffect, useCallback } from 'react'
 
 type CaptchaQuestion = { num1: number; num2: number; answer: number }
 
-export function useFormState(isOpen: boolean) {
+type AnyOption = Record<string, any>
+
+const norm = (v: unknown) => String(v ?? '').trim().toLowerCase()
+const toCode = (item: AnyOption) =>
+  String(
+    item?.phonecode ??
+      item?.phone_code ??
+      item?.country_code ??
+      item?.dial_code ??
+      item?.code ??
+      ''
+  ).replace('+', '').trim()
+
+const toName = (item: AnyOption) =>
+  String(item?.name ?? item?.country ?? item?.country_name ?? '').trim()
+
+export function useFormState(isOpen: boolean, countriesData: AnyOption[] = [], phonecode: AnyOption[] = []) {
   const [captchaQuestion, setCaptchaQuestion] = useState<CaptchaQuestion>({ num1: 0, num2: 0, answer: 0 })
   const [captchaInput, setCaptchaInput] = useState('')
   const [captchaError, setCaptchaError] = useState(false)
@@ -36,6 +52,53 @@ export function useFormState(isOpen: boolean) {
     return true
   }
 
+  const findCodeByNationality = useCallback(
+    (nationalityName: string) => {
+      const needle = norm(nationalityName)
+      if (!needle) return ''
+
+      const fromCountries = (countriesData || []).find((c) => norm(toName(c)) === needle)
+      const fromPhonecodes = (phonecode || []).find((c) => norm(toName(c)) === needle)
+      return toCode(fromCountries || fromPhonecodes || {})
+    },
+    [countriesData, phonecode],
+  )
+
+  const findNationalityByCode = useCallback(
+    (code: string) => {
+      const needle = String(code || '').replace('+', '').trim()
+      if (!needle) return ''
+
+      const fromPhonecodes = (phonecode || []).find((c) => toCode(c) === needle)
+      const nameFromPhonecode = toName(fromPhonecodes || {})
+      if (nameFromPhonecode) return nameFromPhonecode
+
+      const fromCountries = (countriesData || []).find((c) => toCode(c) === needle)
+      return toName(fromCountries || {})
+    },
+    [countriesData, phonecode],
+  )
+
+  const handleNationalityChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const nextNationality = e.target.value
+      setNationality(nextNationality)
+      const mappedCode = findCodeByNationality(nextNationality)
+      if (mappedCode) setCountryCode(mappedCode)
+    },
+    [findCodeByNationality],
+  )
+
+  const handleCountryCodeChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const nextCode = String(e.target.value || '').replace('+', '').trim()
+      setCountryCode(nextCode)
+      const mappedNationality = findNationalityByCode(nextCode)
+      if (mappedNationality) setNationality(mappedNationality)
+    },
+    [findNationalityByCode],
+  )
+
   return {
     captchaQuestion,
     captchaInput,
@@ -47,8 +110,8 @@ export function useFormState(isOpen: boolean) {
     setLoading,
     nationality,
     countryCode,
-    handleNationalityChange: (e: React.ChangeEvent<HTMLSelectElement>) => setNationality(e.target.value),
-    handleCountryCodeChange: (e: React.ChangeEvent<HTMLSelectElement>) => setCountryCode(e.target.value),
+    handleNationalityChange,
+    handleCountryCodeChange,
     validateCaptcha,
     reset() {
       setCaptchaInput('')
