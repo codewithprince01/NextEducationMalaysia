@@ -107,14 +107,30 @@ async function getHomeData() {
 
 async function getTestimonials(): Promise<Testimonial[]> {
   try {
-    const { prisma } = await import('@/lib/db')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const testimonialModel = (prisma as any).testimonial
-    return await testimonialModel.findMany({
-      where: { status: true },
-      select: { id: true, name: true, review: true, country: true, program: true, university: true },
-      take: 10,
-    }) as Testimonial[]
+    const { prisma } = await import('@/lib/db-fresh')
+    const website = process.env.SITE_VAR || 'MYS'
+    const rows = await prisma.$queryRawUnsafe(
+      `
+      SELECT id, name, review, country
+      FROM testimonials
+      WHERE status = 1
+        AND website = ?
+        AND name IS NOT NULL AND TRIM(name) <> ''
+        AND review IS NOT NULL AND TRIM(review) <> ''
+      ORDER BY id DESC
+      LIMIT 10
+      `,
+      website
+    ) as any[]
+
+    return (rows || []).map((row: any) => ({
+      id: Number(row.id),
+      name: String(row.name || ''),
+      review: String(row.review || ''),
+      country: row.country ? String(row.country) : null,
+      program: null,
+      university: null,
+    })) as Testimonial[]
   } catch {
     return []
   }
