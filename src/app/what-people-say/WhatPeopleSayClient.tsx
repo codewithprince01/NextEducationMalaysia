@@ -1,26 +1,89 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Quote, User, Globe, Briefcase, Send, Star } from 'lucide-react'
 import Breadcrumb from '@/components/Breadcrumb'
 import { toast } from 'react-toastify'
 
-const initialTestimonials = [
+const fallbackTestimonials = [
   { name: 'HASEEB', role: 'Student', country: 'PAKISTAN', rating: 5, text: 'As a student I am really thankful that I got contacted with them. Their co-operation with students is really impressive and my overall experience is excellent with them.', date: '2 months ago' },
   { name: 'Rohit', role: 'Student', country: 'INDIA', rating: 5, text: 'I am studying accountancy in Malaysia and got a very good help from their Gurgaon office regarding choosing the right course.', date: '1 month ago' },
   { name: 'Aman', role: 'Student', country: 'NEPAL', rating: 4, text: 'They guided me at every step from selecting the university to the visa process. The team is really helpful.', date: '3 weeks ago' },
   { name: 'Siti', role: 'Student', country: 'MALAYSIA', rating: 5, text: 'Very professional and responsive. Their assistance helped me a lot in getting into the course I dreamed of.', date: '1 week ago' },
 ]
 
-interface Review { name: string; role: string; country: string; rating: number; text: string; date: string }
+interface Review { id?: number; name: string; role: string; country: string; rating: number; text: string; date: string }
 interface FormData { name: string; email: string; phone: string; role: string; country: string; review: string; rating: number }
+const fallbackCountries = ['India', 'Pakistan', 'Bangladesh', 'Nepal', 'Sri Lanka', 'Malaysia', 'Nigeria', 'Middle East', 'Other']
 
 export default function WhatPeopleSayClient() {
-  const [reviews, setReviews] = useState<Review[]>(initialTestimonials)
+  const [reviews, setReviews] = useState<Review[]>(fallbackTestimonials)
+  const [countries, setCountries] = useState<string[]>(fallbackCountries)
   const [formData, setFormData] = useState<FormData>({ name: '', email: '', phone: '', role: 'Student', country: '', review: '', rating: 5 })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const apiKey = useMemo(() => (process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '').trim(), [])
+
+  const asDateLabel = (createdAt?: string | null) => {
+    if (!createdAt) return 'Recently'
+    const dt = new Date(createdAt)
+    if (Number.isNaN(dt.getTime())) return 'Recently'
+    return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  }
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch('/api/v1/testimonials?page=1&limit=36', {
+          headers: apiKey ? { 'x-api-key': apiKey } : {},
+          cache: 'no-store',
+        })
+        if (!res.ok) return
+        const json = await res.json()
+        const raw = json?.data?.testimonials?.data || []
+        if (!Array.isArray(raw) || raw.length === 0) return
+
+        const mapped: Review[] = raw.map((item: any) => ({
+          id: item?.id != null ? Number(item.id) : undefined,
+          name: String(item?.name || 'Anonymous'),
+          role: String(item?.user_type || 'Student'),
+          country: String(item?.country || 'N/A').toUpperCase(),
+          rating: Number(item?.rating || 5),
+          text: String(item?.review || ''),
+          date: asDateLabel(item?.created_at),
+        }))
+        setReviews(mapped)
+      } catch (err) {
+        console.error('Failed to fetch testimonials:', err)
+      }
+    }
+    fetchTestimonials()
+  }, [apiKey])
+
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const res = await fetch('/api/v1/countries?orderBy=name&orderIn=asc&limit=300', {
+          headers: apiKey ? { 'x-api-key': apiKey } : {},
+          cache: 'no-store',
+        })
+        if (!res.ok) return
+
+        const json = await res.json()
+        const raw = Array.isArray(json?.data) ? json.data : []
+        const names = raw
+          .map((item: any) => String(item?.name || '').trim())
+          .filter(Boolean)
+
+        if (names.length > 0) setCountries(names)
+      } catch (err) {
+        console.error('Failed to fetch countries:', err)
+      }
+    }
+
+    fetchCountries()
+  }, [apiKey])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -48,22 +111,35 @@ export default function WhatPeopleSayClient() {
       text: formData.review,
       date: 'Just now',
     }
-    setReviews([newReview, ...reviews])
+    setReviews((prev) => [newReview, ...prev])
     setSubmitted(true)
     setFormData({ name: '', email: '', phone: '', role: 'Student', country: '', review: '', rating: 5 })
-    setLoading(false)
 
     try {
-      const params = new URLSearchParams()
-      params.append('name', formData.name)
-      params.append('email', formData.email)
-      params.append('mobile', formData.phone)
-      params.append('nationality', formData.country)
-      params.append('source', `Testimonial - Role: ${formData.role} | Rating: ${formData.rating}/5 | Review: ${formData.review}`)
-      params.append('source_path', window.location.href)
-      await fetch('/api/inquiry/simple-form', { method: 'POST', body: params })
+      const res = await fetch('/api/v1/testimonials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { 'x-api-key': apiKey } : {}),
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          user_type: formData.role,
+          country: formData.country,
+          review: formData.review,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.message || 'Failed to submit review')
+      }
     } catch (err) {
       console.error('Sync failed:', err)
+      toast.error('Review saved locally but backend sync failed.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -216,7 +292,7 @@ export default function WhatPeopleSayClient() {
                     <Globe className="absolute left-4 top-3.5 text-gray-400" size={18} />
                     <select name="country" value={formData.country} onChange={handleChange} className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-gray-50 focus:bg-white appearance-none font-bold uppercase tracking-widest text-xs">
                       <option value="">Select Country</option>
-                      {['India', 'Pakistan', 'Bangladesh', 'Nepal', 'Sri Lanka', 'Malaysia', 'Nigeria', 'Middle East', 'Other'].map((c) => (
+                      {countries.map((c) => (
                         <option key={c} value={c}>{c}</option>
                       ))}
                     </select>

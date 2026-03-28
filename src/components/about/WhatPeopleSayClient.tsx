@@ -15,14 +15,14 @@ const COUNTRIES = ['India', 'Pakistan', 'Bangladesh', 'Nepal', 'Sri Lanka', 'Mal
 
 export default function WhatPeopleSayClient() {
   const [reviews, setReviews] = useState(INITIAL_REVIEWS)
-  const [form, setForm] = useState({ name: '', email: '', phone: '', role: 'Student', country: '', review: '', rating: 5 })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', role: '', country: '', review: '', rating: 5 })
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
 
   const set = (k: string, v: string | number) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name || !form.email || !form.phone || !form.country || !form.review) return
+    if (!form.name || !form.email || !form.phone || !form.role || !form.country || !form.review) return
     setStatus('loading')
 
     // Optimistic UI update which is what the old project did
@@ -43,7 +43,7 @@ export default function WhatPeopleSayClient() {
       setStatus('done') // Silently succeed as per old project logic
     }
     
-    setForm({ name: '', email: '', phone: '', role: 'Student', country: '', review: '', rating: 5 })
+    setForm({ name: '', email: '', phone: '', role: '', country: '', review: '', rating: 5 })
   }
 
   return (
@@ -171,26 +171,25 @@ export default function WhatPeopleSayClient() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-8">
                   <div className="grid md:grid-cols-2 gap-8">
-                    <div className="space-y-3">
-                      <label className="text-xs font-black text-slate-900 uppercase tracking-widest ml-1">Full Name</label>
+                    <div>
                       <div className="relative">
                         <User className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                         <input
-                          type="text" placeholder="John Doe" required
+                          type="text" placeholder="Full Name" required aria-label="Full Name"
                           value={form.name} onChange={e => set('name', e.target.value)}
                           className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-50 rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-300 focus:ring-2 focus:ring-blue-600/10 outline-none transition-all"
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="text-xs font-black text-slate-900 uppercase tracking-widest ml-1">Your Role</label>
+                    <div>
                       <div className="relative">
                         <Briefcase className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
                         <select
-                          required value={form.role} onChange={e => set('role', e.target.value)}
+                          required value={form.role} onChange={e => set('role', e.target.value)} aria-label="Your Role"
                           className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-50 rounded-2xl text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600/10 transition-all appearance-none"
                         >
+                          <option value="">Your Role</option>
                           {['Student', 'Parent', 'Counselor', 'Alumni'].map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                       </div>
@@ -198,23 +197,21 @@ export default function WhatPeopleSayClient() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
-                    <div className="space-y-3">
-                      <label className="text-xs font-black text-slate-900 uppercase tracking-widest ml-1 text-blue-900 ">Email Address</label>
+                    <div>
                       <div className="relative">
                         <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                         <input
-                          type="email" placeholder="john@example.com" required
+                          type="email" placeholder="Email Address" required aria-label="Email Address"
                           value={form.email} onChange={e => set('email', e.target.value)}
                           className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-50 rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-300 focus:ring-2 focus:ring-blue-600/10 outline-none transition-all"
                         />
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <label className="text-xs font-black text-slate-900 uppercase tracking-widest ml-1">Phone Number</label>
+                    <div>
                       <div className="relative">
                         <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                         <input
-                          type="tel" placeholder="+91 98765 43210" required
+                          type="tel" placeholder="Phone Number" required aria-label="Phone Number"
                           value={form.phone} onChange={e => set('phone', e.target.value)}
                           className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-50 rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-300 focus:ring-2 focus:ring-blue-600/10 outline-none transition-all"
                         />
@@ -223,23 +220,21 @@ export default function WhatPeopleSayClient() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-8">
-                    <div className="space-y-3">
-                      <label className="text-xs font-black text-slate-900 uppercase tracking-widest ml-1">Country</label>
+                    <div>
                       <div className="relative">
                         <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none" />
                         <select
-                          required value={form.country} onChange={e => set('country', e.target.value)}
+                          required value={form.country} onChange={e => set('country', e.target.value)} aria-label="Country"
                           className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-50 rounded-2xl text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-600/10 transition-all appearance-none"
                         >
-                          <option value="">Select Country</option>
+                          <option value="">Country</option>
                           {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="text-xs font-black text-slate-900 uppercase tracking-widest ml-1">Rating</label>
-                      <div className="flex gap-2 pt-1">
+                    <div>
+                      <div className="flex gap-2 pt-4" aria-label="Rating">
                         {[1, 2, 3, 4, 5].map(star => (
                           <button key={star} type="button" onClick={() => set('rating', star)} className="transition-transform hover:scale-125">
                             <Star className={`w-8 h-8 ${form.rating >= star ? 'text-yellow-400 fill-current' : 'text-slate-100'}`} />
@@ -249,12 +244,12 @@ export default function WhatPeopleSayClient() {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
-                    <label className="text-xs font-black text-slate-900 uppercase tracking-widest ml-1">Your Review</label>
+                  <div>
                     <textarea
                       rows={5} required
                       value={form.review} onChange={e => set('review', e.target.value)}
-                      placeholder="Share your experience..."
+                      placeholder="Your Review"
+                      aria-label="Your Review"
                       className="w-full p-6 bg-slate-50 border border-slate-50 rounded-[2rem] text-sm font-bold text-slate-900 placeholder-slate-300 focus:ring-2 focus:ring-blue-600/10 outline-none transition-all resize-none"
                     />
                   </div>

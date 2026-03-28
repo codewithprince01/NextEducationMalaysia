@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/db-fresh';
 import { SITE_VAR } from '../utils/constants';
 import { serializeBigInt } from '@/lib/utils';
 
@@ -23,9 +23,9 @@ export class FeedbackService {
   async getTestimonials(page: number = 1, limit: number = 36) {
     const skip = (page - 1) * limit;
 
-    const [testimonials, total, seo] = await Promise.all([
+    const [testimonials, totalRaw, seo] = await Promise.all([
       prisma.$queryRawUnsafe(`
-        SELECT id, user_type, user_name, user_designation, content, img_path, website, status 
+        SELECT id, user_type, name, country, review, dpname, dppath, website, status, created_at
         FROM testimonials 
         WHERE status = 1 AND website = ? 
         ORDER BY id DESC 
@@ -36,6 +36,7 @@ export class FeedbackService {
         where: { page: 'what-people-say' }
       })
     ]);
+    const total = Number(totalRaw || 0);
 
     return {
       testimonials: {
@@ -65,25 +66,45 @@ export class FeedbackService {
     review: string;
   }) {
     // Check if already submitted
-    const existing = await prisma.testimonials.findFirst({
-      where: { email: data.email }
-    });
+    const existingRows = (await prisma.$queryRawUnsafe(
+      `SELECT COUNT(*) AS total FROM testimonials WHERE email = ? AND website = ?`,
+      data.email,
+      SITE_VAR
+    )) as any[];
+    const existing = Number(existingRows?.[0]?.total || 0);
 
-    if (existing) {
+    if (existing > 0) {
       throw new Error('ALREADY_SUBMITTED');
     }
 
-    return await prisma.testimonials.create({
-      data: {
-        website: SITE_VAR,
-        name: data.name,
-        email: data.email,
-        user_type: data.user_type,
-        country: data.country,
-        review: data.review,
-        status: false // Pending approval
-      }
-    });
+    await prisma.$executeRawUnsafe(
+      `
+      INSERT INTO testimonials
+      (website, user_type, name, email, country, review, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+      `,
+      SITE_VAR,
+      data.user_type,
+      data.name,
+      data.email,
+      data.country,
+      data.review,
+      1
+    );
+
+    const inserted = (await prisma.$queryRawUnsafe(
+      `
+      SELECT id, user_type, name, country, review, dpname, dppath, website, status, created_at
+      FROM testimonials
+      WHERE email = ? AND website = ?
+      ORDER BY id DESC
+      LIMIT 1
+      `,
+      data.email,
+      SITE_VAR
+    )) as any[];
+
+    return inserted?.[0] || null;
   }
 
   /**
