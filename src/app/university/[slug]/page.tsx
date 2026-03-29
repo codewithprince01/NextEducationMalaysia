@@ -1,10 +1,11 @@
 import { notFound } from 'next/navigation'
-import { getUniversityFull } from '@/lib/queries/universities'
+import { getAllUniversitySlugs, getUniversityBySlug, getUniversityFull } from '@/lib/queries/universities'
 import UniversityOverview from '@/components/university/UniversityOverview'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import UniversityCoursesCard from '@/components/university/UniversityCoursesCard'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import { serializeBigInt } from '@/lib/utils'
+import { resolveUniversityMeta } from '@/lib/seo/metadata'
 
 export const revalidate = 86400 // 24 hours
 

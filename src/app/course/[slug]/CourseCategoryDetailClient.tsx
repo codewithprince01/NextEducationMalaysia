@@ -15,7 +15,8 @@ import TrendingCourses from '@/components/common/TrendingCourses'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL
+const API_BASE = '/api/v1'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   "About Course": <Home size={18} />,
@@ -38,7 +39,12 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE}/course-category/${slug}`)
+        const res = await fetch(`${API_BASE}/course-category/${slug}`, {
+          headers: {
+            'x-api-key': API_KEY,
+          },
+          cache: 'no-store',
+        })
         if (!res.ok) throw new Error('Failed to fetch')
         const json = await res.json()
         setData(json.data || json)
@@ -53,8 +59,8 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
 
   const { categoryData, tabs, contentMap, faqs } = useMemo(() => {
     const cat = data?.category || data?.data?.category || data?.data || {}
-    const contents = cat.contents || []
-    const fFaqs = cat.faqs || []
+    const contents = cat.contents || data?.contents || data?.data?.contents || []
+    const fFaqs = cat.faqs || data?.faqs || data?.data?.faqs || []
     
     const newTabs = contents.map((section: any) => section.tab)
     if (fFaqs.length > 0) newTabs.push("FAQs")
@@ -115,7 +121,6 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Courses', href: '/courses' },
-    { label: categoryData.level_name || 'Listing', href: `/courses/${slug}` },
     { label: pageName },
   ]
 
@@ -126,7 +131,7 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
       <section className="bg-linear-to-br from-blue-50 via-white to-blue-100 px-3 py-10 md:px-8 lg:px-8 min-h-screen">
         <div className="max-w-7xl mx-auto">
           {/* Sticky Tabs */}
-          <div className="sticky top-[80px] z-30 mb-8 hidden md:block">
+          <div className="sticky top-[64px] md:top-[72px] z-40 mb-8 block">
             <div className="bg-white/80 backdrop-blur-md p-2 shadow-lg rounded-2xl border border-white/20 overflow-x-auto ring-1 ring-black/5">
               <div className="flex flex-nowrap gap-1 min-w-max p-1">
                 {tabs.map((tabName) => {
@@ -216,7 +221,7 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
 
             {/* Sidebar */}
             <aside className="hidden md:block space-y-8 sticky top-24 h-fit">
-              <TrendingCourses />
+              <TrendingCourses variant="sidebar" />
               <SideInquiryForm />
               <FeaturedUniversities variant="sidebar" />
             </aside>

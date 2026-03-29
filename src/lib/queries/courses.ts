@@ -2,36 +2,85 @@ import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
 
+function slugify(value: string) {
+  return String(value || '')
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 export const getAllCourseCategorySlugs = unstable_cache(
-  () =>
-    prisma.courseCategory.findMany({
-      where: { status: 1 as any },
-      select: { slug: true },
-    }).then(rows => rows.map(r => r.slug).filter(Boolean) as string[]),
-  ['course-category-slugs'],
+  async () => {
+    const rows = await prisma.$queryRawUnsafe<Array<{ slug: string | null }>>(
+      `
+      SELECT slug
+      FROM course_categories
+      WHERE website = 'MYS'
+        AND slug IS NOT NULL
+        AND slug <> ''
+      `
+    )
+    return rows.map((r) => r.slug).filter(Boolean) as string[]
+  },
+  ['course-category-slugs-v2'],
   { revalidate: 86400 },
 )
 
 export const getCourseCategory = unstable_cache(
-  (slug: string) =>
-    prisma.courseCategory.findFirst({
-      where: { slug, status: 1 as any },
-      // IMPORTANT:
-      // Do NOT use `include` here because Prisma then fetches all scalar
-      // columns from `course_categories` (including schema-drifted columns
-      // like `description` that do not exist in current DB).
-      // Keep explicit, schema-safe selects only.
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        meta_title: true,
-        meta_description: true,
-        meta_keyword: true,
-        og_image_path: true,
-      },
-    }).then(serializeBigInt),
-  ['course-category-detail'],
+  async (slug: string) => {
+    const requestedSlug = slugify(slug)
+
+    // 1) Exact slug match on website scope
+    const exactRows = await prisma.$queryRawUnsafe<Array<{
+      id: number
+      name: string | null
+      slug: string | null
+      meta_title: string | null
+      meta_description: string | null
+      meta_keyword: string | null
+      og_image_path: string | null
+    }>>(
+      `
+      SELECT id, name, slug, meta_title, meta_description, meta_keyword, og_image_path
+      FROM course_categories
+      WHERE website = 'MYS'
+        AND slug = ?
+      LIMIT 1
+      `,
+      requestedSlug,
+    )
+
+    if (exactRows[0]) return serializeBigInt(exactRows[0])
+
+    // 2) Fallback: resolve by normalized category name slug
+    // (old project routes often relied on name->slug equivalence)
+    const candidates = await prisma.$queryRawUnsafe<Array<{
+      id: number
+      name: string | null
+      slug: string | null
+      meta_title: string | null
+      meta_description: string | null
+      meta_keyword: string | null
+      og_image_path: string | null
+    }>>(
+      `
+      SELECT id, name, slug, meta_title, meta_description, meta_keyword, og_image_path
+      FROM course_categories
+      WHERE website = 'MYS'
+      `
+    )
+
+    const matched = candidates.find((row) => {
+      const dbSlug = slugify(row.slug || '')
+      const nameSlug = slugify(row.name || '')
+      return dbSlug === requestedSlug || nameSlug === requestedSlug
+    })
+
+    return matched ? serializeBigInt(matched) : null
+  },
+  ['course-category-detail-v2'],
   { revalidate: 86400, tags: ['course'] },
 )
 

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getUniversityFull } from '@/lib/queries/universities'
+import { getUniversityBySlug, getUniversityFull } from '@/lib/queries/universities'
 import UniversityCoursesClient from '@/components/university/UniversityCoursesClient'
 import UniversityGalleryClient from '@/components/university/UniversityGalleryClient'
 import UniversityVideosClient from '@/components/university/tabs/UniversityVideosClient'
@@ -8,12 +8,24 @@ import UniversityReviewsClient from '@/components/university/tabs/UniversityRevi
 import UniversitySectionContainer from '@/components/university/UniversitySectionContainer'
 import { serializeBigInt } from '@/lib/utils'
 import { prisma } from '@/lib/db'
+import { resolveUniversityMeta } from '@/lib/seo/metadata'
 
 export const revalidate = 86400
 
 type Props = { params: Promise<{ slug: string; section: string }> }
 
 const VALID_SECTIONS = ['courses', 'gallery', 'videos', 'ranking', 'reviews', 'scholarships']
+
+export async function generateMetadata({ params }: Props) {
+  try {
+    const { slug, section } = await params
+    const university = await getUniversityBySlug(slug)
+    if (!university) return {}
+    return resolveUniversityMeta(university as any, section)
+  } catch {
+    return {}
+  }
+}
 
 export default async function UniversitySectionPage({ params }: Props) {
   const { slug, section } = await params

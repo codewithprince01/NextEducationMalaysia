@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { getCourseCategory, getAllCourseCategorySlugs } from '@/lib/queries/courses'
 import { resolveCourseCategoryMeta } from '@/lib/seo/metadata'
 import QualificationLevelClient from './QualificationLevelClient'
@@ -46,6 +46,9 @@ export default async function CourseCategoryPage({ params }: Props) {
   // 2. Specific course category (detail page with tabs)
   const category = await getCourseCategory(slug)
   if (!category) notFound()
+  if (category?.slug && category.slug !== slug) {
+    redirect(`/course/${category.slug}`)
+  }
 
   return <CourseCategoryDetailClient slug={slug} />
 }

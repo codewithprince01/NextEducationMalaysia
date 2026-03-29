@@ -192,8 +192,10 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
   const [total, setTotal] = useState(readPayload(initialData).total)
   const [loading, setLoading] = useState(!initialData)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState(routeDefaults.category || initCat)
   const activeRequestRef = useRef<{ key: string; controller: AbortController } | null>(null)
+  const activeSearchRequestRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
     if (!initialData) return
@@ -233,8 +235,14 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
   useEffect(() => {
     return () => {
       activeRequestRef.current?.controller.abort()
+      activeSearchRequestRef.current?.abort()
     }
   }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   /* ── Fetch blogs ─────────────────────────────────────────────────────── */
   const fetchBlogs = useCallback(async (page: number, category: string) => {
@@ -287,6 +295,83 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
     }
   }, [])
 
+  const fetchSearchBlogs = useCallback(async (query: string, category: string, page: number) => {
+    const term = query.trim()
+    if (!term) return
+
+    activeSearchRequestRef.current?.abort()
+    const controller = new AbortController()
+    activeSearchRequestRef.current = controller
+    setLoading(true)
+
+    try {
+      // Match old project behavior: for "all" search, fetch a larger pool (multi-page)
+      if (!category || category === 'all') {
+        const firstRes = await fetch(`${API_BASE}/blog?page=1&per_page=50`, {
+          headers: { 'x-api-key': API_KEY },
+          cache: 'no-store',
+          signal: controller.signal,
+        })
+        if (!firstRes.ok) throw new Error('Failed to fetch blogs')
+        const firstJson = await firstRes.json()
+        if (!firstJson?.status) throw new Error('Invalid response')
+
+        const firstPageBlogs = Array.isArray(firstJson?.data) ? firstJson.data : []
+        const serverLastPage = Number(firstJson?.pagination?.last_page || 1)
+        const serverTotal = Number(firstJson?.pagination?.total || firstPageBlogs.length)
+
+        let mergedBlogs = [...firstPageBlogs]
+        if (serverLastPage > 1) {
+          const targetLastPage = Math.min(serverLastPage, 10)
+          const requests: Promise<Response>[] = []
+          for (let p = 2; p <= targetLastPage; p++) {
+            requests.push(
+              fetch(`${API_BASE}/blog?page=${p}&per_page=50`, {
+                headers: { 'x-api-key': API_KEY },
+                cache: 'no-store',
+                signal: controller.signal,
+              }),
+            )
+          }
+          const responses = await Promise.all(requests)
+          for (const response of responses) {
+            if (!response.ok) continue
+            const json = await response.json()
+            if (Array.isArray(json?.data)) mergedBlogs = [...mergedBlogs, ...json.data]
+          }
+        }
+
+        setBlogs(mergedBlogs)
+        setTotal(serverTotal)
+        setLastPage(Math.max(1, Math.ceil(serverTotal / PER_PAGE)))
+        return
+      }
+
+      // For category-specific search, keep same scoped fetch behavior
+      const res = await fetch(`${API_BASE}/blog-by-category/${category}?page=${page}&per_page=50`, {
+        headers: { 'x-api-key': API_KEY },
+        cache: 'no-store',
+        signal: controller.signal,
+      })
+      if (!res.ok) throw new Error('Failed to fetch category blogs')
+      const json = await res.json()
+      if (!json?.status) throw new Error('Invalid response')
+
+      const categoryBlogs = Array.isArray(json?.data) ? json.data : []
+      setBlogs(categoryBlogs)
+      setTotal(Number(json?.pagination?.total || categoryBlogs.length))
+      setLastPage(Number(json?.pagination?.last_page || 1))
+    } catch (err) {
+      if ((err as Error)?.name === 'AbortError') return
+      console.error('Error fetching search blogs:', err)
+      setBlogs([])
+      setTotal(0)
+      setLastPage(1)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   /* ── Fetch categories once ───────────────────────────────────────────── */
   useEffect(() => {
     if (categories.length > 0) return
@@ -324,9 +409,12 @@ export default function BlogListClient({ initialCategory, initialData }: { initi
   /* ── Initial load ────────────────────────────────────────────────────── */
   /* ── Refetch on page change ──────────────────────────────────────────── */
   useEffect(() => {
-    if (searchQuery) return
+    if (debouncedSearch.trim()) {
+      fetchSearchBlogs(debouncedSearch, selectedCategory, currentPage)
+      return
+    }
     fetchBlogs(currentPage, selectedCategory)
-  }, [currentPage, selectedCategory, searchQuery, fetchBlogs])
+  }, [currentPage, selectedCategory, debouncedSearch, fetchBlogs, fetchSearchBlogs])
 
   /* ── Client-side search filter ───────────────────────────────────────── */
   const displayedBlogs = searchQuery.trim()

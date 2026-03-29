@@ -100,36 +100,58 @@ export class HomeService {
    */
   async getCourseCategoryDetail(slug: string) {
     try {
-      const categoryResult = await prisma.$queryRawUnsafe('SELECT * FROM course_categories WHERE slug = ? AND status = 1 LIMIT 1', slug) as any[];
+      const categoryResult = await prisma.$queryRawUnsafe(
+        'SELECT * FROM course_categories WHERE slug = ? AND website = ? LIMIT 1',
+        slug,
+        SITE_VAR
+      ) as any[];
       const category = categoryResult[0];
 
       if (!category) {
         return null;
       }
+      const categoryId = Number(category.id);
 
       const [contents, faqs, otherCategories, relatedUniversities, featuredUniversities] = await Promise.all([
-        prisma.$queryRawUnsafe('SELECT * FROM course_category_contents WHERE course_category_id = ?', category.id),
-        prisma.$queryRawUnsafe('SELECT * FROM course_category_faqs WHERE course_category_id = ? AND status = 1', category.id),
+        prisma.$queryRawUnsafe('SELECT * FROM course_category_contents WHERE course_category_id = ?', categoryId),
+        prisma.$queryRawUnsafe('SELECT * FROM course_category_faqs WHERE course_category_id = ? AND status = 1', categoryId),
         prisma.courseCategory.findMany({
-          where: { id: { not: category.id }, status: 1 },
+          where: { id: { not: categoryId }, status: 1 as any },
+          select: { id: true, name: true, slug: true, og_image_path: true },
           orderBy: { name: 'asc' },
           take: 10
         }),
         prisma.university.findMany({
           where: {
-            status: 1,
-            programs: { some: { course_category_id: category.id, status: 1 } },
+            status: 1 as any,
+            programs: { some: { course_category_id: categoryId, status: 1 as any } },
           },
-          include: {
-            _count: { select: { programs: { where: { status: 1 } } } },
-            instituteType: true,
+          select: {
+            id: true,
+            name: true,
+            uname: true,
+            logo_path: true,
+            city: true,
+            state: true,
+            institute_type: true,
+            click: true,
+            established_year: true,
+            _count: { select: { programs: { where: { status: 1 as any } } } },
           },
         }),
         prisma.university.findMany({
-          where: { status: 1 },
-          include: {
-            _count: { select: { programs: { where: { status: 1 } } } },
-            instituteType: true,
+          where: { status: 1 as any },
+          select: {
+            id: true,
+            name: true,
+            uname: true,
+            logo_path: true,
+            city: true,
+            state: true,
+            institute_type: true,
+            click: true,
+            established_year: true,
+            _count: { select: { programs: { where: { status: 1 as any } } } },
           },
           take: 10,
         }),
@@ -140,8 +162,14 @@ export class HomeService {
         description: category.description || '',
       });
 
+      const categoryWithRelations = {
+        ...category,
+        contents: contents || [],
+        faqs: faqs || [],
+      };
+
       return {
-        category: serializeBigInt(category),
+        category: serializeBigInt(categoryWithRelations),
         contents: serializeBigInt(contents),
         faqs: serializeBigInt(faqs),
         otherCategories: serializeBigInt(otherCategories),

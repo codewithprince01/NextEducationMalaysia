@@ -1,18 +1,19 @@
 import { NextRequest } from 'next/server';
 import { 
-  withMiddleware, checkApiKey, apiSuccess, homeService, NotFoundError } from '@/backend';
+  withMiddleware, apiSuccess, homeService, NotFoundError } from '@/backend';
 
 /**
  * GET /api/v1/course-category/[slug]
  */
 async function getHandler(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
-  const data = await homeService.getCourseCategoryDetail(params.slug);
+  const { slug } = await params;
+  const data = await homeService.getCourseCategoryDetail(slug);
   if (!data) throw new NotFoundError('Course category not found');
   
   return apiSuccess(data, 'Course category details fetched successfully');
 }
 
-export const GET = withMiddleware(checkApiKey)(getHandler);
+export const GET = withMiddleware()(getHandler);

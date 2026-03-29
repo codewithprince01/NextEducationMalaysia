@@ -127,6 +127,54 @@ export const getPageContent = unstable_cache(
   { revalidate: 86400, tags: ['page-contents'] },
 )
 
+export const getAllUniversitySlugs = unstable_cache(
+  async () => {
+    const rows = await prisma.$queryRawUnsafe<Array<{ uname: string | null }>>(
+      `
+      SELECT uname
+      FROM universities
+      WHERE status = 1
+        AND uname IS NOT NULL
+        AND uname <> ''
+      ORDER BY id ASC
+      `
+    )
+
+    return rows.map((row) => row.uname).filter(Boolean) as string[]
+  },
+  ['all-university-slugs'],
+  { revalidate: 86400, tags: ['universities'] },
+)
+
+export const getUniversityBySlug = unstable_cache(
+  async (slug: string) => {
+    const rows = await prisma.$queryRawUnsafe<Array<{
+      id: number
+      name: string | null
+      uname: string | null
+      city: string | null
+      shortnote: string | null
+      meta_title: string | null
+      meta_description: string | null
+      meta_keyword: string | null
+      og_image_path: string | null
+    }>>(
+      `
+      SELECT id, name, uname, city, shortnote, meta_title, meta_description, meta_keyword, og_image_path
+      FROM universities
+      WHERE uname = ?
+        AND status = 1
+      LIMIT 1
+      `,
+      slug,
+    )
+
+    return rows[0] ? serializeBigInt(rows[0]) : null
+  },
+  ['university-by-slug-meta'],
+  { revalidate: 86400, tags: ['universities', 'seo'] },
+)
+
 export const getUniversityFull = unstable_cache(
   async (slug: string) => {
     // 1. Fetch main university data via raw SQL to handle 0000-00-00 dates and type mismatches
