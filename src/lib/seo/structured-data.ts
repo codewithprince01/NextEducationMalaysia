@@ -136,10 +136,20 @@ export function blogJsonLd(blog: {
   }
 }
 
-export function breadcrumbJsonLd(items: { name: string; url: string }[]): JsonLd {
+export function breadcrumbJsonLd(
+  items: { name: string; url: string }[],
+  options?: { name?: string; description?: string }
+): JsonLd {
+  const lastName = items[items.length - 1]?.name || 'Education Malaysia'
+  const name = options?.name || lastName
+  const description =
+    options?.description || `${lastName} - Education Malaysia`
+
   return {
-    '@context': 'https://schema.org',
+    '@context': 'https://schema.org/',
     '@type': 'BreadcrumbList',
+    name,
+    description,
     itemListElement: items.map((item, i) => ({
       '@type': 'ListItem',
       position: i + 1,

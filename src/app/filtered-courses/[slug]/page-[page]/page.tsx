@@ -123,6 +123,16 @@ export default async function DynamicCoursesPageWithPagination({ params, searchP
 
   // Fetch data with the detected filter
   const result = await malaysiaDiscoveryService.getCoursesInMalaysia(serviceParams)
+  const rawSeoTitle = String(result.seo?.meta_title || '').trim()
+  const isGenericSeoTitle = /^find courses,\s*universities\/colleges/i.test(rawSeoTitle)
+  const breadcrumbTitle =
+    rawSeoTitle && rawSeoTitle !== '%title%' && !isGenericSeoTitle
+      ? rawSeoTitle
+      : `${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Courses in Malaysia - Page ${page} | Education Malaysia`
+  const breadcrumbDescription =
+    result.seo?.meta_description ||
+    result.seo?.page_content ||
+    `Page ${page} of courses and programs offered at universities across Malaysia.`
 
   const coursesData = {
     data: result.rows.data,
@@ -152,7 +162,7 @@ export default async function DynamicCoursesPageWithPagination({ params, searchP
         { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
         { name: filterValue || slug, url: `${SITE_URL}/${slug}-courses` },
         { name: `Page ${page}`, url: `${SITE_URL}/${slug}-courses/page-${page}` },
-      ])} />
+      ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
       <CoursesListClient 
         initialFilterData={result.filters} 
         initialCoursesData={coursesData}

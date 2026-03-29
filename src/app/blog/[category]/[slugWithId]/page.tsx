@@ -1,6 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import { getBlogBySlugAndId, getAllBlogSlugs } from '@/lib/queries/blogs'
-import { resolveBlogMeta } from '@/lib/seo/metadata'
+import { extractMetadataText, resolveBlogMeta } from '@/lib/seo/metadata'
 import { blogJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
 import { SITE_URL } from '@/lib/constants'
@@ -106,6 +106,8 @@ export default async function BlogDetailPage({ params }: Props) {
       categories: [],
       specializations: [],
     }
+    const fallbackMeta = await resolveBlogMeta(fallbackData.data as any, parsed.id)
+    const { title: fallbackTitle, description: fallbackDescription } = extractMetadataText(fallbackMeta)
 
     return (
       <>
@@ -115,11 +117,13 @@ export default async function BlogDetailPage({ params }: Props) {
           { name: 'Blog', url: `${SITE_URL}/blog` },
           { name: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), url: `${SITE_URL}/blog/${category}` },
           { name: fallbackData.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
-        ])} />
+        ], { name: fallbackTitle, description: fallbackDescription })} />
         <BlogDetailClient category={category} slugWithId={slugWithId} initialData={fallbackData} />
       </>
     )
   }
+  const meta = await resolveBlogMeta(result.data as any, parsed.id)
+  const { title, description } = extractMetadataText(meta)
 
   return (
     <>
@@ -129,7 +133,7 @@ export default async function BlogDetailPage({ params }: Props) {
         { name: 'Blog', url: `${SITE_URL}/blog` },
         { name: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), url: `${SITE_URL}/blog/${category}` },
         { name: result.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
-      ])} />
+      ], { name: title, description })} />
       <BlogDetailClient category={category} slugWithId={slugWithId} initialData={result} />
     </>
   )

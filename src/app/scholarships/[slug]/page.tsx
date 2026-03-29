@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import ScholarshipDetailClient from './ScholarshipDetailClient'
-import { resolveScholarshipMeta } from '@/lib/seo/metadata'
+import { extractMetadataText, resolveScholarshipMeta } from '@/lib/seo/metadata'
 import { 
   getScholarshipBySlug, 
   getAllScholarshipSlugs, 
@@ -45,6 +45,8 @@ export default async function ScholarshipDetailPage({ params }: Params) {
       .filter((s: { slug?: string | null }) => s.slug !== slug)
       .slice(0, 5) // Limit to 5 similar scholarships
   })
+  const meta = await resolveScholarshipMeta(scholarship)
+  const { title, description } = extractMetadataText(meta)
 
   return (
     <>
@@ -53,7 +55,7 @@ export default async function ScholarshipDetailPage({ params }: Params) {
         { name: 'Home', url: SITE_URL },
         { name: 'Scholarships', url: `${SITE_URL}/scholarships` },
         { name: scholarship.title || '', url: `${SITE_URL}/scholarships/${slug}` }
-      ])} />
+      ], { name: title, description })} />
       <ScholarshipDetailClient data={formattedData as any} />
     </>
   )

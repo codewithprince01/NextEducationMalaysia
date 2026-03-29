@@ -77,6 +77,13 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
     search,
     page: page
   })
+  const breadcrumbTitle = (result.seo?.meta_title && result.seo.meta_title !== '%title%')
+    ? result.seo.meta_title
+    : String(DEFAULT_META.title)
+  const breadcrumbDescription =
+    result.seo?.meta_description ||
+    result.seo?.page_content ||
+    String(DEFAULT_META.description)
 
   const filterData = result.filters
   const coursesData = {
@@ -106,7 +113,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Home', url: SITE_URL },
         { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
-      ])} />
+      ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
       <CoursesListClient 
         initialFilterData={filterData} 
         initialCoursesData={coursesData}

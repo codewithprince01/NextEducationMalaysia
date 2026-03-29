@@ -1,4 +1,4 @@
-import { resolveStaticMeta } from '@/lib/seo/metadata'
+import { extractMetadataText, resolveStaticMeta } from '@/lib/seo/metadata'
 import { faqJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import { getFaqs } from '@/lib/queries/home'
 import JsonLd from '@/components/seo/JsonLd'
@@ -10,6 +10,8 @@ export async function generateMetadata() {
 }
 
 export default async function FaqsPage() {
+  const meta = await resolveStaticMeta('FAQ', '/faqs')
+  const { title, description } = extractMetadataText(meta)
   const faqs = await getFaqs()
   const byCategory = new Map<string, { id: number; category_name: string; category_slug: string; faqs: Array<{ id: number; question: string; answer: string }> }>()
 
@@ -54,7 +56,7 @@ export default async function FaqsPage() {
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Home', url: SITE_URL },
         { name: 'FAQs', url: `${SITE_URL}/faqs` }
-      ])} />
+      ], { name: title, description })} />
       <main>
         <FaqsClient
           initialCategories={initialCategories}

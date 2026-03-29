@@ -95,6 +95,13 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
     search,
     page,
   })
+  const breadcrumbTitle = result.seo?.meta_title && result.seo.meta_title !== '%title%'
+    ? result.seo.meta_title
+    : `Courses in Malaysia - Page ${page} | Education Malaysia`
+  const breadcrumbDescription =
+    result.seo?.meta_description ||
+    result.seo?.page_content ||
+    `Page ${page} of courses and programs offered at universities across Malaysia. Find your ideal course today.`
 
   const filterData = result.filters
   const coursesData = {
@@ -124,7 +131,7 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
         { name: 'Home', url: SITE_URL },
         { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
         { name: `Page ${page}`, url: `${SITE_URL}/courses-in-malaysia/page-${page}` },
-      ])} />
+      ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
       <CoursesListClient
         initialFilterData={filterData}
         initialCoursesData={coursesData}

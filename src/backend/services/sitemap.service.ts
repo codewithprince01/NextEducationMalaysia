@@ -1,4 +1,5 @@
 import { sitemapDataService } from './sitemap-data.service';
+import { SITE_URL } from '@/lib/constants';
 
 /**
  * Enterprise Sitemap Service (Singleton)
@@ -8,7 +9,7 @@ export class SitemapService {
   private baseUrl: string;
 
   private constructor() {
-    this.baseUrl = (process.env.DOMAIN_URL || 'https://educationmalaysia.in').replace(/\/$/, '');
+    this.baseUrl = (process.env.DOMAIN_URL || process.env.NEXT_PUBLIC_SITE_URL || SITE_URL).replace(/\/$/, '');
   }
 
   static getInstance(): SitemapService {

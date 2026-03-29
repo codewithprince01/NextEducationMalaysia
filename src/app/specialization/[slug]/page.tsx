@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getSpecializationBySlug, getAllSpecializationSlugs } from '@/lib/queries/specializations'
-import { resolveSpecializationMeta } from '@/lib/seo/metadata'
+import { extractMetadataText, resolveSpecializationMeta } from '@/lib/seo/metadata'
 import { specializationJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
 import { SITE_URL } from '@/lib/constants'
@@ -28,6 +28,8 @@ export default async function SpecializationDetailPage({ params }: Props) {
   const detail = await getSpecializationBySlug(slug)
   const spec = detail?.specialization
   if (!detail || !spec) notFound()
+  const meta = await resolveSpecializationMeta(spec)
+  const { title, description } = extractMetadataText(meta)
 
   return (
     <>
@@ -36,7 +38,7 @@ export default async function SpecializationDetailPage({ params }: Props) {
         { name: 'Home', url: SITE_URL },
         { name: 'Specialization', url: `${SITE_URL}/specialization` },
         { name: spec.name || '', url: `${SITE_URL}/specialization/${slug}` }
-      ])} />
+      ], { name: title, description })} />
       <SpecializationDetailClient
         slug={slug}
         levelSlug={levelSlug}

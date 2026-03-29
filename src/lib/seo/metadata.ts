@@ -313,3 +313,18 @@ export async function resolveStaticMetaAny(
 
   return buildMeta(title, desc, kw, canonical, ogImage)
 }
+
+export function extractMetadataText(meta: Metadata | null | undefined): { title?: string; description?: string } {
+  if (!meta) return {}
+
+  let title: string | undefined
+  if (typeof meta.title === 'string') {
+    title = meta.title
+  } else if (meta.title && typeof meta.title === 'object') {
+    const t = meta.title as { absolute?: string; default?: string; template?: string }
+    title = t.absolute || t.default
+  }
+
+  const description = typeof meta.description === 'string' ? meta.description : undefined
+  return { title, description }
+}

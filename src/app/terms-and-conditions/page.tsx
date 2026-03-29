@@ -1,4 +1,4 @@
-import { resolveStaticMeta } from '@/lib/seo/metadata'
+import { extractMetadataText, resolveStaticMeta } from '@/lib/seo/metadata'
 import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
 import { SITE_URL } from '@/lib/constants'
@@ -9,7 +9,10 @@ export async function generateMetadata() {
   return resolveStaticMeta('Terms and Conditions', '/terms-and-conditions')
 }
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const meta = await resolveStaticMeta('Terms and Conditions', '/terms-and-conditions')
+  const { title, description } = extractMetadataText(meta)
+
   const sections = [
     {
       title: '1. Acceptance of Terms',
@@ -75,7 +78,7 @@ export default function TermsPage() {
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Home', url: SITE_URL },
         { name: 'Terms and Conditions', url: `${SITE_URL}/terms-and-conditions` }
-      ])} />
+      ], { name: title, description })} />
       <Breadcrumb items={[
         { label: 'Home', href: '/' },
         { label: 'Terms & Conditions' },
