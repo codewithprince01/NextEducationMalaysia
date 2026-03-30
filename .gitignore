@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# cleanup backup
+/_unused_backup/
+
+# build/debug logs & temp outputs
+*.log
+build_*.txt
+build_*.log
+tsc_*.txt
+*_output.txt
+*_errors.txt
+
+# temp/debug scripts at root
+check_*.js
+test-db.ts
+tmp_schema.prisma
+*_tables.txt
+*_tables.json
