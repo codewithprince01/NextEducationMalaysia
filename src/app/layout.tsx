@@ -6,6 +6,7 @@ import { ToastContainer } from 'react-toastify';
 import NavbarClient from '@/components/layout/NavbarClient'
 import Footer from '@/components/layout/Footer'
 import FloatingActions from '@/components/ui/FloatingActions'
+import MalaysiaCallingAutoPopup from '@/components/layout/MalaysiaCallingAutoPopup'
 
 export const metadata: Metadata = {
   title: 'Education Malaysia - Study in Malaysia',
@@ -33,6 +34,7 @@ export default function RootLayout({
           <NavbarClient />
           {children}
           <FloatingActions />
+          <MalaysiaCallingAutoPopup />
           <Footer />
           <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
         </AuthProvider>
