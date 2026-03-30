@@ -200,14 +200,14 @@ export default function UniversitySliderClient({ universities }: { universities:
   }, [])
 
   return (
-    <div className="relative px-2 sm:px-6 py-4 bg-linear-to-b from-blue-50 to-white">
+    <div className="relative px-2 sm:px-6 pt-4 pb-8 bg-linear-to-b from-blue-50 to-white">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-3xl font-bold text-center text-black mt-6">
           🎓 Top Trending Universities{" "}
           <span className="text-blue-600">in Malaysia</span>
         </h2>
 
-        <div className="relative group/slider px-0 sm:px-10">
+        <div className="relative group/slider px-0 sm:px-10 mt-4">
           <button
             onClick={() => swiperRef.current?.slidePrev()}
             className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-white border-2 border-blue-100 shadow-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 text-blue-600 transition-all duration-300 group/arrow"

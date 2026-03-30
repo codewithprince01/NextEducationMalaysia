@@ -48,12 +48,22 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
     // Persist path shape compatible with old project
     const filePath = `${relativeDir}/${fileName}`;
     
+    const requestOrigin = (() => {
+      try {
+        const host = request.headers.get('host') || '';
+        const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+        return host ? `${forwardedProto}://${host}` : DOMAIN;
+      } catch {
+        return DOMAIN;
+      }
+    })();
+
     const result = await studentProfileService.addDocument(
       authResult.student.sub,
       docName,
       fileName,
       filePath,
-      DOMAIN
+      requestOrigin
     );
 
     if (!result.status) return apiError(result.message, 400);

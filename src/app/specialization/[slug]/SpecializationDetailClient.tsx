@@ -318,7 +318,17 @@ export default function SpecializationDetailClient({
   }, [])
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+    if (typeof window === 'undefined') return
+
+    const hashId = window.location.hash.replace('#', '').trim()
+    if (!hashId) return
+
+    const target = document.getElementById(hashId)
+    if (!target) return
+
+    const navOffset = 92
+    const targetTop = target.getBoundingClientRect().top + window.scrollY - navOffset
+    window.scrollTo({ top: Math.max(0, targetTop), left: 0, behavior: 'auto' })
   }, [slug, levelSlug])
 
   const handleTabClick = (tabName: string) => {
@@ -394,7 +404,7 @@ export default function SpecializationDetailClient({
             </div>
           </div>
 
-          <div className="bg-linear-to-br from-blue-50 to-cyan-50 border-b border-blue-100">
+          <div id="course-information" className="bg-linear-to-br from-blue-50 to-cyan-50 border-b border-blue-100 scroll-mt-24">
             <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
                 {currentLevel.title || 'Course Information'}
@@ -459,15 +469,16 @@ export default function SpecializationDetailClient({
                     const iconMap = { FileText, GraduationCap, Award, Target, BookOpen }
                     const Icon = iconMap[levelItem.icon as keyof typeof iconMap] || FileText
                     const isActive = levelSlug === levelItem.actualSlug
-                    const href = isActive
+                    const levelPath = isActive
                       ? `/specialization/${slug}`
                       : `/specialization/${slug}/${levelItem.actualSlug}`
+                    const href = `${levelPath}#course-information`
 
                     return (
                       <Link
                         key={levelItem.actualSlug}
                         href={href}
-                        scroll
+                        scroll={false}
                         className={`group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 border-2 ${
                           isActive
                             ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 ring-2 ring-blue-100 ring-offset-1'

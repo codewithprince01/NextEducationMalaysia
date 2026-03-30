@@ -13,6 +13,11 @@ export const metadata: Metadata = {
   title: 'Education Malaysia - Study in Malaysia',
   description: 'Find top universities, courses, and scholarships in Malaysia. Your complete guide to studying in Malaysia.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educationmalaysia.in'),
+  icons: {
+    icon: '/favicon.png?v=4',
+    shortcut: '/favicon.png?v=4',
+    apple: '/favicon.png?v=4',
+  },
   openGraph: {
     type: 'website',
     siteName: 'Education Malaysia',
@@ -34,6 +39,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.png?v=4" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.png?v=4" type="image/png" />
+        <link rel="apple-touch-icon" href="/favicon.png?v=4" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />

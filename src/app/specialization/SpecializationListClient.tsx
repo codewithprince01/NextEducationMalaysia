@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { 
   Layers, 
@@ -197,14 +197,6 @@ const CategorySidebar = ({
       </div>
 
       <div className="relative flex-1 overflow-hidden flex flex-col pt-1">
-        {/* Scrollbar Track & Arrows - Exactly matching the original's narrow blue line look */}
-        <div className="absolute right-[11px] top-4 text-blue-600 z-10 hidden lg:block pointer-events-none">
-          <div className="w-0 h-0 border-l-[3.5px] border-l-transparent border-r-[3.5px] border-r-transparent border-b-[5px] border-b-blue-600" />
-        </div>
-        <div className="absolute right-[11px] bottom-1 text-blue-600 z-10 hidden lg:block pointer-events-none">
-          <div className="w-0 h-0 border-l-[3.5px] border-l-transparent border-r-[3.5px] border-r-transparent border-t-[5px] border-t-blue-600" />
-        </div>
-
         <div
           className={`overflow-y-auto overflow-x-hidden transition-all duration-300 pr-[25px]
           [&::-webkit-scrollbar]:w-[6px] 
@@ -283,6 +275,7 @@ export default function SpecializationListClient() {
   const [showMore, setShowMore] = useState(false)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
   const [pageContent, setPageContent] = useState<any>(null)
+  const resultsTopRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -357,6 +350,17 @@ export default function SpecializationListClient() {
   const descriptionPreview = description.length > 200 ? description.substring(0, 200) + '...' : description
   const hasLongDescription = description.length > 200
 
+  const handleCategorySelect = (slug: string) => {
+    setSelectedCategory(slug)
+    requestAnimationFrame(() => {
+      const el = resultsTopRef.current
+      if (!el) return
+      const navOffset = 96
+      const y = el.getBoundingClientRect().top + window.scrollY - navOffset
+      window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' })
+    })
+  }
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -401,7 +405,7 @@ export default function SpecializationListClient() {
 		                <div className="relative">
 		                  <div 
 		                    className={`content-html text-gray-700 text-sm sm:text-base transition-all duration-300 ease-in-out
-		                    ${showMore ? 'max-h-[65vh] overflow-y-auto pr-2 pt-12 sm:pt-14' : 'max-h-[300px]'}
+                    ${showMore ? 'max-h-[65vh] overflow-y-auto pr-2' : 'max-h-[300px]'}
 		                    ${!showMore && 'overflow-hidden'}
 		                    [&>p]:mb-3 sm:[&>p]:mb-4 [&>p]:leading-relaxed [&>p]:text-sm sm:[&>p]:text-base
 		                    [&>ul]:my-4 sm:[&>ul]:my-6 [&>ul]:pl-5 sm:[&>ul]:pl-6 [&>ul]:list-disc
@@ -440,7 +444,7 @@ export default function SpecializationListClient() {
           <CategorySidebar
             categories={categories}
             selectedCategory={selectedCategory}
-            onSelect={setSelectedCategory}
+            onSelect={handleCategorySelect}
             isExpanded={isSidebarExpanded}
             setIsExpanded={setIsSidebarExpanded}
             categoryCounts={categoryCounts}
@@ -448,6 +452,7 @@ export default function SpecializationListClient() {
           />
 
           <div className="flex-1 min-w-0">
+            <div ref={resultsTopRef} />
             <div className="mb-4 sm:mb-6 sticky top-16 z-40 bg-linear-to-br from-gray-50 to-blue-50 py-2 -mx-1 px-1 rounded-xl">
               <input
                 type="text"

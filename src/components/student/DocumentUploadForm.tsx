@@ -85,12 +85,33 @@ export default function DocumentUploadForm() {
     const raw = doc?.imgpath || "";
     if (!raw) return "#";
     if (/^https?:\/\//i.test(raw)) return raw;
+
+    const normalizeOrigin = (value: string) => {
+      if (!value) return "";
+      return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    };
+
     const cleaned = raw.startsWith("/") ? raw.slice(1) : raw;
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    if (!origin) return "#";
-    if (cleaned.startsWith("storage/")) return `${origin}/${cleaned}`;
-    if (cleaned.startsWith("uploads/")) return `${origin}/storage/${cleaned}`;
-    return `${origin}/${cleaned}`;
+
+    const runtimeOrigin = typeof window !== "undefined" ? window.location.origin : "";
+    const isLocalRuntime = /localhost|127\.0\.0\.1/i.test(runtimeOrigin);
+    const uploadSource = normalizeOrigin(String(doc?.upload_source || "").trim());
+    const imageBase = normalizeOrigin(process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "");
+    const siteUrl = normalizeOrigin(process.env.NEXT_PUBLIC_SITE_URL || "");
+
+    // Live fix:
+    // - In production prefer admin storage domain first (old + shared uploads live there)
+    // - In local keep localhost first so locally uploaded files still open
+    const candidateOrigins = isLocalRuntime
+      ? [runtimeOrigin, uploadSource, imageBase, siteUrl].filter(Boolean)
+      : [imageBase, uploadSource, siteUrl, runtimeOrigin].filter(Boolean);
+    const basePath = cleaned.startsWith("storage/")
+      ? cleaned
+      : cleaned.startsWith("uploads/")
+        ? `storage/${cleaned}`
+        : cleaned;
+
+    return `${candidateOrigins[0]}/${basePath}`;
   };
 
   const inputClass = (key: string) =>

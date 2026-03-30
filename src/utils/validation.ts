@@ -60,12 +60,13 @@ export const getPasswordStrength = (password: string) => {
   return { level: 3, color: "green", text: "Strong" };
 };
 
-export const validatePhone = (phone: string, fieldName: string = "Phone number") => {
-  if (!phone || phone.trim() === "") {
+export const validatePhone = (phone: string | number, fieldName: string = "Phone number") => {
+  const phoneValue = String(phone ?? "").trim();
+  if (!phoneValue) {
     return `${fieldName} is required`;
   }
 
-  const cleanPhone = phone.replace(/[\s\-()]/g, "");
+  const cleanPhone = phoneValue.replace(/[\s\-()]/g, "");
   const phoneRegex = /^\d{8,15}$/;
   if (!phoneRegex.test(cleanPhone)) {
     return "Invalid phone number format";
@@ -74,13 +75,14 @@ export const validatePhone = (phone: string, fieldName: string = "Phone number")
   return "";
 };
 
-export const validatePassport = (passport: string) => {
-  if (!passport || passport.trim() === "") {
+export const validatePassport = (passport: string | number) => {
+  const passportValue = String(passport ?? "").trim();
+  if (!passportValue) {
     return "Passport number is required";
   }
 
   const passportRegex = /^[A-Z0-9]{6,9}$/i;
-  if (!passportRegex.test(passport.replace(/[\s\-]/g, ""))) {
+  if (!passportRegex.test(passportValue.replace(/[\s\-]/g, ""))) {
     return "Invalid passport format (6-9 characters)";
   }
 
@@ -104,12 +106,42 @@ export const validateName = (name: string, fieldName: string = "Name") => {
   return "";
 };
 
-export const validateDateOfBirth = (date: string, fieldName: string = "Date of birth") => {
-  if (!date || date.trim() === "") {
+const parseFlexibleDate = (raw: string) => {
+  const value = String(raw ?? "").trim();
+  if (!value) return null;
+
+  // YYYY-MM-DD
+  const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const ymdMatch = value.match(ymd);
+  if (ymdMatch) {
+    const [_, y, m, d] = ymdMatch;
+    const parsed = new Date(Number(y), Number(m) - 1, Number(d));
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  // DD-MM-YYYY
+  const dmy = /^(\d{2})-(\d{2})-(\d{4})$/;
+  const dmyMatch = value.match(dmy);
+  if (dmyMatch) {
+    const [_, d, m, y] = dmyMatch;
+    const parsed = new Date(Number(y), Number(m) - 1, Number(d));
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+export const validateDateOfBirth = (date: string | number, fieldName: string = "Date of birth") => {
+  const dateValue = String(date ?? "").trim();
+  if (!dateValue) {
     return `${fieldName} is required`;
   }
 
-  const selectedDate = new Date(date);
+  const selectedDate = parseFlexibleDate(dateValue);
+  if (!selectedDate) {
+    return `Please enter a valid ${fieldName.toLowerCase()}`;
+  }
   const today = new Date();
   const age = today.getFullYear() - selectedDate.getFullYear();
 
@@ -128,13 +160,14 @@ export const validateDateOfBirth = (date: string, fieldName: string = "Date of b
   return "";
 };
 
-export const validateZipcode = (zipcode: string) => {
-  if (!zipcode || zipcode.trim() === "") {
+export const validateZipcode = (zipcode: string | number) => {
+  const zipcodeValue = String(zipcode ?? "").trim();
+  if (!zipcodeValue) {
     return "Zipcode/Postal code is required";
   }
 
   const zipcodeRegex = /^[A-Z0-9\s\-]{3,10}$/i;
-  if (!zipcodeRegex.test(zipcode)) {
+  if (!zipcodeRegex.test(zipcodeValue)) {
     return "Invalid zipcode format";
   }
 

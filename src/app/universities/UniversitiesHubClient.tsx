@@ -372,12 +372,7 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
                     <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
                       <p className="text-sm text-gray-600 italic">{body.note}</p>
                     </div>
-                    <Link
-                      href="/resources/guidelines/MQA"
-                      className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors block text-center"
-                    >
-                      View Detail
-                    </Link>
+                    {/* View Detail button intentionally hidden for now */}
                   </div>
                 </div>
               )
@@ -411,12 +406,7 @@ export default function UniversitiesHubClient({ pageTitle = 'TOP UNIVERSITIES IN
                   <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500 mb-6">
                     <p className="text-sm text-gray-600 italic">{body.note}</p>
                   </div>
-                  <Link
-                    href="/resources/guidelines/MQA"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors block text-center mt-auto"
-                  >
-                    View Detail
-                  </Link>
+                  {/* View Detail button intentionally hidden for now */}
                 </div>
               )
             })}

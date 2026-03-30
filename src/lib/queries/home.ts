@@ -22,8 +22,17 @@ export const getHomePageData = unstable_cache(
           u.logo_path,
           u.banner_path,
           u.city,
+          u.state,
           u.qs_rank,
           CAST(u.rating AS CHAR) AS rating,
+          u.shortnote,
+          u.click,
+          (
+            SELECT COUNT(*)
+            FROM university_programs up
+            WHERE up.university_id = u.id
+              AND up.status = 1
+          ) AS active_programs_count,
           it.type AS institute_type
         FROM universities u
         LEFT JOIN institute_types it ON it.id = u.institute_type
@@ -44,8 +53,17 @@ export const getHomePageData = unstable_cache(
           u.logo_path,
           u.banner_path,
           u.city,
+          u.state,
           u.qs_rank,
           CAST(u.rating AS CHAR) AS rating,
+          u.shortnote,
+          u.click,
+          (
+            SELECT COUNT(*)
+            FROM university_programs up
+            WHERE up.university_id = u.id
+              AND up.status = 1
+          ) AS active_programs_count,
           it.type AS institute_type
         FROM universities u
         LEFT JOIN institute_types it ON it.id = u.institute_type

@@ -184,39 +184,8 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
               className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-sm text-gray-800 font-medium appearance-none"
             >
               <option value="">Select your timezone</option>
-              <option value="GMT+00:00">(GMT+00:00) London, Dublin, Lisbon</option>
-              <option value="GMT-12:00">(GMT-12:00) International Date Line West</option>
-              <option value="GMT-11:00">(GMT-11:00) Midway Island, Samoa</option>
-              <option value="GMT-10:00">(GMT-10:00) Hawaii</option>
-              <option value="GMT-09:00">(GMT-09:00) Alaska</option>
-              <option value="GMT-08:00">(GMT-08:00) Pacific Time (US &amp; Canada)</option>
-              <option value="GMT-07:00">(GMT-07:00) Mountain Time (US &amp; Canada)</option>
-              <option value="GMT-06:00">(GMT-06:00) Central Time (US &amp; Canada)</option>
-              <option value="GMT-05:00">(GMT-05:00) Eastern Time (US &amp; Canada)</option>
-              <option value="GMT-04:00">(GMT-04:00) Atlantic Time (Canada)</option>
-              <option value="GMT-03:30">(GMT-03:30) Newfoundland</option>
-              <option value="GMT-03:00">(GMT-03:00) Brasilia, Buenos Aires</option>
-              <option value="GMT-02:00">(GMT-02:00) Mid-Atlantic</option>
-              <option value="GMT-01:00">(GMT-01:00) Azores, Cape Verde Islands</option>
-              <option value="GMT+01:00">(GMT+01:00) Berlin, Paris, Rome</option>
-              <option value="GMT+02:00">(GMT+02:00) Cairo, Athens, Helsinki</option>
-              <option value="GMT+03:00">(GMT+03:00) Moscow, Kuwait, Riyadh</option>
-              <option value="GMT+03:30">(GMT+03:30) Tehran</option>
-              <option value="GMT+04:00">(GMT+04:00) Abu Dhabi, Muscat, Baku</option>
-              <option value="GMT+04:30">(GMT+04:30) Kabul</option>
-              <option value="GMT+05:00">(GMT+05:00) Islamabad, Karachi, Tashkent</option>
-              <option value="GMT+05:30">(GMT+05:30) Mumbai, Kolkata, New Delhi</option>
-              <option value="GMT+05:45">(GMT+05:45) Kathmandu</option>
-              <option value="GMT+06:00">(GMT+06:00) Dhaka, Almaty</option>
-              <option value="GMT+06:30">(GMT+06:30) Yangon (Rangoon)</option>
-              <option value="GMT+07:00">(GMT+07:00) Bangkok, Hanoi, Jakarta</option>
-              <option value="GMT+08:00">(GMT+08:00) Beijing, Hong Kong, Singapore, Kuala Lumpur</option>
-              <option value="GMT+09:00">(GMT+09:00) Tokyo, Seoul, Osaka</option>
-              <option value="GMT+09:30">(GMT+09:30) Adelaide, Darwin</option>
-              <option value="GMT+10:00">(GMT+10:00) Sydney, Melbourne, Brisbane</option>
-              <option value="GMT+11:00">(GMT+11:00) Solomon Islands, New Caledonia</option>
-              <option value="GMT+12:00">(GMT+12:00) Auckland, Wellington, Fiji</option>
-              <option value="GMT+13:00">(GMT+13:00) Nuku'alofa</option>
+              <option value="GMT+05:30">(GMT+05:30) India (IST)</option>
+              <option value="GMT+08:00">(GMT+08:00) Malaysia (MYT)</option>
             </select>
           </div>
 

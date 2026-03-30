@@ -52,6 +52,34 @@ const TABS = [
   { id: "Upload Documents", label: "Upload Documents" },
 ];
 
+const normalizeDateForInput = (value: unknown): string => {
+  if (!value) return "";
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  const raw = String(value).trim();
+  if (!raw) return "";
+
+  // Already in yyyy-mm-dd or full datetime
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    return raw.slice(0, 10);
+  }
+
+  // dd-mm-yyyy -> yyyy-mm-dd
+  const dmy = raw.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (dmy) {
+    const [, dd, mm, yyyy] = dmy;
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // Fallback parse
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toISOString().slice(0, 10);
+};
+
 export default function StudentProfileClient() {
   const [activeTab, setActiveTab] = useState("general");
   const [formData, setFormData] = useState<any>(INITIAL_FORM);
@@ -97,6 +125,8 @@ export default function StudentProfileClient() {
         setFormData({
           ...INITIAL_FORM,
           ...studentData,
+          dob: normalizeDateForInput(studentData?.dob),
+          passport_expiry: normalizeDateForInput(studentData?.passport_expiry),
           c_code: studentData.c_code || studentData.country_code || "",
           country_code: studentData.country_code || studentData.c_code || "",
         });
@@ -262,6 +292,8 @@ export default function StudentProfileClient() {
     if (!token) return;
     const payload = {
       ...formData,
+      dob: normalizeDateForInput(formData?.dob),
+      passport_expiry: normalizeDateForInput(formData?.passport_expiry),
       country_code: formData.country_code || formData.c_code || "",
     };
 
