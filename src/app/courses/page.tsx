@@ -1,4 +1,5 @@
 import { resolveStaticMetaAny } from '@/lib/seo/metadata'
+import { Suspense } from 'react'
 import QualificationsHubClient from './QualificationsHubClient'
 
 export async function generateMetadata() {
@@ -10,5 +11,9 @@ export async function generateMetadata() {
 }
 
 export default function QualificationsHubPage() {
-  return <QualificationsHubClient />
+  return (
+    <Suspense fallback={null}>
+      <QualificationsHubClient />
+    </Suspense>
+  )
 }

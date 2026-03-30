@@ -1,4 +1,5 @@
 import SignUpClient from '../../../SignUpClient'
+import { Suspense } from 'react'
 
 export const metadata = {
   title: 'Apply Now | Education Malaysia',
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function SignUpApplyRedirectPage() {
-  return <SignUpClient />
+  return (
+    <Suspense fallback={null}>
+      <SignUpClient />
+    </Suspense>
+  )
 }

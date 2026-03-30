@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import { getUniversityFull } from '@/lib/queries/universities'
 import UniversityHeroClient from '@/components/university/UniversityHeroClient'
 import UniversityTabsClient from '@/components/university/UniversityTabsClient'
@@ -26,7 +27,9 @@ export default async function UniversityLayout({ children, params }: Props) {
 
   return (
     <div className="min-h-screen bg-white">
-      <UniversityScrollTop />
+      <Suspense fallback={null}>
+        <UniversityScrollTop />
+      </Suspense>
       {/* Shared Hero */}
       <UniversityHeroClient
         university={{ ...university, offeredCourses }}

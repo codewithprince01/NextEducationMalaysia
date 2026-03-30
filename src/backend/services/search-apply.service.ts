@@ -27,22 +27,14 @@ export class SearchApplyService {
       distinct: ['website'],
     });
 
-    const websites = data.map((d) => d.website);
+    const websites = data.map((d) => d.website).filter((w): w is string => Boolean(w));
 
-    const countries = await prisma.countries.findMany({
-      where: {
-        iso3: {
-          in: websites,
-        },
-      },
-      select: {
-        name: true,
-        iso3: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
+    if (websites.length === 0) return [];
+
+    const countries = await prisma.$queryRawUnsafe(
+      `SELECT name, iso3 FROM countries WHERE iso3 IN (${websites.map(() => '?').join(',')}) ORDER BY name ASC`,
+      ...websites
+    ) as any[];
 
     return countries.map((c) => ({
       website: c.iso3,
@@ -67,7 +59,9 @@ export class SearchApplyService {
       distinct: ['university_id'],
     });
 
-    const universityIds = programs.map((p) => p.university_id);
+    const universityIds = programs
+      .map((p) => p.university_id)
+      .filter((id): id is number => id !== null);
 
     const universities = await prisma.university.findMany({
       where: {
@@ -91,7 +85,7 @@ export class SearchApplyService {
   /**
    * Get all levels for a specific university.
    */
-  async getLevels(universityId: bigint) {
+  async getLevels(universityId: number) {
     const levels = await prisma.universityProgram.findMany({
       where: {
         university_id: universityId,
@@ -108,7 +102,7 @@ export class SearchApplyService {
   /**
    * Get all course categories for a specific university and level.
    */
-  async getCategories(universityId: bigint, level?: string) {
+  async getCategories(universityId: number, level?: string) {
     const where: any = {
       university_id: universityId,
     };
@@ -124,7 +118,9 @@ export class SearchApplyService {
       distinct: ['course_category_id'],
     });
 
-    const categoryIds = programs.map((p) => p.course_category_id);
+    const categoryIds = programs
+      .map((p) => p.course_category_id)
+      .filter((id): id is number => id !== null);
 
     const categories = await prisma.courseCategory.findMany({
       where: {
@@ -148,7 +144,7 @@ export class SearchApplyService {
   /**
    * Get all specializations for a specific university, level, and category.
    */
-  async getSpecializations(universityId: bigint, level?: string, categoryId?: bigint) {
+  async getSpecializations(universityId: number, level?: string, categoryId?: number) {
     const where: any = {
       university_id: universityId,
     };
@@ -169,7 +165,7 @@ export class SearchApplyService {
 
     const specializationIds = programs
       .map((p) => p.specialization_id)
-      .filter((id): id is bigint => id !== null);
+      .filter((id): id is number => id !== null);
 
     const specializations = await prisma.courseSpecialization.findMany({
       where: {
@@ -195,10 +191,10 @@ export class SearchApplyService {
    */
   async getPrograms(filters: any, page = 1, perPage = 10) {
     const where: any = {};
-    if (filters.university_id) where.university_id = BigInt(filters.university_id);
+    if (filters.university_id) where.university_id = Number(filters.university_id);
     if (filters.level) where.level = filters.level;
-    if (filters.course_category_id) where.course_category_id = BigInt(filters.course_category_id);
-    if (filters.specialization_id) where.specialization_id = BigInt(filters.specialization_id);
+    if (filters.course_category_id) where.course_category_id = Number(filters.course_category_id);
+    if (filters.specialization_id) where.specialization_id = Number(filters.specialization_id);
     if (filters.country) where.website = filters.country;
 
     const [total, items] = await Promise.all([
@@ -212,7 +208,6 @@ export class SearchApplyService {
               name: true,
               uname: true,
               email: true,
-              cc: true,
               logo_path: true,
             },
           },

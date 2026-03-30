@@ -57,7 +57,10 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
         const json = await res.json()
         const fromHome = json?.data?.specializationsWithContent || json?.data?.specializations_with_content
         if (Array.isArray(fromHome) && fromHome.length > 0) {
-          setCourses(shuffleCourses(fromHome).slice(0, limit))
+          const normalizedHome: Course[] = fromHome
+            .filter((row: any) => row?.id && row?.name && row?.slug)
+            .map((row: any) => ({ id: Number(row.id), name: String(row.name), slug: String(row.slug) }))
+          setCourses(shuffleCourses(normalizedHome).slice(0, limit))
           return
         }
 
@@ -67,7 +70,7 @@ export default function TrendingCourses({ variant = 'grid' }: { variant?: 'grid'
         })
         const fallbackJson = await fallbackRes.json()
         const fallbackRows = Array.isArray(fallbackJson?.data) ? fallbackJson.data : []
-        const normalized = fallbackRows
+        const normalized: Course[] = fallbackRows
           .filter((row: any) => row?.id && row?.name && row?.slug)
           .map((row: any) => ({ id: Number(row.id), name: String(row.name), slug: String(row.slug) }))
         setCourses(shuffleCourses(normalized).slice(0, limit))

@@ -10,7 +10,7 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
       return apiError('university_id is required', 400);
     }
 
-    const levels = await searchApplyService.getLevels(BigInt(universityId));
+    const levels = await searchApplyService.getLevels(Number(universityId));
     if (levels.length === 0) {
       return apiError('No levels found', 404);
     }
@@ -19,3 +19,4 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
     return apiError(error.message);
   }
 });
+

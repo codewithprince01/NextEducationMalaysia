@@ -45,7 +45,7 @@ export class StudentProfileService {
     }
 
     return {
-      status: 1,
+      status: true,
       message: 'Profile fetched successfully.',
       data: { student: serializeBigInt(student) as unknown as Student },
     };
@@ -105,7 +105,7 @@ export class StudentProfileService {
       studentId,
     );
 
-    return { status: 1, message: 'Personal information updated successfully' };
+    return { status: true, message: 'Personal information updated successfully' };
   }
 
   /**
@@ -127,7 +127,7 @@ export class StudentProfileService {
       Number(studentId),
     );
 
-    return { status: 1, message: 'Education summary updated successfully' };
+    return { status: true, message: 'Education summary updated successfully' };
   }
 
   /**
@@ -143,7 +143,7 @@ export class StudentProfileService {
     )) as any[];
 
     return {
-      status: 1,
+      status: true,
       message: 'Schools fetched successfully.',
       data: { schools: serializeBigInt(schools) as unknown as StudentSchool[] },
     };

@@ -36,19 +36,19 @@ export default async function UniversitySectionPage({ params }: Props) {
 
   const university = serializeBigInt(universityData) as any
 
-  let initialCourseData = null
+  let initialCourseData: any = undefined
   if (section === 'courses') {
     try {
       const uni = await prisma.university.findFirst({
-        where: { uname: slug, status: true },
+        where: { uname: slug, status: 1 },
         select: { id: true, name: true },
       })
 
       if (uni) {
         const [total, programs, levels, categories, specializations, studyModesRaw] = await Promise.all([
-          prisma.universityProgram.count({ where: { university_id: uni.id, status: true } as any }),
+          prisma.universityProgram.count({ where: { university_id: uni.id, status: 1 } as any }),
           prisma.universityProgram.findMany({
-            where: { university_id: uni.id, status: true } as any,
+            where: { university_id: uni.id, status: 1 } as any,
             select: {
               id: true,
               course_name: true,
@@ -66,7 +66,7 @@ export default async function UniversitySectionPage({ params }: Props) {
             take: 10,
           }),
           prisma.universityProgram.findMany({
-            where: { university_id: uni.id, status: true, level: { not: null } } as any,
+            where: { university_id: uni.id, status: 1, level: { not: null } } as any,
             select: { level: true },
             distinct: ['level'],
             orderBy: { level: 'asc' },

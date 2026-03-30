@@ -329,7 +329,15 @@ function StackedBarChart({ data, selectedCountries, countryColors }: ChartProps)
   );
 }
 
-function ChartSection({ selectedCountries, chartData, countryColors }: ChartProps) {
+function ChartSection({
+  selectedCountries,
+  chartData,
+  countryColors,
+}: {
+  selectedCountries: string[];
+  chartData: any[];
+  countryColors: Record<string, string>;
+}) {
   return (
     <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/40 p-4 sm:p-8 mb-6 sm:mb-10">
       <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-4 text-center">

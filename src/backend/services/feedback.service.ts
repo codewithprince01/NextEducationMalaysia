@@ -49,7 +49,7 @@ export class FeedbackService {
         meta_title: seo?.meta_title || '',
         meta_keyword: seo?.meta_keyword || '',
         meta_description: seo?.meta_description || '',
-        seo_rating: seo?.seo_rating || '',
+        seo_rating: (seo as any)?.seo_rating || '',
         og_image_path: seo?.og_image_path || null
       }
     };
@@ -124,8 +124,7 @@ export class FeedbackService {
   }) {
     return await prisma.review.create({
       data: {
-        website: SITE_VAR,
-        university_id: BigInt(data.university_id),
+        university_id: Number(data.university_id),
         name: data.name,
         email: data.email,
         mobile: data.mobile,
@@ -134,8 +133,7 @@ export class FeedbackService {
         review_title: data.review_title,
         description: data.description,
         rating: data.rating,
-        anonymous: data.anonymous ?? false,
-        status: false // Pending approval
+        status: 0 // Pending approval
       }
     });
   }

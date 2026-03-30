@@ -61,7 +61,7 @@ export class ScholarshipService {
         take: 12
       }),
       resolveSeoMeta('scholarship-detail-page', {
-        title: scholarship.title,
+        title: scholarship.title || '',
         currentmonth: new Date().toLocaleString('en-US', { month: 'short' }),
         currentyear: new Date().getFullYear().toString(),
         site: process.env.SITE_URL || ''
@@ -74,7 +74,7 @@ export class ScholarshipService {
       meta_description: scholarship.meta_description || dynamicSeo.meta_description,
       og_image_path: scholarship.og_image_path || dynamicSeo.og_image_path,
       seo_rating_schema: true,
-      title: scholarship.title
+      title: scholarship.title || ''
     };
 
     return {

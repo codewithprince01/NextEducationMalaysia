@@ -31,7 +31,7 @@ export class HomeService {
         testimonials,
       ] = await Promise.all([
         prisma.university.findMany({
-          where: { status: 1, homeview: true },
+          where: { status: 1, homeview: 1 as any },
           include: {
             instituteType: true,
             _count: { select: { programs: { where: { status: 1 } } } },
@@ -41,7 +41,7 @@ export class HomeService {
         prisma.university.findMany({
           where: {
             status: 1,
-            homeview: true,
+            homeview: 1 as any,
             NOT: [
               { qs_rank: null },
               { qs_rank: '0' },
@@ -56,7 +56,7 @@ export class HomeService {
           take: 30,
         }),
         prisma.university.findMany({
-          where: { status: 1, homeview: true },
+          where: { status: 1, homeview: 1 as any },
           include: {
             instituteType: true,
             _count: { select: { programs: { where: { status: 1 } } } },
@@ -225,7 +225,7 @@ export class HomeService {
   async getCoursesByLevel(level: string) {
     try {
       const courses = await prisma.universityProgram.findMany({
-        where: { level: { level: level }, status: 1 },
+        where: { level, status: 1 },
         include: { university: true },
         take: 10,
       });

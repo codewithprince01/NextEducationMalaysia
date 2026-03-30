@@ -263,7 +263,14 @@ export default function SpecializationDetailClient({
     }
   }, [specialization.name, specializationLevels])
 
-  const currentLevel = (levelSlug ? levelConfigs.map[levelSlug] : null) || {}
+  const currentLevel =
+    (levelSlug ? levelConfigs.map[levelSlug] : null) || {
+      title: '',
+      duration: '',
+      fees: '',
+      intake: '',
+      accreditation: '',
+    }
 
   const rawContents = useMemo(() => {
     if (levelSlug && initialLevelData?.contents?.length) {
@@ -281,7 +288,7 @@ export default function SpecializationDetailClient({
     const mappedContents: Record<string, string> = {}
 
     rawContents.forEach((item) => {
-      const tabName = item.tab || item.title
+      const tabName = item.tab || ('title' in item ? item.title : undefined)
       const description = item.description
 
       if (!tabName || !description || mappedContents[tabName]) return

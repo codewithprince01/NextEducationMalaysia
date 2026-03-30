@@ -117,33 +117,27 @@ export class MalaysiaDiscoveryService {
     let seoSourceModel: any = null;
     try {
       if (curSpcId != null && !Number.isNaN(curSpcId)) {
-        seoSourceModel = await prisma.courseSpecialization.findUnique({
-          where: { id: curSpcId },
-          select: {
-            name: true,
-            meta_title: true,
-            meta_keyword: true,
-            meta_description: true,
-            page_content: true,
-            courses_description: true,
-            content_image_path: true,
-            og_image_path: true,
-          },
-        });
+        const rows = await prisma.$queryRawUnsafe(
+          `
+          SELECT name, meta_title, meta_keyword, meta_description, page_content, courses_description, content_image_path, og_image_path
+          FROM course_specializations
+          WHERE id = ?
+          LIMIT 1
+          `,
+          curSpcId
+        ) as any[];
+        seoSourceModel = rows?.[0] || null;
       } else if (curCatId != null && !Number.isNaN(curCatId)) {
-        seoSourceModel = await prisma.courseCategory.findUnique({
-          where: { id: curCatId },
-          select: {
-            name: true,
-            meta_title: true,
-            meta_keyword: true,
-            meta_description: true,
-            page_content: true,
-            courses_description: true,
-            content_image_path: true,
-            og_image_path: true,
-          },
-        });
+        const rows = await prisma.$queryRawUnsafe(
+          `
+          SELECT name, meta_title, meta_keyword, meta_description, page_content, courses_description, content_image_path, og_image_path
+          FROM course_categories
+          WHERE id = ?
+          LIMIT 1
+          `,
+          curCatId
+        ) as any[];
+        seoSourceModel = rows?.[0] || null;
       }
     } catch {
       seoSourceModel = null;
@@ -364,15 +358,17 @@ export class MalaysiaDiscoveryService {
 
     try {
       if (type === 'category') {
-        row = await prisma.courseCategory.findUnique({
-          where: { id: numericId },
-          select: { courses_description: true, page_content: true }
-        });
+        const rows = await prisma.$queryRawUnsafe(
+          `SELECT courses_description, page_content FROM course_categories WHERE id = ? LIMIT 1`,
+          numericId
+        ) as any[];
+        row = rows?.[0] || null;
       } else if (type === 'specialization') {
-        row = await prisma.courseSpecialization.findUnique({
-          where: { id: numericId },
-          select: { courses_description: true, page_content: true }
-        });
+        const rows = await prisma.$queryRawUnsafe(
+          `SELECT courses_description, page_content FROM course_specializations WHERE id = ? LIMIT 1`,
+          numericId
+        ) as any[];
+        row = rows?.[0] || null;
       } else {
         // levels.description does not exist in this DB schema; keep graceful fallback
         row = null;

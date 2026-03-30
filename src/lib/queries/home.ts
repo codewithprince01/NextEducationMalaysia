@@ -91,8 +91,19 @@ export const getHomePageData = unstable_cache(
 )
 
 export const getPageBanner = unstable_cache(
-  (uri: string) =>
-    prisma.pageBanner.findFirst({ where: { page: uri } }),
+  async (uri: string) => {
+    const rows = await prisma.$queryRawUnsafe(
+      `
+      SELECT *
+      FROM page_banners
+      WHERE page = ?
+      ORDER BY id DESC
+      LIMIT 1
+      `,
+      uri,
+    ) as any[]
+    return rows?.[0] || null
+  },
   ['page-banner'],
   { revalidate: 86400 },
 )

@@ -35,7 +35,7 @@ export class MultipleSearchApplyService {
    * Get levels for a website and multiple universities.
    */
   async getLevels(website: string, universityIds?: any) {
-    const normalizedIds = this.normalize(universityIds).map((id) => BigInt(id));
+    const normalizedIds = this.normalize(universityIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
 
     const where: any = {
       website: website,
@@ -59,7 +59,7 @@ export class MultipleSearchApplyService {
    * Get categories for a website, multiple universities, and multiple levels.
    */
   async getCategories(website: string, universityIds?: any, levels?: any) {
-    const normalizedUniIds = this.normalize(universityIds).map((id) => BigInt(id));
+    const normalizedUniIds = this.normalize(universityIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
     const normalizedLevels = this.normalize(levels);
 
     const where: any = {
@@ -80,7 +80,9 @@ export class MultipleSearchApplyService {
       distinct: ['course_category_id'],
     });
 
-    const categoryIds = programs.map((p) => p.course_category_id);
+    const categoryIds = programs
+      .map((p) => p.course_category_id)
+      .filter((id): id is number => id !== null);
 
     const categories = await prisma.courseCategory.findMany({
       where: {
@@ -108,9 +110,9 @@ export class MultipleSearchApplyService {
     levels?: any,
     categoryIds?: any
   ) {
-    const normalizedUniIds = this.normalize(universityIds).map((id) => BigInt(id));
+    const normalizedUniIds = this.normalize(universityIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
     const normalizedLevels = this.normalize(levels);
-    const normalizedCatIds = this.normalize(categoryIds).map((id) => BigInt(id));
+    const normalizedCatIds = this.normalize(categoryIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
 
     const where: any = {
       website: website,
@@ -135,7 +137,7 @@ export class MultipleSearchApplyService {
 
     const specializationIds = programs
       .map((p) => p.specialization_id)
-      .filter((id): id is bigint => id !== null);
+      .filter((id): id is number => id !== null);
 
     const specializations = await prisma.courseSpecialization.findMany({
       where: {
@@ -163,16 +165,16 @@ export class MultipleSearchApplyService {
     const websites = this.normalize(filters.website);
     if (websites.length > 0) where.website = { in: websites };
 
-    const universityIds = this.normalize(filters.university_id).map((id) => BigInt(id));
+    const universityIds = this.normalize(filters.university_id).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
     if (universityIds.length > 0) where.university_id = { in: universityIds };
 
     const levels = this.normalize(filters.level);
     if (levels.length > 0) where.level = { in: levels };
 
-    const categoryIds = this.normalize(filters.course_category_id).map((id) => BigInt(id));
+    const categoryIds = this.normalize(filters.course_category_id).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
     if (categoryIds.length > 0) where.course_category_id = { in: categoryIds };
 
-    const specializationIds = this.normalize(filters.specialization_id).map((id) => BigInt(id));
+    const specializationIds = this.normalize(filters.specialization_id).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
     if (specializationIds.length > 0) where.specialization_id = { in: specializationIds };
 
     const [total, items] = await Promise.all([
@@ -186,7 +188,6 @@ export class MultipleSearchApplyService {
               name: true,
               uname: true,
               email: true,
-              cc: true,
               logo_path: true,
             },
           },

@@ -43,37 +43,45 @@ export class InquiryService {
     time_zone?: string;
     brochure_status?: string;
   }) {
-    // 1. Create the lead
-    const lead = await prisma.leads.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        country_code: data.country_code,
-        mobile: data.mobile,
-        source: data.source,
-        source_path: data.source_path,
-        nationality: data.nationality,
-        university_id: data.university_id ? BigInt(data.university_id) : null,
-        interested_program: data.interested_program,
-        interested_course_category: data.interested_course_category,
-        highest_qualification: data.highest_qualification,
-        message: data.message,
-        dayslot: data.dayslot,
-        timeslot: data.timeslot,
-        time_zone: data.time_zone,
-        brochure_status: data.brochure_status,
-        website: SITE_VAR,
-        status: 1
-      }
-    });
+    const universityId = data.university_id ? Number(data.university_id) : null;
+
+    // 1. Create the lead (raw SQL keeps compatibility with current DB schema/client typings)
+    await prisma.$executeRawUnsafe(
+      `
+      INSERT INTO leads
+      (name, email, country_code, mobile, source, source_path, nationality, university_id, interested_program, interested_course_category, highest_qualification, message, dayslot, timeslot, time_zone, brochure_status, website, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+      `,
+      data.name,
+      data.email,
+      data.country_code,
+      data.mobile,
+      data.source,
+      data.source_path,
+      data.nationality || null,
+      universityId,
+      data.interested_program || null,
+      data.interested_course_category || null,
+      data.highest_qualification || null,
+      data.message || null,
+      data.dayslot || null,
+      data.timeslot || null,
+      data.time_zone || null,
+      data.brochure_status || null,
+      SITE_VAR
+    );
+
+    const insertedIdRows = await prisma.$queryRawUnsafe(`SELECT LAST_INSERT_ID() AS id`) as any[];
+    const lead = { id: Number(insertedIdRows?.[0]?.id || 0) };
 
     // 2. Auto assign lead
     await this.autoAssign(lead.id);
 
     // 3. Send emails
-    const university = data.university_id 
-      ? await prisma.university.findUnique({ where: { id: BigInt(data.university_id) }, select: { name: true } })
-      : null;
+    const universityRows = universityId
+      ? await prisma.$queryRawUnsafe(`SELECT name FROM universities WHERE id = ? LIMIT 1`, universityId) as any[]
+      : [];
+    const university = universityRows?.[0] || null;
 
     const emailPayload: InquiryPayload = {
       name: data.name,
@@ -101,28 +109,26 @@ export class InquiryService {
   /**
    * Simplified auto-assignment logic.
    */
-  private async autoAssign(leadId: bigint) {
+  private async autoAssign(leadId: number) {
     // Pick first user with 'counselor' in their role
-    const counselor = await prisma.users.findFirst({
-      where: { role: { contains: 'counselor' } }
-    });
+    const counselors = await prisma.$queryRawUnsafe(
+      `SELECT id FROM users WHERE role LIKE ? ORDER BY id ASC LIMIT 1`,
+      '%counselor%'
+    ) as any[];
 
-    const clrId = counselor?.id || BigInt(8);
+    const clrId = Number(counselors?.[0]?.id || 8);
 
-    await prisma.asigned_leads.create({
-      data: {
-        clr_id: clrId,
-        std_id: leadId,
-        status: 1,
-        lead_type: 'new'
-      }
-    });
+    await prisma.$executeRawUnsafe(
+      `
+      INSERT INTO asigned_leads (clr_id, std_id, status, lead_type, created_at, updated_at)
+      VALUES (?, ?, 1, 'new', NOW(), NOW())
+      `,
+      clrId,
+      leadId
+    );
 
     // Update lead asigned status
-    await prisma.leads.update({
-      where: { id: leadId },
-      data: { asigned: true }
-    });
+    await prisma.$executeRawUnsafe(`UPDATE leads SET asigned = 1 WHERE id = ?`, leadId);
   }
 
   /**

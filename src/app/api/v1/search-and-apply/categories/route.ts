@@ -11,7 +11,7 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
       return apiError('university_id is required', 400);
     }
 
-    const categories = await searchApplyService.getCategories(BigInt(universityId), level);
+    const categories = await searchApplyService.getCategories(Number(universityId), level);
     if (categories.length === 0) {
       return apiError('No categories found', 404);
     }
@@ -20,3 +20,4 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
     return apiError(error.message);
   }
 });
+

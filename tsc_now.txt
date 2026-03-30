@@ -1,0 +1,54 @@
+﻿src/backend/services/feedback.service.ts(136,9): error TS2353: Object literal may only specify known properties, and 'anonymous' does not exist in type 'Without<ReviewCreateInput, ReviewUncheckedCreateInput> & ReviewUncheckedCreateInput'.
+src/backend/services/home.service.ts(34,31): error TS2322: Type 'true' is not assignable to type 'Exact<number | IntNullableFilter<"University"> | null | undefined, number | IntNullableFilter<"University"> | null | undefined>'.
+src/backend/services/home.service.ts(44,13): error TS2322: Type 'true' is not assignable to type 'Exact<number | IntNullableFilter<"University"> | null | undefined, number | IntNullableFilter<"University"> | null | undefined>'.
+src/backend/services/home.service.ts(59,31): error TS2322: Type 'true' is not assignable to type 'Exact<number | IntNullableFilter<"University"> | null | undefined, number | IntNullableFilter<"University"> | null | undefined>'.
+src/backend/services/home.service.ts(228,27): error TS2353: Object literal may only specify known properties, and 'level' does not exist in type 'StringNullableFilter<"UniversityProgram"> | { equals?: Exact<string | FieldRef<"UniversityProgram", "String"> | null | undefined, string | FieldRef<...> | null | undefined>; ... 10 more ...; not?: Exact<...>; }'.
+src/backend/services/inquiry.service.ts(47,31): error TS2339: Property 'leads' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }, {}>, TypeMapCb<{ log: ("warn" | "error")[]; }>, { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/inquiry.service.ts(75,55): error TS2322: Type 'bigint' is not assignable to type 'Exact<number | undefined, number | undefined>'.
+src/backend/services/inquiry.service.ts(106,36): error TS2339: Property 'users' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }, {}>, TypeMapCb<{ log: ("warn" | "error")[]; }>, { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/inquiry.service.ts(112,18): error TS2339: Property 'asigned_leads' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }, {}>, TypeMapCb<{ log: ("warn" | "error")[]; }>, { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/inquiry.service.ts(122,18): error TS2339: Property 'leads' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }, {}>, TypeMapCb<{ log: ("warn" | "error")[]; }>, { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/malaysia-discovery.service.ts(127,13): error TS2353: Object literal may only specify known properties, and 'page_content' does not exist in type 'CourseSpecializationSelect<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/malaysia-discovery.service.ts(141,13): error TS2353: Object literal may only specify known properties, and 'page_content' does not exist in type 'CourseCategorySelect<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/malaysia-discovery.service.ts(369,21): error TS2353: Object literal may only specify known properties, and 'courses_description' does not exist in type 'CourseCategorySelect<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }> | { id?: Exact<boolean | undefined, boolean | undefined>; ... 16 more ...; author_id?: Exact<...>; }'.
+src/backend/services/malaysia-discovery.service.ts(374,21): error TS2353: Object literal may only specify known properties, and 'courses_description' does not exist in type 'CourseSpecializationSelect<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }> | { id?: Exact<boolean | undefined, boolean | undefined>; ... 19 more ...; specializationLevels?: Exact<...>; }'.
+src/backend/services/multiple-search-apply.service.ts(87,15): error TS2322: Type '(number | null)[]' is not assignable to type 'Exact<number[] | undefined, number[] | undefined>'.
+  Type 'number | null' is not assignable to type 'number'.
+    Type 'null' is not assignable to type 'number'.
+src/backend/services/multiple-search-apply.service.ts(138,27): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'bigint' is not assignable to type 'number'.
+src/backend/services/multiple-search-apply.service.ts(142,15): error TS2322: Type '(number | null)[]' is not assignable to type 'Exact<number[] | undefined, number[] | undefined>'.
+  Type 'number | null' is not assignable to type 'number'.
+    Type 'null' is not assignable to type 'number'.
+src/backend/services/multiple-search-apply.service.ts(189,15): error TS2353: Object literal may only specify known properties, and 'cc' does not exist in type 'UniversitySelect<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/scholarship.service.ts(64,9): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/backend/services/search-apply.service.ts(32,36): error TS2339: Property 'countries' does not exist on type 'DynamicClientExtensionThis<TypeMap<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }, {}>, TypeMapCb<{ log: ("warn" | "error")[]; }>, { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/search-apply.service.ts(47,27): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/backend/services/search-apply.service.ts(75,11): error TS2322: Type '(number | null)[]' is not assignable to type 'Exact<number[] | undefined, number[] | undefined>'.
+  Type 'number | null' is not assignable to type 'number'.
+    Type 'null' is not assignable to type 'number'.
+src/backend/services/search-apply.service.ts(97,9): error TS2322: Type 'bigint' is not assignable to type 'Exact<number | IntNullableFilter<"UniversityProgram"> | null | undefined, number | IntNullableFilter<"UniversityProgram"> | null | undefined>'.
+src/backend/services/search-apply.service.ts(132,11): error TS2322: Type '(number | null)[]' is not assignable to type 'Exact<number[] | undefined, number[] | undefined>'.
+  Type 'number | null' is not assignable to type 'number'.
+    Type 'null' is not assignable to type 'number'.
+src/backend/services/search-apply.service.ts(172,27): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'bigint' is not assignable to type 'number'.
+src/backend/services/search-apply.service.ts(177,11): error TS2322: Type '(number | null)[]' is not assignable to type 'Exact<number[] | undefined, number[] | undefined>'.
+  Type 'number | null' is not assignable to type 'number'.
+    Type 'null' is not assignable to type 'number'.
+src/backend/services/search-apply.service.ts(215,15): error TS2353: Object literal may only specify known properties, and 'cc' does not exist in type 'UniversitySelect<InternalArgs & { result: {}; model: {}; query: {}; client: {}; }>'.
+src/backend/services/student-profile.service.ts(48,7): error TS2322: Type 'number' is not assignable to type 'boolean'.
+src/backend/services/student-profile.service.ts(108,14): error TS2322: Type 'number' is not assignable to type 'boolean'.
+src/backend/services/student-profile.service.ts(130,14): error TS2322: Type 'number' is not assignable to type 'boolean'.
+src/backend/services/student-profile.service.ts(146,7): error TS2322: Type 'number' is not assignable to type 'boolean'.
+src/components/common/TrendingCourses.tsx(73,20): error TS2345: Argument of type 'unknown[]' is not assignable to parameter of type 'SetStateAction<Course[]>'.
+  Type 'unknown[]' is not assignable to type 'Course[]'.
+    Type 'unknown' is not assignable to type 'Course'.
+src/components/home/NationalityStatsClient.tsx(332,44): error TS2339: Property 'chartData' does not exist on type 'ChartProps'.
+src/components/home/NationalityStatsClient.tsx(580,11): error TS2322: Type '{ selectedCountries: string[]; chartData: any[]; countryColors: Record<string, string>; }' is not assignable to type 'IntrinsicAttributes & ChartProps'.
+  Property 'chartData' does not exist on type 'IntrinsicAttributes & ChartProps'.
+src/components/university/UniversityCoursesClient.tsx(182,30): error TS2345: Argument of type 'unknown[]' is not assignable to parameter of type 'SetStateAction<number[]>'.
+  Type 'unknown[]' is not assignable to type 'number[]'.
+    Type 'unknown' is not assignable to type 'number'.
+src/lib/queries/home.ts(95,44): error TS2353: Object literal may only specify known properties, and 'page' does not exist in type 'PageBannerWhereInput | { AND?: Exact<PageBannerWhereInput | PageBannerWhereInput[] | undefined, PageBannerWhereInput | PageBannerWhereInput[] | undefined>; ... 8 more ...; updated_at?: Exact<...>; }'.

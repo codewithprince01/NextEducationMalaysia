@@ -1,4 +1,5 @@
 import SignUpClient from '../../SignUpClient'
+import { Suspense } from 'react'
 
 export const metadata = {
   title: 'Apply Now | Education Malaysia',
@@ -10,5 +11,9 @@ export default function SignUpApplyPage({
 }: { 
   params: Promise<{ programId: string }> 
 }) {
-  return <SignUpClient />
+  return (
+    <Suspense fallback={null}>
+      <SignUpClient />
+    </Suspense>
+  )
 }

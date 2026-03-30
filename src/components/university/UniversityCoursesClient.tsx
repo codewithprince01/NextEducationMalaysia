@@ -171,8 +171,8 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
                 ? res.data.data
                 : [];
 
-          const programs = Array.from(
-            new Set(
+          const programs: number[] = Array.from(
+            new Set<number>(
               appliedList
                 .map((item: any) => Number(item?.prog_id ?? item?.program_id ?? item?.university_program?.id))
                 .filter((id: number) => Number.isFinite(id) && id > 0)

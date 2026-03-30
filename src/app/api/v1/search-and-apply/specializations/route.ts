@@ -13,9 +13,9 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
     }
 
     const specializations = await searchApplyService.getSpecializations(
-      BigInt(universityId),
+      Number(universityId),
       level,
-      categoryId ? BigInt(categoryId) : undefined
+      categoryId ? Number(categoryId) : undefined
     );
 
     if (specializations.length === 0) {
@@ -26,3 +26,4 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
     return apiError(error.message);
   }
 });
+
