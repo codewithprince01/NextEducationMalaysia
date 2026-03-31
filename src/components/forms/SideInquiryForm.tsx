@@ -15,6 +15,7 @@ function createSecurityCheck() {
   const second = Math.floor(Math.random() * 5)
   return { first, second, answer: first - second }
 }
+const INITIAL_SECURITY_CHECK = { first: 10, second: 3, answer: 7 }
 
 type Props = {
   title?: string
@@ -32,7 +33,7 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
     captcha: '',
     agree: false
   })
-  const [securityCheck, setSecurityCheck] = useState(createSecurityCheck)
+  const [securityCheck, setSecurityCheck] = useState(INITIAL_SECURITY_CHECK)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [countriesData, setCountriesData] = useState<CountryRow[]>([])
   const [phoneValid, setPhoneValid] = useState(false)
@@ -87,6 +88,10 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
     return () => {
       active = false
     }
+  }, [])
+
+  useEffect(() => {
+    setSecurityCheck(createSecurityCheck())
   }, [])
 
   const syncNationalityFromCode = (code: string) => {

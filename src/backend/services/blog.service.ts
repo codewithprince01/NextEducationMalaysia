@@ -302,8 +302,8 @@ export class BlogService {
       }),
       prisma.blogFaq.findMany({
         where: { blog_id: Number(blog.id) },
-        select: { question: true, answer: true, position: true, id: true },
-        orderBy: [{ position: 'asc' }, { id: 'asc' }],
+        select: { question: true, answer: true, id: true },
+        orderBy: [{ id: 'asc' }],
       }),
     ]);
 
