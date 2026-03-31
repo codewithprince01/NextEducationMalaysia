@@ -326,10 +326,29 @@ export default function SpecializationDetailClient({
     const target = document.getElementById(hashId)
     if (!target) return
 
-    const navOffset = 92
+    const navOffset = 52
     const targetTop = target.getBoundingClientRect().top + window.scrollY - navOffset
     window.scrollTo({ top: Math.max(0, targetTop), left: 0, behavior: 'auto' })
   }, [slug, levelSlug])
+
+  // When a level page is opened, start viewport from the level summary card
+  // (Course Information) instead of jumping to page top.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!levelSlug) return
+
+    const scrollToCourseInfo = () => {
+      const target = document.getElementById('course-information')
+      if (!target) return
+      const navOffset = 52
+      const targetTop = target.getBoundingClientRect().top + window.scrollY - navOffset
+      window.scrollTo({ top: Math.max(0, targetTop), left: 0, behavior: 'auto' })
+    }
+
+    // Run after paint to ensure section height/content has settled.
+    const timer = window.setTimeout(scrollToCourseInfo, 0)
+    return () => window.clearTimeout(timer)
+  }, [levelSlug])
 
   const handleTabClick = (tabName: string) => {
     setActiveTab(tabName)
@@ -472,7 +491,7 @@ export default function SpecializationDetailClient({
                     const levelPath = isActive
                       ? `/specialization/${slug}`
                       : `/specialization/${slug}/${levelItem.actualSlug}`
-                    const href = `${levelPath}#course-information`
+                    const href = levelPath
 
                     return (
                       <Link

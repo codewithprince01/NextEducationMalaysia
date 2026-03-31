@@ -106,7 +106,16 @@ ${urls
 
   async getUniversity() {
     const data = await sitemapDataService.getUniversityData();
-    const urls = data.map((d) => ({ loc: `${this.baseUrl}/${d.endpoint}`, lastmod: d.updated_at, changefreq: 'always', priority: d.endpoint.includes('/') ? '0.5' : '0.8' }));
+    const urls = data.map((d) => {
+      const parts = String(d.endpoint || '').split('/').filter(Boolean);
+      const isBaseUniversityPage = parts.length === 2 && parts[0] === 'university';
+      return {
+        loc: `${this.baseUrl}/${d.endpoint}`,
+        lastmod: d.updated_at,
+        changefreq: 'always',
+        priority: isBaseUniversityPage ? '0.8' : '0.5',
+      };
+    });
     return this.wrapUrlSet(urls);
   }
 
@@ -118,7 +127,18 @@ ${urls
 
   async getSpecialization() {
     const data = await sitemapDataService.getSpecializationData();
-    const urls = data.map((d) => ({ loc: `${this.baseUrl}/${d.endpoint}`, lastmod: d.updated_at, changefreq: 'always', priority: '0.5' }));
+    const urls = data.map((d) => {
+      const parts = String(d.endpoint || '').split('/').filter(Boolean);
+      const isBaseSpecialization = parts.length === 2 && parts[0] === 'specialization';
+      const isLevelSpecialization = parts.length === 3 && parts[0] === 'specialization';
+
+      return {
+        loc: `${this.baseUrl}/${d.endpoint}`,
+        lastmod: d.updated_at,
+        changefreq: 'weekly',
+        priority: isBaseSpecialization ? '0.7' : isLevelSpecialization ? '0.6' : '0.5',
+      };
+    });
     urls.unshift({ loc: `${this.baseUrl}/specialization`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'always', priority: '0.8' });
     return this.wrapUrlSet(urls);
   }

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { SITE_VAR } from '@/lib/constants';
 
 /**
  * Enterprise Sitemap Data Service (Singleton)
@@ -18,7 +19,18 @@ export class SitemapDataService {
   private formatDate(value: any): string {
     if (!value) return new Date().toISOString().split('T')[0];
     const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return new Date().toISOString().split('T')[0];
     return date.toISOString().split('T')[0];
+  }
+
+  private toSeoSlug(value: string): string {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
   }
 
   async getSitemapIndex() {
@@ -40,7 +52,6 @@ export class SitemapDataService {
   async getHomeData() {
     return [
       { endpoint: 'who-we-are', updated_at: this.formatDate(null) },
-      { endpoint: 'why-study-in-malaysia', updated_at: this.formatDate(null) },
       { endpoint: 'what-people-say', updated_at: this.formatDate(null) },
       { endpoint: 'universities', updated_at: this.formatDate(null) },
       { endpoint: 'contact-us', updated_at: this.formatDate(null) },
@@ -52,7 +63,10 @@ export class SitemapDataService {
 
   async getExamsData() {
     try {
-      const exams = await prisma.$queryRawUnsafe('SELECT uri, updated_at FROM exams WHERE status = 1') as any[];
+      const exams = await prisma.$queryRawUnsafe(
+        'SELECT uri, updated_at FROM exams WHERE status = 1 AND website = ?',
+        SITE_VAR
+      ) as any[];
       return exams.map((e) => ({
         endpoint: `resources/exams/${e.uri}`,
         updated_at: this.formatDate(e.updated_at),
@@ -65,7 +79,10 @@ export class SitemapDataService {
 
   async getServicesData() {
     try {
-      const services = await prisma.$queryRawUnsafe('SELECT uri, updated_at FROM site_pages WHERE status = 1') as any[];
+      const services = await prisma.$queryRawUnsafe(
+        'SELECT uri, updated_at FROM site_pages WHERE status = 1 AND website = ?',
+        SITE_VAR
+      ) as any[];
       return services.map((s) => ({
         endpoint: `resources/services/${s.uri}`,
         updated_at: this.formatDate(s.updated_at),
@@ -79,7 +96,7 @@ export class SitemapDataService {
   async getUniversityData() {
     try {
       const universities = await prisma.university.findMany({
-        where: { status: 1 },
+        where: { status: 1, website: SITE_VAR as any },
         select: { uname: true, updated_at: true, id: true }
       });
 
@@ -97,7 +114,7 @@ export class SitemapDataService {
         ]);
 
         if (hasPhotos) rows.push({ endpoint: `university/${uni.uname}/gallery`, updated_at: updatedAt });
-        if (hasVideos) rows.push({ endpoint: `university/${uni.uname}/video`, updated_at: updatedAt });
+        if (hasVideos) rows.push({ endpoint: `university/${uni.uname}/videos`, updated_at: updatedAt });
         if (hasReviews) rows.push({ endpoint: `university/${uni.uname}/reviews`, updated_at: updatedAt });
         if (hasPrograms) rows.push({ endpoint: `university/${uni.uname}/courses`, updated_at: updatedAt });
       }
@@ -114,8 +131,11 @@ export class SitemapDataService {
         SELECT up.slug, up.updated_at, u.uname 
         FROM university_programs up
         JOIN universities u ON up.university_id = u.id
-        WHERE up.status = 1 AND u.status = 1
-      `) as any[];
+        WHERE up.status = 1
+          AND u.status = 1
+          AND up.website = ?
+          AND u.website = ?
+      `, SITE_VAR, SITE_VAR) as any[];
 
       return programs.map((p) => ({
         endpoint: `university/${p.uname}/courses/${p.slug}`,
@@ -130,16 +150,50 @@ export class SitemapDataService {
   async getSpecializationData() {
     try {
       const specializations = await prisma.$queryRawUnsafe(`
-        SELECT DISTINCT s.slug, s.updated_at 
-        FROM course_specializations s
-        JOIN university_programs up ON up.course_specialization_id = s.id
-        WHERE up.status = 1
-      `) as any[];
+        SELECT DISTINCT cs.id, cs.slug, cs.updated_at
+        FROM course_specializations cs
+        WHERE cs.slug IS NOT NULL
+          AND cs.slug <> ''
+          AND cs.website = ?
+          AND EXISTS (
+            SELECT 1
+            FROM specialization_contents sc
+            WHERE sc.specialization_id = cs.id
+          )
+      `, SITE_VAR) as any[];
 
-      return specializations.map((s) => ({
-        endpoint: `specialization/${s.slug}`,
-        updated_at: this.formatDate(s.updated_at),
-      }));
+      const rows: any[] = [];
+
+      for (const spec of specializations) {
+        const baseUpdated = this.formatDate(spec.updated_at);
+        rows.push({
+          endpoint: `specialization/${spec.slug}`,
+          updated_at: baseUpdated,
+        });
+
+        const levels = await prisma.$queryRawUnsafe(`
+          SELECT url_slug, level_slug, updated_at
+          FROM specialization_levels
+          WHERE specialization_id = ?
+        `, Number(spec.id)) as any[];
+
+        for (const level of levels) {
+          const slugFromUrl = String(level.url_slug || '').trim();
+          const slugFromLevel = String(level.level_slug || '').trim();
+          const fallbackSlug = slugFromLevel
+            ? `${this.toSeoSlug(slugFromLevel)}-in-${this.toSeoSlug(spec.slug)}`
+            : '';
+          const levelSlug = slugFromUrl || fallbackSlug;
+          if (!levelSlug) continue;
+
+          rows.push({
+            endpoint: `specialization/${spec.slug}/${levelSlug}`,
+            updated_at: this.formatDate(level.updated_at || spec.updated_at),
+          });
+        }
+      }
+
+      return rows;
     } catch (error) {
       console.error('Error fetching sitemap specializations:', error);
       return [];
@@ -149,11 +203,17 @@ export class SitemapDataService {
   async getCourseData() {
     try {
       const categories = await prisma.$queryRawUnsafe(`
-        SELECT DISTINCT c.slug, c.updated_at 
+        SELECT c.slug, c.updated_at
         FROM course_categories c
-        JOIN university_programs up ON up.course_category_id = c.id
-        WHERE up.status = 1 AND c.status = 1
-      `) as any[];
+        WHERE c.slug IS NOT NULL
+          AND c.slug <> ''
+          AND c.website = ?
+          AND EXISTS (
+            SELECT 1
+            FROM course_category_contents ccc
+            WHERE ccc.course_category_id = c.id
+          )
+      `, SITE_VAR) as any[];
 
       return categories.map((c) => ({
         endpoint: `course/${c.slug}`,
@@ -167,13 +227,20 @@ export class SitemapDataService {
 
   async getBlogData() {
     try {
-      const categories = await prisma.$queryRawUnsafe('SELECT id, category_slug, updated_at FROM blog_categories WHERE status = 1') as any[];
+      const categories = await prisma.$queryRawUnsafe(
+        'SELECT id, category_slug, updated_at FROM blog_categories WHERE status = 1 AND website = ?',
+        SITE_VAR
+      ) as any[];
       const rows: any[] = [];
       
       for (const cat of categories) {
         rows.push({ endpoint: `blog/${cat.category_slug}`, updated_at: this.formatDate(cat.updated_at) });
         
-        const blogs = await prisma.$queryRawUnsafe('SELECT slug, id, updated_at FROM blogs WHERE category_id = ? AND status = 1', cat.id) as any[];
+        const blogs = await prisma.$queryRawUnsafe(
+          'SELECT slug, id, updated_at FROM blogs WHERE category_id = ? AND status = 1 AND website = ?',
+          cat.id,
+          SITE_VAR
+        ) as any[];
         for (const blog of blogs) {
           rows.push({
             endpoint: `blog/${cat.category_slug}/${blog.slug}-${blog.id}`,
@@ -190,23 +257,55 @@ export class SitemapDataService {
 
   async getCoursesInMalaysiaData() {
     try {
-      const levels = await prisma.$queryRawUnsafe('SELECT DISTINCT level, updated_at FROM university_programs WHERE status = 1 AND level IS NOT NULL AND level != ""') as any[];
-      const categories = await prisma.$queryRawUnsafe('SELECT DISTINCT slug, updated_at FROM course_categories WHERE status = 1') as any[];
-      const specializations = await prisma.$queryRawUnsafe('SELECT DISTINCT slug, updated_at FROM course_specializations WHERE status = 1') as any[];
+      const levels = await prisma.$queryRawUnsafe(
+        'SELECT DISTINCT level, updated_at FROM university_programs WHERE status = 1 AND website = ? AND level IS NOT NULL AND level != ""',
+        SITE_VAR
+      ) as any[];
+      const categories = await prisma.$queryRawUnsafe(`
+        SELECT DISTINCT cc.slug, cc.updated_at
+        FROM course_categories cc
+        WHERE cc.slug IS NOT NULL
+          AND cc.slug <> ''
+          AND cc.website = ?
+          AND EXISTS (
+            SELECT 1
+            FROM university_programs up
+            WHERE up.course_category_id = cc.id
+              AND up.status = 1
+              AND up.website = ?
+          )
+      `, SITE_VAR, SITE_VAR) as any[];
+      const specializations = await prisma.$queryRawUnsafe(`
+        SELECT DISTINCT cs.slug, cs.updated_at
+        FROM course_specializations cs
+        WHERE cs.slug IS NOT NULL
+          AND cs.slug <> ''
+          AND cs.website = ?
+          AND EXISTS (
+            SELECT 1
+            FROM university_programs up
+            WHERE up.specialization_id = cs.id
+              AND up.status = 1
+              AND up.website = ?
+          )
+      `, SITE_VAR, SITE_VAR) as any[];
 
-      const rows: any[] = [];
+      const rowsMap = new Map<string, string>();
       const slugify = (text: string) => text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
 
       for (const l of levels) {
-        rows.push({ endpoint: `${slugify(l.level!)}-courses`, updated_at: this.formatDate(l.updated_at) });
+        const endpoint = `${slugify(l.level!)}-courses`;
+        rowsMap.set(endpoint, this.formatDate(l.updated_at));
       }
       for (const c of categories) {
-        rows.push({ endpoint: `${c.slug}-courses`, updated_at: this.formatDate(c.updated_at) });
+        const endpoint = `${c.slug}-courses`;
+        rowsMap.set(endpoint, this.formatDate(c.updated_at));
       }
       for (const s of specializations) {
-        rows.push({ endpoint: `${s.slug}-courses`, updated_at: this.formatDate(s.updated_at) });
+        const endpoint = `${s.slug}-courses`;
+        rowsMap.set(endpoint, this.formatDate(s.updated_at));
       }
-      return rows;
+      return Array.from(rowsMap.entries()).map(([endpoint, updated_at]) => ({ endpoint, updated_at }));
     } catch (error) {
       console.error('Error fetching sitemap malaysia data:', error);
       return [];

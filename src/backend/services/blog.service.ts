@@ -264,7 +264,7 @@ export class BlogService {
           })),
       }));
 
-    const [relatedBlogs, categories, specializations, dynamicSeo] = await Promise.all([
+    const [relatedBlogs, categories, specializations, dynamicSeo, blogFaqs] = await Promise.all([
       prisma.blog.findMany({
         where: { id: { not: blog.id }, status: 1 },
         select: {
@@ -300,6 +300,11 @@ export class BlogService {
         currentyear: new Date().getFullYear().toString(),
         site: process.env.SITE_URL || '',
       }),
+      prisma.blogFaq.findMany({
+        where: { blog_id: Number(blog.id) },
+        select: { question: true, answer: true, position: true, id: true },
+        orderBy: [{ position: 'asc' }, { id: 'asc' }],
+      }),
     ]);
 
     return {
@@ -310,6 +315,7 @@ export class BlogService {
       related_blogs: serializeBigInt(relatedBlogs),
       categories: serializeBigInt(categories),
       specializations: serializeBigInt(specializations),
+      faqs: serializeBigInt(blogFaqs),
       seo: {
         meta_title: blog.meta_title || dynamicSeo.meta_title,
         meta_keyword: blog.meta_keyword || dynamicSeo.meta_keyword,

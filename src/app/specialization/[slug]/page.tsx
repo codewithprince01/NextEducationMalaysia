@@ -3,6 +3,7 @@ import { getSpecializationBySlug, getAllSpecializationSlugs } from '@/lib/querie
 import { extractMetadataText, resolveSpecializationMeta } from '@/lib/seo/metadata'
 import { specializationJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
+import FAQSchema from '@/components/seo/FAQSchema'
 import { SITE_URL } from '@/lib/constants'
 import SpecializationDetailClient from './SpecializationDetailClient'
 
@@ -39,6 +40,7 @@ export default async function SpecializationDetailPage({ params }: Props) {
         { name: 'Specialization', url: `${SITE_URL}/specialization` },
         { name: spec.name || '', url: `${SITE_URL}/specialization/${slug}` }
       ], { name: title, description })} />
+      <FAQSchema faqs={Array.isArray((spec as any)?.faqs) ? (spec as any).faqs : []} />
       <SpecializationDetailClient
         slug={slug}
         levelSlug={levelSlug}

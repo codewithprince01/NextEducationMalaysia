@@ -34,7 +34,7 @@ async function fetchSpecializationDetail(slug: string) {
   const specialization = specRows[0]
   if (!specialization) return null
 
-  const [contents, faqs, levels, relatedUniversities, otherSpecializations, featuredUniversities] = await Promise.all([
+  const [contents, faqs, levels, relatedUniversitiesRaw, otherSpecializations, featuredUniversities] = await Promise.all([
     prisma.$queryRawUnsafe(`
       SELECT *
       FROM specialization_contents
@@ -68,9 +68,9 @@ async function fetchSpecializationDetail(slug: string) {
       JOIN university_programs up ON up.university_id = u.id
       WHERE up.specialization_id = ?
         AND up.status = 1
-        AND up.website = ?
+        AND (up.website = ? OR up.website IS NULL OR up.website = '')
         AND u.status = 1
-        AND u.website = ?
+        AND (u.website = ? OR u.website IS NULL OR u.website = '')
       GROUP BY u.id, u.name, u.uname, u.logo_path, u.banner_path, u.city, u.inst_type, u.qs_rank
       ORDER BY u.name ASC
     `, specialization.id, SITE_VAR, SITE_VAR) as Promise<any[]>,
@@ -97,6 +97,35 @@ async function fetchSpecializationDetail(slug: string) {
       LIMIT 10
     `, SITE_VAR) as Promise<any[]>,
   ])
+
+  let relatedUniversities = relatedUniversitiesRaw
+
+  // Fallback: if no direct specialization universities are found, show same-category universities
+  // (matches old behavior expectation where related list should not stay empty).
+  if (!relatedUniversities.length && specialization.course_category_id) {
+    relatedUniversities = await prisma.$queryRawUnsafe(`
+      SELECT
+        u.id,
+        u.name,
+        u.uname,
+        u.logo_path,
+        u.banner_path,
+        u.city,
+        u.inst_type,
+        u.qs_rank,
+        COUNT(up.id) AS allspcprograms
+      FROM universities u
+      JOIN university_programs up ON up.university_id = u.id
+      WHERE up.course_category_id = ?
+        AND up.status = 1
+        AND (up.website = ? OR up.website IS NULL OR up.website = '')
+        AND u.status = 1
+        AND (u.website = ? OR u.website IS NULL OR u.website = '')
+      GROUP BY u.id, u.name, u.uname, u.logo_path, u.banner_path, u.city, u.inst_type, u.qs_rank
+      ORDER BY COUNT(up.id) DESC, u.name ASC
+      LIMIT 12
+    `, specialization.course_category_id, SITE_VAR, SITE_VAR) as any[]
+  }
 
   const normalizedLevels = levels.map((level) => ({
     ...level,

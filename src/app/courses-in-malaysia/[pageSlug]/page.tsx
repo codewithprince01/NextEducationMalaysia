@@ -7,7 +7,8 @@ import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metad
 import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, courseDiscoveryJsonLd } from '@/lib/seo/structured-data'
 import FaqSection from '@/components/seo/FaqSection'
-import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
+import FAQSchema from '@/components/seo/FAQSchema'
+import { normalizeFaqs } from '@/lib/seo/faq-schema'
 
 export const revalidate = 86400
 
@@ -126,18 +127,7 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
     nou: result.nou,
     noc: result.noc,
   }
-  const samplePrograms = (result.rows.data || [])
-    .slice(0, 6)
-    .map((item: any) => item?.course_name || item?.name)
-    .filter(Boolean)
-    .join(', ')
-  const faqSchema = await fetchDynamicFaqSchema({
-    title: breadcrumbTitle,
-    description: breadcrumbDescription,
-    content: `${result.seo?.page_content || ''} ${samplePrograms}`.trim(),
-    path: `/courses-in-malaysia/page-${page}`,
-  })
-  const faqItems = extractFaqItems(faqSchema)
+  const faqItems = normalizeFaqs((result as any).faqs || [])
   const topCourse = (result.rows.data || [])[0] as any
   const courseSchema = courseDiscoveryJsonLd({
     courseName: topCourse?.course_name || `Courses in Malaysia Page ${page}`,
@@ -166,7 +156,7 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
         { name: `Page ${page}`, url: `${SITE_URL}/courses-in-malaysia/page-${page}` },
       ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
       <JsonLd data={courseSchema as any} />
-      <JsonLd data={faqSchema as any} />
+      <FAQSchema faqs={faqItems} />
       <CoursesListClient
         initialFilterData={filterData}
         initialCoursesData={coursesData}

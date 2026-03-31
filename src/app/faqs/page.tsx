@@ -1,7 +1,8 @@
 import { extractMetadataText, resolveStaticMeta } from '@/lib/seo/metadata'
-import { faqJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
+import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import { getFaqs } from '@/lib/queries/home'
 import JsonLd from '@/components/seo/JsonLd'
+import FAQSchema from '@/components/seo/FAQSchema'
 import { SITE_URL } from '@/lib/constants'
 import FaqsClient from './FaqsClient'
 
@@ -49,10 +50,12 @@ export default async function FaqsPage() {
     },
     {} as Record<string, Array<{ id: number; question: string; answer: string }>>
   )
+  const defaultActiveSlug = initialCategories[0]?.category_slug || ''
+  const activeFaqs = defaultActiveSlug ? (initialFaqsByCategory[defaultActiveSlug] || []) : []
 
   return (
     <>
-      <JsonLd data={faqJsonLd(faqs)} />
+      <FAQSchema faqs={activeFaqs as any[]} />
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Home', url: SITE_URL },
         { name: 'FAQs', url: `${SITE_URL}/faqs` }

@@ -6,7 +6,8 @@ import JsonLd from '@/components/seo/JsonLd'
 import { breadcrumbJsonLd, courseDiscoveryJsonLd } from '@/lib/seo/structured-data'
 import { SITE_URL } from '@/lib/constants'
 import FaqSection from '@/components/seo/FaqSection'
-import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
+import FAQSchema from '@/components/seo/FAQSchema'
+import { normalizeFaqs } from '@/lib/seo/faq-schema'
 
 export const revalidate = 86400
 
@@ -109,20 +110,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
     nou: result.nou,
     noc: result.noc
   }
-  const faqTitle = String(breadcrumbTitle)
-  const faqDescription = String(breadcrumbDescription)
-  const samplePrograms = (result.rows.data || [])
-    .slice(0, 6)
-    .map((item: any) => item?.course_name || item?.name)
-    .filter(Boolean)
-    .join(', ')
-  const faqSchema = await fetchDynamicFaqSchema({
-    title: faqTitle,
-    description: faqDescription,
-    content: `${result.seo?.page_content || ''} ${samplePrograms}`.trim(),
-    path: '/courses-in-malaysia',
-  })
-  const faqItems = extractFaqItems(faqSchema)
+  const faqItems = normalizeFaqs((result as any).faqs || [])
   const topCourse = (result.rows.data || [])[0] as any
   const courseSchema = courseDiscoveryJsonLd({
     courseName: topCourse?.course_name || 'Courses in Malaysia',
@@ -150,7 +138,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
         { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
       ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
       <JsonLd data={courseSchema as any} />
-      <JsonLd data={faqSchema as any} />
+      <FAQSchema faqs={faqItems} />
       <CoursesListClient 
         initialFilterData={filterData} 
         initialCoursesData={coursesData}

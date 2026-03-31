@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Plus, Minus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 type FaqCategory = {
   id: number
@@ -18,6 +19,7 @@ type FaqItem = {
 interface FaqsClientProps {
   initialCategories?: FaqCategory[]
   initialFaqsByCategory?: Record<string, FaqItem[]>
+  initialActiveSlug?: string
 }
 
 const formatHTML = (html?: string | null) => {
@@ -34,10 +36,18 @@ const formatHTML = (html?: string | null) => {
 export default function FaqsClient({
   initialCategories = [],
   initialFaqsByCategory = {},
+  initialActiveSlug,
 }: FaqsClientProps) {
+  const router = useRouter()
+  const firstSlug = initialCategories[0]?.category_slug || ''
+  const defaultActiveSlug =
+    initialActiveSlug && initialCategories.some((cat) => cat.category_slug === initialActiveSlug)
+      ? initialActiveSlug
+      : firstSlug
+
   const [categories, setCategories] = useState<FaqCategory[]>(initialCategories)
-  const [activeTab, setActiveTab] = useState<string>(initialCategories[0]?.category_slug || '')
-  const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqsByCategory[initialCategories[0]?.category_slug || ''] || [])
+  const [activeTab, setActiveTab] = useState<string>(defaultActiveSlug)
+  const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqsByCategory[defaultActiveSlug] || [])
   const [openQuestionIndex, setOpenQuestionIndex] = useState<number | null>(null)
   const [loading, setLoading] = useState(initialCategories.length === 0)
   const [faqLoading, setFaqLoading] = useState(false)
@@ -71,7 +81,13 @@ export default function FaqsClient({
         })).filter((cat: FaqCategory) => !!cat.category_slug)
 
         setCategories(normalized)
-        if (normalized.length > 0) setActiveTab(normalized[0].category_slug)
+        if (normalized.length > 0) {
+          const matchedSlug =
+            initialActiveSlug && normalized.some((cat: FaqCategory) => cat.category_slug === initialActiveSlug)
+              ? initialActiveSlug
+              : normalized[0].category_slug
+          setActiveTab(matchedSlug)
+        }
         setError(null)
       } catch (err) {
         console.error('Error fetching FAQ categories:', err)
@@ -82,7 +98,7 @@ export default function FaqsClient({
     }
 
     fetchCategories()
-  }, [apiKey, initialCategories.length])
+  }, [apiKey, initialActiveSlug, initialCategories.length])
 
   useEffect(() => {
     if (!activeTab) return
@@ -146,6 +162,7 @@ export default function FaqsClient({
             onClick={() => {
               setActiveTab(cat.category_slug)
               setOpenQuestionIndex(null)
+              router.replace(`/faq/${cat.category_slug}`, { scroll: false })
             }}
             className={`px-4 py-2 rounded-2xl font-medium text-sm capitalize ${
               activeTab === cat.category_slug

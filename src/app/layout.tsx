@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
-import { headers } from 'next/headers'
 import './globals.css'
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from '@/context/AuthContext'
@@ -9,8 +8,6 @@ import NavbarClient from '@/components/layout/NavbarClient'
 import Footer from '@/components/layout/Footer'
 import FloatingActions from '@/components/ui/FloatingActions'
 import MalaysiaCallingAutoPopup from '@/components/layout/MalaysiaCallingAutoPopup'
-import JsonLd from '@/components/seo/JsonLd'
-import { fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
 
 export const metadata: Metadata = {
   title: 'Education Malaysia - Study in Malaysia',
@@ -31,32 +28,11 @@ export const metadata: Metadata = {
   },
 }
 
-const titleFromPath = (path: string) => {
-  const clean = String(path || '/')
-    .replace(/\?.*$/, '')
-    .replace(/^\/+|\/+$/g, '')
-    .split('/')
-    .filter(Boolean)
-    .map((part) => part.replace(/-/g, ' '))
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-  return clean ? `${clean} | Education Malaysia` : 'Study in Malaysia | Education Malaysia'
-}
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const hdr = await headers()
-  const currentPath = hdr.get('x-full-path') || hdr.get('x-pathname') || '/'
-  const faqSchema = await fetchDynamicFaqSchema({
-    title: titleFromPath(currentPath),
-    description: `Explore ${titleFromPath(currentPath).replace(' | Education Malaysia', '')} with updated information, eligibility, fees, duration, and career opportunities in Malaysia.`,
-    content: `Page path: ${currentPath}. Education Malaysia dynamic route content and user intent coverage.`,
-    path: currentPath,
-  })
-
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-WP578P4K'
   const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID || 'p52lrj1wuu'
 
@@ -73,7 +49,6 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://www.clarity.ms" />
       </head>
       <body className="font-sans antialiased">
-        <JsonLd data={faqSchema as any} />
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}

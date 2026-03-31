@@ -207,7 +207,8 @@ export class MalaysiaDiscoveryService {
       categoriesRaw,
       specializationsRaw,
       studyModesRaw,
-      monthsRaw
+      monthsRaw,
+      faqsRaw
     ] = await Promise.all([
       prisma.$queryRawUnsafe(programsSql, ...baseArgs, perPage, skip),
       prisma.$queryRawUnsafe(countSql, ...baseArgs),
@@ -252,7 +253,43 @@ export class MalaysiaDiscoveryService {
         orderBy: { name: 'asc' }
       }),
       prisma.$queryRawUnsafe('SELECT * FROM study_modes ORDER BY study_mode ASC'),
-      prisma.$queryRawUnsafe('SELECT * FROM months ORDER BY id ASC')
+      prisma.$queryRawUnsafe('SELECT * FROM months ORDER BY id ASC'),
+      (async () => {
+        if (curSpcId != null && !Number.isNaN(curSpcId)) {
+          return prisma.$queryRawUnsafe(
+            `
+            SELECT question, answer
+            FROM course_specialization_faqs
+            WHERE specialization_id = ?
+            ORDER BY position ASC, id ASC
+            `,
+            curSpcId
+          )
+        }
+
+        if (curCatId != null && !Number.isNaN(curCatId)) {
+          return prisma.$queryRawUnsafe(
+            `
+            SELECT question, answer
+            FROM course_category_faqs
+            WHERE course_category_id = ?
+            ORDER BY position ASC, id ASC
+            `,
+            curCatId
+          )
+        }
+
+        return prisma.$queryRawUnsafe(
+          `
+          SELECT f.question, f.answer
+          FROM faqs f
+          INNER JOIN faq_categories fc ON fc.id = f.category_id
+          WHERE fc.category_slug IN ('courses-in-malaysia', 'courses', 'course')
+          ORDER BY f.id ASC
+          LIMIT 12
+          `
+        )
+      })()
     ]);
 
     const total = Number((countResult as any[])[0]?.total ?? 0);
@@ -285,8 +322,8 @@ export class MalaysiaDiscoveryService {
     }));
 
     // Serialize BigInt values
-    const [programs, levels, categories, specializations, studyModes, months] = serializeBigInt([
-      programsRaw, levelsRaw, categoriesRaw, specializationsRaw, studyModesRaw, monthsRaw
+    const [programs, levels, categories, specializations, studyModes, months, faqs] = serializeBigInt([
+      programsRaw, levelsRaw, categoriesRaw, specializationsRaw, studyModesRaw, monthsRaw, faqsRaw
     ]);
 
     // Count unique universities for SEO stats (across full filtered result, not just current page)
@@ -345,7 +382,8 @@ export class MalaysiaDiscoveryService {
       },
       seo,
       nou,
-      noc: total
+      noc: total,
+      faqs: Array.isArray(faqs) ? faqs : []
     };
   }
 

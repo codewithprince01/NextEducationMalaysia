@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sitemapService, withMiddleware, checkApiKey } from '@/backend';
+import { unstable_noStore as noStore } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const GET = withMiddleware(checkApiKey)(async (req: NextRequest, { params }: { params: { slug?: string[] } }) => {
   try {
+    noStore();
     const slug = params.slug?.[0] || 'index';
     let xml: string;
 
@@ -51,6 +56,9 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest, { params
       status: 200,
       headers: {
         'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        Pragma: 'no-cache',
+        Expires: '0',
       },
     });
   } catch (error: any) {

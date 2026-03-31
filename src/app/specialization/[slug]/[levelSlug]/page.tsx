@@ -3,6 +3,7 @@ import { getSpecializationBySlug, getSpecializationLevel } from '@/lib/queries/s
 import { SITE_URL } from '@/lib/constants'
 import { resolveSpecializationMeta } from '@/lib/seo/metadata'
 import SpecializationDetailClient from '../SpecializationDetailClient'
+import FAQSchema from '@/components/seo/FAQSchema'
 
 export const revalidate = 86400
 
@@ -55,11 +56,14 @@ export default async function SpecializationLevelPage({ params }: Props) {
   if (!detail || !spec || !level || !levelDetail) notFound()
 
   return (
-    <SpecializationDetailClient
-      slug={slug}
-      levelSlug={levelSlug}
-      initialData={detail}
-      initialLevelData={levelDetail}
-    />
+    <>
+      <FAQSchema faqs={Array.isArray((spec as any)?.faqs) ? (spec as any).faqs : []} />
+      <SpecializationDetailClient
+        slug={slug}
+        levelSlug={levelSlug}
+        initialData={detail}
+        initialLevelData={levelDetail}
+      />
+    </>
   )
 }

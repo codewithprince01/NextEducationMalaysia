@@ -4,12 +4,13 @@ import { extractMetadataText, resolveBlogMeta } from '@/lib/seo/metadata'
 import { blogJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
 import FaqSection from '@/components/seo/FaqSection'
+import FAQSchema from '@/components/seo/FAQSchema'
 import { SITE_URL } from '@/lib/constants'
 import BlogDetailClient from './BlogDetailClient'
 import { serializeBigInt } from '@/lib/utils'
 import BlogListClient from '../../BlogListClient'
 import { prisma } from '@/lib/db-fresh'
-import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
+import { normalizeFaqs } from '@/lib/seo/faq-schema'
 
 export const revalidate = 21600
 export const dynamicParams = true
@@ -75,21 +76,6 @@ export default async function BlogDetailPage({ params }: Props) {
   if (!parsed) {
     return <BlogDetailClient category={category} slugWithId={slugWithId} />
   }
-  const buildBlogFaq = async (blogData: any, path: string) => {
-    const title = String(blogData?.meta_title || blogData?.headline || blogData?.title || 'Study in Malaysia Blog')
-    const description = String(blogData?.meta_description || blogData?.description || blogData?.short_description || '')
-    const content = String(
-      blogData?.description ||
-      blogData?.content ||
-      blogData?.blog_description ||
-      blogData?.short_description ||
-      '',
-    )
-
-    const schema = await fetchDynamicFaqSchema({ title, description, content, path })
-    return { schema, items: extractFaqItems(schema) }
-  }
-
   // Resolve by ID first for robust client navigation and canonical redirects.
   const canonical = await prisma.blog.findFirst({
     where: { id: parsed.id, status: 1 },
@@ -121,13 +107,16 @@ export default async function BlogDetailPage({ params }: Props) {
       related_blogs: [],
       categories: [],
       specializations: [],
+      faqs: [],
     }
     const fallbackMeta = await resolveBlogMeta(fallbackData.data as any, parsed.id)
     const { title: fallbackTitle, description: fallbackDescription } = extractMetadataText(fallbackMeta)
-    const { schema: fallbackFaqSchema, items: fallbackFaqItems } = await buildBlogFaq(
-      fallbackData.data,
-      `/blog/${category}/${slugWithId}`,
-    )
+    const fallbackFaqRows = await prisma.blogFaq.findMany({
+      where: { blog_id: Number((fallbackData.data as any).id) },
+      select: { question: true, answer: true, position: true, id: true },
+      orderBy: [{ position: 'asc' }, { id: 'asc' }],
+    })
+    const fallbackFaqItems = normalizeFaqs(fallbackFaqRows as any[])
 
     return (
       <>
@@ -137,7 +126,7 @@ export default async function BlogDetailPage({ params }: Props) {
             path: `/blog/${category}/${slugWithId}`,
           })}
         />
-        <JsonLd data={fallbackFaqSchema as any} />
+        <FAQSchema faqs={fallbackFaqItems} />
         <JsonLd data={breadcrumbJsonLd([
           { name: 'Home', url: SITE_URL },
           { name: 'Blog', url: `${SITE_URL}/blog` },
@@ -151,7 +140,7 @@ export default async function BlogDetailPage({ params }: Props) {
   }
   const meta = await resolveBlogMeta(result.data as any, parsed.id)
   const { title, description } = extractMetadataText(meta)
-  const { schema: faqSchema, items: faqItems } = await buildBlogFaq(result.data, `/blog/${category}/${slugWithId}`)
+  const faqItems = normalizeFaqs(((result as any).faqs || []) as any[])
 
   return (
     <>
@@ -161,7 +150,7 @@ export default async function BlogDetailPage({ params }: Props) {
           path: `/blog/${canonicalCategory}/${canonical.slug}-${canonical.id}`,
         })}
       />
-      <JsonLd data={faqSchema as any} />
+      <FAQSchema faqs={faqItems} />
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Home', url: SITE_URL },
         { name: 'Blog', url: `${SITE_URL}/blog` },

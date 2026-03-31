@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sitemapService } from '@/backend/services/sitemap.service'
+import { unstable_noStore as noStore } from 'next/cache'
 
 export type SitemapSlug =
   | 'index'
@@ -16,6 +17,7 @@ export type SitemapSlug =
   | 'courses-in-malaysia'
 
 export async function renderSitemapXml(slug: SitemapSlug): Promise<NextResponse> {
+  noStore()
   let xml = ''
 
   switch (slug) {
@@ -61,8 +63,9 @@ export async function renderSitemapXml(slug: SitemapSlug): Promise<NextResponse>
     status: 200,
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
     },
   })
 }
-

@@ -6,8 +6,10 @@ import UniversityListClient from './UniversityListClient'
 import { serializeBigInt } from '@/lib/utils'
 import { universityService } from '@/backend'
 import JsonLd from '@/components/seo/JsonLd'
-import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
+import FAQSchema from '@/components/seo/FAQSchema'
 import FaqSection from '@/components/seo/FaqSection'
+import { normalizeFaqs } from '@/lib/seo/faq-schema'
+import { prisma } from '@/lib/db-fresh'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -31,6 +33,31 @@ const findType = (types: any[], rawType: string) => {
   ])
 
   return types.find((t: any) => aliases.has(String(t.slug || '')) || aliases.has(String(t.seo_title_slug || '')))
+}
+
+const getUniversityFaqs = async (typeSlug: string) => {
+  const aliases = Array.from(new Set([
+    String(typeSlug || '').toLowerCase(),
+    String(typeSlug || '').toLowerCase().replace(/-in-malaysia$/, ''),
+    'universities',
+    'university',
+  ])).filter(Boolean)
+
+  if (aliases.length === 0) return []
+
+  const rows = await prisma.$queryRawUnsafe(
+    `
+      SELECT f.question, f.answer
+      FROM faq_categories fc
+      INNER JOIN faqs f ON f.category_id = fc.id
+      WHERE LOWER(fc.category_slug) IN (${aliases.map(() => '?').join(', ')})
+      ORDER BY f.id ASC
+      LIMIT 12
+    `,
+    ...aliases
+  ) as any[]
+
+  return normalizeFaqs(rows)
 }
 
 export async function generateStaticParams() {
@@ -129,16 +156,10 @@ export default async function UniversitiesByTypePage({ params }: Props) {
         (await getPageContent(type))
       const finalContent = pageData?.description || 'Explore the best universities in Malaysia.'
       const finalHeading = pageData?.heading || typeName
-      const faqSchema = await fetchDynamicFaqSchema({
-        title: `${finalHeading} in Malaysia`,
-        description: finalContent,
-        content: finalContent,
-        path: `/universities/${type}`,
-      })
-      const faqItems = extractFaqItems(faqSchema)
+      const faqItems = await getUniversityFaqs(type)
       return (
         <>
-          <JsonLd data={faqSchema as any} />
+          <FAQSchema faqs={faqItems} />
           <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
             <UniversityListClient
               typeSlug={type}
@@ -174,17 +195,11 @@ export default async function UniversitiesByTypePage({ params }: Props) {
     page: 1,
     limit: 21,
   })
-  const faqSchema = await fetchDynamicFaqSchema({
-    title: `${finalHeading} in Malaysia`,
-    description: finalContent,
-    content: `${finalContent} ${(initialListing?.data || []).slice(0, 6).map((item: any) => item?.name).filter(Boolean).join(', ')}`.trim(),
-    path: `/universities/${type}`,
-  })
-  const faqItems = extractFaqItems(faqSchema)
+  const faqItems = await getUniversityFaqs(type)
 
   return (
     <>
-      <JsonLd data={faqSchema as any} />
+      <FAQSchema faqs={faqItems} />
       <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
         <UniversityListClient
           typeSlug={type}
