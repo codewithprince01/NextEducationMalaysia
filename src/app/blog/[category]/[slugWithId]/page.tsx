@@ -3,11 +3,13 @@ import { getBlogBySlugAndId, getAllBlogSlugs } from '@/lib/queries/blogs'
 import { extractMetadataText, resolveBlogMeta } from '@/lib/seo/metadata'
 import { blogJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
+import FaqSection from '@/components/seo/FaqSection'
 import { SITE_URL } from '@/lib/constants'
 import BlogDetailClient from './BlogDetailClient'
 import { serializeBigInt } from '@/lib/utils'
 import BlogListClient from '../../BlogListClient'
 import { prisma } from '@/lib/db-fresh'
+import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
 
 export const revalidate = 21600
 export const dynamicParams = true
@@ -73,6 +75,20 @@ export default async function BlogDetailPage({ params }: Props) {
   if (!parsed) {
     return <BlogDetailClient category={category} slugWithId={slugWithId} />
   }
+  const buildBlogFaq = async (blogData: any, path: string) => {
+    const title = String(blogData?.meta_title || blogData?.headline || blogData?.title || 'Study in Malaysia Blog')
+    const description = String(blogData?.meta_description || blogData?.description || blogData?.short_description || '')
+    const content = String(
+      blogData?.description ||
+      blogData?.content ||
+      blogData?.blog_description ||
+      blogData?.short_description ||
+      '',
+    )
+
+    const schema = await fetchDynamicFaqSchema({ title, description, content, path })
+    return { schema, items: extractFaqItems(schema) }
+  }
 
   // Resolve by ID first for robust client navigation and canonical redirects.
   const canonical = await prisma.blog.findFirst({
@@ -108,10 +124,20 @@ export default async function BlogDetailPage({ params }: Props) {
     }
     const fallbackMeta = await resolveBlogMeta(fallbackData.data as any, parsed.id)
     const { title: fallbackTitle, description: fallbackDescription } = extractMetadataText(fallbackMeta)
+    const { schema: fallbackFaqSchema, items: fallbackFaqItems } = await buildBlogFaq(
+      fallbackData.data,
+      `/blog/${category}/${slugWithId}`,
+    )
 
     return (
       <>
-        <JsonLd data={blogJsonLd(fallbackData.data, parsed.id)} />
+        <JsonLd
+          data={blogJsonLd(fallbackData.data, parsed.id, {
+            categorySlug: category,
+            path: `/blog/${category}/${slugWithId}`,
+          })}
+        />
+        <JsonLd data={fallbackFaqSchema as any} />
         <JsonLd data={breadcrumbJsonLd([
           { name: 'Home', url: SITE_URL },
           { name: 'Blog', url: `${SITE_URL}/blog` },
@@ -119,15 +145,23 @@ export default async function BlogDetailPage({ params }: Props) {
           { name: fallbackData.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
         ], { name: fallbackTitle, description: fallbackDescription })} />
         <BlogDetailClient category={category} slugWithId={slugWithId} initialData={fallbackData} />
+        <FaqSection title="Blog FAQs" faqs={fallbackFaqItems} />
       </>
     )
   }
   const meta = await resolveBlogMeta(result.data as any, parsed.id)
   const { title, description } = extractMetadataText(meta)
+  const { schema: faqSchema, items: faqItems } = await buildBlogFaq(result.data, `/blog/${category}/${slugWithId}`)
 
   return (
     <>
-      <JsonLd data={blogJsonLd(result.data, parsed.id)} />
+      <JsonLd
+        data={blogJsonLd(result.data, parsed.id, {
+          categorySlug: canonicalCategory,
+          path: `/blog/${canonicalCategory}/${canonical.slug}-${canonical.id}`,
+        })}
+      />
+      <JsonLd data={faqSchema as any} />
       <JsonLd data={breadcrumbJsonLd([
         { name: 'Home', url: SITE_URL },
         { name: 'Blog', url: `${SITE_URL}/blog` },
@@ -135,6 +169,7 @@ export default async function BlogDetailPage({ params }: Props) {
         { name: result.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
       ], { name: title, description })} />
       <BlogDetailClient category={category} slugWithId={slugWithId} initialData={result} />
+      <FaqSection title="Blog FAQs" faqs={faqItems} />
     </>
   )
 }

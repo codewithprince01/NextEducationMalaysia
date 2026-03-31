@@ -5,6 +5,9 @@ import { Suspense } from 'react'
 import UniversityListClient from './UniversityListClient'
 import { serializeBigInt } from '@/lib/utils'
 import { universityService } from '@/backend'
+import JsonLd from '@/components/seo/JsonLd'
+import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
+import FaqSection from '@/components/seo/FaqSection'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -126,15 +129,26 @@ export default async function UniversitiesByTypePage({ params }: Props) {
         (await getPageContent(type))
       const finalContent = pageData?.description || 'Explore the best universities in Malaysia.'
       const finalHeading = pageData?.heading || typeName
+      const faqSchema = await fetchDynamicFaqSchema({
+        title: `${finalHeading} in Malaysia`,
+        description: finalContent,
+        content: finalContent,
+        path: `/universities/${type}`,
+      })
+      const faqItems = extractFaqItems(faqSchema)
       return (
-        <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
-          <UniversityListClient
-            typeSlug={type}
-            typeName={finalHeading}
-            allTypes={serializeBigInt(types) as any[]}
-            pageContent={finalContent}
-          />
-        </Suspense>
+        <>
+          <JsonLd data={faqSchema as any} />
+          <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
+            <UniversityListClient
+              typeSlug={type}
+              typeName={finalHeading}
+              allTypes={serializeBigInt(types) as any[]}
+              pageContent={finalContent}
+            />
+          </Suspense>
+          <FaqSection title={`${finalHeading} - FAQs`} faqs={faqItems} />
+        </>
       )
     }
     notFound()
@@ -160,20 +174,31 @@ export default async function UniversitiesByTypePage({ params }: Props) {
     page: 1,
     limit: 21,
   })
+  const faqSchema = await fetchDynamicFaqSchema({
+    title: `${finalHeading} in Malaysia`,
+    description: finalContent,
+    content: `${finalContent} ${(initialListing?.data || []).slice(0, 6).map((item: any) => item?.name).filter(Boolean).join(', ')}`.trim(),
+    path: `/universities/${type}`,
+  })
+  const faqItems = extractFaqItems(faqSchema)
 
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
-      <UniversityListClient
-        typeSlug={type}
-        typeName={finalHeading}
-        allTypes={serializedTypes as any[]}
-        pageContent={finalContent}
-        initialData={serializeBigInt(initialListing?.data || []) as any[]}
-        initialTotal={Number(initialListing?.pagination?.total || 0)}
-        initialLastPage={Number(initialListing?.pagination?.last_page || 1)}
-        initialPage={1}
-        initialFilters={serializeBigInt(initialListing?.filters || { institute_types: [], states: [] }) as any}
-      />
-    </Suspense>
+    <>
+      <JsonLd data={faqSchema as any} />
+      <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
+        <UniversityListClient
+          typeSlug={type}
+          typeName={finalHeading}
+          allTypes={serializedTypes as any[]}
+          pageContent={finalContent}
+          initialData={serializeBigInt(initialListing?.data || []) as any[]}
+          initialTotal={Number(initialListing?.pagination?.total || 0)}
+          initialLastPage={Number(initialListing?.pagination?.last_page || 1)}
+          initialPage={1}
+          initialFilters={serializeBigInt(initialListing?.filters || { institute_types: [], states: [] }) as any}
+        />
+      </Suspense>
+      <FaqSection title={`${finalHeading} - FAQs`} faqs={faqItems} />
+    </>
   )
 }

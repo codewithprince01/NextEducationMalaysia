@@ -4,7 +4,7 @@ import CoursesListClient from '../../courses-in-malaysia/CoursesListClient'
 import { malaysiaDiscoveryService } from '@/backend'
 import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metadata'
 import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
+import { breadcrumbJsonLd, courseDiscoveryJsonLd } from '@/lib/seo/structured-data'
 
 export const revalidate = 86400
 
@@ -156,6 +156,25 @@ export default async function DynamicCoursesPage({ params, searchParams }: PageP
     nou: result.nou,
     noc: result.noc
   }
+  const topCourse = (result.rows.data || [])[0] as any
+  const courseSchema = courseDiscoveryJsonLd({
+    courseName: topCourse?.course_name || `${filterValue || slug} Courses in Malaysia`,
+    description: String(breadcrumbDescription),
+    universityName: topCourse?.university?.name || '',
+    duration: topCourse?.duration || '',
+    fees: topCourse?.tution_fee || '',
+    currency: 'MYR',
+    studyMode: topCourse?.study_mode || '',
+    courseLevel: topCourse?.level || String(result.current_filters?.level || ''),
+    country: 'Malaysia',
+    city: topCourse?.university?.city || '',
+    intakeDates: topCourse?.intake || '',
+    courseUrl: `/${slug}-courses`,
+    universityUrl: topCourse?.university?.uname ? `/university/${topCourse.university.uname}` : '',
+    ranking: topCourse?.university?.rating || '',
+    category: result.current_filters?.category?.name || '',
+    specialization: result.current_filters?.specialization?.name || '',
+  })
 
   return (
     <>
@@ -164,6 +183,7 @@ export default async function DynamicCoursesPage({ params, searchParams }: PageP
         { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
         { name: filterValue || slug, url: `${SITE_URL}/${slug}-courses` },
       ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
+      <JsonLd data={courseSchema as any} />
       <CoursesListClient 
         initialFilterData={result.filters} 
         initialCoursesData={coursesData}

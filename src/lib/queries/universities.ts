@@ -190,7 +190,7 @@ export const getUniversityFull = unstable_cache(
     // 2. Fetch relations via raw SQL to bypass zero-date validation issues.
     // Avoid selecting created_at/updated_at columns because legacy rows may contain
     // invalid values like 0000-00-00 00:00:00.
-    const [photos, programs, instituteType, overviews, scholarshipCount] = await Promise.all([
+    const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews] = await Promise.all([
       prisma.$queryRawUnsafe(
         `SELECT id, university_id, photo_path, is_featured FROM university_photos WHERE university_id = ? ORDER BY is_featured DESC, id ASC`,
         universityId
@@ -204,10 +204,30 @@ export const getUniversityFull = unstable_cache(
       prisma.$queryRawUnsafe(
         `SELECT COUNT(*) as total FROM university_scholarships WHERE u_id = ?`,
         universityId
+      ) as Promise<any[]>,
+      prisma.$queryRawUnsafe(
+        `SELECT COUNT(*) AS review_count, ROUND(AVG(rating), 1) AS average_rating
+         FROM reviews
+         WHERE university_id = ? AND status = 1`,
+        universityId
+      ) as Promise<any[]>,
+      prisma.$queryRawUnsafe(
+        `SELECT name, description, rating
+         FROM reviews
+         WHERE university_id = ?
+           AND status = 1
+           AND description IS NOT NULL
+           AND TRIM(description) <> ''
+         ORDER BY id DESC
+         LIMIT 5`,
+        universityId
       ) as Promise<any[]>
     ])
 
     const typeData = instituteType[0]
+    const stats = reviewStats?.[0] || {}
+    const parsedReviewCount = Number(stats.review_count || 0)
+    const parsedAverageRating = Number(stats.average_rating || 0)
 
     return serializeBigInt({
       ...university,
@@ -216,7 +236,14 @@ export const getUniversityFull = unstable_cache(
       overviews,
       scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
       active_programs_count: programs.length,
-      instituteType: typeData
+      instituteType: typeData,
+      review_count: parsedReviewCount,
+      average_rating: parsedAverageRating,
+      reviews: (recentReviews || []).map((row: any) => ({
+        name: row?.name || '',
+        description: row?.description || '',
+        rating: Number(row?.rating || 0),
+      })),
     })
   },
   ['university-full'],

@@ -36,7 +36,15 @@ export function proxy(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+  requestHeaders.set("x-full-path", `${pathname}${request.nextUrl.search || ""}`);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {

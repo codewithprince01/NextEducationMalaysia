@@ -3,8 +3,10 @@ import CoursesListClient from './CoursesListClient'
 import { malaysiaDiscoveryService } from '@/backend'
 import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metadata'
 import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
+import { breadcrumbJsonLd, courseDiscoveryJsonLd } from '@/lib/seo/structured-data'
 import { SITE_URL } from '@/lib/constants'
+import FaqSection from '@/components/seo/FaqSection'
+import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
 
 export const revalidate = 86400
 
@@ -107,6 +109,39 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
     nou: result.nou,
     noc: result.noc
   }
+  const faqTitle = String(breadcrumbTitle)
+  const faqDescription = String(breadcrumbDescription)
+  const samplePrograms = (result.rows.data || [])
+    .slice(0, 6)
+    .map((item: any) => item?.course_name || item?.name)
+    .filter(Boolean)
+    .join(', ')
+  const faqSchema = await fetchDynamicFaqSchema({
+    title: faqTitle,
+    description: faqDescription,
+    content: `${result.seo?.page_content || ''} ${samplePrograms}`.trim(),
+    path: '/courses-in-malaysia',
+  })
+  const faqItems = extractFaqItems(faqSchema)
+  const topCourse = (result.rows.data || [])[0] as any
+  const courseSchema = courseDiscoveryJsonLd({
+    courseName: topCourse?.course_name || 'Courses in Malaysia',
+    description: String(breadcrumbDescription),
+    universityName: topCourse?.university?.name || '',
+    duration: topCourse?.duration || '',
+    fees: topCourse?.tution_fee || '',
+    currency: 'MYR',
+    studyMode: topCourse?.study_mode || '',
+    courseLevel: topCourse?.level || String(result.current_filters?.level || ''),
+    country: 'Malaysia',
+    city: topCourse?.university?.city || '',
+    intakeDates: topCourse?.intake || '',
+    courseUrl: '/courses-in-malaysia',
+    universityUrl: topCourse?.university?.uname ? `/university/${topCourse.university.uname}` : '',
+    ranking: topCourse?.university?.rating || '',
+    category: result.current_filters?.category?.name || '',
+    specialization: result.current_filters?.specialization?.name || '',
+  })
 
   return (
     <>
@@ -114,6 +149,8 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
         { name: 'Home', url: SITE_URL },
         { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
       ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
+      <JsonLd data={courseSchema as any} />
+      <JsonLd data={faqSchema as any} />
       <CoursesListClient 
         initialFilterData={filterData} 
         initialCoursesData={coursesData}
@@ -125,6 +162,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
         initialSearch={params.search}
         initialYear={new Date().getFullYear()}
       />
+      <FaqSection title="Courses in Malaysia - FAQs" faqs={faqItems} />
     </>
   )
 }

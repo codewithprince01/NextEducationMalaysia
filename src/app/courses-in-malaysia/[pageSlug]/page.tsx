@@ -5,7 +5,9 @@ import CoursesListClient from '../CoursesListClient'
 import { malaysiaDiscoveryService } from '@/backend'
 import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metadata'
 import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
+import { breadcrumbJsonLd, courseDiscoveryJsonLd } from '@/lib/seo/structured-data'
+import FaqSection from '@/components/seo/FaqSection'
+import { extractFaqItems, fetchDynamicFaqSchema } from '@/lib/seo/dynamic-faq'
 
 export const revalidate = 86400
 
@@ -124,6 +126,37 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
     nou: result.nou,
     noc: result.noc,
   }
+  const samplePrograms = (result.rows.data || [])
+    .slice(0, 6)
+    .map((item: any) => item?.course_name || item?.name)
+    .filter(Boolean)
+    .join(', ')
+  const faqSchema = await fetchDynamicFaqSchema({
+    title: breadcrumbTitle,
+    description: breadcrumbDescription,
+    content: `${result.seo?.page_content || ''} ${samplePrograms}`.trim(),
+    path: `/courses-in-malaysia/page-${page}`,
+  })
+  const faqItems = extractFaqItems(faqSchema)
+  const topCourse = (result.rows.data || [])[0] as any
+  const courseSchema = courseDiscoveryJsonLd({
+    courseName: topCourse?.course_name || `Courses in Malaysia Page ${page}`,
+    description: String(breadcrumbDescription),
+    universityName: topCourse?.university?.name || '',
+    duration: topCourse?.duration || '',
+    fees: topCourse?.tution_fee || '',
+    currency: 'MYR',
+    studyMode: topCourse?.study_mode || '',
+    courseLevel: topCourse?.level || String(result.current_filters?.level || ''),
+    country: 'Malaysia',
+    city: topCourse?.university?.city || '',
+    intakeDates: topCourse?.intake || '',
+    courseUrl: `/courses-in-malaysia/page-${page}`,
+    universityUrl: topCourse?.university?.uname ? `/university/${topCourse.university.uname}` : '',
+    ranking: topCourse?.university?.rating || '',
+    category: result.current_filters?.category?.name || '',
+    specialization: result.current_filters?.specialization?.name || '',
+  })
 
   return (
     <>
@@ -132,6 +165,8 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
         { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
         { name: `Page ${page}`, url: `${SITE_URL}/courses-in-malaysia/page-${page}` },
       ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
+      <JsonLd data={courseSchema as any} />
+      <JsonLd data={faqSchema as any} />
       <CoursesListClient
         initialFilterData={filterData}
         initialCoursesData={coursesData}
@@ -143,6 +178,7 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
         initialSearch={resolvedParams.search}
         initialYear={new Date().getFullYear()}
       />
+      <FaqSection title={`Courses in Malaysia - Page ${page} FAQs`} faqs={faqItems} />
     </>
   )
 }

@@ -9,6 +9,8 @@ import UniversitySectionContainer from '@/components/university/UniversitySectio
 import { serializeBigInt } from '@/lib/utils'
 import { prisma } from '@/lib/db'
 import { resolveUniversityMeta } from '@/lib/seo/metadata'
+import JsonLd from '@/components/seo/JsonLd'
+import { universityJsonLd } from '@/lib/seo/structured-data'
 
 export const revalidate = 86400
 
@@ -135,12 +137,15 @@ export default async function UniversitySectionPage({ params }: Props) {
   }
 
   return (
-    <UniversitySectionContainer
-      slug={slug}
-      universityName={university.name}
-      fullWidth={section === 'courses'}
-    >
-      {renderContent()}
-    </UniversitySectionContainer>
+    <>
+      <JsonLd data={universityJsonLd(university, { path: `/university/${slug}/${section}` })} />
+      <UniversitySectionContainer
+        slug={slug}
+        universityName={university.name}
+        fullWidth={section === 'courses'}
+      >
+        {renderContent()}
+      </UniversitySectionContainer>
+    </>
   )
 }
