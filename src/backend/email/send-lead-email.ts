@@ -65,6 +65,7 @@ function buildUserSubject(data: LeadEmailData): string {
 }
 
 function adminTemplate(data: LeadEmailData): string {
+  const excludedKeys = new Set(['university_id', 'requestfor']);
   const labelMap: Record<string, string> = {
     name: 'Name',
     email: 'Email',
@@ -91,6 +92,7 @@ function adminTemplate(data: LeadEmailData): string {
 
   const byLabel = new Map<string, string>();
   const addField = (key: string, value: unknown) => {
+    if (excludedKeys.has(String(key).toLowerCase())) return;
     if (value == null) return;
     const v = String(value).trim();
     if (!v) return;
@@ -123,8 +125,6 @@ function adminTemplate(data: LeadEmailData): string {
     'Highest Qualification',
     'Interested Course Category',
     'Interested Program',
-    'University Id',
-    'Requestfor',
     'Dayslot',
     'Timeslot',
     'Time Zone',
