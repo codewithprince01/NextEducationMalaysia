@@ -11,6 +11,7 @@ import { FaBuilding, FaBed, FaUsers, FaPhoneAlt, FaFax, FaEnvelope } from 'react
 import UniversityInfoCards from './UniversityInfoCards'
 import UniversityActionButtons from './UniversityActionButtons'
 import UniversityRankings from './UniversityRankings'
+import GalleryModal from './GalleryModal'
 import Breadcrumb, { BreadcrumbItem } from '@/components/Breadcrumb'
 import FormSuccessPopup from '@/components/common/FormSuccessPopup'
 import PopupForm from '@/components/modals/PopupForm'
@@ -94,7 +95,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
   }, [pathname, university])
 
   // â”€â”€ Data Prep â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const { mainPhoto, otherPhotos } = useMemo(() => {
+  const { mainPhoto, otherPhotos, allPhotos } = useMemo(() => {
     const seen = new Set<string>()
     const unique: Photo[] = []
     for (const p of photos) {
@@ -105,7 +106,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
     }
     const main = unique.find(p => p.title?.toLowerCase() === 'main') || unique[0]
     const others = unique.filter(p => p.photo_path !== main?.photo_path).slice(0, 4)
-    return { mainPhoto: main, otherPhotos: others }
+    return { mainPhoto: main, otherPhotos: others, allPhotos: unique }
   }, [photos])
 
   const bannerSrc = imgUrl(university.banner_path) || imgUrl(mainPhoto?.photo_path)
@@ -131,6 +132,15 @@ export default function UniversityHeroClient({ university, photos }: { universit
       window.open(`https://www.google.com/maps/search/${encodeURIComponent(university.name + ' Malaysia')}`, '_blank', 'noopener,noreferrer')
     }
   }, [university])
+
+  const openGallery = useCallback(() => {
+    if (!allPhotos.length) return
+    setShowGallery(true)
+  }, [allPhotos.length])
+
+  const closeGallery = useCallback(() => {
+    setShowGallery(false)
+  }, [])
 
   const openPopup = useCallback((type: 'brochure' | 'fee' | 'counselling' | 'apply' | 'review') => {
     setPopupType(type)
@@ -208,7 +218,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
             <img src={bannerSrc || '/placeholder-university.jpg'} alt="Banner" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" fetchPriority="high" />
             <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent pointer-events-none" />
             <button
-              onClick={() => setShowGallery(true)}
+              onClick={openGallery}
               className="absolute bottom-4 left-4 z-10 bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-all shadow-lg flex items-center gap-2 cursor-pointer border border-blue-600"
             >
               <ImageIcon size={16} />
@@ -393,7 +403,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
           <div className="relative mb-6 rounded-2xl overflow-hidden shadow-lg border border-gray-100 aspect-16/10 bg-gray-200">
              <img src={bannerSrc || '/placeholder-university.jpg'} alt="Banner" className="w-full h-full object-cover" fetchPriority="high" />
              <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent pointer-events-none" />
-             <button onClick={() => setShowGallery(true)} className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-md text-blue-800 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md border border-white/20 flex items-center gap-1.5">
+             <button onClick={openGallery} className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-md text-blue-800 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md border border-white/20 flex items-center gap-1.5">
                <ImageIcon size={14} />
                View Photos
              </button>
@@ -499,6 +509,14 @@ export default function UniversityHeroClient({ university, photos }: { universit
         formType="apply"
       />
 
+      <GalleryModal
+        open={showGallery}
+        onClose={closeGallery}
+        universityName={university?.name}
+        photos={allPhotos}
+        getImageUrl={(path) => imgUrl(path) || '/placeholder-university.jpg'}
+      />
+
       <FormSuccessPopup
         open={showFormSuccess}
         message={formSuccessMessage}
@@ -507,5 +525,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
     </div>
   )
 }
+
+
 
 
