@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FaArrowUp, FaWhatsapp } from 'react-icons/fa'
+import { ArrowUp, MessageCircle } from 'lucide-react'
 
 const WHATSAPP_URL =
   'https://wa.me/60176472057?text=Hello!%20I%20need%20assistance%20regarding%20Education%20Malaysia'
@@ -28,7 +28,7 @@ function WhatsAppButton() {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="flex items-center justify-center w-full h-full transform transition-transform duration-300 group-hover:scale-110">
-          <FaWhatsapp
+          <MessageCircle
             size={28}
             className="transform transition-all duration-300 group-hover:rotate-12 filter drop-shadow-lg"
           />
@@ -77,7 +77,7 @@ function ScrollToTopButton() {
       className="fixed bottom-6 right-6 z-50 bg-blue-700 hover:bg-blue-800 text-white p-3 rounded-full shadow-md transition-all duration-300"
       aria-label="Scroll to top"
     >
-      <FaArrowUp className="text-xl" />
+      <ArrowUp className="text-xl" />
     </button>
   )
 }

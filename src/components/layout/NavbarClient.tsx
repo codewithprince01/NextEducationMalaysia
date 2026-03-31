@@ -4,8 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { FaChevronDown, FaBars, FaTimes } from 'react-icons/fa'
-import { ChevronRight } from 'lucide-react'
+import { ChevronDown, Menu, X, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
 
 const RESOURCES_LINKS = {
@@ -118,7 +117,7 @@ export default function NavbarClient() {
                 className="flex items-center gap-1 hover:text-blue-700"
               >
                 Resources
-                <FaChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={13} />
+                <ChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={13} />
               </button>
 
               {showDropdown && (
@@ -183,7 +182,7 @@ export default function NavbarClient() {
             className="md:hidden text-blue-900 text-2xl z-60"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
-            {menuOpen ? <FaTimes /> : <FaBars />}
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </nav>
@@ -197,7 +196,7 @@ export default function NavbarClient() {
         <div className="p-6 space-y-4 font-medium overflow-y-auto h-full pt-20">
           <div className="absolute top-4 right-4">
             <button onClick={() => setMenuOpen(false)} className="text-blue-900 text-3xl" aria-label="Close menu">
-              <FaTimes />
+              <X size={24} />
             </button>
           </div>
 
@@ -214,7 +213,7 @@ export default function NavbarClient() {
               onClick={() => setShowDropdown(p => !p)}
               className="flex items-center gap-1 w-full hover:text-blue-700 py-2 text-lg"
             >
-              Resources <FaChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={15} />
+              Resources <ChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={15} />
             </button>
             {showDropdown && (
               <div className="bg-gray-50 border p-4 mt-2 rounded-xl shadow space-y-4">

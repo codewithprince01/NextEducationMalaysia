@@ -10,6 +10,24 @@ const nextConfig: NextConfig = {
   // React strict mode
   reactStrictMode: true,
 
+  // Tree-shake barrel imports from heavy icon/utility libraries
+  // This prevents loading entire icon packs when only a few icons are used
+  experimental: {
+    optimizePackageImports: [
+      "react-icons",
+      "react-icons/fa",
+      "react-icons/md",
+      "react-icons/lu",
+      "react-icons/bs",
+      "react-icons/fi",
+      "react-icons/io5",
+      "react-icons/vsc",
+      "react-icons/bi",
+      "lucide-react",
+      "framer-motion",
+    ],
+  },
+
   // Image optimization — allow images from Laravel admin
   images: {
     remotePatterns: [

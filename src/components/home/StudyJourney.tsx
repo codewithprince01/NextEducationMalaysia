@@ -35,10 +35,9 @@ export default function StudyJourney() {
                 onMouseEnter={() => setHovered(step.id)}
                 onMouseLeave={() => setHovered(null)}
               >
-                <Link href={step.href}>
+                <Link href={step.href} aria-label={step.title}>
                   <button
-                    className="group relative mb-4 transition-all duration-300 ease-out"
-                    aria-label={`Go to ${step.title}`}
+                    className="group relative mb-4 transition-all duration-300 ease-out min-w-12 min-h-12"
                   >
                     <div className={`relative z-10 w-20 h-20 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center text-white shadow-lg transform transition-all duration-300 ease-out ${hovered === step.id ? 'scale-125 shadow-2xl' : 'scale-100'} group-hover:scale-125 group-hover:shadow-2xl`}>
                       {step.icon}

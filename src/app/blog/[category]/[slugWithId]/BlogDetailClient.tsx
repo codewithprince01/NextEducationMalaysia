@@ -418,7 +418,7 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
                 <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 p-3 md:p-5 bg-white shadow-sm rounded-xl w-full">
                   <div className="relative w-16 h-16 md:w-24 md:h-24">
                     <img
-                      src="/blog-detail-avtar.png"
+                      src="/blog-detail-avtar.svg"
                       alt="avatar"
                       className="w-full h-full object-contain select-none"
                     />

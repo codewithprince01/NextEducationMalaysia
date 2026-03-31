@@ -4,11 +4,9 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { 
-  FaFacebook, FaTwitter, FaLinkedin, FaInstagram,
-  FaYoutube, FaEnvelope, FaMapMarkerAlt, FaArrowRight,
-} from 'react-icons/fa'
-import { MdPhone } from 'react-icons/md'
-import { LuPhone } from 'react-icons/lu'
+  Facebook, Twitter, Linkedin, Instagram,
+  Youtube, Mail, MapPin, ArrowRight, Phone
+} from 'lucide-react'
 
 const courses = [
   { href: "/accounting-finance-courses", label: "Accounting & Finance" },
@@ -36,11 +34,11 @@ const support = [
 ]
 
 const socials = [
-  { icon: FaFacebook, url: 'https://www.facebook.com/educationmalaysia.in', color: 'hover:bg-blue-600', label: 'Facebook' },
-  { icon: FaInstagram, url: 'https://www.instagram.com/educationmalaysia.in/', color: 'hover:bg-pink-500', label: 'Instagram' },
-  { icon: FaLinkedin, url: 'https://www.linkedin.com/company/educationmalaysia/', color: 'hover:bg-blue-700', label: 'LinkedIn' },
-  { icon: FaYoutube, url: 'https://www.youtube.com/@educationmalaysia6986', color: 'hover:bg-red-600', label: 'YouTube' },
-  { icon: FaTwitter, url: 'https://twitter.com/educatemalaysia/', color: 'hover:bg-sky-500', label: 'Twitter' },
+  { icon: Facebook, url: 'https://www.facebook.com/educationmalaysia.in', color: 'hover:bg-blue-600', label: 'Facebook' },
+  { icon: Instagram, url: 'https://www.instagram.com/educationmalaysia.in/', color: 'hover:bg-pink-500', label: 'Instagram' },
+  { icon: Linkedin, url: 'https://www.linkedin.com/company/educationmalaysia/', color: 'hover:bg-blue-700', label: 'LinkedIn' },
+  { icon: Youtube, url: 'https://www.youtube.com/@educationmalaysia6986', color: 'hover:bg-red-600', label: 'YouTube' },
+  { icon: Twitter, url: 'https://twitter.com/educatemalaysia/', color: 'hover:bg-sky-500', label: 'Twitter' },
 ]
 
 export default function Footer() {
@@ -77,13 +75,13 @@ export default function Footer() {
                   href="tel:+919818560331"
                   className="flex items-center gap-2 bg-[#003893] text-white px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-[#002966] transition-all"
                 >
-                  <LuPhone /> Call Now
+                  <Phone size={16} /> Call Now
                 </a>
                 <a
                   href="mailto:info@educationmalaysia.in"
                   className="flex items-center gap-2 border-2 border-[#003893] text-[#003893] px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-[#003893] hover:text-white transition-all"
                 >
-                  <FaEnvelope /> Email Us
+                  <Mail size={16} /> Email Us
                 </a>
               </div>
             </div>
@@ -94,7 +92,7 @@ export default function Footer() {
             {/* Office */}
             <div className="col-span-2 sm:col-span-1">
               <div className="flex items-center gap-2">
-                <FaMapMarkerAlt className="text-[#003893] w-8 h-8" />
+                <MapPin className="text-[#003893] w-8 h-8" />
                 <h3 className="text-gray-800 text-2xl font-bold leading-none">Our Office</h3>
                    </div>
               <p className="text-gray-600 text-sm leading-relaxed mb-4 mt-2">
@@ -102,10 +100,10 @@ export default function Footer() {
               </p>
               <div className="space-y-2 text-sm">
                 <a href="tel:+919818560331" className="flex items-center gap-2 text-gray-600 hover:text-[#003893] transition-colors">
-                  <MdPhone className="text-xs" /> +91-98185-60331
+                  <Phone size={14} /> +91-98185-60331
                       </a>
                 <a href="mailto:info@educationmalaysia.in" className="flex items-center gap-2 text-gray-600 hover:text-[#003893] transition-colors">
-                  <FaEnvelope className="text-xs" /> info@educationmalaysia.in
+                  <Mail size={14} /> info@educationmalaysia.in
                       </a>
                    </div>
                 </div>
@@ -120,7 +118,7 @@ export default function Footer() {
                       href={item.href}
                       className="inline-flex items-center gap-1 text-gray-600 text-sm transition-all group-hover:text-[#003893] group-hover:translate-x-1"
                     >
-                      <FaArrowRight className="text-[8px] opacity-0 transition-all group-hover:opacity-100" />
+                      <ArrowRight size={8} className="opacity-0 transition-all group-hover:opacity-100" />
                       {item.label}
                     </Link>
                   </li>
@@ -138,7 +136,7 @@ export default function Footer() {
                       href={item.href}
                       className="inline-flex items-center gap-1 text-gray-600 text-sm transition-all group-hover:text-[#003893] group-hover:translate-x-1"
                     >
-                      <FaArrowRight className="text-[8px] opacity-0 transition-all group-hover:opacity-100" />
+                      <ArrowRight size={8} className="opacity-0 transition-all group-hover:opacity-100" />
                       {item.label}
                     </Link>
                   </li>
@@ -156,7 +154,7 @@ export default function Footer() {
                       href={item.href}
                       className="inline-flex items-center gap-1 text-gray-600 text-sm transition-all group-hover:text-[#003893] group-hover:translate-x-1"
                     >
-                      <FaArrowRight className="text-[8px] opacity-0 transition-all group-hover:opacity-100" />
+                      <ArrowRight size={8} className="opacity-0 transition-all group-hover:opacity-100" />
                       {item.label}
                     </Link>
                   </li>

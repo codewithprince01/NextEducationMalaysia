@@ -51,9 +51,9 @@ export default async function RankingTable() {
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="text-center mb-2 sm:mb-2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
             Malaysian University Rankings
-          </h1>
+          </h2>
           <p className="text-xs sm:text-sm md:text-base text-gray-600 px-2">
             Compare top Malaysian universities across major international
             ranking systems
@@ -72,15 +72,15 @@ export default async function RankingTable() {
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="bg-blue-50 rounded-lg p-2">
-                  <p className="text-[10px] text-gray-500 mb-1">QS World</p>
+                  <p className="text-[10px] text-gray-700 mb-1">QS World</p>
                   <span className="text-sm font-bold text-blue-700">{uni.qs_rank ?? 'N/A'}</span>
                 </div>
                 <div className="bg-green-50 rounded-lg p-2">
-                  <p className="text-[10px] text-gray-500 mb-1">Times</p>
+                  <p className="text-[10px] text-gray-700 mb-1">Times</p>
                   <span className="text-sm font-bold text-green-700">{uni.times_rank ?? 'N/A'}</span>
                 </div>
                 <div className="bg-purple-50 rounded-lg p-2">
-                  <p className="text-[10px] text-gray-500 mb-1">QS Asia</p>
+                  <p className="text-[10px] text-gray-700 mb-1">QS Asia</p>
                   <span className="text-sm font-bold text-purple-700">{uni.qs_asia_rank ?? 'N/A'}</span>
                 </div>
               </div>

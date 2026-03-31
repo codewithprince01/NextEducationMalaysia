@@ -1,13 +1,17 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import dynamic from 'next/dynamic'
 import './globals.css'
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from '@/context/AuthContext'
 import { ToastContainer } from 'react-toastify';
 import NavbarClient from '@/components/layout/NavbarClient'
-import Footer from '@/components/layout/Footer'
-import FloatingActions from '@/components/ui/FloatingActions'
-import MalaysiaCallingAutoPopup from '@/components/layout/MalaysiaCallingAutoPopup'
+
+// Lazy-load below-fold / deferred components to reduce initial JS bundle
+const Footer = dynamic(() => import('@/components/layout/Footer'))
+const FloatingActions = dynamic(() => import('@/components/ui/FloatingActions'))
+const MalaysiaCallingAutoPopup = dynamic(() => import('@/components/layout/MalaysiaCallingAutoPopup'))
+
 
 export const metadata: Metadata = {
   title: 'Education Malaysia - Study in Malaysia',
@@ -42,13 +46,15 @@ export default async function RootLayout({
         <link rel="icon" href="/favicon.png?v=4" type="image/png" />
         <link rel="shortcut icon" href="/favicon.png?v=4" type="image/png" />
         <link rel="apple-touch-icon" href="/favicon.png?v=4" />
+        <link rel="preconnect" href="https://admin.educationmalaysia.in" />
+        <link rel="dns-prefetch" href="https://admin.educationmalaysia.in" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.clarity.ms" />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}

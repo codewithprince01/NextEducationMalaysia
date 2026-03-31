@@ -7,7 +7,8 @@
     "dev:legacy": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+     "preview": "next start"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2",
@@ -41,5 +42,11 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "typescript": "^5"
-  }
+  },
+  "browserslist": [
+    "chrome >= 87",
+    "firefox >= 78",
+    "safari >= 14",
+    "edge >= 88"
+  ]
 }

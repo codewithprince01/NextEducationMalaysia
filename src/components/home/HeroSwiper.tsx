@@ -63,6 +63,7 @@ export default function HeroSwiper({ banners }: Props) {
                 fetchPriority={i === 0 ? 'high' : 'auto'}
                 loading={i === 0 ? 'eager' : 'lazy'}
                 sizes="100vw"
+                quality={60}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
                   target.style.display = "none"

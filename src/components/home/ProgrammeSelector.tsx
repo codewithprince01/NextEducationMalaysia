@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { FaBookOpen, FaArrowRight } from 'react-icons/fa'
+import { BookOpen, ArrowRight } from 'lucide-react'
 
 type Specialization = {
   id: number
@@ -62,11 +62,11 @@ export default async function ProgrammeSelector() {
                 <div className="flex items-center gap-3">
                   <span className="text-gray-700 font-medium text-sm">Study</span>
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-teal-500 text-white flex items-center justify-center group-hover:scale-105 transition-transform duration-300 shadow-md">
-                    <FaBookOpen className="h-5 w-5" />
+                    <BookOpen className="h-5 w-5" />
                   </div>
                 </div>
                 <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center transition-all duration-300 transform group-hover:translate-x-1">
-                  <FaArrowRight className="text-white text-sm" />
+                  <ArrowRight className="text-white" size={14} />
                 </div>
               </div>
               <h3 className="text-gray-800 font-semibold text-base mb-2 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2 min-h-[3rem]">
