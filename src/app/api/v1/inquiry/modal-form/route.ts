@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { 
   withMiddleware, apiSuccess, apiError, serializeBigInt } from '@/backend';
 import { prisma } from '@/lib/db-fresh';
+import { sendLeadEmail } from '@/backend/email/send-lead-email';
 
 export const POST = withMiddleware()(async (req: NextRequest) => {
   try {
@@ -91,6 +92,27 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       await prisma.$queryRawUnsafe(`UPDATE leads SET asigned = 1 WHERE id = ?`, insertedId);
     } catch {
       // Keep success if lead was saved.
+    }
+
+    try {
+      await sendLeadEmail({
+        name,
+        email,
+        phone: `+${countryCode} ${mobile}`.trim(),
+        nationality: nationality || null,
+        university: null,
+        message: interestedCourseCategory || null,
+        formType: String(body.formType || 'Malaysia Calling Popup'),
+        sourceUrl: sourcePath,
+        extraFields: {
+          ...body,
+          highest_qualification: highestQualification || null,
+          interested_course_category: interestedCourseCategory || null,
+          country_code: countryCode || null,
+        },
+      });
+    } catch (mailError) {
+      console.error('Failed to send modal form emails:', mailError);
     }
 
     return apiSuccess(

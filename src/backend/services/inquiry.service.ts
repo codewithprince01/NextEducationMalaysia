@@ -1,9 +1,7 @@
 import { prisma } from '@/lib/db';
-import { sendMail } from '../email/sender';
 import { SITE_VAR } from '../utils/constants';
-import { inquiryReplyHtml } from '../email/templates/inquiry-reply';
-import { inquiryToTeamHtml } from '../email/templates/inquiry-to-team';
 import type { InquiryPayload } from '../types';
+import { sendLeadEmail } from '../email/send-lead-email';
 
 /**
  * Enterprise Inquiry Service (Singleton)
@@ -42,10 +40,10 @@ export class InquiryService {
     timeslot?: string;
     time_zone?: string;
     brochure_status?: string;
+    extra_fields?: Record<string, unknown>;
   }) {
     const universityId = data.university_id ? Number(data.university_id) : null;
 
-    // 1. Create the lead (raw SQL keeps compatibility with current DB schema/client typings)
     await prisma.$executeRawUnsafe(
       `
       INSERT INTO leads
@@ -74,10 +72,8 @@ export class InquiryService {
     const insertedIdRows = await prisma.$queryRawUnsafe(`SELECT LAST_INSERT_ID() AS id`) as any[];
     const lead = { id: Number(insertedIdRows?.[0]?.id || 0) };
 
-    // 2. Auto assign lead
     await this.autoAssign(lead.id);
 
-    // 3. Send emails
     const universityRows = universityId
       ? await prisma.$queryRawUnsafe(`SELECT name FROM universities WHERE id = ? LIMIT 1`, universityId) as any[]
       : [];
@@ -96,9 +92,8 @@ export class InquiryService {
       interest: data.interest || data.interested_course_category || null
     };
 
-    // We'll use a try-catch for emails so the lead creation doesn't fail if SMTP is down
     try {
-      await this.sendInquiryEmails(emailPayload);
+      await this.sendInquiryEmails(emailPayload, data.extra_fields || null);
     } catch (error) {
       console.error('Failed to send inquiry emails:', error);
     }
@@ -106,11 +101,7 @@ export class InquiryService {
     return lead;
   }
 
-  /**
-   * Simplified auto-assignment logic.
-   */
   private async autoAssign(leadId: number) {
-    // Pick first user with 'counselor' in their role
     const counselors = await prisma.$queryRawUnsafe(
       `SELECT id FROM users WHERE role LIKE ? ORDER BY id ASC LIMIT 1`,
       '%counselor%'
@@ -127,30 +118,27 @@ export class InquiryService {
       leadId
     );
 
-    // Update lead asigned status
     await prisma.$executeRawUnsafe(`UPDATE leads SET asigned = 1 WHERE id = ?`, leadId);
   }
 
   /**
-   * Helper to send both user reply and team notification.
+   * Helper to send both admin + user standardized lead emails.
    */
-  private async sendInquiryEmails(data: InquiryPayload) {
-    // User Reply
-    await sendMail({
-      to: data.email,
-      toName: data.name,
-      subject: 'We have Received Your Request – Expect a Response Soon',
-      html: inquiryReplyHtml(data),
-      priority: 'high'
-    });
-
-    // Team Alert
-    await sendMail({
-      to: process.env.TO_EMAIL || 'leads@educationmalaysia.in',
-      cc: process.env.CC_EMAIL,
-      subject: `New Enquiry Alert [${data.source}] – Team Attention Needed`,
-      html: inquiryToTeamHtml(data),
-      priority: 'high'
+  private async sendInquiryEmails(data: InquiryPayload, extraFields?: Record<string, unknown> | null) {
+    await sendLeadEmail({
+      name: data.name,
+      email: data.email,
+      phone: `${data.country_code ? `+${data.country_code} ` : ''}${data.mobile}`.trim(),
+      nationality: data.nationality || null,
+      university: data.university || null,
+      message: data.interest || data.program || null,
+      formType: data.source || null,
+      sourceUrl: data.source_path || '/',
+      extraFields: {
+        ...(extraFields || {}),
+        interested_program: data.program || null,
+        interested_course_category: data.interest || null,
+      },
     });
   }
 }

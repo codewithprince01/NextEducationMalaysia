@@ -85,9 +85,12 @@ export function BrochureForm({ universityId, universityName, universityLogo, isO
         nationality: fd.get('nationality'),
         highest_qualification: fd.get('level'),
         interested_course_category: fd.get('course'),
+        university: universityName || '',
         university_id: universityId || null,
         university_name: universityName || '',
         requestfor: 'brochure',
+        formType: 'Brochure Download',
+        sourceUrl: typeof window !== 'undefined' ? window.location.href : '',
         source_path: typeof window !== 'undefined' ? window.location.href : '',
       }, {
         headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,

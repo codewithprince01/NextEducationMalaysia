@@ -17,15 +17,21 @@ export default function ContactForm() {
     setStatus('loading')
 
     try {
-      const params = new URLSearchParams()
-      params.append('name', form.name)
-      params.append('email', form.email)
-      params.append('mobile', form.phone)
-      params.append('nationality', form.country)
-      params.append('source', `Contact Form - ${form.message.substring(0, 50)}...`)
-      params.append('source_path', window.location.href)
-      
-      const res = await fetch('/api/inquiry/simple-form', { method: 'POST', body: params })
+      const res = await fetch('/api/v1/inquiry/contact-us', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          mobile: form.phone,
+          nationality: form.country,
+          message: form.message,
+          formType: 'Contact Form',
+          sourceUrl: window.location.href,
+          source_path: window.location.href,
+          source: 'Contact Form',
+        }),
+      })
       if (res.ok) setStatus('done')
       else setStatus('error')
     } catch {

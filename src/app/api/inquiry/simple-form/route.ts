@@ -1,47 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+import { NextRequest, NextResponse } from 'next/server';
+import { inquiryService } from '@/backend';
+
+async function parseBody(request: NextRequest) {
+  const contentType = request.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return request.json().catch(() => ({} as any));
+  }
+  const formData = await request.formData();
+  return {
+    name: formData.get('name'),
+    email: formData.get('email'),
+    mobile: formData.get('mobile'),
+    nationality: formData.get('nationality'),
+    source: formData.get('source'),
+    source_path: formData.get('source_path'),
+    message: formData.get('message'),
+    formType: formData.get('formType'),
+    sourceUrl: formData.get('sourceUrl'),
+    country_code: formData.get('country_code'),
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.formData()
-    const name = body.get('name') as string
-    const email = body.get('email') as string
-    const mobile = body.get('mobile') as string
-    const nationality = body.get('nationality') as string
-    const source = body.get('source') as string
-    const source_path = body.get('source_path') as string
+    const body = await parseBody(request);
+
+    const name = String(body.name || '').trim().slice(0, 100);
+    const email = String(body.email || '').trim().slice(0, 190);
+    const mobile = String(body.mobile || '').trim().slice(0, 20);
+    const countryCode = String(body.country_code || '91').replace('+', '').trim().slice(0, 8) || '91';
 
     if (!name || !email || !mobile) {
-      return NextResponse.json({ status: false, message: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json({ status: false, message: 'Missing required fields' }, { status: 400 });
     }
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 465,
-      secure: true,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    })
+    await inquiryService.createLead({
+      name,
+      email,
+      country_code: countryCode,
+      mobile,
+      source: String(body.formType || body.source || 'Education Malaysia - General Inquiry').trim(),
+      source_path: String(body.sourceUrl || body.source_path || '/').trim() || '/',
+      nationality: String(body.nationality || '').trim() || undefined,
+      message: String(body.message || '').trim() || undefined,
+      extra_fields: body,
+    });
 
-    await transporter.sendMail({
-      from: `"Education Malaysia" <${process.env.MAIL_FROM || process.env.SMTP_USER}>`,
-      to: process.env.SMTP_USER,
-      subject: `Simple Inquiry from ${name}`,
-      html: `
-        <h3>New Inquiry / Review Submission</h3>
-        <table>
-          <tr><td><b>Name</b></td><td>${name}</td></tr>
-          <tr><td><b>Email</b></td><td>${email}</td></tr>
-          <tr><td><b>Mobile</b></td><td>${mobile}</td></tr>
-          <tr><td><b>Nationality</b></td><td>${nationality || 'N/A'}</td></tr>
-          <tr><td><b>Source</b></td><td>${source || 'N/A'}</td></tr>
-          <tr><td><b>Source Path</b></td><td>${source_path || 'N/A'}</td></tr>
-        </table>
-      `,
-    })
-
-    return NextResponse.json({ status: true, message: 'Inquiry sent successfully' })
-  } catch (err) {
-    console.error('[Inquiry/simple-form]', err)
-    return NextResponse.json({ status: false, message: 'Failed to send inquiry' }, { status: 500 })
+    return NextResponse.json({ status: true, message: 'Inquiry sent successfully' }, { status: 200 });
+  } catch (err: any) {
+    console.error('[Inquiry/simple-form]', err);
+    return NextResponse.json(
+      { status: false, message: err?.message || 'Failed to send inquiry' },
+      { status: 500 }
+    );
   }
 }

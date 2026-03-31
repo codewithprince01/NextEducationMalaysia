@@ -171,6 +171,8 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
           mobile: form.phone,
           nationality: form.country,
           source: getSource(),
+          formType: title || 'Get In Touch Form',
+          sourceUrl: window.location.href,
           source_path: window.location.href
         })
       })

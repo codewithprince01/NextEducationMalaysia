@@ -15,9 +15,11 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       email: body.email,
       country_code: body.country_code || '91',
       mobile: body.mobile,
-      source: 'Contact Us',
-      source_path: body.source_path || '/contact-us',
-      message: body.message
+      source: body.formType || 'Contact Us',
+      source_path: body.sourceUrl || body.source_path || '/contact-us',
+      nationality: body.nationality || undefined,
+      message: body.message,
+      extra_fields: body,
     });
 
     return apiSuccess({ lead: serializeBigInt(lead) }, 'Contact request submitted successfully', 201);
