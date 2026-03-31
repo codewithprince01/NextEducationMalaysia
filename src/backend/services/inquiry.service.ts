@@ -92,11 +92,7 @@ export class InquiryService {
       interest: data.interest || data.interested_course_category || null
     };
 
-    try {
-      await this.sendInquiryEmails(emailPayload, data.extra_fields || null);
-    } catch (error) {
-      console.error('Failed to send inquiry emails:', error);
-    }
+    await this.sendInquiryEmails(emailPayload, data.extra_fields || null);
 
     return lead;
   }

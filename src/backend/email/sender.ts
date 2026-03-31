@@ -57,6 +57,12 @@ export interface MailOptions {
   }>;
   /** Priority 1 = high (matches Laravel ->priority(1)) */
   priority?: 'high' | 'normal' | 'low';
+  /** Optional override for SMTP envelope/header From email */
+  fromEmail?: string;
+  /** Optional override for display name in From header */
+  fromName?: string;
+  /** Optional reply-to override */
+  replyTo?: string;
 }
 
 /**
@@ -65,20 +71,30 @@ export interface MailOptions {
  */
 export async function sendMail(options: MailOptions): Promise<void> {
   const transporter = getTransporter();
-  const fromName =
+  const defaultFromName =
+    options.fromName ??
     process.env.SMTP_FROM_NAME ??
     process.env.MAIL_FROM_NAME ??
     'Education Malaysia';
-  const fromEmail =
+  const configuredFromEmail =
+    options.fromEmail ??
     process.env.SMTP_FROM_EMAIL ??
     process.env.MAIL_FROM ??
     process.env.MAIL_FROM_ADDRESS ??
+    '';
+  const smtpAuthEmail =
     process.env.SMTP_USER ??
     process.env.MAIL_USERNAME ??
     '';
+  // For best deliverability, prefer authenticated mailbox as envelope/header sender.
+  const effectiveFromEmail = options.fromEmail || smtpAuthEmail || configuredFromEmail;
+  const replyToEmail =
+    options.replyTo ||
+    (configuredFromEmail && configuredFromEmail !== effectiveFromEmail ? configuredFromEmail : undefined);
 
-  await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
+  const payload = {
+    from: `"${defaultFromName}" <${effectiveFromEmail}>`,
+    replyTo: replyToEmail,
     to: options.toName ? `"${options.toName}" <${options.to}>` : options.to,
     cc: options.cc
       ? options.ccName
@@ -90,5 +106,25 @@ export async function sendMail(options: MailOptions): Promise<void> {
     html: options.html,
     attachments: options.attachments,
     priority: options.priority ?? 'high',
-  });
+  };
+
+  try {
+    await transporter.sendMail(payload);
+  } catch (error: any) {
+    const message = String(error?.message || '').toLowerCase();
+    const looksLikeFromRejection =
+      message.includes('sender') ||
+      message.includes('from address') ||
+      message.includes('not owned by user') ||
+      message.includes('mail from');
+
+    if (looksLikeFromRejection && smtpAuthEmail && smtpAuthEmail !== effectiveFromEmail) {
+      await transporter.sendMail({
+        ...payload,
+        from: `"${defaultFromName}" <${smtpAuthEmail}>`,
+      });
+      return;
+    }
+    throw error;
+  }
 }

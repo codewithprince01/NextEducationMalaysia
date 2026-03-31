@@ -30,6 +30,12 @@ function printable(value?: string | null): string {
   return v || 'N/A';
 }
 
+function isLikelyEmail(value?: string | null): boolean {
+  if (!value) return false;
+  const v = String(value).trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
 function inferRequestLabel(formType?: string | null): string {
   const t = String(formType || '').toLowerCase();
   if (t.includes('fee')) return 'Fees';
@@ -256,23 +262,48 @@ export async function sendLeadEmail(data: LeadEmailData): Promise<void> {
     sourceUrl: printable(data.sourceUrl),
   };
 
-  await sendMail({
-    to: ADMIN_TO,
-    cc: ADMIN_CC,
-    bcc: ADMIN_BCC,
-    subject: buildAdminSubject(clean),
-    html: adminTemplate(clean),
-    priority: 'high',
-  });
+  let adminError: unknown = null;
+  let userError: unknown = null;
 
-  if (clean.email && clean.email !== 'N/A') {
+  try {
     await sendMail({
-      to: clean.email,
-      toName: clean.name !== 'N/A' ? clean.name : undefined,
-      subject: buildUserSubject(clean),
-      html: userTemplate(clean),
+      to: ADMIN_TO,
+      cc: ADMIN_CC,
+      bcc: ADMIN_BCC,
+      subject: buildAdminSubject(clean),
+      html: adminTemplate(clean),
       priority: 'high',
     });
+  } catch (error) {
+    adminError = error;
+    console.error('[LeadEmail] Admin email failed:', error);
+  }
+
+  if (isLikelyEmail(clean.email) && clean.email !== 'N/A') {
+    try {
+      await sendMail({
+        to: String(clean.email).trim(),
+        toName: clean.name !== 'N/A' ? clean.name : undefined,
+        subject: buildUserSubject(clean),
+        html: userTemplate(clean),
+        priority: 'high',
+      });
+    } catch (error) {
+      userError = error;
+      console.error('[LeadEmail] User email failed:', error);
+    }
+  }
+
+  const adminDelivered = !adminError;
+  const userExpected = isLikelyEmail(clean.email) && clean.email !== 'N/A';
+  const userDelivered = userExpected ? !userError : true;
+
+  if (!adminDelivered && !userDelivered) {
+    const adminMsg = adminError ? String((adminError as any)?.message || adminError) : '';
+    const userMsg = userError ? String((userError as any)?.message || userError) : '';
+    throw new Error(
+      `Email dispatch failed${adminMsg ? ` [admin: ${adminMsg}]` : ''}${userMsg ? ` [user: ${userMsg}]` : ''}`
+    );
   }
 }
 

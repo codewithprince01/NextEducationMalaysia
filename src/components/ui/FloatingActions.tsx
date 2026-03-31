@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowUp, MessageCircle } from 'lucide-react'
+import { ArrowUp } from 'lucide-react'
+import { FaWhatsapp } from 'react-icons/fa'
 
 const WHATSAPP_URL =
   'https://wa.me/60176472057?text=Hello!%20I%20need%20assistance%20regarding%20Education%20Malaysia'
@@ -20,21 +21,21 @@ function WhatsAppButton() {
 
       <a
         href={WHATSAPP_URL}
-        className="relative block w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 hover:rotate-12 group pointer-events-auto"
+        className="ed_whatsapp relative block w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white rounded-full shadow-2xl transform transition-all duration-300 hover:scale-110 hover:rotate-12 group pointer-events-auto"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="flex items-center justify-center w-full h-full transform transition-transform duration-300 group-hover:scale-110">
-          <MessageCircle
+        <div className="ed_whatsapp flex items-center justify-center w-full h-full transform transition-transform duration-300 group-hover:scale-110">
+          <FaWhatsapp
             size={28}
             className="transform transition-all duration-300 group-hover:rotate-12 filter drop-shadow-lg"
           />
         </div>
 
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-300 to-green-500 opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-300" />
+        <div className="ed_whatsapp absolute inset-0 rounded-full bg-gradient-to-r from-green-300 to-green-500 opacity-0 group-hover:opacity-30 blur-lg transition-opacity duration-300" />
         <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-bounce" />
         <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white rounded-full opacity-0 group-hover:opacity-80 transition-opacity duration-300 animate-ping" />
       </a>

@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server'
 import { withMiddleware, apiError, apiSuccess } from '@/backend'
 import { prisma } from '@/lib/db-fresh'
+import { sendLeadEmail } from '@/backend/email/send-lead-email'
 
 export const POST = withMiddleware()(async (req: NextRequest) => {
   try {
@@ -66,6 +67,22 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       website
     )
 
+    await sendLeadEmail({
+      name,
+      email,
+      phone: `${countryCode ? `+${countryCode} ` : ''}${mobile}`.trim(),
+      nationality: String(body.country || body.nationality || 'India').trim(),
+      university: String(body.companyName || '').trim() || null,
+      message: String(body.additionalInfo || body.whyPartner || '').trim() || null,
+      formType: 'Partner Application',
+      sourceUrl: sourcePath,
+      extraFields: {
+        ...payloadForMessage,
+        form_type: 'Partner Application',
+        source_path: sourcePath,
+      },
+    })
+
     return apiSuccess(
       { submitted: true },
       'Application submitted successfully! We will contact you soon.',
@@ -75,4 +92,3 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
     return apiError(error?.message || 'Failed to submit application', 500)
   }
 })
-
