@@ -79,8 +79,7 @@ function CourseCard({
   appliedCourses,
   onApplyNow,
   onViewDetail,
-  onBrochureClick,
-  onFeeStructureClick,
+  onCompareUniversity,
   onUniversityClick,
 }: { 
   course: any; 
@@ -88,8 +87,7 @@ function CourseCard({
   appliedCourses: Set<number>;
   onApplyNow: (c: any) => void;
   onViewDetail: (c: any) => void;
-  onBrochureClick: (c: any) => void;
-  onFeeStructureClick: (c: any) => void;
+  onCompareUniversity: (c: any) => void;
   onUniversityClick: (u: any) => void;
 }) {
   const accreditations: string[] = Array.isArray(course.accreditations)
@@ -229,7 +227,7 @@ function CourseCard({
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 w-full">
           <button
             onClick={() => onViewDetail(course)}
             className="cursor-pointer bg-white text-gray-800 font-bold py-2.5 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
@@ -248,16 +246,10 @@ function CourseCard({
             {appliedCourses.has(course.id) ? "Applied" : "Apply Now"}
           </button>
           <button
-            onClick={() => onBrochureClick(course)}
+            onClick={() => onCompareUniversity(course)}
             className="cursor-pointer font-bold py-2.5 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
           >
-            Brochure
-          </button>
-          <button
-            onClick={() => onFeeStructureClick(course)}
-            className="cursor-pointer font-bold py-2.5 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
-          >
-            Fee Structure
+            Compare University
           </button>
         </div>
       </div>
@@ -1260,8 +1252,7 @@ export default function CoursesListClient({
                           appliedCourses={appliedCourses}
                           onApplyNow={handleApplyNow}
                           onViewDetail={handleViewDetail}
-                          onBrochureClick={(course) => openPopup(course, 'brochure')}
-                          onFeeStructureClick={(course) => openPopup(course, 'fee')}
+                          onCompareUniversity={handleAddToCompare}
                           onUniversityClick={handleUniversityClick}
                         />
                       ))
