@@ -61,6 +61,7 @@ function resolveCategoryImage(path?: string | null) {
 
 interface QualificationLevelClientProps {
   slug: string
+  initialData?: any
 }
 
 function formatBreadcrumbLevel(slug: string) {
@@ -72,14 +73,16 @@ function formatBreadcrumbLevel(slug: string) {
     .trim()
 }
 
-export default function QualificationLevelClient({ slug }: QualificationLevelClientProps) {
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+export default function QualificationLevelClient({ slug, initialData }: QualificationLevelClientProps) {
+  const [data, setData] = useState<any>(initialData ?? null)
+  const [loading, setLoading] = useState(!initialData)
   const [isExpanded, setIsExpanded] = useState(false)
   const [showAllCategories, setShowAllCategories] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   
   useEffect(() => {
+    if (initialData) return
+
     const fetchData = async () => {
       try {
         const res = await fetch(`/api/courses/level/${slug}`, { cache: 'no-store' })
@@ -93,7 +96,7 @@ export default function QualificationLevelClient({ slug }: QualificationLevelCli
       }
     }
     fetchData()
-  }, [slug])
+  }, [slug, initialData])
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)

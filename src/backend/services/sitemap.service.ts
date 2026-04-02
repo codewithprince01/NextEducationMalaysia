@@ -156,6 +156,23 @@ ${urls
     return this.wrapUrlSet(urls);
   }
 
+  async getScholarships() {
+    const data = await sitemapDataService.getScholarshipsData();
+    const urls = data.map((d) => ({
+      loc: `${this.baseUrl}/${d.endpoint}`,
+      lastmod: d.updated_at,
+      changefreq: 'always',
+      priority: '0.5',
+    }));
+    urls.unshift({
+      loc: `${this.baseUrl}/scholarships`,
+      lastmod: new Date().toISOString().split('T')[0],
+      changefreq: 'always',
+      priority: '0.8',
+    });
+    return this.wrapUrlSet(urls);
+  }
+
   async getCourseLevel() {
     const levels = ['certificate', 'pre-university', 'diploma', 'under-graduate', 'post-graduate', 'phd'];
     const urls = levels.map((l) => ({ loc: `${this.baseUrl}/courses/${l}`, changefreq: 'always', priority: '0.5' }));

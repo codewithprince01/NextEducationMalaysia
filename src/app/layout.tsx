@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: 'Education Malaysia - Study in Malaysia',
   description: 'Find top universities, courses, and scholarships in Malaysia. Your complete guide to studying in Malaysia.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educationmalaysia.in'),
+  alternates: {
+    canonical: './',
+  },
   icons: {
     icon: '/favicon.png?v=4',
     shortcut: '/favicon.png?v=4',

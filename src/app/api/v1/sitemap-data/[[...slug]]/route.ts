@@ -50,6 +50,10 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest, { params
         data = await sitemapDataService.getBlogData();
         parent = [{ endpoint: 'blog', updated_at: new Date().toISOString().split('T')[0] }];
         break;
+      case 'scholarships':
+        data = await sitemapDataService.getScholarshipsData();
+        parent = [{ endpoint: 'scholarships', updated_at: new Date().toISOString().split('T')[0] }];
+        break;
       case 'course-level':
         const levels = ['certificate', 'pre-university', 'diploma', 'under-graduate', 'post-graduate', 'phd'];
         data = levels.map((l) => ({ endpoint: `courses/${l}`, updated_at: new Date().toISOString().split('T')[0] }));

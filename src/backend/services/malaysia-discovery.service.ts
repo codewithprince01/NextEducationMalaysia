@@ -11,6 +11,22 @@ export class MalaysiaDiscoveryService {
 
   private constructor() {}
 
+  private async hasColumn(table: string, column: string): Promise<boolean> {
+    const rows = (await prisma.$queryRawUnsafe(
+      `
+      SELECT COUNT(*) AS c
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+        AND COLUMN_NAME = ?
+      `,
+      table,
+      column
+    )) as any[];
+
+    return Number(rows?.[0]?.c || 0) > 0;
+  }
+
   static getInstance(): MalaysiaDiscoveryService {
     if (!MalaysiaDiscoveryService.instance) {
       MalaysiaDiscoveryService.instance = new MalaysiaDiscoveryService();
@@ -256,24 +272,28 @@ export class MalaysiaDiscoveryService {
       prisma.$queryRawUnsafe('SELECT * FROM months ORDER BY id ASC'),
       (async () => {
         if (curSpcId != null && !Number.isNaN(curSpcId)) {
+          const hasPosition = await this.hasColumn('course_specialization_faqs', 'position');
+          const orderClause = hasPosition ? 'ORDER BY position ASC, id ASC' : 'ORDER BY id ASC';
           return prisma.$queryRawUnsafe(
             `
             SELECT question, answer
             FROM course_specialization_faqs
             WHERE specialization_id = ?
-            ORDER BY position ASC, id ASC
+            ${orderClause}
             `,
             curSpcId
           )
         }
 
         if (curCatId != null && !Number.isNaN(curCatId)) {
+          const hasPosition = await this.hasColumn('course_category_faqs', 'position');
+          const orderClause = hasPosition ? 'ORDER BY position ASC, id ASC' : 'ORDER BY id ASC';
           return prisma.$queryRawUnsafe(
             `
             SELECT question, answer
             FROM course_category_faqs
             WHERE course_category_id = ?
-            ORDER BY position ASC, id ASC
+            ${orderClause}
             `,
             curCatId
           )

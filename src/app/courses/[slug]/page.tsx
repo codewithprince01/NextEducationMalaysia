@@ -1,5 +1,7 @@
 import QualificationLevelClient from '../../course/[slug]/QualificationLevelClient'
 import { resolveStaticMetaAny } from '@/lib/seo/metadata'
+import { getCourseLevelPageData } from '@/backend/services/course-level.service'
+import { notFound } from 'next/navigation'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -25,5 +27,8 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function CourseLevelListingPage({ params }: Props) {
   const { slug } = await params
-  return <QualificationLevelClient slug={slug} />
+  const initialData = await getCourseLevelPageData(slug)
+  if (!initialData) notFound()
+
+  return <QualificationLevelClient slug={slug} initialData={initialData} />
 }

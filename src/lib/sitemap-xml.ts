@@ -13,6 +13,7 @@ export type SitemapSlug =
   | 'specialization'
   | 'course'
   | 'blog'
+  | 'scholarships'
   | 'course-level'
   | 'courses-in-malaysia'
 
@@ -50,6 +51,9 @@ export async function renderSitemapXml(slug: SitemapSlug): Promise<NextResponse>
       break
     case 'blog':
       xml = await sitemapService.getBlog()
+      break
+    case 'scholarships':
+      xml = await sitemapService.getScholarships()
       break
     case 'course-level':
       xml = await sitemapService.getCourseLevel()

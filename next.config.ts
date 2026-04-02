@@ -89,14 +89,82 @@ const nextConfig: NextConfig = {
   // Permanent redirects — preserve legacy URLs
   async redirects() {
     return [
+      // Common legacy typos / renamed listing URLs
       {
-        source: "/blogs",
-        destination: "/blog",
+        source: "/universitie",
+        destination: "/universities",
         permanent: true,
       },
       {
+        source: "/universitys",
+        destination: "/universities",
+        permanent: true,
+      },
+      {
+        source: "/specialisation",
+        destination: "/specialization",
+        permanent: true,
+      },
+      {
+        source: "/specialisations",
+        destination: "/specialization",
+        permanent: true,
+      },
+      {
+        source: "/view-our-partner",
+        destination: "/view-our-partners",
+        permanent: true,
+      },
+      {
+        source: "/what-people-says",
+        destination: "/what-people-say",
+        permanent: true,
+      },
+      {
+        source: "/terms",
+        destination: "/terms-and-conditions",
+        permanent: true,
+      },
+      {
+        source: "/privacy",
+        destination: "/privacy-policy",
+        permanent: true,
+      },
+
+      // FAQ path normalization
+      {
+        source: "/faqs/:slug",
+        destination: "/faq/:slug",
+        permanent: true,
+      },
+
+      // Universities page aliases seen in older links
+      {
+        source: "/universities/universities-in-malaysia",
+        destination: "/universities/international-school-in-malaysia",
+        permanent: true,
+      },
+      {
+        source: "/universities-in-malaysia",
+        destination: "/universities/international-school-in-malaysia",
+        permanent: true,
+      },
+
+      // Legacy course listing aliases
+      {
         source: "/courses-in-malaysias",
         destination: "/courses-in-malaysia",
+        permanent: true,
+      },
+      {
+        source: "/coursese",
+        destination: "/courses",
+        permanent: true,
+      },
+
+      {
+        source: "/blogs",
+        destination: "/blog",
         permanent: true,
       },
       {

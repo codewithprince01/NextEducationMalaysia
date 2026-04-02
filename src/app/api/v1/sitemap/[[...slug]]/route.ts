@@ -42,6 +42,9 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest, { params
       case 'blog':
         xml = await sitemapService.getBlog();
         break;
+      case 'scholarships':
+        xml = await sitemapService.getScholarships();
+        break;
       case 'course-level':
         xml = await sitemapService.getCourseLevel();
         break;

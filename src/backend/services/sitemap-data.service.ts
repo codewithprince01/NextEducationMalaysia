@@ -37,6 +37,7 @@ export class SitemapDataService {
     return [
       { endpoint: 'sitemap-home.xml', updated_at: this.formatDate(null) },
       { endpoint: 'sitemap-exams.xml', updated_at: this.formatDate(null) },
+      { endpoint: 'sitemap-scholarships.xml', updated_at: this.formatDate(null) },
       { endpoint: 'sitemap-services.xml', updated_at: this.formatDate(null) },
       { endpoint: 'sitemap-universities.xml', updated_at: this.formatDate(null) },
       { endpoint: 'sitemap-university.xml', updated_at: this.formatDate(null) },
@@ -64,7 +65,7 @@ export class SitemapDataService {
   async getExamsData() {
     try {
       const exams = await prisma.$queryRawUnsafe(
-        'SELECT uri, updated_at FROM exams WHERE status = 1 AND website = ?',
+        'SELECT uri, updated_at FROM exams WHERE status = 1 AND website = ? AND uri IS NOT NULL AND uri <> ""',
         SITE_VAR
       ) as any[];
       return exams.map((e) => ({
@@ -80,7 +81,7 @@ export class SitemapDataService {
   async getServicesData() {
     try {
       const services = await prisma.$queryRawUnsafe(
-        'SELECT uri, updated_at FROM site_pages WHERE status = 1 AND website = ?',
+        'SELECT uri, updated_at FROM site_pages WHERE status = 1 AND website = ? AND uri IS NOT NULL AND uri <> ""',
         SITE_VAR
       ) as any[];
       return services.map((s) => ({
@@ -96,7 +97,12 @@ export class SitemapDataService {
   async getUniversityData() {
     try {
       const universities = await prisma.university.findMany({
-        where: { status: 1, website: SITE_VAR as any },
+        where: {
+          status: 1,
+          website: SITE_VAR as any,
+          uname: { not: null as any },
+          NOT: [{ uname: '' as any }],
+        },
         select: { uname: true, updated_at: true, id: true }
       });
 
@@ -135,6 +141,10 @@ export class SitemapDataService {
           AND u.status = 1
           AND up.website = ?
           AND u.website = ?
+          AND up.slug IS NOT NULL
+          AND up.slug <> ''
+          AND u.uname IS NOT NULL
+          AND u.uname <> ''
       `, SITE_VAR, SITE_VAR) as any[];
 
       return programs.map((p) => ({
@@ -228,7 +238,7 @@ export class SitemapDataService {
   async getBlogData() {
     try {
       const categories = await prisma.$queryRawUnsafe(
-        'SELECT id, category_slug, updated_at FROM blog_categories WHERE status = 1 AND website = ?',
+        'SELECT id, category_slug, updated_at FROM blog_categories WHERE status = 1 AND website = ? AND category_slug IS NOT NULL AND category_slug <> ""',
         SITE_VAR
       ) as any[];
       const rows: any[] = [];
@@ -237,7 +247,7 @@ export class SitemapDataService {
         rows.push({ endpoint: `blog/${cat.category_slug}`, updated_at: this.formatDate(cat.updated_at) });
         
         const blogs = await prisma.$queryRawUnsafe(
-          'SELECT slug, id, updated_at FROM blogs WHERE category_id = ? AND status = 1 AND website = ?',
+          'SELECT slug, id, updated_at FROM blogs WHERE category_id = ? AND status = 1 AND website = ? AND slug IS NOT NULL AND slug <> ""',
           cat.id,
           SITE_VAR
         ) as any[];
@@ -251,6 +261,28 @@ export class SitemapDataService {
       return rows;
     } catch (error) {
       console.error('Error fetching sitemap blogs:', error);
+      return [];
+    }
+  }
+
+  async getScholarshipsData() {
+    try {
+      const scholarships = await prisma.$queryRawUnsafe(
+        `SELECT slug, updated_at
+         FROM scholarships
+         WHERE status = 1
+           AND website = ?
+           AND slug IS NOT NULL
+           AND slug <> ''`,
+        SITE_VAR
+      ) as any[];
+
+      return scholarships.map((s) => ({
+        endpoint: `scholarships/${s.slug}`,
+        updated_at: this.formatDate(s.updated_at),
+      }));
+    } catch (error) {
+      console.error('Error fetching sitemap scholarships:', error);
       return [];
     }
   }
