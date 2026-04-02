@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { preload } from 'react-dom'
 import { getHeroBanners } from '@/lib/queries/home'
+import { IMAGE_DELIVERY_BASE_URL } from '@/lib/constants'
 import HeroSwiper from './HeroSwiper'
 
 type Banner = {
@@ -21,10 +23,9 @@ const DEFAULT_BANNER: Banner = {
 }
 
 function src(bannerPath: string) {
-  const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
   return bannerPath.startsWith('/') || bannerPath.startsWith('http')
     ? bannerPath
-    : `${IMAGE_BASE}/storage/${bannerPath}`
+    : `${IMAGE_DELIVERY_BASE_URL}/storage/${bannerPath}`
 }
 
 export default async function Hero() {
@@ -35,13 +36,15 @@ export default async function Hero() {
     alt_text: b.alt_text || DEFAULT_BANNER.alt_text,
   }))
   const firstBanner = banners[0] || DEFAULT_BANNER
+  const firstBannerSrc = src(firstBanner.banner_path)
+  preload(firstBannerSrc, { as: 'image', fetchPriority: 'high' })
 
   return (
     <section className="relative w-full overflow-hidden" style={{ height: '100dvh', minHeight: 480 }}>
       {/* First banner image for LCP optimization */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={src(firstBanner.banner_path)}
+          src={firstBannerSrc}
           alt={firstBanner.alt_text || 'Hero banner'}
           fill
           className="object-cover"

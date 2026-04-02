@@ -159,51 +159,57 @@ export class SitemapDataService {
 
   async getSpecializationData() {
     try {
-      const specializations = await prisma.$queryRawUnsafe(`
-        SELECT DISTINCT cs.id, cs.slug, cs.updated_at
+      const specializationRows = await prisma.$queryRawUnsafe(`
+        SELECT
+          cs.id,
+          cs.slug,
+          cs.updated_at,
+          sl.url_slug AS level_url_slug,
+          sl.level_slug AS level_level_slug,
+          sl.updated_at AS level_updated_at
         FROM course_specializations cs
+        LEFT JOIN specialization_levels sl
+          ON sl.specialization_id = cs.id
         WHERE cs.slug IS NOT NULL
           AND cs.slug <> ''
           AND cs.website = ?
-          AND EXISTS (
-            SELECT 1
-            FROM specialization_contents sc
-            WHERE sc.specialization_id = cs.id
+          AND (
+            sl.id IS NOT NULL
+            OR EXISTS (
+              SELECT 1
+              FROM specialization_contents sc
+              WHERE sc.specialization_id = cs.id
+            )
           )
+        ORDER BY cs.id ASC
       `, SITE_VAR) as any[];
 
-      const rows: any[] = [];
+      const rowsMap = new Map<string, string>();
 
-      for (const spec of specializations) {
-        const baseUpdated = this.formatDate(spec.updated_at);
-        rows.push({
-          endpoint: `specialization/${spec.slug}`,
-          updated_at: baseUpdated,
-        });
+      for (const row of specializationRows) {
+        const specSlug = String(row.slug || '').trim();
+        if (!specSlug) continue;
 
-        const levels = await prisma.$queryRawUnsafe(`
-          SELECT url_slug, level_slug, updated_at
-          FROM specialization_levels
-          WHERE specialization_id = ?
-        `, Number(spec.id)) as any[];
+        const baseEndpoint = `specialization/${specSlug}`;
+        if (!rowsMap.has(baseEndpoint)) {
+          rowsMap.set(baseEndpoint, this.formatDate(row.updated_at));
+        }
 
-        for (const level of levels) {
-          const slugFromUrl = String(level.url_slug || '').trim();
-          const slugFromLevel = String(level.level_slug || '').trim();
-          const fallbackSlug = slugFromLevel
-            ? `${this.toSeoSlug(slugFromLevel)}-in-${this.toSeoSlug(spec.slug)}`
-            : '';
-          const levelSlug = slugFromUrl || fallbackSlug;
-          if (!levelSlug) continue;
+        const slugFromUrl = String(row.level_url_slug || '').trim();
+        const slugFromLevel = String(row.level_level_slug || '').trim();
+        const fallbackSlug = slugFromLevel
+          ? `${this.toSeoSlug(slugFromLevel)}-in-${this.toSeoSlug(specSlug)}`
+          : '';
+        const levelSlug = slugFromUrl || fallbackSlug;
+        if (!levelSlug) continue;
 
-          rows.push({
-            endpoint: `specialization/${spec.slug}/${levelSlug}`,
-            updated_at: this.formatDate(level.updated_at || spec.updated_at),
-          });
+        const levelEndpoint = `specialization/${specSlug}/${levelSlug}`;
+        if (!rowsMap.has(levelEndpoint)) {
+          rowsMap.set(levelEndpoint, this.formatDate(row.level_updated_at || row.updated_at));
         }
       }
 
-      return rows;
+      return Array.from(rowsMap.entries()).map(([endpoint, updated_at]) => ({ endpoint, updated_at }));
     } catch (error) {
       console.error('Error fetching sitemap specializations:', error);
       return [];

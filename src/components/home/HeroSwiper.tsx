@@ -9,8 +9,7 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 import 'swiper/css/effect-fade'
 import type { Swiper as SwiperType } from 'swiper'
-
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
+import { IMAGE_DELIVERY_BASE_URL } from '@/lib/constants'
 
 type Banner = {
   id?: number
@@ -37,7 +36,7 @@ export default function HeroSwiper({ banners }: Props) {
   }, [])
 
   const src = (path: string) =>
-    path.startsWith('/') || path.startsWith('http') ? path : `${IMAGE_BASE}/storage/${path}`
+    path.startsWith('/') || path.startsWith('http') ? path : `${IMAGE_DELIVERY_BASE_URL}/storage/${path}`
 
   return (
     <>

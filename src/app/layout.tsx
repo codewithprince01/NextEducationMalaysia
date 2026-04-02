@@ -42,6 +42,7 @@ export default async function RootLayout({
 }>) {
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-WP578P4K'
   const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID || 'p52lrj1wuu'
+  const imageOrigin = process.env.NEXT_PUBLIC_IMAGE_CDN_URL || process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -49,8 +50,8 @@ export default async function RootLayout({
         <link rel="icon" href="/favicon.png?v=4" type="image/png" />
         <link rel="shortcut icon" href="/favicon.png?v=4" type="image/png" />
         <link rel="apple-touch-icon" href="/favicon.png?v=4" />
-        <link rel="preconnect" href="https://admin.educationmalaysia.in" />
-        <link rel="dns-prefetch" href="https://admin.educationmalaysia.in" />
+        <link rel="preconnect" href={imageOrigin} />
+        <link rel="dns-prefetch" href={imageOrigin} />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
@@ -66,15 +67,14 @@ export default async function RootLayout({
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
-        <Script id="deferred-third-party-loader" strategy="afterInteractive">{`
+        <Script id="deferred-third-party-loader" strategy="lazyOnload">{`
           (function() {
             var thirdPartyLoaded = false;
             function loadThirdParty() {
               if (thirdPartyLoaded) return;
               thirdPartyLoaded = true;
               window.removeEventListener('scroll', loadThirdParty);
-              window.removeEventListener('mousedown', loadThirdParty);
-              window.removeEventListener('mousemove', loadThirdParty);
+              window.removeEventListener('pointerdown', loadThirdParty);
               window.removeEventListener('touchstart', loadThirdParty);
               window.removeEventListener('keydown', loadThirdParty);
 
@@ -97,11 +97,14 @@ export default async function RootLayout({
             }
 
             window.addEventListener('scroll', loadThirdParty, {passive:true, once:true});
-            window.addEventListener('mousedown', loadThirdParty, {passive:true, once:true});
-            window.addEventListener('mousemove', loadThirdParty, {passive:true, once:true});
+            window.addEventListener('pointerdown', loadThirdParty, {passive:true, once:true});
             window.addEventListener('touchstart', loadThirdParty, {passive:true, once:true});
             window.addEventListener('keydown', loadThirdParty, {passive:true, once:true});
-            setTimeout(loadThirdParty, 10000);
+            if ('requestIdleCallback' in window) {
+              window.requestIdleCallback(loadThirdParty, { timeout: 12000 });
+            } else {
+              setTimeout(loadThirdParty, 10000);
+            }
           })();
         `}</Script>
         <AuthProvider>

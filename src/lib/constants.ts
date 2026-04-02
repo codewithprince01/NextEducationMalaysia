@@ -6,6 +6,11 @@
 
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educationmalaysia.in'
 export const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
+/**
+ * CDN/image delivery base. If CDN is configured, prefer it; otherwise fall back to admin image host.
+ * Keeps existing behavior unchanged unless NEXT_PUBLIC_IMAGE_CDN_URL is provided.
+ */
+export const IMAGE_DELIVERY_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_CDN_URL || IMAGE_BASE_URL
 /** @deprecated use IMAGE_BASE_URL Instead */
 export const NEXT_PUBLIC_IMAGE_BASE_URL = IMAGE_BASE_URL
 export const ADMIN_URL = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.educationmalaysia.in'
@@ -14,7 +19,7 @@ export const SITE_VAR = process.env.SITE_VAR || 'MYS'
 /** Storage URL for images served from Laravel admin */
 export function storageUrl(path: string | null | undefined): string | null {
   if (!path) return null
-  return `${IMAGE_BASE_URL}/storage/${path.replace(/^\//, '')}`
+  return `${IMAGE_DELIVERY_BASE_URL}/storage/${path.replace(/^\//, '')}`
 }
 
 /** Full site URL for a given path */

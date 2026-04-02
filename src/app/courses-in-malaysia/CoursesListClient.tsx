@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, useTransition } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import Breadcrumb from '@/components/Breadcrumb'
 import {
   Filter, ChevronDown, ChevronUp, X, Search, ArrowUpDown,
@@ -9,12 +10,13 @@ import {
   ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import AuthModal from '@/components/modals/AuthModal'
-import PopupForm from '@/components/modals/PopupForm'
-import CourseCompareBar from './CourseCompareBar'
-import CourseComparisonModal from './CourseComparisonModal'
 import Pagination from '@/components/common/Pagination'
 import { toast } from 'react-toastify'
+
+const AuthModal = dynamic(() => import('@/components/modals/AuthModal'))
+const PopupForm = dynamic(() => import('@/components/modals/PopupForm'))
+const CourseCompareBar = dynamic(() => import('./CourseCompareBar'))
+const CourseComparisonModal = dynamic(() => import('./CourseComparisonModal'))
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
@@ -519,6 +521,8 @@ export default function CoursesListClient({
   const [isPopupFormOpen, setIsPopupFormOpen] = useState(false)
   const [popupFormType, setPopupFormType] = useState<'brochure' | 'fee' | 'apply' | 'counselling'>('brochure')
   const [popupUniversityData, setPopupUniversityData] = useState<any>(null)
+  const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [, startTransition] = useTransition()
   const router = useRouter()
   
   const current_filters = useMemo(() => ({
@@ -635,6 +639,20 @@ export default function CoursesListClient({
     return queryString ? `${basePath}?${queryString}` : basePath
   }, [])
 
+  const pushRouteSafely = useCallback((targetPath: string) => {
+    startTransition(() => {
+      router.push(targetPath)
+    })
+  }, [router, startTransition])
+
+  const scheduleRouteUpdate = useCallback((targetPath: string, delay = 90) => {
+    if (navigationTimerRef.current) clearTimeout(navigationTimerRef.current)
+    navigationTimerRef.current = setTimeout(() => {
+      pushRouteSafely(targetPath)
+      navigationTimerRef.current = null
+    }, delay)
+  }, [pushRouteSafely])
+
   // ── Fetch filters ────────────────────────────────────────────────────────
   useEffect(() => {
     if (initialFilterData) return
@@ -713,8 +731,8 @@ export default function CoursesListClient({
     }
     setSelectedFilters(nextFilters)
     setCurrentPage(1)
-    router.push(buildRouteFromFilters(1, nextFilters, search))
-  }, [filterData, selectedFilters, router, buildRouteFromFilters, search])
+    scheduleRouteUpdate(buildRouteFromFilters(1, nextFilters, search))
+  }, [filterData, selectedFilters, buildRouteFromFilters, search, scheduleRouteUpdate])
 
   // Apply sorting like OLD project
   const applySorting = useCallback((coursesList: any[], sortType: string) => {
@@ -736,9 +754,7 @@ export default function CoursesListClient({
   useEffect(() => {
     if (courses.length > 0) {
       const sortedCourses = applySorting(courses, sortBy)
-      if (JSON.stringify(sortedCourses) !== JSON.stringify(courses)) {
-        setCourses(sortedCourses)
-      }
+      setCourses(sortedCourses)
     }
   }, [sortBy, applySorting])
 
@@ -803,21 +819,21 @@ export default function CoursesListClient({
     if (searchInput.trim() === '') {
       setCurrentPage(1)
       setSearch('')
-      router.push(buildRouteFromFilters(1, selectedFilters, ''))
+      scheduleRouteUpdate(buildRouteFromFilters(1, selectedFilters, ''), 0)
       return
     }
     const timer = setTimeout(() => {
       setCurrentPage(1)
       setSearch(searchInput)
-      router.push(buildRouteFromFilters(1, selectedFilters, searchInput))
+      scheduleRouteUpdate(buildRouteFromFilters(1, selectedFilters, searchInput), 0)
     }, 350)
     return () => clearTimeout(timer)
-  }, [searchInput, search, selectedFilters, router, buildRouteFromFilters])
+  }, [searchInput, search, selectedFilters, buildRouteFromFilters, scheduleRouteUpdate])
 
   const handleSearch = () => {
     setCurrentPage(1)
     const fullPath = buildRouteFromFilters(1, selectedFilters, searchInput)
-    router.push(fullPath)
+    scheduleRouteUpdate(fullPath, 0)
     if (searchInput === search) {
       fetchCourses(1, selectedFilters, searchInput, sortBy)
       return
@@ -848,7 +864,7 @@ export default function CoursesListClient({
     }
     
     const fullPath = buildRouteFromFilters(1, nextFilters, search)
-    router.push(fullPath)
+    scheduleRouteUpdate(fullPath)
     setCurrentPage(1)
   }
 
@@ -859,7 +875,7 @@ export default function CoursesListClient({
     setSortBy('rating')
     setCurrentPage(1)
     setLastSelectedFilter(null)
-    router.push('/courses-in-malaysia')
+    scheduleRouteUpdate('/courses-in-malaysia', 0)
   }
 
   const handleAddToCompare = useCallback((course: any) => {
@@ -1052,6 +1068,14 @@ export default function CoursesListClient({
       window.removeEventListener('storage', onStorage)
     }
   }, [syncAppliedCourses])
+
+  useEffect(() => {
+    return () => {
+      if (navigationTimerRef.current) {
+        clearTimeout(navigationTimerRef.current)
+      }
+    }
+  }, [])
 
   return (
     <>
@@ -1272,7 +1296,7 @@ export default function CoursesListClient({
                 onPageChange={(p) => {
                   if (p < 1 || p > lastPage || p === currentPage) return
                   setCurrentPage(p)
-                  router.push(buildRouteFromFilters(p, selectedFilters, search))
+                  scheduleRouteUpdate(buildRouteFromFilters(p, selectedFilters, search), 0)
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
               />

@@ -446,6 +446,9 @@ export default function SignUpClient() {
             <button type="submit" disabled={loading} className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed mt-4">
               {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <>Create Account <FaArrowRight /></>}
             </button>
+            {loading && (
+              <p className="text-xs text-center text-blue-600 font-medium -mt-1">Creating your account...</p>
+            )}
 
             <p className="text-center text-sm text-gray-500">
               Already have an account? <Link href="/login" className="font-bold text-blue-600 hover:text-blue-700 hover:underline ml-1">Sign In</Link>
