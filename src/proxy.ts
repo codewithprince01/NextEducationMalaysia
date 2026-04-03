@@ -9,6 +9,15 @@ import { NextRequest, NextResponse } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
+  // Force canonical host: educationmalaysia.in -> www.educationmalaysia.in
+  // Keeps path/query/hash intact and applies to all non-local environments.
+  const host = request.nextUrl.hostname.toLowerCase();
+  if (host === 'educationmalaysia.in') {
+    const url = request.nextUrl.clone();
+    url.hostname = 'www.educationmalaysia.in';
+    return NextResponse.redirect(url, 308);
+  }
+
   // Legacy Guidelines URL normalization (old project compatibility)
   if (
     pathname.startsWith("/resources/Guidelines") ||

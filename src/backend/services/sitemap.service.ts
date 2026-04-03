@@ -9,7 +9,18 @@ export class SitemapService {
   private baseUrl: string;
 
   private constructor() {
-    this.baseUrl = (process.env.DOMAIN_URL || process.env.NEXT_PUBLIC_SITE_URL || SITE_URL).replace(/\/$/, '');
+    const raw = String(process.env.DOMAIN_URL || process.env.NEXT_PUBLIC_SITE_URL || SITE_URL || '').trim();
+    let normalized = raw.replace(/\/$/, '');
+    try {
+      const url = new URL(normalized);
+      if (url.hostname.toLowerCase() === 'educationmalaysia.in') {
+        url.hostname = 'www.educationmalaysia.in';
+      }
+      normalized = url.origin;
+    } catch {
+      normalized = SITE_URL.replace(/\/$/, '');
+    }
+    this.baseUrl = normalized;
   }
 
   static getInstance(): SitemapService {

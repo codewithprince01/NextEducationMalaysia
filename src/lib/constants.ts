@@ -4,7 +4,22 @@
  * Centralized configuration constants matching the existing Laravel setup.
  */
 
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.educationmalaysia.in'
+function normalizeSiteOrigin(raw?: string | null): string {
+  const fallback = 'https://www.educationmalaysia.in';
+  const input = String(raw || fallback).trim();
+  try {
+    const url = new URL(input);
+    const host = url.hostname.toLowerCase();
+    if (host === 'educationmalaysia.in') {
+      url.hostname = 'www.educationmalaysia.in';
+    }
+    return url.origin;
+  } catch {
+    return fallback;
+  }
+}
+
+export const SITE_URL = normalizeSiteOrigin(process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL)
 export const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 /**
  * CDN/image delivery base. If CDN is configured, prefer it; otherwise fall back to admin image host.
