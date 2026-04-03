@@ -1,9 +1,8 @@
-import Image from 'next/image'
 import Link from 'next/link'
-import { preload } from 'react-dom'
+import { preload, preconnect } from 'react-dom'
 import { getHeroBanners } from '@/lib/queries/home'
 import { IMAGE_DELIVERY_BASE_URL } from '@/lib/constants'
-import HeroSwiper from './HeroSwiper'
+import HeroSwiperLoader from './HeroSwiperLoader'
 
 type Banner = {
   id: number
@@ -37,23 +36,35 @@ export default async function Hero() {
   }))
   const firstBanner = banners[0] || DEFAULT_BANNER
   const firstBannerSrc = src(firstBanner.banner_path)
+
+  // Preload the first hero image — critical for LCP.
+  // preload() from react-dom injects a <link rel="preload"> into the RSC head flush.
   preload(firstBannerSrc, { as: 'image', fetchPriority: 'high' })
+
+  // For remote DB images, also preconnect to admin CDN at RSC render time.
+  // preconnect() is the correct RSC API — injects <link rel="preconnect"> into <head>.
+  const isRemote = firstBannerSrc.startsWith('http')
+  if (isRemote) {
+    preconnect(new URL(firstBannerSrc).origin, { crossOrigin: 'anonymous' })
+  }
 
   return (
     <section className="relative w-full overflow-hidden" style={{ height: '100dvh', minHeight: 480 }}>
-      {/* First banner image for LCP optimization */}
+      {/* First banner image for LCP — native img for zero JS overhead */}
       <div className="absolute inset-0 z-0">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={firstBannerSrc}
           alt={firstBanner.alt_text || 'Hero banner'}
-          fill
-          className="object-cover"
-          priority
           fetchPriority="high"
-          sizes="100vw"
-          quality={60}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/wA=="
+          decoding="async"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
         />
       </div>
 
@@ -92,9 +103,7 @@ export default async function Hero() {
       </div>
 
       {/* Interactive Swiper for additional banners */}
-      {banners.length > 1 && (
-        <HeroSwiper banners={banners} />
-      )}
+      <HeroSwiperLoader banners={banners} />
     </section>
   )
 }

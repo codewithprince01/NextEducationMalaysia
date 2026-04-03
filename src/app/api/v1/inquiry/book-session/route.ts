@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { withMiddleware, apiSuccess, apiError, serializeBigInt, inquiryService } from '@/backend';
+import { buildLeadSource } from '@/backend/utils/lead-source';
 
 export const POST = withMiddleware()(async (req: NextRequest) => {
   try {
@@ -12,7 +13,6 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
     const nationality = String(body.nationality || '').trim().slice(0, 100);
     const highestQualification = String(body.highest_qualification || '').trim().slice(0, 120);
     const interestedCourseCategory = String(body.interested_course_category || '').trim().slice(0, 120);
-    const sourcePath = String(body.sourceUrl || body.source_path || '/').trim().slice(0, 240) || '/';
     const dayslot = String(body.dayslot || '').trim().slice(0, 50);
     const timeslot = String(body.timeslot || body.preferred_time || '').trim().slice(0, 50);
     const timeZone = String(body.time_zone || '').trim().slice(0, 100);
@@ -21,6 +21,14 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
     if (!name || !email || !mobile || !nationality || !highestQualification || !interestedCourseCategory) {
       return apiError('Name, email, mobile, nationality, highest qualification and interested course category are required', 400);
     }
+
+    const sourceMeta = buildLeadSource({
+      formType: body.formType,
+      source: 'Counselling Request',
+      requestfor: 'counselling',
+      sourceUrl: body.sourceUrl,
+      sourcePath: body.source_path,
+    });
 
     const lead = await inquiryService.createLead({
       name,
@@ -31,8 +39,8 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       highest_qualification: highestQualification,
       interested_course_category: interestedCourseCategory,
       interest: interestedCourseCategory,
-      source: String(body.formType || 'Education Malaysia - Book Session').trim(),
-      source_path: sourcePath,
+      source: sourceMeta.source,
+      source_path: sourceMeta.source_path,
       dayslot: dayslot || undefined,
       timeslot: timeslot || undefined,
       time_zone: timeZone || undefined,

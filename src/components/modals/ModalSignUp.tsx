@@ -68,6 +68,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     highest_qualification: "",
     interested_course_category: "",
     nationality: "",
+    source_path: "",
   });
 
   useEffect(() => {
@@ -92,6 +93,9 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     };
     fetchData();
     generateCaptcha();
+    if (typeof window !== "undefined") {
+      setFormData((prev) => ({ ...prev, source_path: window.location.href }));
+    }
   }, []);
 
   const generateCaptcha = () => {

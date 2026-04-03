@@ -72,12 +72,10 @@ export class InquiryService {
     const insertedIdRows = await prisma.$queryRawUnsafe(`SELECT LAST_INSERT_ID() AS id`) as any[];
     const lead = { id: Number(insertedIdRows?.[0]?.id || 0) };
 
-    await this.autoAssign(lead.id);
-
-    const universityRows = universityId
-      ? await prisma.$queryRawUnsafe(`SELECT name FROM universities WHERE id = ? LIMIT 1`, universityId) as any[]
-      : [];
-    const university = universityRows?.[0] || null;
+    // Keep request latency low: assign counselor in background.
+    void this.autoAssign(lead.id).catch((error) => {
+      console.error('[InquiryService] Auto-assign failed:', error);
+    });
 
     const emailPayload: InquiryPayload = {
       name: data.name,
@@ -87,12 +85,15 @@ export class InquiryService {
       source: data.source,
       source_path: data.source_path,
       nationality: data.nationality,
-      university: university?.name || data.university || null,
+      university: data.university || null,
       program: data.interested_program || null,
       interest: data.interest || data.interested_course_category || null
     };
 
-    await this.sendInquiryEmails(emailPayload, data.extra_fields || null);
+    // Keep lead submission fast; dispatch emails in background.
+    void this.sendInquiryEmails(emailPayload, data.extra_fields || null).catch((error) => {
+      console.error('[InquiryService] Lead email dispatch failed:', error);
+    });
 
     return lead;
   }

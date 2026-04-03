@@ -26,10 +26,13 @@ function getTransporter(): nodemailer.Transporter {
     host,
     port,
     secure,
+    pool: true,
+    maxConnections: 5,
+    maxMessages: 100,
     requireTLS: !secure && encryption === 'tls',
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    connectionTimeout: 12000,
+    greetingTimeout: 12000,
+    socketTimeout: 20000,
     auth: {
       user,
       pass,
@@ -40,6 +43,15 @@ function getTransporter(): nodemailer.Transporter {
   });
 
   return _transporter;
+}
+
+function resetTransporter() {
+  try {
+    _transporter?.close();
+  } catch {
+    // ignore close errors
+  }
+  _transporter = null;
 }
 
 export interface MailOptions {
@@ -70,7 +82,6 @@ export interface MailOptions {
  * Throws on failure so callers can catch and return 500.
  */
 export async function sendMail(options: MailOptions): Promise<void> {
-  const transporter = getTransporter();
   const defaultFromName =
     options.fromName ??
     process.env.SMTP_FROM_NAME ??
@@ -109,22 +120,41 @@ export async function sendMail(options: MailOptions): Promise<void> {
   };
 
   try {
-    await transporter.sendMail(payload);
+    await getTransporter().sendMail(payload);
   } catch (error: any) {
     const message = String(error?.message || '').toLowerCase();
+    const code = String(error?.code || '').toUpperCase();
     const looksLikeFromRejection =
       message.includes('sender') ||
       message.includes('from address') ||
       message.includes('not owned by user') ||
       message.includes('mail from');
+    const looksLikeConnectionIssue =
+      code.includes('ETIMEDOUT') ||
+      code.includes('ECONNECTION') ||
+      code.includes('ESOCKET') ||
+      message.includes('timeout') ||
+      message.includes('timed out') ||
+      message.includes('connection');
 
     if (looksLikeFromRejection && smtpAuthEmail && smtpAuthEmail !== effectiveFromEmail) {
-      await transporter.sendMail({
+      await getTransporter().sendMail({
         ...payload,
         from: `"${defaultFromName}" <${smtpAuthEmail}>`,
       });
       return;
     }
-    throw error;
+
+    if (looksLikeConnectionIssue) {
+      // retry once with a fresh transporter (helps after stale SMTP sockets)
+      resetTransporter();
+      await getTransporter().sendMail(payload);
+      return;
+    }
+
+    // Generic one-time retry with a fresh transporter to handle stale pooled state.
+    resetTransporter();
+    await getTransporter().sendMail(payload);
+    return;
   }
 }

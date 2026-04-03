@@ -60,7 +60,7 @@ export default function Footer() {
                 alt="Education Malaysia" 
                 width={256}
                 height={64}
-                priority
+                loading="lazy"
                 className="w-56 sm:w-64 mb-3 brightness-125 drop-shadow-lg"
               />
               <p className="text-gray-600 text-sm max-w-md leading-relaxed">

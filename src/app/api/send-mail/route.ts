@@ -24,8 +24,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await sendLeadEmail(payload);
-    return NextResponse.json({ status: true, message: 'Email sent successfully' }, { status: 200 });
+    void sendLeadEmail(payload).catch((error) => {
+      console.error('[send-mail] Lead email dispatch failed:', error);
+    });
+    return NextResponse.json({ status: true, message: 'Email queued successfully' }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json(
       { status: false, message: error?.message || 'Failed to send email' },

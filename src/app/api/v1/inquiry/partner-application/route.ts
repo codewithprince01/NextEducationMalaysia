@@ -67,7 +67,7 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       website
     )
 
-    await sendLeadEmail({
+    void sendLeadEmail({
       name,
       email,
       phone: `${countryCode ? `+${countryCode} ` : ''}${mobile}`.trim(),
@@ -81,7 +81,9 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
         form_type: 'Partner Application',
         source_path: sourcePath,
       },
-    })
+    }).catch((mailError) => {
+      console.error('Partner application email failed:', mailError);
+    });
 
     return apiSuccess(
       { submitted: true },

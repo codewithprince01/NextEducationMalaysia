@@ -1,22 +1,27 @@
 import { Suspense } from 'react'
-import { SITE_URL } from '@/lib/constants'
+import dynamic from 'next/dynamic'
 import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Hero from '@/components/home/Hero'
-import StudyJourney from '@/components/home/StudyJourney'
-import UniversitySliderClient from '@/components/home/UniversitySliderClient'
-import MalaysiaSection from '@/components/home/MalaysiaSection'
-import Culture from '@/components/home/Culture'
-import MalaysiaInfo from '@/components/home/MalaysiaInfo'
-import ProgrammeSelector from '@/components/home/ProgrammeSelector'
-import FieldStudyClient from '@/components/home/FieldStudyClient'
-import NationalityStatsClient from '@/components/home/NationalityStatsClient'
-import RankingTable from '@/components/home/RankingTable'
-import TestimonialSlider from '@/components/home/TestimonialSlider'
 import type { Testimonial } from '@/components/home/TestimonialSlider'
 import LazySection from '@/components/ui/LazySection'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/structured-data'
 import JsonLd from '@/components/seo/JsonLd'
+
+// ── Below-fold components: dynamic() defers JS download until render ──
+// This is the critical TBT fix — static imports cause ALL component JS to be
+// downloaded + parsed + compiled at page load, even inside LazySection.
+// dynamic() actually code-splits them into separate chunks loaded on demand.
+const StudyJourney = dynamic(() => import('@/components/home/StudyJourney'))
+const UniversitySliderClient = dynamic(() => import('@/components/home/UniversitySliderClient'))
+const MalaysiaSection = dynamic(() => import('@/components/home/MalaysiaSection'))
+const Culture = dynamic(() => import('@/components/home/Culture'))
+const MalaysiaInfo = dynamic(() => import('@/components/home/MalaysiaInfo'))
+const ProgrammeSelector = dynamic(() => import('@/components/home/ProgrammeSelector'))
+const FieldStudyClient = dynamic(() => import('@/components/home/FieldStudyClient'))
+const NationalityStatsClient = dynamic(() => import('@/components/home/NationalityStatsClient'))
+const RankingTable = dynamic(() => import('@/components/home/RankingTable'))
+const TestimonialSlider = dynamic(() => import('@/components/home/TestimonialSlider'))
 
 export const revalidate = 43200 // 12 hours
 
@@ -153,8 +158,10 @@ export default async function Home() {
         <Hero />
       </Suspense>
 
-      {/* 5-step study journey */}
-      <StudyJourney />
+      {/* 5-step study journey — below fold on mobile, lazy mount */}
+      <LazySection>
+        <StudyJourney />
+      </LazySection>
 
       {/* University slider — SSR data → client Swiper */}
       <LazySection>
@@ -212,11 +219,13 @@ export default async function Home() {
       </LazySection>
 
       {/* University rankings table */}
-      <ErrorBoundary>
-        <Suspense fallback={<Skeleton />}>
-          <RankingTable />
-        </Suspense>
-      </ErrorBoundary>
+      <LazySection>
+        <ErrorBoundary>
+          <Suspense fallback={<Skeleton />}>
+            <RankingTable />
+          </Suspense>
+        </ErrorBoundary>
+      </LazySection>
 
       {/* Student testimonials */}
       {testimonials.length > 0 && (

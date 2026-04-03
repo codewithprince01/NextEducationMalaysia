@@ -3,6 +3,7 @@ import {
   withMiddleware, apiSuccess, apiError, serializeBigInt } from '@/backend';
 import { prisma } from '@/lib/db-fresh';
 import { sendLeadEmail } from '@/backend/email/send-lead-email';
+import { buildLeadSource } from '@/backend/utils/lead-source';
 
 export const POST = withMiddleware()(async (req: NextRequest) => {
   try {
@@ -15,7 +16,13 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
     const nationality = String(body.nationality || '').trim().slice(0, 100);
     const highestQualification = String(body.highest_qualification || '').trim().slice(0, 160);
     const interestedCourseCategory = String(body.interested_course_category || '').trim().slice(0, 160);
-    const sourcePath = String(body.source_path || '/').trim().slice(0, 240) || '/';
+    const sourceMeta = buildLeadSource({
+      formType: body.formType || 'Malaysia Calling Popup',
+      source: body.source || 'Malaysia Calling Popup',
+      requestfor: body.requestfor,
+      sourceUrl: body.sourceUrl,
+      sourcePath: body.source_path,
+    });
     const website = process.env.SITE_VAR || 'MYS';
 
     const errors: Record<string, string[]> = {};
@@ -54,7 +61,7 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       INSERT INTO leads
       (name, email, highest_qualification, interested_course_category, nationality, country_code, mobile, source, source_path, otp, otp_expire_at, status, website, created_at, updated_at)
       VALUES
-      (?, ?, ?, ?, ?, ?, ?, 'Education Malaysia - Modal Form', ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0, ?, NOW(), NOW())
+      (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0, ?, NOW(), NOW())
       `,
       name,
       email,
@@ -63,7 +70,8 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       nationality,
       countryCode,
       mobile,
-      sourcePath,
+      sourceMeta.source,
+      sourceMeta.source_path,
       otp,
       website
     );
@@ -94,26 +102,24 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       // Keep success if lead was saved.
     }
 
-    try {
-      await sendLeadEmail({
-        name,
-        email,
-        phone: `+${countryCode} ${mobile}`.trim(),
-        nationality: nationality || null,
-        university: null,
-        message: interestedCourseCategory || null,
-        formType: String(body.formType || 'Malaysia Calling Popup'),
-        sourceUrl: sourcePath,
-        extraFields: {
-          ...body,
-          highest_qualification: highestQualification || null,
-          interested_course_category: interestedCourseCategory || null,
-          country_code: countryCode || null,
-        },
-      });
-    } catch (mailError) {
+    void sendLeadEmail({
+      name,
+      email,
+      phone: `+${countryCode} ${mobile}`.trim(),
+      nationality: nationality || null,
+      university: null,
+      message: interestedCourseCategory || null,
+      formType: sourceMeta.source,
+      sourceUrl: sourceMeta.source_path,
+      extraFields: {
+        ...body,
+        highest_qualification: highestQualification || null,
+        interested_course_category: interestedCourseCategory || null,
+        country_code: countryCode || null,
+      },
+    }).catch((mailError) => {
       console.error('Failed to send modal form emails:', mailError);
-    }
+    });
 
     return apiSuccess(
       { lead: serializeBigInt({ id: insertedId, email }) },

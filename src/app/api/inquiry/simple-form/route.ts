@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { inquiryService } from '@/backend';
+import { buildLeadSource } from '@/backend/utils/lead-source';
 
 async function parseBody(request: NextRequest) {
   const contentType = request.headers.get('content-type') || '';
@@ -34,13 +35,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: false, message: 'Missing required fields' }, { status: 400 });
     }
 
+    const sourceMeta = buildLeadSource({
+      formType: body.formType as string,
+      source: body.source as string,
+      sourceUrl: body.sourceUrl as string,
+      sourcePath: body.source_path as string,
+      requestfor: body.requestfor as string,
+    });
+
     await inquiryService.createLead({
       name,
       email,
       country_code: countryCode,
       mobile,
-      source: String(body.formType || body.source || 'Education Malaysia - General Inquiry').trim(),
-      source_path: String(body.sourceUrl || body.source_path || '/').trim() || '/',
+      source: sourceMeta.source,
+      source_path: sourceMeta.source_path,
       nationality: String(body.nationality || '').trim() || undefined,
       message: String(body.message || '').trim() || undefined,
       extra_fields: body,

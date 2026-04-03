@@ -5,9 +5,6 @@ import { useRef, useState, useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import 'swiper/css'
-import 'swiper/css/pagination'
-import 'swiper/css/effect-fade'
 import type { Swiper as SwiperType } from 'swiper'
 import { IMAGE_DELIVERY_BASE_URL } from '@/lib/constants'
 
@@ -27,6 +24,15 @@ export default function HeroSwiper({ banners }: Props) {
   const showArrows = isDesktop && banners.length > 1
 
   useEffect(() => {
+    // Defer Swiper CSS loading off the critical path
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error – CSS modules lack type declarations; bundler resolves at build time
+    import('swiper/css')
+    // @ts-expect-error
+    import('swiper/css/pagination')
+    // @ts-expect-error
+    import('swiper/css/effect-fade')
+
     const mediaQuery = window.matchMedia("(min-width: 768px)")
     const handleChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
 

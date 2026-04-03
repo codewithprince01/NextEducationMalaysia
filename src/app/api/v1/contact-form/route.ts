@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { 
   withMiddleware, apiSuccess, apiError, inquiryService, serializeBigInt } from '@/backend';
+import { buildLeadSource } from '@/backend/utils/lead-source';
 
 export const POST = withMiddleware()(async (req: NextRequest) => {
   try {
@@ -10,13 +11,21 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       return apiError('Name, email and mobile are required', 400);
     }
 
+    const sourceMeta = buildLeadSource({
+      formType: body.formType,
+      source: body.source || (body.requestfor === 'comparison' ? 'Comparison Request' : 'Contact Form'),
+      requestfor: body.requestfor,
+      sourceUrl: body.sourceUrl,
+      sourcePath: body.source_path,
+    });
+
     const lead = await inquiryService.createLead({
       name: body.name,
       email: body.email,
       country_code: body.country_code || '91',
       mobile: body.mobile,
-      source: body.requestfor === 'comparison' ? 'Comparison Request' : 'Contact Form',
-      source_path: body.source_path || '',
+      source: sourceMeta.source,
+      source_path: sourceMeta.source_path,
       message: body.message
     });
 

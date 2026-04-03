@@ -252,57 +252,76 @@ function userTemplate(data: LeadEmailData): string {
 }
 
 export async function sendLeadEmail(data: LeadEmailData): Promise<void> {
+  const normalizeOptional = (value?: string | null): string | null => {
+    const v = String(value ?? '').trim();
+    return v && v.toLowerCase() !== 'n/a' ? v : null;
+  };
+
   const clean: LeadEmailData = {
     ...data,
     name: printable(data.name),
     email: printable(data.email),
     phone: printable(data.phone),
-    nationality: printable(data.nationality),
-    university: printable(data.university),
-    sourceUrl: printable(data.sourceUrl),
+    nationality: normalizeOptional(data.nationality),
+    university: normalizeOptional(data.university),
+    sourceUrl: normalizeOptional(data.sourceUrl) || '/',
   };
 
   let adminError: unknown = null;
   let userError: unknown = null;
 
-  try {
-    await sendMail({
-      to: ADMIN_TO,
-      cc: ADMIN_CC,
-      bcc: ADMIN_BCC,
-      subject: buildAdminSubject(clean),
-      html: adminTemplate(clean),
-      priority: 'high',
-    });
-  } catch (error) {
+  const adminSubject = buildAdminSubject(clean);
+  const adminHtml = adminTemplate(clean);
+  const adminTask = sendMail({
+    to: ADMIN_TO,
+    cc: ADMIN_CC,
+    bcc: ADMIN_BCC,
+    subject: adminSubject,
+    html: adminHtml,
+    priority: 'high',
+  }).catch(async (error) => {
     adminError = error;
     console.error('[LeadEmail] Admin email failed:', error);
-  }
-
-  if (isLikelyEmail(clean.email) && clean.email !== 'N/A') {
+    // Fallback: deliver to each admin recipient separately so one bad header never blocks all.
     try {
-      await sendMail({
+      await Promise.allSettled([
+        sendMail({ to: ADMIN_TO, subject: adminSubject, html: adminHtml, priority: 'high' }),
+        sendMail({ to: ADMIN_CC, subject: adminSubject, html: adminHtml, priority: 'high' }),
+        sendMail({ to: ADMIN_BCC, subject: adminSubject, html: adminHtml, priority: 'high' }),
+      ]);
+      adminError = null;
+    } catch (fallbackErr) {
+      adminError = fallbackErr;
+      console.error('[LeadEmail] Admin fallback delivery failed:', fallbackErr);
+    }
+  });
+
+  const userExpected = isLikelyEmail(clean.email) && clean.email !== 'N/A';
+  const userTask = userExpected
+    ? sendMail({
         to: String(clean.email).trim(),
         toName: clean.name !== 'N/A' ? clean.name : undefined,
         subject: buildUserSubject(clean),
         html: userTemplate(clean),
         priority: 'high',
-      });
-    } catch (error) {
-      userError = error;
-      console.error('[LeadEmail] User email failed:', error);
-    }
-  }
+      }).catch((error) => {
+        userError = error;
+        console.error('[LeadEmail] User email failed:', error);
+      })
+    : Promise.resolve();
+
+  await Promise.allSettled([adminTask, userTask]);
 
   const adminDelivered = !adminError;
-  const userExpected = isLikelyEmail(clean.email) && clean.email !== 'N/A';
   const userDelivered = userExpected ? !userError : true;
 
   if (!adminDelivered && !userDelivered) {
     const adminMsg = adminError ? String((adminError as any)?.message || adminError) : '';
     const userMsg = userError ? String((userError as any)?.message || userError) : '';
-    throw new Error(
-      `Email dispatch failed${adminMsg ? ` [admin: ${adminMsg}]` : ''}${userMsg ? ` [user: ${userMsg}]` : ''}`
+    // Do not block form submissions if SMTP is temporarily unavailable.
+    // Lead data is already stored in DB by the caller before this function runs.
+    console.error(
+      `[LeadEmail] Email dispatch failed${adminMsg ? ` [admin: ${adminMsg}]` : ''}${userMsg ? ` [user: ${userMsg}]` : ''}`
     );
   }
 }

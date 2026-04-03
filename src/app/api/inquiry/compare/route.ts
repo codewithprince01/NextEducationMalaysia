@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { inquiryService } from '@/backend'
+import { buildLeadSource } from '@/backend/utils/lead-source'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,30 +16,33 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create comparison inquiry record - using raw query for missing model
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prismaAny = prisma as any
-    const inquiry = await prismaAny.inquiry.create({
-      data: {
-        name,
-        email,
-        country_code,
-        mobile,
-        nationality,
-        requestfor: 'comparison',
-        source_path: body.source_path || '',
-        highest_qualification: body.highest_qualification || '',
-        interested_course_category: body.interested_course_category || '',
-        message: `Universities to compare: ${universities.join(', ')}`,
-        status: true,
-        created_at: new Date()
-      }
-    })
+    const sourceMeta = buildLeadSource({
+      formType: body.formType || 'Compare Universities',
+      source: body.source || 'Compare Universities Request',
+      requestfor: 'comparison',
+      sourceUrl: body.sourceUrl,
+      sourcePath: body.source_path,
+    });
+
+    const compared = Array.isArray(universities) ? universities.join(', ') : String(universities || '');
+    const lead = await inquiryService.createLead({
+      name: String(name).trim(),
+      email: String(email).trim(),
+      country_code: String(country_code || '91').replace('+', '').trim() || '91',
+      mobile: String(mobile).trim(),
+      nationality: String(nationality || '').trim() || undefined,
+      source: sourceMeta.source,
+      source_path: sourceMeta.source_path,
+      highest_qualification: String(body.highest_qualification || '').trim() || undefined,
+      interested_course_category: String(body.interested_course_category || '').trim() || undefined,
+      message: compared ? `Universities to compare: ${compared}` : undefined,
+      extra_fields: body,
+    });
 
     return NextResponse.json({
       success: true,
       message: 'Comparison request submitted successfully',
-      data: { id: inquiry.id }
+      data: { id: lead.id }
     })
 
   } catch (error: unknown) {

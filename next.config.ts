@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   // React strict mode
   reactStrictMode: true,
 
+  // No source maps in production — reduces bundle overhead
+  productionBrowserSourceMaps: false,
+
   // Tree-shake barrel imports from heavy icon/utility libraries
   // This prevents loading entire icon packs when only a few icons are used
   experimental: {
@@ -25,6 +28,7 @@ const nextConfig: NextConfig = {
       "react-icons/bi",
       "lucide-react",
       "framer-motion",
+      "swiper",
     ],
   },
 

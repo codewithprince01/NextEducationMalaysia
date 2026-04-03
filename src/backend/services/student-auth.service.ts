@@ -13,6 +13,7 @@ import { issueToken } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { serializeBigInt } from '@/lib/utils';
 import crypto from 'crypto';
+import { buildLeadSource } from '../utils/lead-source';
 
 const SITE_VAR = process.env.SITE_VAR || 'MYS';
 
@@ -60,6 +61,14 @@ export class StudentAuthService {
   }
 
   async register(input: StudentRegisterInput): Promise<ApiResponse> {
+    const signupSourceMeta = buildLeadSource({
+      formType: 'Signup',
+      source: 'Signup',
+      requestfor: 'signup',
+      sourcePath: input.source_path || '/',
+      sourceUrl: input.source_path || '/',
+    });
+
     const existing = await this.findLeadByEmail(input.email);
     if (existing && Number(existing.email_verify || 0) === 1) {
       return { status: false, message: 'Email already registered and verified. Please log in.' };
@@ -75,7 +84,7 @@ export class StudentAuthService {
              highest_qualification = ?, interested_course_category = ?,
              otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), email_verify = 0, email_verified = 0,
              registered = 0, status = 0, lead_type = 'new', lead_status = 'Fresh',
-             source = 'Education Malaysia - Signup', source_path = ?, updated_at = NOW()
+             source = ?, source_path = ?, updated_at = NOW()
          WHERE id = ?`,
         input.name,
         hashedPassword,
@@ -85,7 +94,8 @@ export class StudentAuthService {
         input.highest_qualification || null,
         input.interested_course_category || null,
         otp,
-        input.source_path || null,
+        signupSourceMeta.source,
+        signupSourceMeta.source_path,
         Number(existing.id),
       );
     } else {
@@ -96,7 +106,7 @@ export class StudentAuthService {
           email_verify, email_verified, registered, status, lead_type, lead_status,
           source, source_path, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0, 0, 0, 0, 'new', 'Fresh',
-                 'Education Malaysia - Signup', ?, NOW(), NOW())`,
+                 ?, ?, NOW(), NOW())`,
         input.name,
         input.website || SITE_VAR,
         input.email,
@@ -107,7 +117,8 @@ export class StudentAuthService {
         input.highest_qualification || null,
         input.interested_course_category || null,
         otp,
-        input.source_path || null,
+        signupSourceMeta.source,
+        signupSourceMeta.source_path,
       );
     }
 

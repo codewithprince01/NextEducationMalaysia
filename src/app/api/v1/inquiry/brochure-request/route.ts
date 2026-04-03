@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { withMiddleware, apiSuccess, apiError, serializeBigInt, inquiryService } from '@/backend';
 import { prisma } from '@/lib/db-fresh';
+import { buildLeadSource } from '@/backend/utils/lead-source';
 
 export const POST = withMiddleware()(async (req: NextRequest) => {
   const body = await req.json().catch(() => ({} as any));
@@ -12,7 +13,6 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
     const nationality = String(body.nationality || '').trim().slice(0, 100);
     const highestQualification = String(body.highest_qualification || '').trim().slice(0, 120);
     const interestedCourseCategory = String(body.interested_course_category || '').trim().slice(0, 120);
-    const sourcePath = String(body.sourceUrl || body.source_path || '/').trim().slice(0, 240) || '/';
 
     if (!name || !email || !mobile) {
       return apiError('Name, email and mobile are required', 400);
@@ -49,9 +49,13 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       ? 'fees'
       : 'brochure';
 
-    const source = requestFor === 'fees'
-      ? 'Education Malaysia - Fees Request'
-      : 'Education Malaysia - Brochure Request';
+    const sourceMeta = buildLeadSource({
+      formType: body.formType,
+      source: requestFor === 'fees' ? 'Fee Structure Request' : 'Brochure Request',
+      requestfor: requestFor,
+      sourceUrl: body.sourceUrl,
+      sourcePath: body.source_path,
+    });
 
     const lead = await inquiryService.createLead({
       name,
@@ -64,8 +68,8 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       interest: interestedCourseCategory || undefined,
       university_id: universityId ? String(universityId) : undefined,
       university: universityName || undefined,
-      source: String(body.formType || source).trim(),
-      source_path: sourcePath,
+      source: sourceMeta.source,
+      source_path: sourceMeta.source_path,
       brochure_status: 'requested',
       extra_fields: body,
     });
