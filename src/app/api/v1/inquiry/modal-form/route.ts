@@ -117,8 +117,8 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
         interested_course_category: interestedCourseCategory || null,
         country_code: countryCode || null,
       },
-    }).catch((mailError) => {
-      console.error('Failed to send modal form emails:', mailError);
+    }).catch((error) => {
+      console.error('[Inquiry Modal Form] Lead email dispatch failed:', error);
     });
 
     return apiSuccess(

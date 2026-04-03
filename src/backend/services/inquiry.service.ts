@@ -90,7 +90,7 @@ export class InquiryService {
       interest: data.interest || data.interested_course_category || null
     };
 
-    // Keep lead submission fast; dispatch emails in background.
+    // Dispatch email in background so form submissions stay fast and non-blocking.
     void this.sendInquiryEmails(emailPayload, data.extra_fields || null).catch((error) => {
       console.error('[InquiryService] Lead email dispatch failed:', error);
     });

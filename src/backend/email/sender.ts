@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport';
 
 // ============================================================
 // EMAIL SENDER
@@ -8,9 +9,7 @@ import nodemailer from 'nodemailer';
 
 let _transporter: nodemailer.Transporter | null = null;
 
-function getTransporter(): nodemailer.Transporter {
-  if (_transporter) return _transporter;
-
+function buildTransporter(config?: { port?: number; secure?: boolean; requireTLS?: boolean }): nodemailer.Transporter {
   const host = process.env.SMTP_HOST || process.env.MAIL_HOST || 'smtp.gmail.com';
   const port = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587);
   const user = process.env.SMTP_USER || process.env.MAIL_USERNAME;
@@ -22,17 +21,14 @@ function getTransporter(): nodemailer.Transporter {
       ? explicitSecure === 'true' || explicitSecure === '1'
       : port === 465 || encryption === 'ssl' || encryption === 'smtps';
 
-  _transporter = nodemailer.createTransport({
+  const transportOptions: SMTPTransport.Options = {
     host,
-    port,
-    secure,
-    pool: true,
-    maxConnections: 5,
-    maxMessages: 100,
-    requireTLS: !secure && encryption === 'tls',
-    connectionTimeout: 12000,
-    greetingTimeout: 12000,
-    socketTimeout: 20000,
+    port: config?.port ?? port,
+    secure: config?.secure ?? secure,
+    requireTLS: config?.requireTLS ?? (!secure && encryption === 'tls'),
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 12000,
     auth: {
       user,
       pass,
@@ -40,8 +36,15 @@ function getTransporter(): nodemailer.Transporter {
     tls: {
       rejectUnauthorized: false,
     },
-  });
+  };
 
+  return nodemailer.createTransport(transportOptions);
+
+}
+
+function getTransporter(): nodemailer.Transporter {
+  if (_transporter) return _transporter;
+  _transporter = buildTransporter();
   return _transporter;
 }
 
@@ -119,8 +122,12 @@ export async function sendMail(options: MailOptions): Promise<void> {
     priority: options.priority ?? 'high',
   };
 
+  const sendWithTransport = async (transporter: nodemailer.Transporter) => {
+    await transporter.sendMail(payload);
+  };
+
   try {
-    await getTransporter().sendMail(payload);
+    await sendWithTransport(getTransporter());
   } catch (error: any) {
     const message = String(error?.message || '').toLowerCase();
     const code = String(error?.code || '').toUpperCase();
@@ -146,15 +153,33 @@ export async function sendMail(options: MailOptions): Promise<void> {
     }
 
     if (looksLikeConnectionIssue) {
-      // retry once with a fresh transporter (helps after stale SMTP sockets)
+      // retry with a fresh transporter
       resetTransporter();
-      await getTransporter().sendMail(payload);
-      return;
+      try {
+        await sendWithTransport(getTransporter());
+        return;
+      } catch {
+        // fallback across common SMTP modes (SSL 465 <-> STARTTLS 587)
+        const fallbackPort = Number(process.env.SMTP_PORT || process.env.MAIL_PORT || 587) === 465 ? 587 : 465;
+        const fallbackSecure = fallbackPort === 465;
+        const fallbackTransporter = buildTransporter({
+          port: fallbackPort,
+          secure: fallbackSecure,
+          requireTLS: !fallbackSecure,
+        });
+        await sendWithTransport(fallbackTransporter);
+        try {
+          fallbackTransporter.close();
+        } catch {
+          // noop
+        }
+        return;
+      }
     }
 
     // Generic one-time retry with a fresh transporter to handle stale pooled state.
     resetTransporter();
-    await getTransporter().sendMail(payload);
+    await sendWithTransport(getTransporter());
     return;
   }
 }

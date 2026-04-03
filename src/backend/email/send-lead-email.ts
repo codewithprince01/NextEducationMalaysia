@@ -38,8 +38,7 @@ function isLikelyEmail(value?: string | null): boolean {
 
 function inferRequestLabel(formType?: string | null): string {
   const t = String(formType || '').toLowerCase();
-  if (t.includes('fee')) return 'Fees';
-  if (t.includes('brochure')) return 'Brochure';
+  if (t.includes('fee') || t.includes('brochure')) return 'Brochure/Fees';
   if (t.includes('counselling') || t.includes('book session')) return 'Counselling Session';
   if (t.includes('modal') || t.includes('popup') || t.includes('malaysia calling')) return 'Malaysia Calling';
   if (t.includes('contact')) return 'Contact';
@@ -71,6 +70,7 @@ function buildUserSubject(data: LeadEmailData): string {
 }
 
 function adminTemplate(data: LeadEmailData): string {
+  const headline = buildAdminSubject(data);
   const excludedKeys = new Set(['university_id', 'requestfor']);
   const labelMap: Record<string, string> = {
     name: 'Name',
@@ -176,7 +176,7 @@ function adminTemplate(data: LeadEmailData): string {
             <tr>
               <td style="padding:30px 34px 24px 34px;font-size:16px;line-height:1.6;color:#333333;">
                 <p style="margin:0 0 22px 0;">Hi Team,</p>
-                <p style="margin:0 0 26px 0;"><strong>New Inquiry from Education Malaysia</strong></p>
+                <p style="margin:0 0 26px 0;"><strong>${escapeHtml(headline)}</strong></p>
                 <ul style="margin:0 0 30px 22px;padding:0;">
                   ${rowsHtml}
                 </ul>
