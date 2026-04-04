@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
   // React strict mode
   reactStrictMode: true,
 
+  // Windows fallback for environments where Next.js type-check workers cannot spawn (EPERM).
+  // Enable only when needed: set SKIP_TYPECHECK=1 during build.
+  typescript: {
+    ignoreBuildErrors: process.env.SKIP_TYPECHECK === "1",
+  },
+
   // No source maps in production — reduces bundle overhead
   productionBrowserSourceMaps: false,
 

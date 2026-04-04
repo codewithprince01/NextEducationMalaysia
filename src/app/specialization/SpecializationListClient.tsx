@@ -27,6 +27,12 @@ import Breadcrumb from '@/components/Breadcrumb'
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
+export type SpecializationListInitialData = {
+  categories: any[]
+  specializations: any[]
+  pageContent: any
+}
+
 // ── Cache ────────────────────────────────────────────────────────────────────
 const CACHE_TTL = 10 * 60 * 1000
 const CACHE_VERSION = 'v3'
@@ -156,129 +162,237 @@ const CategorySidebar = ({
   setIsExpanded,
   totalCount,
   categoryCounts
-}: any) => (
-  <div className="w-full lg:w-72 xl:w-80 shrink-0 lg:self-start lg:sticky lg:top-24">
-    <div className="bg-white rounded-xl shadow-md lg:shadow-lg p-3 sm:p-4 lg:p-5 max-h-[80vh] overflow-hidden flex flex-col transition-all duration-300">
-      <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
-        Categories
-      </h3>
+}: any) => {
+  const selectedCategoryData = categories.find((c: any) => c.slug === selectedCategory)
+  const barLabel = selectedCategory === 'all' ? 'All Specializations' : selectedCategoryData?.name || 'All Specializations'
+  const activeCount = selectedCategory === 'all' ? totalCount : categoryCounts[selectedCategoryData?.id] || 0
+  const BarIcon = selectedCategory === 'all' ? BookOpen : getCategoryIcon(selectedCategoryData?.name || '')
 
-      <div
-        className="w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg sm:rounded-xl transition-all duration-200 cursor-pointer bg-blue-50 border-2 border-blue-200 mb-2 shrink-0"
-        onClick={() => {
-          onSelect('all')
-          setIsExpanded(!isExpanded)
-        }}
-      >
-        <div className="flex items-center justify-between flex-1">
-          <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-            <BookOpen
-              size={18}
-              className="text-blue-600 shrink-0 sm:w-5 sm:h-5"
-            />
-            <span className="font-medium text-xs sm:text-sm leading-tight text-blue-600 truncate">
-              All Specializations
-            </span>
-          </div>
+  return (
+    <div className="w-full lg:w-72 xl:w-80 shrink-0 lg:self-start sticky top-[56px] z-50 lg:top-16 bg-[#f0f5fe] lg:bg-transparent pt-2 pb-2 lg:pt-0 lg:pb-0">
+      <div className="bg-white rounded-xl shadow-md lg:shadow-lg p-3 sm:p-4 lg:p-5 max-h-[80vh] overflow-hidden flex flex-col transition-all duration-300">
+        <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
+          Categories
+        </h3>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full shrink-0 bg-blue-600 text-white">
-              {totalCount}
-            </span>
-            <div className="lg:hidden">
-              {isExpanded ? (
-                <ChevronUp size={16} className="text-blue-600" />
-              ) : (
-                <ChevronDown size={16} className="text-blue-600" />
-              )}
+        <div
+          className="w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg sm:rounded-xl transition-all duration-200 cursor-pointer bg-blue-50 border-2 border-blue-200 mb-2 shrink-0 overflow-hidden"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <div className="flex items-center w-full min-w-0 gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <BarIcon
+                size={18}
+                className="text-blue-600 shrink-0 sm:w-5 sm:h-5"
+              />
+              <span className="font-medium text-xs sm:text-sm leading-tight text-blue-600 truncate">
+                {barLabel}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto">
+              <span className="text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-blue-600 text-white whitespace-nowrap">
+                {activeCount}
+              </span>
+              <div className="lg:hidden shrink-0">
+                {isExpanded ? (
+                  <ChevronUp size={16} className="text-blue-600" />
+                ) : (
+                  <ChevronDown size={16} className="text-blue-600" />
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="relative flex-1 overflow-hidden flex flex-col pt-1">
-        <div
-          className={`overflow-y-auto overflow-x-hidden transition-all duration-300 pr-[25px]
-          [&::-webkit-scrollbar]:w-[6px] 
-          [&::-webkit-scrollbar-track]:bg-[#f1f5f9] 
-          [&::-webkit-scrollbar-track]:rounded-full
-          [&::-webkit-scrollbar-thumb]:bg-[#1d4ed8] 
-          [&::-webkit-scrollbar-thumb]:rounded-full
-          lg:block! lg:max-h-[60vh]! lg:opacity-100! lg:space-y-1
-          ${isExpanded ? "block max-h-[60vh] opacity-100 space-y-1" : "hidden max-h-0 opacity-0"}`}
-        >
-          {categories.map((cat: any) => {
-            const IconComponent = getCategoryIcon(cat.name)
-            const isSelected = selectedCategory === cat.slug
-            const count = categoryCounts[cat.id] || 0
-
-            return (
-              <div
-                key={cat.id}
-                className={`w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-200 cursor-pointer ${
-                  isSelected
-                    ? "bg-blue-50 border-2 border-blue-200"
-                    : "hover:bg-gray-50 border-2 border-transparent"
-                }`}
-                onClick={() => onSelect(cat.slug)}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => onSelect(cat.slug)}
-                  className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer shrink-0"
-                  onClick={(e) => e.stopPropagation()}
-                />
-
-                <div className="flex items-center justify-between flex-1 min-w-0">
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                    <IconComponent
-                      size={16}
-                      className={`shrink-0 sm:w-5 sm:h-5 ${isSelected ? "text-blue-600" : "text-gray-700"}`}
-                    />
-                    <span
-                      className={`font-medium text-xs sm:text-sm leading-tight truncate ${
-                        isSelected ? "text-blue-600" : "text-gray-700"
-                      }`}
-                    >
-                      {cat.name}
-                    </span>
-                  </div>
-
+        <div className="relative flex-1 overflow-hidden flex flex-col pt-1">
+          <div
+            className={`overflow-y-auto overflow-x-hidden transition-[max-height,opacity] duration-200 pr-[25px]
+            [&::-webkit-scrollbar]:w-[6px] 
+            [&::-webkit-scrollbar-track]:bg-[#f1f5f9] 
+            [&::-webkit-scrollbar-track]:rounded-full
+            [&::-webkit-scrollbar-thumb]:bg-[#1d4ed8] 
+            [&::-webkit-scrollbar-thumb]:rounded-full
+            lg:max-h-[60vh]! lg:opacity-100! lg:space-y-1 lg:pointer-events-auto!
+            ${isExpanded ? "max-h-[60vh] opacity-100 space-y-1" : "max-h-0 opacity-0 pointer-events-none space-y-0"}`}
+          >
+            <div
+              className={`w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-200 cursor-pointer ${
+                selectedCategory === 'all'
+                  ? "bg-blue-50 border-2 border-blue-200"
+                  : "hover:bg-gray-50 border-2 border-transparent"
+              }`}
+              onClick={() => onSelect('all')}
+            >
+              <input
+                type="checkbox"
+                checked={selectedCategory === 'all'}
+                onChange={() => onSelect('all')}
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <div className="flex items-center justify-between flex-1 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <BookOpen
+                    size={16}
+                    className={`shrink-0 sm:w-5 sm:h-5 ${selectedCategory === 'all' ? "text-blue-600" : "text-gray-700"}`}
+                  />
                   <span
-                    className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full shrink-0 ml-1 sm:ml-2 min-w-[24px] text-center ${
-                      isSelected
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-200 text-gray-600"
+                    className={`font-medium text-xs sm:text-sm leading-tight truncate ${
+                      selectedCategory === 'all' ? "text-blue-600" : "text-gray-700"
                     }`}
                   >
-                    {count}
+                    All Specializations
                   </span>
                 </div>
+                <span
+                  className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full shrink-0 ml-1 sm:ml-2 min-w-[24px] text-center ${
+                    selectedCategory === 'all'
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {totalCount}
+                </span>
               </div>
-            )
-          })}
+            </div>
+
+            {categories.map((cat: any) => {
+              const IconComponent = getCategoryIcon(cat.name)
+              const isSelected = selectedCategory === cat.slug
+              const count = categoryCounts[cat.id] || 0
+
+              return (
+                <div
+                  key={cat.id}
+                  className={`w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? "bg-blue-50 border-2 border-blue-200"
+                      : "hover:bg-gray-50 border-2 border-transparent"
+                  }`}
+                  onClick={() => onSelect(cat.slug)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => onSelect(cat.slug)}
+                    className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+
+                  <div className="flex items-center justify-between flex-1 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 pr-2">
+                      <IconComponent
+                        size={16}
+                        className={`shrink-0 sm:w-5 sm:h-5 ${isSelected ? "text-blue-600" : "text-gray-700"}`}
+                      />
+                      <span
+                        className={`font-medium text-xs sm:text-sm leading-tight truncate ${
+                          isSelected ? "text-blue-600" : "text-gray-700"
+                        }`}
+                      >
+                        {cat.name}
+                      </span>
+                    </div>
+
+                    <span
+                      className={`text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 rounded-full shrink-0 ml-1 sm:ml-2 min-w-[24px] text-center ${
+                        isSelected
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 // ── Main Page Component ──────────────────────────────────────────────────────
 
-export default function SpecializationListClient() {
-  const [categories, setCategories] = useState<any[]>([])
-  const [specializations, setSpecializations] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+export default function SpecializationListClient({
+  initialData
+}: {
+  initialData?: SpecializationListInitialData | null
+}) {
+  const [categories, setCategories] = useState<any[]>(() => normalizeCategories(initialData?.categories || []))
+  const [specializations, setSpecializations] = useState<any[]>(() => normalizeSpecializations(initialData?.specializations || []))
+  const [loading, setLoading] = useState(() => !(initialData && (initialData.categories?.length || initialData.specializations?.length || initialData.pageContent)))
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [showMore, setShowMore] = useState(false)
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false)
-  const [pageContent, setPageContent] = useState<any>(null)
+  const [pageContent, setPageContent] = useState<any>(() => initialData?.pageContent || null)
   const resultsTopRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const canControlScrollRestoration =
+      typeof window.history !== 'undefined' && 'scrollRestoration' in window.history
+    let previousScrollRestoration: ScrollRestoration | null = null
+
+    if (canControlScrollRestoration) {
+      try {
+        previousScrollRestoration = window.history.scrollRestoration
+        window.history.scrollRestoration = 'manual'
+      } catch {
+        previousScrollRestoration = null
+      }
+    }
+
+    const scrollToTopNow = () => {
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      } catch {
+        window.scrollTo(0, 0)
+      }
+    }
+
+    // Run after paint to override browser/framework restoration on reload.
+    const raf1 = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(scrollToTopNow)
+    })
+
+    const onLoad = () => scrollToTopNow()
+    const onPageShow = () => scrollToTopNow()
+
+    window.addEventListener('load', onLoad, { once: true })
+    window.addEventListener('pageshow', onPageShow)
+
+    return () => {
+      window.cancelAnimationFrame(raf1)
+      window.removeEventListener('pageshow', onPageShow)
+      if (canControlScrollRestoration && previousScrollRestoration) {
+        try {
+          window.history.scrollRestoration = previousScrollRestoration
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }, [])
+
+  useEffect(() => {
     const fetchData = async () => {
+      const hasInitialData = !!(initialData && (initialData.categories?.length || initialData.specializations?.length || initialData.pageContent))
+      if (hasInitialData) {
+        cache.set('all_data', {
+          categories: normalizeCategories(initialData?.categories || []),
+          specializations: normalizeSpecializations(initialData?.specializations || []),
+          pageContent: initialData?.pageContent || null
+        })
+        setLoading(false)
+        return
+      }
+
       const cachedData = cache.get('all_data')
       if (cachedData) {
         setCategories(normalizeCategories(cachedData.categories || []))
@@ -290,7 +404,6 @@ export default function SpecializationListClient() {
 
       try {
         setLoading(true)
-        console.log(`[SpecializationListClient] Fetching with API_KEY: "${API_KEY.substring(0, 5)}..." to ${API_BASE}`)
         const [catRes, specRes, contentRes] = await Promise.all([
           fetch(`${API_BASE}/specializations/course-categories`, { headers: { 'x-api-key': API_KEY } }),
           fetch(`${API_BASE}/specializations`, { headers: { 'x-api-key': API_KEY } }),
@@ -316,7 +429,28 @@ export default function SpecializationListClient() {
       }
     }
     fetchData()
-  }, [])
+  }, [initialData])
+
+  useEffect(() => {
+    if (!searchQuery) return
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024
+    
+    const handler = setTimeout(() => {
+      const el = resultsTopRef.current
+      if (!el) return
+      
+      const offset = isMobile ? 260 : 100
+      const y = el.getBoundingClientRect().top + window.scrollY - offset
+      
+      // Only scroll if we're not already roughly at that position
+      if (Math.abs(window.scrollY - y) > 50) {
+        window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' })
+      }
+    }, 300) // 300ms debounce to avoid jumping on every character
+
+    return () => clearTimeout(handler)
+  }, [searchQuery])
 
   const categoryCounts = useMemo(() => {
     const counts: Record<number, number> = {}
@@ -346,19 +480,39 @@ export default function SpecializationListClient() {
     return result
   }, [specializations, selectedCategory, searchQuery, categories])
 
+  const renderedSpecializationCards = useMemo(
+    () => filteredSpecs.map((item, index) => <SpecialtyCard key={item.id} item={item} index={index} />),
+    [filteredSpecs]
+  )
+
   const description = pageContent?.contents?.description || ''
   const descriptionPreview = description.length > 200 ? description.substring(0, 200) + '...' : description
   const hasLongDescription = description.length > 200
 
   const handleCategorySelect = (slug: string) => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024
+    if (isMobile) {
+      setIsSidebarExpanded(false)
+    }
+
     setSelectedCategory(slug)
-    requestAnimationFrame(() => {
+    setSearchQuery('')
+
+    // Wait for collapse animation (300ms) + DOM reflow, then scroll
+    setTimeout(() => {
       const el = resultsTopRef.current
       if (!el) return
-      const navOffset = 96
-      const y = el.getBoundingClientRect().top + window.scrollY - navOffset
-      window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' })
-    })
+
+      if (isMobile) {
+        // Mobile: Navbar(56) + Category Bar(~110) + Search Bar(~50) + Gap(~20) = ~236
+        // Use a fixed 260px offset to be safe and clear everything
+        const y = el.getBoundingClientRect().top + window.scrollY - 260
+        window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' })
+      } else {
+        const y = el.getBoundingClientRect().top + window.scrollY - 100
+        window.scrollTo({ top: Math.max(y, 0), behavior: 'smooth' })
+      }
+    }, 400)
   }
 
 
@@ -388,8 +542,10 @@ export default function SpecializationListClient() {
         </div>
       </div>
 
-	      {/* Description */}
-		      {description && (
+	      {/* Description — reserve space on mobile during loading to prevent CLS */}
+	      {loading && !description ? (
+	        <section className="bg-linear-to-br from-gray-50 to-blue-50 px-3 sm:px-4 py-4 sm:py-6 md:py-8 md:px-8 lg:px-12 min-h-[120px] sm:min-h-0" />
+	      ) : description ? (
 		        <section className="bg-linear-to-br from-gray-50 to-blue-50 px-3 sm:px-4 py-4 sm:py-6 md:py-8 md:px-8 lg:px-12">
 		          <div className="max-w-7xl mx-auto">
 		            <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm relative">
@@ -436,7 +592,7 @@ export default function SpecializationListClient() {
 		            </div>
 		          </div>
 		        </section>
-		      )}
+		      ) : null}
 
       {/* Main Grid */}
       <section className="bg-linear-to-br from-gray-50 to-blue-50 px-3 sm:px-4 py-6 sm:py-8 md:py-12 md:px-8 lg:px-12">
@@ -451,25 +607,41 @@ export default function SpecializationListClient() {
             totalCount={specializations.length}
           />
 
-          <div className="flex-1 min-w-0">
-            <div ref={resultsTopRef} />
-            <div className="mb-4 sm:mb-6 sticky top-16 z-40 bg-linear-to-br from-gray-50 to-blue-50 py-2 -mx-1 px-1 rounded-xl">
+          {/* Mobile-only search bar - same flex level as CategorySidebar */}
+          <div className="lg:hidden w-full sticky top-[185px] z-30 bg-[#f0f5fe] py-2">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
               <input
                 type="text"
                 placeholder="Search specializations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base rounded-lg sm:rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none shadow-sm"
+                className="w-full pl-11 pr-4 py-2 text-sm sm:text-base rounded-xl border border-gray-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none shadow-sm transition-all bg-white"
               />
             </div>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="hidden lg:block mb-6 sm:mb-8 sticky top-16 z-40 bg-[#f0f5fe] py-2 transition-all duration-300">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                <input
+                  type="text"
+                  placeholder="Search specializations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-11 pr-4 py-2 text-sm sm:text-base rounded-xl border border-gray-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 focus:outline-none shadow-sm transition-all bg-white"
+                />
+              </div>
+            </div>
+
+            <div ref={resultsTopRef} className="scroll-mt-[260px] lg:scroll-mt-[100px]" />
 
             {loading && filteredSpecs.length === 0 ? (
               <SpecializationSkeleton />
             ) : filteredSpecs.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredSpecs.map((item, index) => (
-                  <SpecialtyCard key={item.id} item={item} index={index} />
-                ))}
+              <div className="relative z-0 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {renderedSpecializationCards}
               </div>
             ) : (
               <div className="text-center py-20">
@@ -478,6 +650,15 @@ export default function SpecializationListClient() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-800">No Specializations Found</h3>
                 <p className="text-gray-500 mt-2">Try adjusting your search or category selection.</p>
+                <button
+                  onClick={() => {
+                    setSelectedCategory('all')
+                    setSearchQuery('')
+                  }}
+                  className="mt-6 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-full hover:bg-blue-700 transition-all shadow-md hover:shadow-lg cursor-pointer transform hover:scale-105"
+                >
+                  Clear All Filters
+                </button>
               </div>
             )}
           </div>

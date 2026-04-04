@@ -2,18 +2,17 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
 import './globals.css'
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from '@/context/AuthContext'
-
-// Defer Navbar hydration — its JS (lucide icons, usePathname, useAuth)
-// is not needed for initial paint; the shell renders from SSR HTML.
-const NavbarClient = dynamic(() => import('@/components/layout/NavbarClient'))
+import { ToastContainer } from 'react-toastify';
+import NavbarClient from '@/components/layout/NavbarClient'
 
 // Lazy-load below-fold / deferred components to reduce initial JS bundle
-const Footer = dynamic(() => import('@/components/layout/Footer'))
+const Footer = dynamic(() => import('@/components/layout/Footer'), {
+  loading: () => <footer style={{ minHeight: 400, background: '#e5e7eb' }} />,
+})
 const FloatingActions = dynamic(() => import('@/components/ui/FloatingActions'))
 const MalaysiaCallingAutoPopup = dynamic(() => import('@/components/layout/MalaysiaCallingAutoPopup'))
-// Defer react-toastify CSS + hydration cost away from critical path
-const ToastProvider = dynamic(() => import('@/components/ui/ToastProvider'))
 
 
 export const metadata: Metadata = {
@@ -24,7 +23,9 @@ export const metadata: Metadata = {
     canonical: './',
   },
   icons: {
-    icon: '/favicon.png?v=5',
+    icon: '/favicon.png?v=4',
+    shortcut: '/favicon.png?v=4',
+    apple: '/favicon.png?v=4',
   },
   openGraph: {
     type: 'website',
@@ -48,10 +49,16 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" href="/favicon.png?v=5" type="image/png" sizes="64x64" />
-        {/* LCP preload: ensures browser fetches hero fallback image immediately on HTML parse */}
-        <link rel="preload" href="/girl-banner.webp" as="image" fetchPriority="high" />
-        <link rel="preconnect" href={imageOrigin} crossOrigin="anonymous" />
+        <link rel="icon" href="/favicon.png?v=4" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.png?v=4" type="image/png" />
+        <link rel="apple-touch-icon" href="/favicon.png?v=4" />
+        <link rel="preconnect" href={imageOrigin} />
+        <link rel="dns-prefetch" href={imageOrigin} />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.clarity.ms" />
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <noscript>
@@ -96,9 +103,9 @@ export default async function RootLayout({
             window.addEventListener('touchstart', loadThirdParty, {passive:true, once:true});
             window.addEventListener('keydown', loadThirdParty, {passive:true, once:true});
             if ('requestIdleCallback' in window) {
-              window.requestIdleCallback(loadThirdParty, { timeout: 20000 });
+              window.requestIdleCallback(loadThirdParty, { timeout: 12000 });
             } else {
-              setTimeout(loadThirdParty, 18000);
+              setTimeout(loadThirdParty, 10000);
             }
           })();
         `}</Script>
@@ -108,7 +115,7 @@ export default async function RootLayout({
           <FloatingActions />
           <MalaysiaCallingAutoPopup />
           <Footer />
-          <ToastProvider />
+          <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
         </AuthProvider>
       </body>
     </html>

@@ -14,11 +14,14 @@ html {
   scroll-behavior: auto;
 }
 
-/* Content-visibility for off-screen sections (perf) */
-section:not(:first-of-type),
-footer {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 500px;
+/* Content-visibility for off-screen sections (perf)
+   Only on desktop — on mobile, the intrinsic-size estimates cause CLS */
+@media (min-width: 1024px) {
+  section:not(:first-of-type),
+  footer {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+  }
 }
 
 /* ============================================

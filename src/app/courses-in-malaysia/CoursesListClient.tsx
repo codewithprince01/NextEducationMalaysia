@@ -1125,20 +1125,22 @@ export default function CoursesListClient({
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
             {/* Mobile filter button */}
-            <div className="lg:hidden w-full flex justify-between items-center mb-3 bg-linear-to-r from-white to-blue-50/50 rounded-xl p-3 shadow-lg border border-blue-100">
-              <span className="text-sm font-bold text-gray-800">
-                <span className="text-blue-600">{totalCourses}</span> Courses Found
-              </span>
-              <button
-                className="bg-linear-to-r from-blue-600 to-blue-700 text-white px-4 py-2.5 rounded-lg shadow-md flex items-center gap-2 text-sm font-bold hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-lg transform hover:-translate-y-0.5"
-                onClick={() => setShowMobileFilter(true)}
-              >
-                <Filter className="w-4 h-4" />
-                Filters{' '}
-                {activeFilterCount > 0 && (
-                  <span className="bg-white text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">{activeFilterCount}</span>
-                )}
-              </button>
+            <div className="lg:hidden sticky top-[56px] z-30 bg-[#eff6ff] pt-2 pb-2 -mx-2 px-2 w-[calc(100%+16px)]">
+              <div className="w-full flex justify-between items-center bg-white rounded-xl p-3 shadow-lg border border-blue-100">
+                <span className="text-sm font-bold text-gray-800">
+                  <span className="text-blue-600">{totalCourses}</span> Courses Found
+                </span>
+                <button
+                  className="bg-linear-to-r from-blue-600 to-blue-700 text-white px-4 py-2.5 rounded-lg shadow-md flex items-center gap-2 text-sm font-bold hover:from-blue-700 hover:to-blue-800 transition-all hover:shadow-lg transform hover:-translate-y-0.5"
+                  onClick={() => setShowMobileFilter(true)}
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters{' '}
+                  {activeFilterCount > 0 && (
+                    <span className="bg-white text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">{activeFilterCount}</span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Desktop filter panel */}
