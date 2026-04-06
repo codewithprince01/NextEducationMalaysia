@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Standalone output for container/VPS deployment
-  output: "standalone",
-
   // Enable gzip compression
   compress: true,
 

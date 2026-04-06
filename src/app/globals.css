@@ -7,7 +7,7 @@ body {
   padding-top: 60px;
   scrollbar-color: #1d4ed8 #f1f1f1;
   scrollbar-width: thin;
-  overflow-x: hidden;
+  /* Removed overflow-x: hidden to prevent clipping of scrollable content */
 }
 
 html {
@@ -135,7 +135,7 @@ html {
 .prose table, table {
   background: transparent !important;
   border-collapse: collapse !important;
-  width: 100% !important;
+  width: 100%; /* Removed !important to allow overrides */
   margin: 1.5rem 0 !important;
   border: none !important;
   border-radius: 17px !important;
@@ -209,9 +209,9 @@ div.overflow-x-auto > table {
   .content-html > table,
   .content-wrapper > table,
   .custom-html > table,
-  main > div > table {
+  main table {
     display: block !important;
-    max-width: calc(100vw - 2rem) !important;
+    max-width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
   }
@@ -290,7 +290,12 @@ img[loading="lazy"] { content-visibility: auto; }
 
 /* Mobile navbar fix */
 nav.fixed { height: 60px; contain: layout style; }
-@media (max-width: 640px) { main, .container { max-width: 100vw; overflow-x: hidden; } }
+@media (max-width: 640px) { 
+  main, .container { 
+    max-width: 100vw; 
+    /* Removed overflow-x: hidden to allow inner scrollable elements like tables to work */
+  } 
+}
 
 /* ============================================
    HEADING VISIBILITY
