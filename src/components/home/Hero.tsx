@@ -57,7 +57,6 @@ export default async function Hero() {
           src={firstBannerSrc}
           alt={firstBanner.alt_text || 'Hero banner'}
           fetchPriority="high"
-          decoding="async"
           style={{
             position: 'absolute',
             inset: 0,

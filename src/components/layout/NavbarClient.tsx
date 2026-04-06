@@ -4,7 +4,32 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { ChevronDown, Menu, X, ChevronRight } from 'lucide-react'
+// Inline SVGs — eliminates lucide-react from the critical navbar bundle
+const ChevronDown = ({ className, size = 16 }: { className?: string; size?: number }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" width={size} height={size} className={className}>
+    <path d="m6 9 6 6 6-6"/>
+  </svg>
+)
+const MenuIcon = ({ size = 24 }: { size?: number }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/>
+    <line x1="4" x2="20" y1="18" y2="18"/>
+  </svg>
+)
+const XIcon = ({ size = 24 }: { size?: number }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+  </svg>
+)
+const ChevronRight = ({ size = 14, className }: { size?: number; className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+       strokeLinecap="round" strokeLinejoin="round" width={size} height={size} className={className}>
+    <path d="m9 18 6-6-6-6"/>
+  </svg>
+)
 import Image from 'next/image'
 
 const RESOURCES_LINKS = {
@@ -182,7 +207,7 @@ export default function NavbarClient() {
             className="md:hidden text-blue-900 text-2xl z-60"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            {menuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
           </button>
         </div>
       </nav>
@@ -196,7 +221,7 @@ export default function NavbarClient() {
         <div className="p-6 space-y-4 font-medium overflow-y-auto h-full pt-20">
           <div className="absolute top-4 right-4">
             <button onClick={() => setMenuOpen(false)} className="text-blue-900 text-3xl" aria-label="Close menu">
-              <X size={24} />
+              <XIcon size={24} />
             </button>
           </div>
 

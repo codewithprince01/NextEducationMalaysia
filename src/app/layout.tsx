@@ -2,17 +2,20 @@ import type { Metadata } from 'next'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
 import './globals.css'
-import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from '@/context/AuthContext'
-import { ToastContainer } from 'react-toastify';
 import NavbarClient from '@/components/layout/NavbarClient'
 
-// Lazy-load below-fold / deferred components to reduce initial JS bundle
+// Lazy-load below-fold / deferred components to reduce initial JS bundle.
+// NOTE: In Next.js App Router, layout.tsx is a Server Component —
+// dynamic() here creates separate JS chunks but ssr:false is not allowed.
 const Footer = dynamic(() => import('@/components/layout/Footer'), {
   loading: () => <footer style={{ minHeight: 400, background: '#e5e7eb' }} />,
 })
 const FloatingActions = dynamic(() => import('@/components/ui/FloatingActions'))
 const MalaysiaCallingAutoPopup = dynamic(() => import('@/components/layout/MalaysiaCallingAutoPopup'))
+
+// Lazy-load ToastContainer + its CSS via wrapper — eliminates render-blocking CSS
+const LazyToastContainer = dynamic(() => import('@/components/ui/ToastWrapper'))
 
 
 export const metadata: Metadata = {
@@ -102,11 +105,8 @@ export default async function RootLayout({
             window.addEventListener('pointerdown', loadThirdParty, {passive:true, once:true});
             window.addEventListener('touchstart', loadThirdParty, {passive:true, once:true});
             window.addEventListener('keydown', loadThirdParty, {passive:true, once:true});
-            if ('requestIdleCallback' in window) {
-              window.requestIdleCallback(loadThirdParty, { timeout: 12000 });
-            } else {
-              setTimeout(loadThirdParty, 10000);
-            }
+            // GTM + Clarity load ONLY on user interaction — no idle/timeout fallback.
+            // This prevents ~2.3s of main-thread blocking during passive page loads.
           })();
         `}</Script>
         <AuthProvider>
@@ -115,7 +115,7 @@ export default async function RootLayout({
           <FloatingActions />
           <MalaysiaCallingAutoPopup />
           <Footer />
-          <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+          <LazyToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
         </AuthProvider>
       </body>
     </html>
