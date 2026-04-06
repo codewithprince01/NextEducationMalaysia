@@ -141,6 +141,14 @@ html {
   border-radius: 17px !important;
 }
 
+/* Tables inside scroll wrappers — MUST expand to content width so wrapper scrolls */
+div.responsive-table-wrapper > table,
+div.overflow-x-auto > table {
+  width: max-content !important;
+  min-width: 100%;
+  margin: 0 !important;
+}
+
 .prose thead, table thead {
   background-color: #1E40AF !important;
   background: #1E40AF !important;
@@ -176,14 +184,45 @@ html {
 .prose tbody tr:hover td, table tbody tr:hover td { background-color: #F9FAFB !important; }
 .prose tbody td:first-child, table tbody td:first-child { font-weight: 600 !important; }
 
-/* Responsive table wrapper */
+/* Responsive table wrapper — the scroll container for wide tables */
 .responsive-table-wrapper {
-  display: block; width: 100%; overflow-x: auto;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
-  margin: 1.5rem 0; border-radius: 17px;
-  border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  margin: 1.5rem 0;
+  border-radius: 17px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
-.responsive-table-wrapper table { min-width: 100%; width: max-content; }
+
+/* Global mobile table overflow prevention — catches ALL tables from CMS content */
+@media (max-width: 768px) {
+  /* Constrain wrappers to viewport */
+  .responsive-table-wrapper {
+    max-width: calc(100vw - 2rem) !important;
+  }
+
+  /* Tables NOT inside a wrapper — make the table itself scroll */
+  .prose > table,
+  .content-html > table,
+  .content-wrapper > table,
+  .custom-html > table,
+  main > div > table {
+    display: block !important;
+    max-width: calc(100vw - 2rem) !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Tables INSIDE a wrapper — let them expand naturally for the wrapper to scroll */
+  .responsive-table-wrapper table,
+  .overflow-x-auto table {
+    width: max-content !important;
+    min-width: 100%;
+  }
+}
 
 .overflow-x-auto { scrollbar-width: thin; scrollbar-color: #3b82f6 #e5e7eb; }
 .overflow-x-auto::-webkit-scrollbar { height: 8px; }

@@ -33,6 +33,14 @@ type Props = {
   initialCourseData?: any
 }
 
+/** Wrap every bare <table> in a horizontal-scroll div so tables don't overflow on mobile */
+function wrapTables(html: string): string {
+  if (!html) return ''
+  return html
+    .replace(/<table/gi, '<div class="responsive-table-wrapper" style="display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;"><table style="width:max-content;min-width:100%;"')
+    .replace(/<\/table>/gi, '</table></div>')
+}
+
 function OverviewContent({ overviews, universityName }: { overviews: Section[]; universityName: string | null }) {
   if (overviews.length === 0) {
     return (
@@ -52,7 +60,7 @@ function OverviewContent({ overviews, universityName }: { overviews: Section[]; 
           {section.description && (
             <div
               className="content-html prose prose-blue max-w-none text-gray-700 leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: section.description }}
+              dangerouslySetInnerHTML={{ __html: wrapTables(section.description) }}
             />
           )}
         </div>

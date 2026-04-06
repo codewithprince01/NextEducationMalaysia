@@ -56,8 +56,8 @@ const formatHTML = (html: string) => {
   decoded = decoded.replace(/<p[^>]*>\s*<\/p>/gi, '')
 
   decoded = decoded.replace(/<table[^>]*>/gi,
-    `<div class="responsive-table-wrapper overflow-x-auto my-6">
-      <table class="w-full border-collapse text-sm border border-gray-100">`)
+    `<div class="responsive-table-wrapper overflow-x-auto my-6" style="display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <table class="border-collapse text-sm" style="width:max-content;min-width:100%;">`)
   decoded = decoded.replace(/<\/table>/gi, '</table></div>')
 
   decoded = decoded.replace(/<thead[^>]*>/gi, `<thead class="bg-blue-600 text-white">`)
