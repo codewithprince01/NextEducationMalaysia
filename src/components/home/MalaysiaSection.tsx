@@ -1,10 +1,19 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import {
-  Play, GraduationCap, Globe2, Shield, Users, Briefcase,
-  DollarSign, BookOpen, School, Building2, Award,
-} from 'lucide-react'
+
+// Inline SVGs — eliminates ~40-60KB lucide-react from MalaysiaSection chunk
+const PlayIcon = () => <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+const GraduationCapIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+const Globe2Icon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+const ShieldIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+const UsersIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+const BriefcaseIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+const DollarSignIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+const BookOpenIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+const SchoolIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+const Building2Icon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+const AwardIcon = ({ className }: { className?: string }) => <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
 
 // ── Animated counter ──────────────────────────────────────────────────────────
 function Counter({ value, suffix, prefix = '' }: { value: number; suffix: string; prefix?: string }) {
@@ -49,21 +58,21 @@ function Counter({ value, suffix, prefix = '' }: { value: number; suffix: string
 
 // ── Stats data ─────────────────────────────────────────────────────────────────
 const stats = [
-  { icon: GraduationCap, value: 100, suffix: '+', label: 'Accredited Universities and University Colleges' },
-  { icon: Users, value: 130, suffix: 'K+', label: 'International Students' },
-  { icon: DollarSign, value: 470, suffix: 'B+ USD', prefix: '$', label: 'GDP Economy' },
-  { icon: Award, value: 97, suffix: '%', label: 'Study Visa Success Rate' },
-  { icon: Briefcase, value: 70, suffix: '%', label: 'Employment To Population Ratio' },
+  { icon: GraduationCapIcon, value: 100, suffix: '+', label: 'Accredited Universities and University Colleges' },
+  { icon: UsersIcon, value: 130, suffix: 'K+', label: 'International Students' },
+  { icon: DollarSignIcon, value: 470, suffix: 'B+ USD', prefix: '$', label: 'GDP Economy' },
+  { icon: AwardIcon, value: 97, suffix: '%', label: 'Study Visa Success Rate' },
+  { icon: BriefcaseIcon, value: 70, suffix: '%', label: 'Employment To Population Ratio' },
 ]
 
 // ── Education stages ───────────────────────────────────────────────────────────
 const stages = [
-  { title: 'Early Education', icon: BookOpen, items: ['Government', 'Private', 'Special Needs', 'Assistance'] },
-  { title: 'Primary Education', icon: School, items: ['Government', 'Religious', 'Private', 'Special Needs', 'Examinations & Assessments', 'School Transfer', 'Assistance'] },
-  { title: 'Secondary Education', icon: Building2, items: ['Government', 'Vocational College', 'Private', 'Special Needs', 'Examinations & Assessments', 'Assistance'] },
-  { title: 'Post Secondary', icon: Award, items: ['Form 6', 'Matriculation', 'Examinations', 'Assistance'] },
+  { title: 'Early Education', icon: BookOpenIcon, items: ['Government', 'Private', 'Special Needs', 'Assistance'] },
+  { title: 'Primary Education', icon: SchoolIcon, items: ['Government', 'Religious', 'Private', 'Special Needs', 'Examinations & Assessments', 'School Transfer', 'Assistance'] },
+  { title: 'Secondary Education', icon: Building2Icon, items: ['Government', 'Vocational College', 'Private', 'Special Needs', 'Examinations & Assessments', 'Assistance'] },
+  { title: 'Post Secondary', icon: AwardIcon, items: ['Form 6', 'Matriculation', 'Examinations', 'Assistance'] },
   {
-    title: 'Higher Education', icon: GraduationCap,
+    title: 'Higher Education', icon: GraduationCapIcon,
     sections: [
       { title: 'Citizen', items: ['Local IPTA', 'Local IPTS', 'Study Abroad', 'Accreditation', 'Assistance'] },
       { title: 'Non-Citizen', items: ['IPTA', 'IPTS', 'Scholarship'] },
@@ -73,10 +82,10 @@ const stages = [
 
 // ── Why Malaysia info cards ────────────────────────────────────────────────────
 const infoCards = [
-  { icon: GraduationCap, title: 'Globally Recognised Degrees & International Partnerships', desc: 'Many Malaysian universities have academic collaborations with the UK, Australia, USA, Europe, and New Zealand. Some degrees are fully accredited by global bodies such as ACCA, CIMA, ABET, and AACSB, giving students worldwide acceptance.' },
-  { icon: Globe2, title: 'World-Class Education at an Affordable Cost', desc: 'Malaysia offers high-quality education aligned with UK, Australian, and international standards — but at 70% lower tuition fees and living expenses. Students get premium quality without the financial burden associated with Western countries.' },
-  { icon: GraduationCap, title: 'Pathways to the UK, Australia, and Europe', desc: 'Many universities offer credit transfer programmes, allowing students to start their studies in Malaysia and complete them in top universities abroad — reducing total cost by 50–60%.' },
-  { icon: Shield, title: 'Post-Study One-Year Visa in Malaysia (Graduate Employment Pass)', desc: 'Malaysia allows international graduates to stay back for one year after completing their studies to explore job opportunities under the Graduate Pass / Special Pass. This stay-back option helps students gain work experience and transition smoothly into employment.' },
+  { icon: GraduationCapIcon, title: 'Globally Recognised Degrees & International Partnerships', desc: 'Many Malaysian universities have academic collaborations with the UK, Australia, USA, Europe, and New Zealand. Some degrees are fully accredited by global bodies such as ACCA, CIMA, ABET, and AACSB, giving students worldwide acceptance.' },
+  { icon: Globe2Icon, title: 'World-Class Education at an Affordable Cost', desc: 'Malaysia offers high-quality education aligned with UK, Australian, and international standards — but at 70% lower tuition fees and living expenses. Students get premium quality without the financial burden associated with Western countries.' },
+  { icon: GraduationCapIcon, title: 'Pathways to the UK, Australia, and Europe', desc: 'Many universities offer credit transfer programmes, allowing students to start their studies in Malaysia and complete them in top universities abroad — reducing total cost by 50–60%.' },
+  { icon: ShieldIcon, title: 'Post-Study One-Year Visa in Malaysia (Graduate Employment Pass)', desc: 'Malaysia allows international graduates to stay back for one year after completing their studies to explore job opportunities under the Graduate Pass / Special Pass. This stay-back option helps students gain work experience and transition smoothly into employment.' },
 ]
 
 export default function MalaysiaSection() {
@@ -99,10 +108,10 @@ export default function MalaysiaSection() {
           {/* Image grid + video */}
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div className="relative overflow-hidden rounded-3xl shadow-xl aspect-[4/5] group">
+              <div className="relative overflow-hidden rounded-3xl shadow-xl aspect-4/5 group">
                 <img src="/Malaysian students.webp" alt="International students" width={400} height={500} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
               </div>
-              <div className="relative overflow-hidden rounded-3xl shadow-xl aspect-[4/5] group mt-6">
+              <div className="relative overflow-hidden rounded-3xl shadow-xl aspect-4/5 group mt-6">
                 <img src="/download (20).webp" alt="Kuala Lumpur skyline" width={400} height={500} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
               </div>
               <div className="relative overflow-hidden rounded-3xl shadow-xl aspect-video col-span-2 group">
@@ -115,10 +124,10 @@ export default function MalaysiaSection() {
               <div className="aspect-video relative">
                 {!videoOpen ? (
                   <button onClick={() => setVideoOpen(true)} className="w-full h-full cursor-pointer relative block">
-                    <img src="https://i.ytimg.com/vi/hbZzfWnfJqw/sddefault.jpg" alt="Study in Malaysia video" width={640} height={480} className="w-full h-full object-cover" />
+                    <img src="https://i.ytimg.com/vi/hbZzfWnfJqw/sddefault.jpg" alt="Study in Malaysia video" width={640} height={480} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30">
                       <div className="bg-white rounded-full p-5 group-hover:scale-110 transition-all duration-300 shadow-lg">
-                        <Play className="w-12 h-12 text-blue-600" fill="currentColor" />
+                        <PlayIcon />
                       </div>
                       <p className="text-white/90 text-sm font-semibold tracking-widest mt-5">WATCH NOW</p>
                     </div>
@@ -189,7 +198,7 @@ export default function MalaysiaSection() {
       </section>
 
       {/* Education system section */}
-      <div className="py-4 md:py-8 bg-linear-to-br from-slate-50 to-slate-100 mt-[-1rem]">
+      <div className="py-4 md:py-8 bg-linear-to-br from-slate-50 to-slate-100 -mt-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 md:mb-10">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-3 md:mb-4 tracking-tight">
@@ -216,7 +225,7 @@ export default function MalaysiaSection() {
                       <h4 className="text-base md:text-lg font-bold text-white">{stage.title}</h4>
                     </div>
                   </div>
-                  <div className="bg-white p-4 md:p-5 flex-grow rounded-b-xl">
+                  <div className="bg-white p-4 md:p-5 grow rounded-b-xl">
                     {!isHigher ? (
                       <ul className="space-y-1.5 md:space-y-2">
                         {stage.items?.map((item, idx) => (

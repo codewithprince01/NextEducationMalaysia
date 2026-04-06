@@ -193,11 +193,12 @@ export default function NavbarClient() {
               </Link>
             ))}
 
-            {/* CTA */}
-            <Link href={isLoggedIn ? '/student/profile' : '/signup'}>
-              <button className="bg-blue-900 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold">
-                {isLoggedIn ? 'Profile' : 'Get Started'}
-              </button>
+            {/* CTA — min-w prevents CLS when text swaps from 'Get Started' to 'Profile' */}
+            <Link
+              href={isLoggedIn ? '/student/profile' : '/signup'}
+              className="bg-blue-900 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[120px] text-center inline-block"
+            >
+              {isLoggedIn ? 'Profile' : 'Get Started'}
             </Link>
           </div>
 
@@ -271,10 +272,11 @@ export default function NavbarClient() {
             </Link>
           ))}
 
-          <Link href={isLoggedIn ? '/student/profile' : '/signup'} className="w-full block">
-            <button className="w-full bg-blue-900 text-white py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold">
-              {isLoggedIn ? 'Profile' : 'Get Started'}
-            </button>
+          <Link
+            href={isLoggedIn ? '/student/profile' : '/signup'}
+            className="w-full block bg-blue-900 text-white py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[120px] text-center"
+          >
+            {isLoggedIn ? 'Profile' : 'Get Started'}
           </Link>
         </div>
       </div>

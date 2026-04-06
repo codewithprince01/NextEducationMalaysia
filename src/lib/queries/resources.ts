@@ -73,13 +73,23 @@ export const getExamBySlug = unstable_cache(
           params: [exam.id],
         },
         {
-          sql: 'SELECT * FROM exam_contents WHERE exam_id = ? ORDER BY position ASC, id ASC',
+          sql: 'SELECT * FROM exam_page_contents WHERE exam_id = ? AND status = 1 ORDER BY id ASC',
+          params: [exam.id],
+        },
+        {
+          sql: 'SELECT * FROM exam_page_contents WHERE exam_id = ? ORDER BY id ASC',
+          params: [exam.id],
+        },
+        {
+          sql: 'SELECT * FROM exam_contents WHERE exam_id = ? ORDER BY id ASC',
           params: [exam.id],
         },
       ]),
       firstSuccessfulListQuery<any>([
         { sql: 'SELECT * FROM exam_faqs WHERE exam_id = ? AND status = 1 ORDER BY position ASC, id ASC', params: [exam.id] },
         { sql: 'SELECT * FROM exam_faqs WHERE exam_id = ? ORDER BY position ASC, id ASC', params: [exam.id] },
+        { sql: 'SELECT * FROM exam_faqs WHERE exam_id = ? AND status = 1 ORDER BY id ASC', params: [exam.id] },
+        { sql: 'SELECT * FROM exam_faqs WHERE exam_id = ? ORDER BY id ASC', params: [exam.id] },
       ]),
     ])
 
@@ -96,6 +106,9 @@ export const getAllExams = unstable_cache(
       { sql: 'SELECT * FROM exams WHERE website = ? ORDER BY position ASC, id ASC', params: [SITE_VAR] },
       { sql: 'SELECT * FROM exams WHERE status = 1 ORDER BY position ASC, id ASC' },
       { sql: 'SELECT * FROM exams ORDER BY position ASC, id ASC' },
+      { sql: 'SELECT * FROM exams WHERE status = 1 AND website = ? ORDER BY id ASC', params: [SITE_VAR] },
+      { sql: 'SELECT * FROM exams WHERE website = ? ORDER BY id ASC', params: [SITE_VAR] },
+      { sql: 'SELECT * FROM exams WHERE status = 1 ORDER BY id ASC' },
       { sql: 'SELECT * FROM exams ORDER BY id ASC' },
     ])
 
@@ -120,7 +133,8 @@ export const getServiceBySlug = unstable_cache(
     const contents = await firstSuccessfulListQuery<any>([
       { sql: 'SELECT * FROM site_page_tabs WHERE page_id = ? AND status = 1 ORDER BY id ASC', params: [service.id] },
       { sql: 'SELECT * FROM site_page_tabs WHERE page_id = ? ORDER BY id ASC', params: [service.id] },
-      { sql: 'SELECT * FROM service_contents WHERE service_id = ? ORDER BY COALESCE(position, 0), id', params: [service.id] },
+      { sql: 'SELECT * FROM service_contents WHERE service_id = ? ORDER BY position ASC, id ASC', params: [service.id] },
+      { sql: 'SELECT * FROM service_contents WHERE service_id = ? ORDER BY id ASC', params: [service.id] },
     ])
 
     return serializeBigInt({
@@ -148,6 +162,8 @@ export const getAllServices = unstable_cache(
     const rows = await firstSuccessfulListQuery<any>([
       { sql: 'SELECT * FROM site_pages WHERE website = ? AND status = 1 ORDER BY position ASC, id ASC', params: [SITE_VAR] },
       { sql: 'SELECT * FROM site_pages WHERE status = 1 ORDER BY position ASC, id ASC' },
+      { sql: 'SELECT * FROM site_pages WHERE website = ? AND status = 1 ORDER BY id ASC', params: [SITE_VAR] },
+      { sql: 'SELECT * FROM site_pages WHERE status = 1 ORDER BY id ASC' },
       { sql: 'SELECT * FROM services WHERE website = ? AND status = 1 ORDER BY id DESC', params: [SITE_VAR] },
       { sql: 'SELECT * FROM services WHERE status = 1 ORDER BY id DESC' },
     ])

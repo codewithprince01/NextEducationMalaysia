@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
   // No source maps in production — reduces bundle overhead
   productionBrowserSourceMaps: false,
 
+  // Strip console.* in production — reduces JS parse + eval time on mobile
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production"
+      ? { exclude: ["error", "warn"] }
+      : false,
+  },
+
   // Tree-shake barrel imports from heavy icon/utility libraries
   // This prevents loading entire icon packs when only a few icons are used
   experimental: {
@@ -64,6 +71,7 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-XSS-Protection", value: "1; mode=block" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
         ],
       },
       {
@@ -78,7 +86,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  
+
   // URL Rewrites for legacy filter patterns
   async rewrites() {
     return [

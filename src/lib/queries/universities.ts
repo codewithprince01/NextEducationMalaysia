@@ -197,10 +197,19 @@ export const getUniversityFull = unstable_cache(
       ) as Promise<any[]>,
       prisma.$queryRawUnsafe(`SELECT course_name FROM university_programs WHERE university_id = ? AND status = 1`, universityId) as Promise<any[]>,
       prisma.$queryRawUnsafe(`SELECT type FROM institute_types WHERE id = ?`, Number(university.institute_type)) as Promise<any[]>,
-      prisma.$queryRawUnsafe(
-        `SELECT id, title, description, position FROM university_overviews WHERE university_id = ? ORDER BY position ASC, id ASC`,
-        universityId
-      ) as Promise<any[]>,
+      (async () => {
+        try {
+          return await prisma.$queryRawUnsafe(
+            `SELECT id, title, description, position FROM university_overviews WHERE university_id = ? ORDER BY position ASC, id ASC`,
+            universityId
+          ) as any[]
+        } catch {
+          return await prisma.$queryRawUnsafe(
+            `SELECT id, title, description FROM university_overviews WHERE university_id = ? ORDER BY id ASC`,
+            universityId
+          ) as any[]
+        }
+      })(),
       prisma.$queryRawUnsafe(
         `SELECT COUNT(*) as total FROM university_scholarships WHERE u_id = ?`,
         universityId

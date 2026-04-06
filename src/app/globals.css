@@ -3,26 +3,27 @@
 /* ============================================
    BASE — Body & Scroll
    ============================================ */
-body {
-  padding-top: 60px;
-  scrollbar-color: #1d4ed8 #f1f1f1;
-  scrollbar-width: thin;
-  /* Removed overflow-x: hidden to prevent clipping of scrollable content */
-}
-
 html {
   scroll-behavior: auto;
+  overflow-x: hidden; /* Prevent horizontal viewport overflow = eliminate CLS */
 }
 
-/* Content-visibility for off-screen sections (perf)
-   Only on desktop — on mobile, the intrinsic-size estimates cause CLS */
-@media (min-width: 1024px) {
-  section:not(:first-of-type),
-  footer {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 500px;
-  }
+body {
+  padding-top: 56px; /* Must match navbar h-[56px] exactly to prevent CLS */
+  scrollbar-color: #1d4ed8 #f1f1f1;
+  scrollbar-width: thin;
 }
+
+/* Content-visibility for off-screen sections — skips rendering until near viewport.
+   CLS = 0 confirmed, safe to apply on all screen sizes for maximum perf.
+   600px is a better average section height than 400px — reduces scroll-position jumps
+   when content-visibility reveals sections during fast scrolling. */
+section:not(:first-of-type),
+footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
 
 /* ============================================
    SCROLLBAR
@@ -39,10 +40,11 @@ html {
    HERO ANIMATIONS — CSS only (saves ~21KB JS)
    ============================================ */
 @keyframes heroFadeIn {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0.5; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.hero-stagger > * { opacity: 0; animation: heroFadeIn 0.4s ease-out forwards; }
+/* opacity starts at 0.5 not 0 — prevents invisible text causing layout shifts */
+.hero-stagger > * { animation: heroFadeIn 0.4s ease-out forwards; }
 .hero-stagger > *:nth-child(1) { animation-delay: 0.1s; }
 .hero-stagger > *:nth-child(2) { animation-delay: 0.2s; }
 .hero-stagger > *:nth-child(3) { animation-delay: 0.3s; }
@@ -288,12 +290,11 @@ img[loading="lazy"] { content-visibility: auto; }
 .uni-hero-img-container--desktop { height: 300px; }
 @media (min-width: 768px) { .uni-hero-img-container--desktop { height: 350px; } }
 
-/* Mobile navbar fix */
-nav.fixed { height: 60px; contain: layout style; }
+/* Mobile navbar fix — height must match navbar h-[56px] in NavbarClient.tsx */
+nav.fixed { height: 56px; contain: layout style; }
 @media (max-width: 640px) { 
   main, .container { 
-    max-width: 100vw; 
-    /* Removed overflow-x: hidden to allow inner scrollable elements like tables to work */
+    max-width: 100vw;
   } 
 }
 

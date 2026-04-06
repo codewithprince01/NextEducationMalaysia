@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback, startTransition } from 'react'
 
 interface LazySectionProps {
   children: React.ReactNode
@@ -11,18 +11,35 @@ interface LazySectionProps {
 
 export default function LazySection({ 
   children, 
-  placeholder = <div style={{ minHeight: 320 }} className="bg-slate-50" />,
-  rootMargin = "150px 0px",
-  threshold = 0.1
+  placeholder,
+  rootMargin = "600px 0px",  // Increased from 300px: start loading 600px before viewport
+  threshold = 0
 }: LazySectionProps) {
   const [isVisible, setIsVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const idleCallbackRef = useRef<number | null>(null)
+
+  const reveal = useCallback(() => {
+    // startTransition marks this as non-urgent — React can yield to the browser
+    // between section mounts, breaking the monolithic hydration long task into
+    // smaller 50ms-or-less slices, directly reducing TBT
+    startTransition(() => {
+      setIsVisible(true)
+    })
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true)
+          // Use requestIdleCallback when available — lets browser load chunk
+          // during idle time before the section is fully in view, reducing
+          // perceived jank without blocking LCP or TBT
+          if ('requestIdleCallback' in window) {
+            idleCallbackRef.current = (window as any).requestIdleCallback(reveal, { timeout: 400 })
+          } else {
+            reveal()
+          }
           observer.disconnect()
         }
       },
@@ -39,12 +56,15 @@ export default function LazySection({
         observer.unobserve(currentRef)
       }
       observer.disconnect()
+      if (idleCallbackRef.current !== null && 'cancelIdleCallback' in window) {
+        (window as any).cancelIdleCallback(idleCallbackRef.current)
+      }
     }
-  }, [threshold, rootMargin])
+  }, [threshold, rootMargin, reveal])
 
   return (
     <div ref={ref}>
-      {isVisible ? children : placeholder}
+      {isVisible ? children : (placeholder ?? null)}
     </div>
   )
 }

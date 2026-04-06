@@ -311,7 +311,8 @@ export default function FieldStudyClient() {
             {/* Left Arrow */}
             <button
               onClick={scrollLeft}
-              className="absolute -left-2 sm:left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-[#003893] hover:text-white transition-all duration-300 border border-gray-200 group"
+              aria-label="Scroll left"
+              className="absolute -left-2 sm:left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-[#003893] hover:text-white transition-all duration-300 border border-gray-200 group"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 group-hover:text-white" />
             </button>
@@ -366,7 +367,8 @@ export default function FieldStudyClient() {
             {/* Right Arrow */}
             <button
               onClick={scrollRight}
-              className="absolute -right-2 sm:right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-[#003893] hover:text-white transition-all duration-300 border border-gray-200 group"
+              aria-label="Scroll right"
+              className="absolute -right-2 sm:right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-[#003893] hover:text-white transition-all duration-300 border border-gray-200 group"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 group-hover:text-white" />
             </button>

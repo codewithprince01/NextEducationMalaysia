@@ -1,9 +1,16 @@
 'use client'
 
+import { useEffect } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay } from 'swiper/modules'
-import { MapPin } from 'lucide-react'
-import 'swiper/css'
+
+// Inline SVG — replaces lucide-react MapPin to eliminate that bundle
+const MapPin = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" width="14" height="14">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+    <circle cx="12" cy="10" r="3"/>
+  </svg>
+)
 
 const PHOTOS = [
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
@@ -24,6 +31,11 @@ export type Testimonial = {
 }
 
 export default function TestimonialSlider({ testimonials }: { testimonials: Testimonial[] }) {
+  // Defer Swiper CSS — keeps it out of the initial CSS bundle
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore — swiper/css has no TS type declarations (CSS file)
+  useEffect(() => { import('swiper/css') }, [])
+
   if (testimonials.length === 0) return null
 
   // Duplicate to fill the carousel (min 9 items for seamless loop)

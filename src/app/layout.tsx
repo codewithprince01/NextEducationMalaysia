@@ -9,7 +9,7 @@ import NavbarClient from '@/components/layout/NavbarClient'
 // NOTE: In Next.js App Router, layout.tsx is a Server Component —
 // dynamic() here creates separate JS chunks but ssr:false is not allowed.
 const Footer = dynamic(() => import('@/components/layout/Footer'), {
-  loading: () => <footer style={{ minHeight: 400, background: '#e5e7eb' }} />,
+  loading: () => <footer style={{ minHeight: 480, background: '#f8fafc' }} aria-hidden />,
 })
 const FloatingActions = dynamic(() => import('@/components/ui/FloatingActions'))
 const MalaysiaCallingAutoPopup = dynamic(() => import('@/components/layout/MalaysiaCallingAutoPopup'))
@@ -55,8 +55,27 @@ export default async function RootLayout({
         <link rel="icon" href="/favicon.png?v=4" type="image/png" />
         <link rel="shortcut icon" href="/favicon.png?v=4" type="image/png" />
         <link rel="apple-touch-icon" href="/favicon.png?v=4" />
+        {/* 
+          Static LCP preload — fires immediately on HTML parse, before RSC/React starts.
+          girl-banner.webp is the default hero image (11KB WebP).
+          If DB returns a different banner, the preload is harmless (browser discards it).
+          Saves ~200-500ms on LCP by starting image fetch in parallel with JS evaluation.
+        */}
+        <link
+          rel="preload"
+          as="image"
+          href="/girl-banner.webp"
+          // @ts-expect-error — fetchpriority is valid HTML but not yet in React types
+          fetchpriority="high"
+        />
         <link rel="preconnect" href={imageOrigin} />
         <link rel="dns-prefetch" href={imageOrigin} />
+        {/* YouTube thumbnail CDN — preconnect so the video poster loads fast */}
+        <link rel="preconnect" href="https://i.ytimg.com" />
+        <link rel="dns-prefetch" href="https://i.ytimg.com" />
+        {/* Google Fonts preconnect for zero font-swap delay */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />

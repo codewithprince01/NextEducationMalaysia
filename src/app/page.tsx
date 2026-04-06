@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import dynamic from 'next/dynamic'
 import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import Hero from '@/components/home/Hero'
+import type { Banner } from '@/components/home/Hero'
 import type { Testimonial } from '@/components/home/TestimonialSlider'
 import LazySection from '@/components/ui/LazySection'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
@@ -142,9 +143,16 @@ async function getTestimonials(): Promise<Testimonial[]> {
 }
 
 export default async function Home() {
-  const [{ featuredUniversities }, testimonials] = await Promise.all([
+  const [{ featuredUniversities }, testimonials, heroBanners] = await Promise.all([
     getHomeData(),
     getTestimonials(),
+    // Hero banners now fetched in parallel — was sequential in Hero's async RSC render
+    (async (): Promise<Banner[]> => {
+      try {
+        const { getHeroBanners } = await import('@/lib/queries/home')
+        return (await getHeroBanners()) as unknown as Banner[]
+      } catch { return [] }
+    })(),
   ])
 
   return (
@@ -153,10 +161,8 @@ export default async function Home() {
       <JsonLd data={websiteJsonLd()} />
       <h1 className="sr-only">Education Malaysia - Study in Malaysia</h1>
 
-      {/* Above fold: SSR hero + Swiper client */}
-      <Suspense fallback={<div style={{ height: '100dvh', minHeight: 480 }} className="bg-blue-950" />}>
-        <Hero />
-      </Suspense>
+      {/* Above fold: Hero receives pre-fetched banners — no more sequential DB query */}
+      <Hero banners={heroBanners} />
 
       {/* 5-step study journey — below fold on mobile, lazy mount */}
       <LazySection>

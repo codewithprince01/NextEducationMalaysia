@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import MalaysiaCallingPopup from '@/components/modals/MalaysiaCallingPopup'
+import dynamic from 'next/dynamic'
+
+// Lazy-load the modal — it only appears 5s after page load, no need in initial bundle
+const MalaysiaCallingPopup = dynamic(() => import('@/components/modals/MalaysiaCallingPopup'))
 
 const MAX_DISMISSALS = 1
 const POPUP_DELAY_MS = 5000

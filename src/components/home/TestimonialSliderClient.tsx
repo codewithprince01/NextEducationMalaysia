@@ -3,12 +3,24 @@
 import React, { useEffect, useState } from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Pagination } from 'swiper/modules'
-import { MapPin, Quote, Star } from 'lucide-react'
 import Image from 'next/image'
 
-import 'swiper/css'
-import 'swiper/css/autoplay'
-import 'swiper/css/pagination'
+// Inline SVGs — eliminates lucide-react (MapPin, Quote, Star) from this chunk
+const MapPin = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+  </svg>
+)
+const Quote = ({ className }: { className?: string }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+  </svg>
+)
+const Star = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 20 20">
+    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+  </svg>
+)
 
 interface Testimonial {
   id: number
@@ -31,6 +43,11 @@ const PROFESSIONAL_PHOTOS = [
 export default function TestimonialSliderClient() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Defer Swiper CSS off the critical render path — removes from initial CSS bundle
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore — swiper CSS files have no TS declarations
+  useEffect(() => { import('swiper/css'); import('swiper/css/autoplay'); import('swiper/css/pagination') }, [])
 
   useEffect(() => {
     const fetchTestimonials = async () => {
@@ -112,6 +129,7 @@ export default function TestimonialSliderClient() {
                          alt={t.name} 
                          fill 
                          className="object-cover"
+                         loading="lazy"
                          unoptimized
                        />
                     </div>
@@ -133,7 +151,7 @@ export default function TestimonialSliderClient() {
                   </div>
 
                   <p className="text-lg text-slate-600 italic leading-relaxed mb-8 grow">
-                    "{t.review}"
+                    &ldquo;{t.review}&rdquo;
                   </p>
 
                   <div className="pt-6 border-t border-slate-200/60 mt-auto">
