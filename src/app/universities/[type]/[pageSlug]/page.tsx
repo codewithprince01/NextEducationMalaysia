@@ -1,10 +1,11 @@
-import { SITE_URL } from '@/lib/constants'
 import { getInstituteTypes, getPageContent } from '@/lib/queries/universities'
 import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import UniversityListClient from '../UniversityListClient'
 import { serializeBigInt } from '@/lib/utils'
 import { universityService } from '@/backend'
+import { SITE_URL } from '@/lib/constants'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -36,7 +37,7 @@ function parsePageSlug(pageSlug: string) {
   return pageNum
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { type, pageSlug } = await params
     const pageNum = parsePageSlug(pageSlug)
@@ -64,7 +65,7 @@ export async function generateMetadata({ params }: Props) {
       title,
       description,
       keywords,
-      robots: 'index, follow',
+      robots: { index: true, follow: true },
       alternates: { canonical },
       openGraph: {
         type: 'website',

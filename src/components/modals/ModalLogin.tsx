@@ -182,16 +182,24 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
       });
       const resData: any = response.data;
       const responseData = resData.data || resData;
+      const responseName =
+        responseData?.name ||
+        responseData?.student?.name ||
+        responseData?.student_name ||
+        "";
 
       if (responseData.token) {
         localStorage.setItem("token", responseData.token);
         localStorage.setItem("student_id", String(responseData.id));
+        if (responseData.email) localStorage.setItem("student_email", String(responseData.email));
+        if (responseName) localStorage.setItem("student_name", String(responseName).trim());
         
         toast.success("Login successful!");
         onSuccess({ token: responseData.token, studentId: responseData.id });
       } else if (responseData.needs_otp || responseData.otp_required) {
         if (responseData.id) localStorage.setItem("student_id", String(responseData.id));
         if (responseData.email) localStorage.setItem("student_email", String(responseData.email));
+        if (responseName) localStorage.setItem("student_name", String(responseName).trim());
         onSuccess({ needsOTP: true, studentId: responseData.id });
       } else {
         toast.error(resData.message || "Login failed. Please try again.");

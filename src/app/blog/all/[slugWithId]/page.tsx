@@ -2,6 +2,9 @@ import { notFound, redirect } from 'next/navigation'
 import BlogDetailClient from '../../[category]/[slugWithId]/BlogDetailClient'
 import { prisma } from '@/lib/db-fresh'
 
+// This route is a canonical-redirect fallback — mark noindex so crawlers don't index this URL
+export const metadata = { robots: { index: false, follow: false } }
+
 type Props = { params: Promise<{ slugWithId: string }> }
 
 function parseSlugWithId(slugWithId: string) {

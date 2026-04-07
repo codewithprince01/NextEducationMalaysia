@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getUniversityBySlug, getUniversityFull } from '@/lib/queries/universities'
+import { getUniversityFull } from '@/lib/queries/universities'
 import UniversityCoursesClient from '@/components/university/UniversityCoursesClient'
 import UniversityGalleryClient from '@/components/university/UniversityGalleryClient'
 import UniversityVideosClient from '@/components/university/tabs/UniversityVideosClient'
@@ -9,8 +9,7 @@ import UniversitySectionContainer from '@/components/university/UniversitySectio
 import { serializeBigInt } from '@/lib/utils'
 import { prisma } from '@/lib/db'
 import { resolveUniversityMeta } from '@/lib/seo/metadata'
-import JsonLd from '@/components/seo/JsonLd'
-import { universityJsonLd } from '@/lib/seo/structured-data'
+import type { Metadata } from 'next'
 
 export const revalidate = 86400
 
@@ -18,15 +17,26 @@ type Props = { params: Promise<{ slug: string; section: string }> }
 
 const VALID_SECTIONS = ['courses', 'gallery', 'videos', 'ranking', 'reviews', 'scholarships']
 
-export async function generateMetadata({ params }: Props) {
-  try {
-    const { slug, section } = await params
-    const university = await getUniversityBySlug(slug)
-    if (!university) return {}
-    return resolveUniversityMeta(university as any, section)
-  } catch {
-    return {}
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, section } = await params
+  if (!VALID_SECTIONS.includes(section)) return {}
+
+  const universityData = await getUniversityFull(slug)
+  if (!universityData) return {}
+
+  const university = serializeBigInt(universityData) as any
+  const universityMetaSource = {
+    name: university?.name || null,
+    uname: university?.uname || slug,
+    city: university?.city || null,
+    shortnote: university?.shortnote || null,
+    meta_title: university?.meta_title || null,
+    meta_description: university?.meta_description || null,
+    meta_keyword: university?.meta_keyword || null,
+    og_image_path: university?.og_image_path || null,
   }
+
+  return resolveUniversityMeta(universityMetaSource, section)
 }
 
 export default async function UniversitySectionPage({ params }: Props) {
@@ -138,7 +148,6 @@ export default async function UniversitySectionPage({ params }: Props) {
 
   return (
     <>
-      <JsonLd data={universityJsonLd(university, { path: `/university/${slug}/${section}` })} />
       <UniversitySectionContainer
         slug={slug}
         universityName={university.name}

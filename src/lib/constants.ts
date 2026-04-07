@@ -34,7 +34,9 @@ export const SITE_VAR = process.env.SITE_VAR || 'MYS'
 /** Storage URL for images served from Laravel admin */
 export function storageUrl(path: string | null | undefined): string | null {
   if (!path) return null
-  return `${IMAGE_DELIVERY_BASE_URL}/storage/${path.replace(/^\//, '')}`
+  const cleaned = String(path).trim()
+  if (/^https?:\/\//i.test(cleaned)) return cleaned
+  return `${IMAGE_DELIVERY_BASE_URL}/storage/${cleaned.replace(/^\//, '')}`
 }
 
 /** Full site URL for a given path */

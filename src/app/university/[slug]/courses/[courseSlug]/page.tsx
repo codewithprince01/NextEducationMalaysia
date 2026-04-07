@@ -1,15 +1,26 @@
 import { notFound } from 'next/navigation'
-import { courseJsonLd } from '@/lib/seo/structured-data'
-import JsonLd from '@/components/seo/JsonLd'
 import { getProgramBySlug } from '@/lib/queries/courses'
 import CourseDetailClient from './CourseDetailClient'
 import UniversityCoursesClient from '@/components/university/UniversityCoursesClient'
 import { serializeBigInt } from '@/lib/utils'
 import UniversitySectionContainer from '@/components/university/UniversitySectionContainer'
+import { resolveCourseMeta } from '@/lib/seo/metadata'
+import type { Metadata } from 'next'
 
 type Props = { params: Promise<{ slug: string; courseSlug: string }> }
 
 export const revalidate = 86400
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, courseSlug } = await params
+  if (courseSlug.startsWith('page-')) return {}
+
+  const programData = await getProgramBySlug(courseSlug, slug)
+  if (!programData) return {}
+
+  const program = serializeBigInt(programData) as any
+  return resolveCourseMeta(program)
+}
 
 export default async function CourseDetailPage({ params }: Props) {
   const { slug, courseSlug } = await params
@@ -47,7 +58,6 @@ export default async function CourseDetailPage({ params }: Props) {
       universityName={program.university?.name || ''}
       fullWidth={true}
     >
-      <JsonLd data={courseJsonLd(program as any, (program as any).university?.name || '', slug)} />
       <CourseDetailClient slug={slug} courseSlug={courseSlug} program={program as any} />
     </UniversitySectionContainer>
   )

@@ -31,6 +31,8 @@ const ChevronRight = ({ size = 14, className }: { size?: number; className?: str
   </svg>
 )
 import Image from 'next/image'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 const RESOURCES_LINKS = {
   exams: [
@@ -46,7 +48,7 @@ const RESOURCES_LINKS = {
   ],
   guidelines: [
     { href: '/resources/guidelines/graduate-pass', label: 'Graduate Pass' },
-    { href: '/resources/guidelines/MQA', label: 'MQA' },
+    { href: '/resources/guidelines/mqa', label: 'MQA' },
     { href: '/resources/guidelines/team-education-malaysia', label: 'Study Malaysia' },
   ],
   about: [
@@ -69,9 +71,18 @@ export default function NavbarClient() {
   const [showDropdown, setShowDropdown] = useState(false)
   const [isDropdownLocked, setIsDropdownLocked] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const { isAuthenticated: isLoggedIn } = useAuth()
+  const [displayName, setDisplayName] = useState<string>('Profile')
+  const { isAuthenticated: isLoggedIn, user } = useAuth()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+
+  const toDisplayName = (value: string): string => {
+    const cleaned = String(value || '').trim()
+    if (!cleaned) return ''
+    // Never derive display name from email.
+    if (cleaned.includes('@')) return ''
+    return cleaned
+  }
 
   // useEffect for manual login check removed, handled by AuthContext
 
@@ -92,6 +103,57 @@ export default function NavbarClient() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [menuOpen])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setDisplayName('Profile')
+      return
+    }
+
+    const fromUser = toDisplayName(String((user as any)?.name || ''))
+    if (fromUser) {
+      setDisplayName(fromUser)
+      return
+    }
+
+    const fromStorage = typeof window !== 'undefined'
+      ? toDisplayName(localStorage.getItem('student_name') || '')
+      : ''
+    if (fromStorage) {
+      setDisplayName(fromStorage)
+      return
+    }
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) {
+      setDisplayName('Profile')
+      return
+    }
+
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/student/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+          },
+        })
+        const data = await res.json()
+        const fetchedName = toDisplayName(String(data?.data?.student?.name || ''))
+        if (!cancelled && fetchedName) {
+          localStorage.setItem('student_name', fetchedName)
+          setDisplayName(fetchedName)
+          return
+        }
+      } catch {}
+      if (!cancelled) setDisplayName('Profile')
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [isLoggedIn, user])
 
   const isActive = (href: string) => pathname === href
 
@@ -198,7 +260,7 @@ export default function NavbarClient() {
               href={isLoggedIn ? '/student/profile' : '/signup'}
               className="bg-blue-900 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[120px] text-center inline-block"
             >
-              {isLoggedIn ? 'Profile' : 'Get Started'}
+              {isLoggedIn ? displayName : 'Get Started'}
             </Link>
           </div>
 
@@ -276,7 +338,7 @@ export default function NavbarClient() {
             href={isLoggedIn ? '/student/profile' : '/signup'}
             className="w-full block bg-blue-900 text-white py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[120px] text-center"
           >
-            {isLoggedIn ? 'Profile' : 'Get Started'}
+            {isLoggedIn ? displayName : 'Get Started'}
           </Link>
         </div>
       </div>

@@ -1,15 +1,6 @@
-import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import UniversitiesHubClient from './UniversitiesHubClient'
 
 export const revalidate = 86400
-
-export async function generateMetadata() {
-  return resolveStaticMetaAny(
-    ['universities', 'Top Universities in Malaysia', 'universities-in-malaysia'],
-    '/universities',
-    'Top Universities in Malaysia - Education Malaysia',
-  )
-}
 
 import { getUniversitiesByType } from '@/lib/queries/universities'
 import { serializeBigInt } from '@/lib/utils'

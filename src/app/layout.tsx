@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
 import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import NavbarClient from '@/components/layout/NavbarClient'
+import { globalBreadcrumbJsonLd, organizationJsonLd, websiteJsonLd } from '@/lib/seo/structured-data'
+import { resolveRouteHeadSchemas } from '@/lib/seo/route-head-schemas'
 
 // Lazy-load below-fold / deferred components to reduce initial JS bundle.
 // NOTE: In Next.js App Router, layout.tsx is a Server Component —
@@ -45,6 +48,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const requestHeaders = await headers()
+  const pathname =
+    requestHeaders.get('x-pathname') ||
+    requestHeaders.get('x-invoke-path') ||
+    requestHeaders.get('next-url') ||
+    '/'
+  const breadcrumbSchema = globalBreadcrumbJsonLd(pathname)
+  const routeSchemas = await resolveRouteHeadSchemas(pathname)
+
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID || 'GTM-WP578P4K'
   const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID || 'p52lrj1wuu'
   const imageOrigin = process.env.NEXT_PUBLIC_IMAGE_CDN_URL || process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
@@ -81,6 +93,28 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://www.clarity.ms" />
+        {/* Global JSON-LD schemas — static site-wide, rendered inside <head> for all pages */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+        />
+        {breadcrumbSchema ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+          />
+        ) : null}
+        {routeSchemas.map((schema, index) => (
+          <script
+            key={`route-schema-${index}`}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+          />
+        ))}
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <noscript>

@@ -1,7 +1,4 @@
-import { extractMetadataText, resolveStaticMeta } from '@/lib/seo/metadata'
-import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
-import JsonLd from '@/components/seo/JsonLd'
-import { SITE_URL } from '@/lib/constants'
+import { resolveStaticMeta } from '@/lib/seo/metadata'
 import Breadcrumb from '@/components/Breadcrumb'
 import Link from 'next/link'
 
@@ -10,9 +7,6 @@ export async function generateMetadata() {
 }
 
 export default async function PrivacyPolicyPage() {
-  const meta = await resolveStaticMeta('Privacy Policy', '/privacy-policy')
-  const { title, description } = extractMetadataText(meta)
-
   const sections = [
     {
       title: '1. Information We Collect',
@@ -70,10 +64,6 @@ export default async function PrivacyPolicyPage() {
 
   return (
     <>
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Home', url: SITE_URL },
-        { name: 'Privacy Policy', url: `${SITE_URL}/privacy-policy` }
-      ], { name: title, description })} />
       <Breadcrumb items={[
         { label: 'Home', href: '/' },
         { label: 'Privacy Policy' },

@@ -1,4 +1,3 @@
-import JsonLd from '@/components/seo/JsonLd'
 import { generateFAQSchema, type FaqEntry } from '@/lib/seo/faq-schema'
 
 type Props = {
@@ -6,8 +5,14 @@ type Props = {
 }
 
 export default function FAQSchema({ faqs = [] }: Props) {
-  const schema = generateFAQSchema(faqs || [])
+  const schema = generateFAQSchema(Array.isArray(faqs) ? faqs : [])
   if (!schema) return null
-  return <JsonLd data={schema as any} />
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
 }
 

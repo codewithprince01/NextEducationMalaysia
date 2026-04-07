@@ -185,13 +185,20 @@ export default function LoginClient() {
 
       const resData: any = await response.json();
       const responseData = resData.data || resData;
+      const responseName =
+        responseData?.name ||
+        responseData?.student?.name ||
+        responseData?.student_name ||
+        "";
 
       if (response.ok && responseData.token) {
-        login(responseData.token, String(responseData.id), responseData.email);
+        if (responseName) localStorage.setItem('student_name', String(responseName).trim());
+        login(responseData.token, String(responseData.id), responseData.email, responseName);
         router.push('/student/profile');
       } else if (response.ok && (responseData.needs_otp || responseData.otp_required || responseData.id)) {
         if (responseData.id) localStorage.setItem('student_id', String(responseData.id));
         if (responseData.email) localStorage.setItem('student_email', String(responseData.email));
+        if (responseName) localStorage.setItem('student_name', String(responseName).trim());
         router.push('/confirmed-email');
       } else {
         setErrors({ form: resData.message || "Login failed. Please try again." });

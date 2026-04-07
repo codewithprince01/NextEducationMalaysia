@@ -16,7 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FiChevronDown } from "react-icons/fi";
 import { LuRefreshCw } from "react-icons/lu";
 import { MdError, MdCheckCircle } from "react-icons/md";
-import { parsePhoneNumber, isValidPhoneNumber, CountryCode } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useAuth } from "@/context/AuthContext";
 import {
   validateEmail,
@@ -147,40 +147,21 @@ export default function SignUpClient() {
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const phoneNumber = e.target.value.replace(/\D/g, "");
-    let newFormData = { ...formData, mobile: phoneNumber };
+    const newFormData = { ...formData, mobile: phoneNumber };
     let newPhoneError = "";
     let newPhoneValid = false;
 
-    if (phoneNumber.length >= 6) {
+    // Phone typing should never auto-change country or country code.
+    if (phoneNumber.length >= 6 && formData.country_code) {
       try {
-        let detectedCountryCode = null;
-        for (const code of phonecode) {
-          const fullNumber = `+${code.phonecode}${phoneNumber}`;
-          try {
-            if (isValidPhoneNumber(fullNumber)) {
-              const parsed = parsePhoneNumber(fullNumber);
-              if (parsed && parsed.country) {
-                detectedCountryCode = code.phonecode;
-                newPhoneValid = true;
-                break;
-              }
-            }
-          } catch (err) {}
-        }
-
-        if (detectedCountryCode) {
-          if (!formData.country_code || formData.country_code !== detectedCountryCode) {
-            newFormData.country_code = detectedCountryCode;
-          }
-        } else if (formData.country_code) {
-          const fullNumber = `+${formData.country_code}${phoneNumber}`;
-          if (isValidPhoneNumber(fullNumber)) newPhoneValid = true;
-          else newPhoneError = "Invalid phone number for selected country";
-        } else {
-          newPhoneError = "Please select a country code";
-        }
+        const fullNumber = `+${formData.country_code}${phoneNumber}`;
+        if (isValidPhoneNumber(fullNumber)) newPhoneValid = true;
+        else newPhoneError = "Invalid phone number for selected country";
       } catch (error) {}
+    } else if (phoneNumber.length >= 6 && !formData.country_code) {
+      newPhoneError = "Please select a country code";
     }
+
     setPhoneError(newPhoneError);
     setPhoneValid(newPhoneValid);
     setFormData(newFormData);
@@ -325,8 +306,9 @@ export default function SignUpClient() {
       if (studentId) {
         localStorage.setItem('student_id', String(studentId));
         localStorage.setItem('student_email', formData.email);
+        if (formData.name) localStorage.setItem('student_name', String(formData.name).trim());
         if (resData.token || resData.data?.token) {
-          login(resData.token || resData.data?.token, String(studentId), formData.email);
+          login(resData.token || resData.data?.token, String(studentId), formData.email, formData.name);
         }
         const programId = pathProgramId || searchParams.get("program_id");
         const redirect = pathRedirect || searchParams.get("redirect");
@@ -347,14 +329,35 @@ export default function SignUpClient() {
     }
   };
 
-  const getCountryFlag = (phoneCodeValue: string) => {
-    const pc = phonecode.find((p) => p.phonecode == phoneCodeValue);
-    const iso = pc?.iso || pc?.country_code || pc?.sortname || "US";
-    try {
-      return iso.toUpperCase().replace(/./g, (char: string) => 
-        String.fromCodePoint(char.charCodeAt(0) + 127397)
-      );
-    } catch (e) { return "??"; }
+  const getAlphaCodeFromName = (name: string): string => {
+    const cleaned = String(name || "").trim();
+    if (!cleaned) return "";
+    const words = cleaned.split(/[\s-]+/).filter(Boolean);
+    if (!words.length) return "";
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
+    return `${words[0][0] || ""}${words[1][0] || ""}`.toUpperCase();
+  };
+
+  const getCountryIsoByPhoneCode = (phoneCodeValue: string): string => {
+    if (!phoneCodeValue) return "";
+    const pc = phonecode.find((p) => String(p.phonecode) === String(phoneCodeValue));
+    if (!pc) return "";
+
+    const directIso = String(pc.iso || pc.country_code || pc.sortname || "").toUpperCase().trim();
+    if (directIso) return directIso;
+
+    const pcName = String(pc.name || pc.country || "").toLowerCase().trim();
+    if (pcName) {
+      const byName = countriesData.find((c) => String(c.name || "").toLowerCase().trim() === pcName);
+      if (byName) {
+        const iso = String(byName.iso || byName.sortname || byName.code || "").toUpperCase().trim();
+        if (iso) return iso;
+      }
+    }
+
+    return getAlphaCodeFromName(String(pc.name || pc.country || ""));
   };
 
   return (
@@ -403,13 +406,12 @@ export default function SignUpClient() {
               <label className="text-sm font-semibold text-gray-700 ml-1">Phone Number</label>
               <div className="flex gap-3">
                 <div className="relative w-1/3">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none z-10">
-                    {formData.country_code && getCountryFlag(formData.country_code)}
-                  </div>
-                  <select name="country_code" value={formData.country_code} onChange={handleCountryCodeChange} className="appearance-none w-full pl-10 pr-8 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-blue-500 transition-all text-sm outline-none cursor-pointer">
+                  <select name="country_code" value={formData.country_code} onChange={handleCountryCodeChange} className="appearance-none w-full pl-4 pr-8 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-blue-500 transition-all text-sm outline-none cursor-pointer">
                     <option value="">Code</option>
                     {Array.isArray(phonecode) && phonecode.map((code, idx) => (
-                      <option key={idx} value={code.phonecode}>{code.iso || code.country_code} (+{code.phonecode})</option>
+                      <option key={idx} value={code.phonecode}>
+                        {(getCountryIsoByPhoneCode(String(code.phonecode)) || "NA")} (+{code.phonecode})
+                      </option>
                     ))}
                   </select>
                   <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />

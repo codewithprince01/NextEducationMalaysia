@@ -46,11 +46,17 @@ export default function ConfirmedEmailClient() {
       })
 
       const resData = await response.json()
+      const responseName =
+        resData?.data?.name ||
+        resData?.data?.student?.name ||
+        resData?.data?.student_name ||
+        ""
 
       if (response.ok && resData?.data?.token) {
         localStorage.setItem("token", resData.data.token)
         if (resData?.data?.id) localStorage.setItem("student_id", String(resData.data.id))
         if (resData?.data?.email) localStorage.setItem("student_email", resData.data.email)
+        if (responseName) localStorage.setItem("student_name", String(responseName).trim())
         setMessage(resData.message || "OTP Verified Successfully!")
         
         // Wait a bit before redirecting

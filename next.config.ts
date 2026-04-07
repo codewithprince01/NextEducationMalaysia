@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Disable metadata streaming so tags are emitted in <head> in initial HTML/view-source.
+  htmlLimitedBots: /.*/,
+
   // Enable gzip compression
   compress: true,
 

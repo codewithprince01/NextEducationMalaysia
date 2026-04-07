@@ -93,7 +93,9 @@ export function universityJsonLd(uni: {
       .filter(Boolean)
   )).slice(0, 15)
   const reviewCount = Number.parseInt(String(uni.review_count ?? '0'), 10)
-  const ratingValue = Number.parseFloat(String(uni.average_rating ?? '').replace(/[^0-9.]/g, ''))
+  const ratingValue = Number.parseFloat(
+    String(uni.average_rating ?? uni.rating ?? '').replace(/[^0-9.]/g, ''),
+  )
   const hasRealAggregate = Number.isFinite(ratingValue) && ratingValue > 0 && reviewCount > 0
   const realReviews = (uni.reviews || [])
     .map((r) => ({
@@ -320,17 +322,17 @@ export function courseDiscoveryJsonLd(input: {
     universityName,
     input.city || '',
     country,
-    `${name} Malaysia`,
-    `Study ${name} in Malaysia`,
-    `${name} fees Malaysia`,
+    name ? `${name} Malaysia` : '',
+    name ? `Study ${name} in Malaysia` : '',
+    name ? `${name} fees Malaysia` : '',
   ]
   const keywords = Array.from(new Set(keywordParts.map((v) => clean(v)).filter(Boolean))).join(', ')
 
   const data: JsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Course',
-    name,
-    description,
+    name: name || 'Course in Malaysia',
+    description: description || `${name || 'Course'} details for studying in Malaysia.`,
   }
 
   if (courseUrl) data.url = courseUrl
@@ -364,23 +366,7 @@ export function courseDiscoveryJsonLd(input: {
     data.hasCourseInstance = intakeDates.map((startDate) => ({
       '@type': 'CourseInstance',
       startDate,
-      location: {
-        '@type': 'Place',
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: clean(input.city) || country,
-          addressCountry: country,
-        },
-      },
     }))
-  }
-  if (input.ranking != null && String(input.ranking).trim() !== '') {
-    const rank = String(input.ranking).trim()
-    data.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: rank,
-      ratingCount: 1,
-    }
   }
 
   return data
@@ -392,8 +378,11 @@ export function blogJsonLd(blog: {
   slug?: string | null
   short_description?: string | null
   description?: string | null
+  content?: string | null
+  featuredImage?: string | null
   thumbnail_path?: string | null
   og_image_path?: string | null
+  authorName?: string | null
   meta_keyword?: string | null
   created_at?: Date | string | null
   updated_at?: Date | string | null
@@ -409,26 +398,33 @@ export function blogJsonLd(blog: {
   }
   const stripTags = (value: string) => value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
   const title = (blog.title || blog.headline || 'Education Malaysia Blog').trim()
-  const description = stripTags(blog.short_description || blog.description || `Read ${title} on Education Malaysia.`)
+  const description = stripTags(
+    blog.short_description ||
+    blog.description ||
+    blog.content ||
+    `Read ${title} on Education Malaysia.`
+  )
   const categoryName = (blog.category?.category_name || categorySlug.replace(/-/g, ' ')).replace(/\b\w/g, c => c.toUpperCase())
   const pagePath = options?.path || `/blog/${categorySlug}/${blog.slug || ''}-${blogId}`
   const pageUrl = `${SITE_URL}${pagePath.startsWith('/') ? pagePath : `/${pagePath}`}`
-  const keywordSource = `${title} ${description} ${stripTags(blog.description || '')}`
+  const keywordSource = `${title} ${description} ${stripTags(blog.description || blog.content || '')}`
   const keywords = extractTopKeywords(keywordSource, blog.meta_keyword || '')
-  const image = storageUrl(blog.og_image_path) || storageUrl(blog.thumbnail_path) || `${SITE_URL}/og-default.png`
+  const image =
+    storageUrl(blog.featuredImage) ||
+    storageUrl(blog.og_image_path) ||
+    storageUrl(blog.thumbnail_path) ||
+    `${SITE_URL}/og-default.png`
   const datePublished = toIso(blog.created_at) || new Date().toISOString()
   const dateModified = toIso(blog.updated_at) || datePublished
+  const authorName = (blog.authorName || blog.author?.name || 'Education Malaysia').trim() || 'Education Malaysia'
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: title,
     description,
-    image,
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': pageUrl,
-    },
+    image: [image],
+    mainEntityOfPage: pageUrl,
     url: pageUrl,
     datePublished,
     dateModified,
@@ -436,7 +432,7 @@ export function blogJsonLd(blog: {
     keywords,
     author: {
       '@type': 'Person',
-      name: blog.author?.name || 'Education Malaysia',
+      name: authorName,
     },
     publisher: {
       '@type': 'Organization',
@@ -444,7 +440,7 @@ export function blogJsonLd(blog: {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/favicon.png`,
+        url: `${SITE_URL}/logo.png`,
       },
     },
   }
@@ -471,6 +467,43 @@ export function breadcrumbJsonLd(
       item: item.url,
     })),
   }
+}
+
+function toBreadcrumbLabel(segment: string): string {
+  const cleaned = decodeURIComponent(segment || '').trim()
+  if (!cleaned) return ''
+  const pageMatch = cleaned.match(/^page-(\d+)$/i)
+  if (pageMatch) return `Page ${pageMatch[1]}`
+  return cleaned
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+export function globalBreadcrumbJsonLd(pathname: string): JsonLd | null {
+  const pathOnly = String(pathname || '/').split('?')[0].split('#')[0] || '/'
+  if (!pathOnly.startsWith('/')) return null
+  if (
+    pathOnly.startsWith('/_next') ||
+    pathOnly.startsWith('/api') ||
+    pathOnly === '/favicon.ico' ||
+    pathOnly === '/robots.txt' ||
+    pathOnly === '/sitemap.xml'
+  ) {
+    return null
+  }
+
+  const segments = pathOnly.split('/').filter(Boolean)
+  const items: { name: string; url: string }[] = [{ name: 'Home', url: SITE_URL }]
+  let currentPath = ''
+  for (const raw of segments) {
+    const name = toBreadcrumbLabel(raw)
+    if (!name) continue
+    currentPath += `/${raw}`
+    items.push({ name, url: `${SITE_URL}${currentPath}` })
+  }
+
+  return breadcrumbJsonLd(items)
 }
 
 export function faqJsonLd(faqs: { question?: string | null; answer?: string | null }[]): JsonLd {

@@ -12,7 +12,7 @@ export async function generateMetadata() {
 
 const guidelines = [
   { title: 'Graduate Pass', description: 'Learn about the Graduate Social Visit Pass which allows international students to stay in Malaysia for up to 12 months after graduation.', icon: GraduationCap, path: '/resources/guidelines/graduate-pass', delay: 100 },
-  { title: 'MQA Standards', description: 'Understand the Malaysian Qualifications Agency (MQA) standards that ensure quality education across all higher learning institutions.', icon: ShieldCheck, path: '/resources/guidelines/MQA', delay: 200 },
+  { title: 'MQA Standards', description: 'Understand the Malaysian Qualifications Agency (MQA) standards that ensure quality education across all higher learning institutions.', icon: ShieldCheck, path: '/resources/guidelines/mqa', delay: 200 },
   { title: 'Team Education Malaysia', description: 'Meet the dedicated team behind Education Malaysia who assist international students in their academic journey.', icon: Users, path: '/resources/guidelines/team-education-malaysia', delay: 300 },
 ]
 

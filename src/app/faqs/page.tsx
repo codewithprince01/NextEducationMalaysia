@@ -1,9 +1,5 @@
-import { extractMetadataText, resolveStaticMeta } from '@/lib/seo/metadata'
-import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
+import { resolveStaticMeta } from '@/lib/seo/metadata'
 import { getFaqs } from '@/lib/queries/home'
-import JsonLd from '@/components/seo/JsonLd'
-import FAQSchema from '@/components/seo/FAQSchema'
-import { SITE_URL } from '@/lib/constants'
 import FaqsClient from './FaqsClient'
 
 export async function generateMetadata() {
@@ -11,8 +7,6 @@ export async function generateMetadata() {
 }
 
 export default async function FaqsPage() {
-  const meta = await resolveStaticMeta('FAQ', '/faqs')
-  const { title, description } = extractMetadataText(meta)
   const faqs = await getFaqs()
   const byCategory = new Map<string, { id: number; category_name: string; category_slug: string; faqs: Array<{ id: number; question: string; answer: string }> }>()
 
@@ -50,22 +44,13 @@ export default async function FaqsPage() {
     },
     {} as Record<string, Array<{ id: number; question: string; answer: string }>>
   )
-  const defaultActiveSlug = initialCategories[0]?.category_slug || ''
-  const activeFaqs = defaultActiveSlug ? (initialFaqsByCategory[defaultActiveSlug] || []) : []
 
   return (
-    <>
-      <FAQSchema faqs={activeFaqs as any[]} />
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Home', url: SITE_URL },
-        { name: 'FAQs', url: `${SITE_URL}/faqs` }
-      ], { name: title, description })} />
-      <main>
-        <FaqsClient
-          initialCategories={initialCategories}
-          initialFaqsByCategory={initialFaqsByCategory}
-        />
-      </main>
-    </>
+    <main>
+      <FaqsClient
+        initialCategories={initialCategories}
+        initialFaqsByCategory={initialFaqsByCategory}
+      />
+    </main>
   )
 }

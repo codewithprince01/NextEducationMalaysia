@@ -21,8 +21,6 @@ export default async function UniversityLayout({ children, params }: Props) {
   
   const university = serializeBigInt(universityData) as any
   const photos = university.photos || []
-  
-  // Extract unique course names/faculties from programs
   const offeredCourses = Array.from(new Set((university.programs || []).map((p: any) => p.course_name))).filter(Boolean).slice(0, 10)
 
   return (

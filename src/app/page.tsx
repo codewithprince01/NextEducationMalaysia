@@ -6,8 +6,6 @@ import type { Banner } from '@/components/home/Hero'
 import type { Testimonial } from '@/components/home/TestimonialSlider'
 import LazySection from '@/components/ui/LazySection'
 import ErrorBoundary from '@/components/ui/ErrorBoundary'
-import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/structured-data'
-import JsonLd from '@/components/seo/JsonLd'
 
 // ── Below-fold components: dynamic() defers JS download until render ──
 // This is the critical TBT fix — static imports cause ALL component JS to be
@@ -157,8 +155,6 @@ export default async function Home() {
 
   return (
     <main>
-      <JsonLd data={organizationJsonLd()} />
-      <JsonLd data={websiteJsonLd()} />
       <h1 className="sr-only">Education Malaysia - Study in Malaysia</h1>
 
       {/* Above fold: Hero receives pre-fetched banners — no more sequential DB query */}

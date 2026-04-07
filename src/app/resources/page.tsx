@@ -47,7 +47,7 @@ const sections = [
     colorClass: "bg-linear-to-br from-amber-500 to-orange-600",
     items: [
       { label: "Graduate Pass", path: "/resources/guidelines/graduate-pass" },
-      { label: "MQA Standards", path: "/resources/guidelines/MQA" },
+      { label: "MQA Standards", path: "/resources/guidelines/mqa" },
       { label: "Study in Malaysia", path: "/resources/guidelines/team-education-malaysia" },
       { label: "Student Guidelines", path: "/resources/guidelines" },
     ],

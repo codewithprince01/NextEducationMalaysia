@@ -1,10 +1,7 @@
 import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
 import CoursesListClient from '../CoursesListClient'
 import { malaysiaDiscoveryService } from '@/backend'
 import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metadata'
-import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
 
 export const revalidate = 86400
 
@@ -78,14 +75,6 @@ export default async function CoursesPageWithPagination({ params, searchParams }
     search,
     page: page
   })
-  const breadcrumbTitle = result.seo?.meta_title && result.seo.meta_title !== '%title%'
-    ? result.seo.meta_title
-    : `Courses in Malaysia - Page ${page} | Education Malaysia`
-  const breadcrumbDescription =
-    result.seo?.meta_description ||
-    result.seo?.page_content ||
-    `Page ${page} of courses and programs offered at universities across Malaysia. Find your ideal course today.`
-
   const filterData = result.filters
   const coursesData = {
     data: result.rows.data,
@@ -111,11 +100,6 @@ export default async function CoursesPageWithPagination({ params, searchParams }
 
   return (
     <>
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Home', url: SITE_URL },
-        { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
-        { name: `Page ${page}`, url: `${SITE_URL}/courses-in-malaysia/page-${page}` },
-      ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
       <CoursesListClient 
         initialFilterData={filterData} 
         initialCoursesData={coursesData}

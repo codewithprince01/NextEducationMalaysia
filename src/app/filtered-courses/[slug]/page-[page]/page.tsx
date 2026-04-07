@@ -1,10 +1,7 @@
 import { Metadata } from 'next'
-import { SITE_URL } from '@/lib/constants'
 import CoursesListClient from '../../../courses-in-malaysia/CoursesListClient'
 import { malaysiaDiscoveryService } from '@/backend'
 import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metadata'
-import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd, courseDiscoveryJsonLd } from '@/lib/seo/structured-data'
 
 export const revalidate = 86400
 
@@ -125,15 +122,6 @@ export default async function DynamicCoursesPageWithPagination({ params, searchP
   const result = await malaysiaDiscoveryService.getCoursesInMalaysia(serviceParams)
   const rawSeoTitle = String(result.seo?.meta_title || '').trim()
   const isGenericSeoTitle = /^find courses,\s*universities\/colleges/i.test(rawSeoTitle)
-  const breadcrumbTitle =
-    rawSeoTitle && rawSeoTitle !== '%title%' && !isGenericSeoTitle
-      ? rawSeoTitle
-      : `${slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Courses in Malaysia - Page ${page} | Education Malaysia`
-  const breadcrumbDescription =
-    result.seo?.meta_description ||
-    result.seo?.page_content ||
-    `Page ${page} of courses and programs offered at universities across Malaysia.`
-
   const coursesData = {
     data: result.rows.data,
     pagination: {
@@ -154,35 +142,9 @@ export default async function DynamicCoursesPageWithPagination({ params, searchP
     nou: result.nou,
     noc: result.noc
   }
-  const topCourse = (result.rows.data || [])[0] as any
-  const courseSchema = courseDiscoveryJsonLd({
-    courseName: topCourse?.course_name || `${filterValue || slug} Courses in Malaysia Page ${page}`,
-    description: String(breadcrumbDescription),
-    universityName: topCourse?.university?.name || '',
-    duration: topCourse?.duration || '',
-    fees: topCourse?.tution_fee || '',
-    currency: 'MYR',
-    studyMode: topCourse?.study_mode || '',
-    courseLevel: topCourse?.level || String(result.current_filters?.level || ''),
-    country: 'Malaysia',
-    city: topCourse?.university?.city || '',
-    intakeDates: topCourse?.intake || '',
-    courseUrl: `/${slug}-courses/page-${page}`,
-    universityUrl: topCourse?.university?.uname ? `/university/${topCourse.university.uname}` : '',
-    ranking: topCourse?.university?.rating || '',
-    category: result.current_filters?.category?.name || '',
-    specialization: result.current_filters?.specialization?.name || '',
-  })
 
   return (
     <>
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Home', url: SITE_URL },
-        { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
-        { name: filterValue || slug, url: `${SITE_URL}/${slug}-courses` },
-        { name: `Page ${page}`, url: `${SITE_URL}/${slug}-courses/page-${page}` },
-      ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
-      <JsonLd data={courseSchema as any} />
       <CoursesListClient 
         initialFilterData={result.filters} 
         initialCoursesData={coursesData}

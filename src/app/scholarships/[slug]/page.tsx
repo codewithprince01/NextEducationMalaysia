@@ -1,14 +1,11 @@
 import { notFound } from 'next/navigation'
 import ScholarshipDetailClient from './ScholarshipDetailClient'
-import { extractMetadataText, resolveScholarshipMeta } from '@/lib/seo/metadata'
+import { resolveScholarshipMeta } from '@/lib/seo/metadata'
 import { 
   getScholarshipBySlug, 
   getAllScholarshipSlugs, 
   getAllScholarships 
 } from '@/lib/queries/scholarships'
-import { scholarshipJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
-import JsonLd from '@/components/seo/JsonLd'
-import { SITE_URL } from '@/lib/constants'
 
 import { serializeBigInt } from '@/lib/utils'
 
@@ -45,18 +42,6 @@ export default async function ScholarshipDetailPage({ params }: Params) {
       .filter((s: { slug?: string | null }) => s.slug !== slug)
       .slice(0, 5) // Limit to 5 similar scholarships
   })
-  const meta = await resolveScholarshipMeta(scholarship)
-  const { title, description } = extractMetadataText(meta)
 
-  return (
-    <>
-      <JsonLd data={scholarshipJsonLd(scholarship)} />
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Home', url: SITE_URL },
-        { name: 'Scholarships', url: `${SITE_URL}/scholarships` },
-        { name: scholarship.title || '', url: `${SITE_URL}/scholarships/${slug}` }
-      ], { name: title, description })} />
-      <ScholarshipDetailClient data={formattedData as any} />
-    </>
-  )
+  return <ScholarshipDetailClient data={formattedData as any} />
 }

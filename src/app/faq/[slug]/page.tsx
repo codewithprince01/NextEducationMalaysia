@@ -1,10 +1,6 @@
 import { notFound } from 'next/navigation'
-import { extractMetadataText, resolveStaticMetaAny } from '@/lib/seo/metadata'
-import { breadcrumbJsonLd } from '@/lib/seo/structured-data'
+import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import { getFaqs } from '@/lib/queries/home'
-import JsonLd from '@/components/seo/JsonLd'
-import FAQSchema from '@/components/seo/FAQSchema'
-import { SITE_URL } from '@/lib/constants'
 import FaqsClient from '@/app/faqs/FaqsClient'
 
 type PageProps = {
@@ -24,13 +20,6 @@ export default async function FaqCategoryPage({ params }: PageProps) {
   const { slug } = await params
   const activeSlug = String(slug || '').trim().toLowerCase()
   if (!activeSlug) notFound()
-
-  const meta = await resolveStaticMetaAny(
-    [`faq/${activeSlug}`, 'faq', 'FAQ'],
-    `/faq/${activeSlug}`,
-    `FAQs - ${activeSlug.replace(/-/g, ' ')}`,
-  )
-  const { title, description } = extractMetadataText(meta)
 
   const faqs = await getFaqs()
   const byCategory = new Map<
@@ -83,29 +72,13 @@ export default async function FaqCategoryPage({ params }: PageProps) {
   )
   const activeFaqs = initialFaqsByCategory[activeSlug] || []
 
-  const activeCategoryName =
-    initialCategories.find((item) => item.category_slug === activeSlug)?.category_name || activeSlug
-
   return (
-    <>
-      <FAQSchema faqs={activeFaqs as any[]} />
-      <JsonLd
-        data={breadcrumbJsonLd(
-          [
-            { name: 'Home', url: SITE_URL },
-            { name: 'FAQs', url: `${SITE_URL}/faqs` },
-            { name: activeCategoryName, url: `${SITE_URL}/faq/${activeSlug}` },
-          ],
-          { name: title, description },
-        )}
+    <main>
+      <FaqsClient
+        initialCategories={initialCategories}
+        initialFaqsByCategory={initialFaqsByCategory}
+        initialActiveSlug={activeSlug}
       />
-      <main>
-        <FaqsClient
-          initialCategories={initialCategories}
-          initialFaqsByCategory={initialFaqsByCategory}
-          initialActiveSlug={activeSlug}
-        />
-      </main>
-    </>
+    </main>
   )
 }

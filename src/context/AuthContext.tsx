@@ -6,7 +6,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   user: any | null
-  login: (token: string, studentId: string, email: string) => void
+  login: (token: string, studentId: string, email: string, name?: string) => void
   logout: () => void
 }
 
@@ -22,26 +22,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('token')
     const studentId = localStorage.getItem('student_id')
     const email = localStorage.getItem('student_email')
+    const name = localStorage.getItem('student_name')
 
     if (token && studentId) {
       setIsAuthenticated(true)
-      setUser({ id: studentId, email: email })
+      setUser({ id: studentId, email: email, name: name || '' })
     }
     setIsLoading(false)
   }, [])
 
-  const login = (token: string, studentId: string, email: string) => {
+  const login = (token: string, studentId: string, email: string, name?: string) => {
     localStorage.setItem('token', token)
     localStorage.setItem('student_id', studentId)
     localStorage.setItem('student_email', email)
+    if (name && String(name).trim()) {
+      localStorage.setItem('student_name', String(name).trim())
+    }
     setIsAuthenticated(true)
-    setUser({ id: studentId, email: email })
+    setUser({ id: studentId, email: email, name: (name || '').trim() })
   }
 
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('student_id')
     localStorage.removeItem('student_email')
+    localStorage.removeItem('student_name')
     setIsAuthenticated(false)
     setUser(null)
   }

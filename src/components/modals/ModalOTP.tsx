@@ -39,11 +39,17 @@ const ModalOTP: React.FC<ModalOTPProps> = ({ studentId, onSuccess }) => {
 
       const resData: any = response.data;
       const responseData = resData.data || resData;
+      const responseName =
+        responseData?.name ||
+        responseData?.student?.name ||
+        responseData?.student_name ||
+        "";
 
       if (responseData.token) {
         localStorage.setItem("token", responseData.token);
         if (responseData.id) localStorage.setItem("student_id", String(responseData.id));
         if (responseData.email) localStorage.setItem("student_email", responseData.email);
+        if (responseName) localStorage.setItem("student_name", String(responseName).trim());
 
         toast.success(resData.message || "OTP Verified Successfully!");
 

@@ -1,13 +1,9 @@
 import { notFound, redirect } from 'next/navigation'
 import { getBlogBySlugAndId, getAllBlogSlugs } from '@/lib/queries/blogs'
-import { extractMetadataText, resolveBlogMeta } from '@/lib/seo/metadata'
-import { blogJsonLd, breadcrumbJsonLd } from '@/lib/seo/structured-data'
-import JsonLd from '@/components/seo/JsonLd'
+import { resolveBlogMeta } from '@/lib/seo/metadata'
 import FaqSection from '@/components/seo/FaqSection'
-import FAQSchema from '@/components/seo/FAQSchema'
 import { SITE_URL } from '@/lib/constants'
 import BlogDetailClient from './BlogDetailClient'
-import { serializeBigInt } from '@/lib/utils'
 import BlogListClient from '../../BlogListClient'
 import { prisma } from '@/lib/db-fresh'
 import { normalizeFaqs } from '@/lib/seo/faq-schema'
@@ -109,8 +105,6 @@ export default async function BlogDetailPage({ params }: Props) {
       specializations: [],
       faqs: [],
     }
-    const fallbackMeta = await resolveBlogMeta(fallbackData.data as any, parsed.id)
-    const { title: fallbackTitle, description: fallbackDescription } = extractMetadataText(fallbackMeta)
     const fallbackFaqRows = await prisma.blogFaq.findMany({
       where: { blog_id: Number((fallbackData.data as any).id) },
       select: { question: true, answer: true, position: true, id: true },
@@ -120,43 +114,15 @@ export default async function BlogDetailPage({ params }: Props) {
 
     return (
       <>
-        <JsonLd
-          data={blogJsonLd(fallbackData.data, parsed.id, {
-            categorySlug: category,
-            path: `/blog/${category}/${slugWithId}`,
-          })}
-        />
-        <FAQSchema faqs={fallbackFaqItems} />
-        <JsonLd data={breadcrumbJsonLd([
-          { name: 'Home', url: SITE_URL },
-          { name: 'Blog', url: `${SITE_URL}/blog` },
-          { name: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), url: `${SITE_URL}/blog/${category}` },
-          { name: fallbackData.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
-        ], { name: fallbackTitle, description: fallbackDescription })} />
         <BlogDetailClient category={category} slugWithId={slugWithId} initialData={fallbackData} />
         <FaqSection title="Blog FAQs" faqs={fallbackFaqItems} />
       </>
     )
   }
-  const meta = await resolveBlogMeta(result.data as any, parsed.id)
-  const { title, description } = extractMetadataText(meta)
   const faqItems = normalizeFaqs(((result as any).faqs || []) as any[])
 
   return (
     <>
-      <JsonLd
-        data={blogJsonLd(result.data, parsed.id, {
-          categorySlug: canonicalCategory,
-          path: `/blog/${canonicalCategory}/${canonical.slug}-${canonical.id}`,
-        })}
-      />
-      <FAQSchema faqs={faqItems} />
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Home', url: SITE_URL },
-        { name: 'Blog', url: `${SITE_URL}/blog` },
-        { name: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), url: `${SITE_URL}/blog/${category}` },
-        { name: result.data.headline || '', url: `${SITE_URL}/blog/${category}/${slugWithId}` }
-      ], { name: title, description })} />
       <BlogDetailClient category={category} slugWithId={slugWithId} initialData={result} />
       <FaqSection title="Blog FAQs" faqs={faqItems} />
     </>

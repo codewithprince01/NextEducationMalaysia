@@ -1,15 +1,14 @@
-import { SITE_URL } from '@/lib/constants'
 import { getInstituteTypes, getPageContent } from '@/lib/queries/universities'
 import { notFound, redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import UniversityListClient from './UniversityListClient'
 import { serializeBigInt } from '@/lib/utils'
 import { universityService } from '@/backend'
-import JsonLd from '@/components/seo/JsonLd'
-import FAQSchema from '@/components/seo/FAQSchema'
 import FaqSection from '@/components/seo/FaqSection'
 import { normalizeFaqs } from '@/lib/seo/faq-schema'
 import { prisma } from '@/lib/db-fresh'
+import { SITE_URL } from '@/lib/constants'
+import type { Metadata } from 'next'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -80,7 +79,7 @@ export async function generateStaticParams() {
   }
 }
 
-export async function generateMetadata({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { type } = await params
     const isAllAlias = type === 'universities-in-malaysia' || type === 'international-school-in-malaysia'
@@ -103,7 +102,7 @@ export async function generateMetadata({ params }: Props) {
       title,
       description,
       keywords,
-      robots: 'index, follow',
+      robots: { index: true, follow: true },
       alternates: { canonical },
       openGraph: {
         type: 'website',
@@ -159,7 +158,6 @@ export default async function UniversitiesByTypePage({ params }: Props) {
       const faqItems = await getUniversityFaqs(type)
       return (
         <>
-          <FAQSchema faqs={faqItems} />
           <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
             <UniversityListClient
               typeSlug={type}
@@ -199,7 +197,6 @@ export default async function UniversitiesByTypePage({ params }: Props) {
 
   return (
     <>
-      <FAQSchema faqs={faqItems} />
       <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
         <UniversityListClient
           typeSlug={type}

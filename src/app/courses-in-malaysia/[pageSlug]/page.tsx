@@ -1,13 +1,9 @@
 import { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { SITE_URL } from '@/lib/constants'
 import CoursesListClient from '../CoursesListClient'
 import { malaysiaDiscoveryService } from '@/backend'
 import { buildCoursesDiscoveryMetadata } from '@/lib/seo/courses-discovery-metadata'
-import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd, courseDiscoveryJsonLd } from '@/lib/seo/structured-data'
 import FaqSection from '@/components/seo/FaqSection'
-import FAQSchema from '@/components/seo/FAQSchema'
 import { normalizeFaqs } from '@/lib/seo/faq-schema'
 
 export const revalidate = 86400
@@ -98,14 +94,6 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
     search,
     page,
   })
-  const breadcrumbTitle = result.seo?.meta_title && result.seo.meta_title !== '%title%'
-    ? result.seo.meta_title
-    : `Courses in Malaysia - Page ${page} | Education Malaysia`
-  const breadcrumbDescription =
-    result.seo?.meta_description ||
-    result.seo?.page_content ||
-    `Page ${page} of courses and programs offered at universities across Malaysia. Find your ideal course today.`
-
   const filterData = result.filters
   const coursesData = {
     data: result.rows.data,
@@ -128,35 +116,9 @@ export default async function CoursesPageWithSlugPagination({ params, searchPara
     noc: result.noc,
   }
   const faqItems = normalizeFaqs((result as any).faqs || [])
-  const topCourse = (result.rows.data || [])[0] as any
-  const courseSchema = courseDiscoveryJsonLd({
-    courseName: topCourse?.course_name || `Courses in Malaysia Page ${page}`,
-    description: String(breadcrumbDescription),
-    universityName: topCourse?.university?.name || '',
-    duration: topCourse?.duration || '',
-    fees: topCourse?.tution_fee || '',
-    currency: 'MYR',
-    studyMode: topCourse?.study_mode || '',
-    courseLevel: topCourse?.level || String(result.current_filters?.level || ''),
-    country: 'Malaysia',
-    city: topCourse?.university?.city || '',
-    intakeDates: topCourse?.intake || '',
-    courseUrl: `/courses-in-malaysia/page-${page}`,
-    universityUrl: topCourse?.university?.uname ? `/university/${topCourse.university.uname}` : '',
-    ranking: topCourse?.university?.rating || '',
-    category: result.current_filters?.category?.name || '',
-    specialization: result.current_filters?.specialization?.name || '',
-  })
 
   return (
     <>
-      <JsonLd data={breadcrumbJsonLd([
-        { name: 'Home', url: SITE_URL },
-        { name: 'Courses in Malaysia', url: `${SITE_URL}/courses-in-malaysia` },
-        { name: `Page ${page}`, url: `${SITE_URL}/courses-in-malaysia/page-${page}` },
-      ], { name: breadcrumbTitle, description: breadcrumbDescription })} />
-      <JsonLd data={courseSchema as any} />
-      <FAQSchema faqs={faqItems} />
       <CoursesListClient
         initialFilterData={filterData}
         initialCoursesData={coursesData}
