@@ -48,9 +48,13 @@ export async function generateMetadata({ params }: Props) {
   }
   const parsed = parseSlugWithId(slugWithId)
   if (!parsed) return {}
-  const blog = await getBlogBySlugAndId(parsed.slug, parsed.id)
-  if (!blog) return {}
-  return resolveBlogMeta(blog, parsed.id)
+  try {
+    const blog = await getBlogBySlugAndId(parsed.slug, parsed.id)
+    if (!blog) return {}
+    return resolveBlogMeta(blog, parsed.id)
+  } catch {
+    return {}
+  }
 }
 
 import { blogService } from '@/backend'
@@ -73,14 +77,19 @@ export default async function BlogDetailPage({ params }: Props) {
     return <BlogDetailClient category={category} slugWithId={slugWithId} />
   }
   // Resolve by ID first for robust client navigation and canonical redirects.
-  const canonical = await prisma.blog.findFirst({
-    where: { id: parsed.id, status: 1 },
-    select: {
-      id: true,
-      slug: true,
-      category: { select: { category_slug: true } },
-    },
-  })
+  let canonical: { id: number; slug: string | null; category: { category_slug: string | null } | null } | null = null
+  try {
+    canonical = await prisma.blog.findFirst({
+      where: { id: parsed.id, status: 1 },
+      select: {
+        id: true,
+        slug: true,
+        category: { select: { category_slug: true } },
+      },
+    })
+  } catch {
+    canonical = null
+  }
   if (!canonical?.slug) {
     return <BlogDetailClient category={category} slugWithId={slugWithId} />
   }
@@ -91,9 +100,19 @@ export default async function BlogDetailPage({ params }: Props) {
     redirect(canonicalUrl)
   }
 
-  const result = await blogService.getBlogDetail(canonicalCategory, `${canonical.slug}-${canonical.id}`)
+  let result: Awaited<ReturnType<typeof blogService.getBlogDetail>> = null
+  try {
+    result = await blogService.getBlogDetail(canonicalCategory, `${canonical.slug}-${canonical.id}`)
+  } catch {
+    result = null
+  }
   if (!result) {
-    const fallbackBlog = await getBlogBySlugAndId(canonical.slug, Number(canonical.id))
+    let fallbackBlog: Awaited<ReturnType<typeof getBlogBySlugAndId>> = null
+    try {
+      fallbackBlog = await getBlogBySlugAndId(canonical.slug, Number(canonical.id))
+    } catch {
+      fallbackBlog = null
+    }
     if (!fallbackBlog) {
       return <BlogDetailClient category={category} slugWithId={slugWithId} />
     }
@@ -105,11 +124,16 @@ export default async function BlogDetailPage({ params }: Props) {
       specializations: [],
       faqs: [],
     }
-    const fallbackFaqRows = await prisma.blogFaq.findMany({
-      where: { blog_id: Number((fallbackData.data as any).id) },
-      select: { question: true, answer: true, position: true, id: true },
-      orderBy: [{ position: 'asc' }, { id: 'asc' }],
-    })
+    let fallbackFaqRows: Array<{ question: string | null; answer: string | null; position: number | null; id: number }> = []
+    try {
+      fallbackFaqRows = await prisma.blogFaq.findMany({
+        where: { blog_id: Number((fallbackData.data as any).id) },
+        select: { question: true, answer: true, position: true, id: true },
+        orderBy: [{ position: 'asc' }, { id: 'asc' }],
+      })
+    } catch {
+      fallbackFaqRows = []
+    }
     const fallbackFaqItems = normalizeFaqs(fallbackFaqRows as any[])
 
     return (

@@ -69,8 +69,9 @@ async function getUniversityTypeFaqs(typeSlug: string) {
 }
 
 export async function resolveRouteHeadSchemas(pathname: string): Promise<JsonLd[]> {
-  const pathOnly = String(pathname || '/').split('?')[0].split('#')[0] || '/'
-  const schemas: JsonLd[] = []
+  try {
+    const pathOnly = String(pathname || '/').split('?')[0].split('#')[0] || '/'
+    const schemas: JsonLd[] = []
 
   if (pathOnly === '/faqs') {
     const faqs = await getFaqs()
@@ -286,5 +287,8 @@ export async function resolveRouteHeadSchemas(pathname: string): Promise<JsonLd[
     }
   }
 
-  return schemas
+    return schemas
+  } catch {
+    return []
+  }
 }
