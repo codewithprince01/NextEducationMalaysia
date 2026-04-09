@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, type SyntheticEvent } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   MapPin, Navigation, Star, Building, BedDouble,
@@ -19,16 +19,24 @@ import { BrochureForm } from '@/components/modals/UniversityForms/BrochureForm'
 import { FeeStructureForm } from '@/components/modals/UniversityForms/FeeStructureForm'
 import { CounsellingForm } from '@/components/modals/UniversityForms/CounsellingForm'
 import { ReviewForm } from '@/components/modals/UniversityForms/ReviewForm'
+import { storageUrl } from '@/lib/constants'
 
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
 const DEFAULT_PHONE_1 = '+60 1121376171'
 const DEFAULT_PHONE_2 = '+91 9818560331'
 const DEFAULT_EMAIL = 'info@educationmalaysia.in'
 
 function imgUrl(path: string | null | undefined) {
-  if (!path) return null
-  const clean = String(path).replace(/^\/+/, '')
-  return `${IMAGE_BASE}/storage/${clean}`
+  return storageUrl(path)
+}
+
+function setFallbackImage(
+  e: SyntheticEvent<HTMLImageElement, Event>,
+  fallback: string = '/placeholder-university.jpg'
+) {
+  const img = e.currentTarget
+  if (img.dataset.fallbackApplied === '1') return
+  img.dataset.fallbackApplied = '1'
+  img.src = fallback
 }
 
 function parseListValue(value: unknown): string[] {
@@ -165,7 +173,13 @@ export default function UniversityHeroClient({ university, photos }: { universit
         <div className="flex flex-row items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 shrink-0 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-sm">
-              <img src={logoSrc || '/placeholder-logo.png'} alt="Logo" className="w-full h-full object-contain" fetchPriority="high" />
+              <img
+                src={logoSrc || '/placeholder-logo.png'}
+                alt="Logo"
+                className="w-full h-full object-contain"
+                fetchPriority="high"
+                onError={(e) => setFallbackImage(e, '/placeholder-logo.png')}
+              />
             </div>
             <div className="flex-1 min-w-0">
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">{university.name}</h1>
@@ -215,7 +229,13 @@ export default function UniversityHeroClient({ university, photos }: { universit
         {/* 49% / 2x2 Photo Grid - Force exactly 360px height and 10px gap */}
         <div className="flex gap-[10px] mb-5 h-[360px]">
           <div className="relative group rounded-xl overflow-hidden shadow-md border border-gray-100 flex-none w-[49%]">
-            <img src={bannerSrc || '/placeholder-university.jpg'} alt="Banner" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" fetchPriority="high" />
+            <img
+              src={bannerSrc || '/placeholder-university.jpg'}
+              alt="Banner"
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              fetchPriority="high"
+              onError={(e) => setFallbackImage(e, '/placeholder-university.jpg')}
+            />
             <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent pointer-events-none" />
             <button
               onClick={openGallery}
@@ -229,7 +249,12 @@ export default function UniversityHeroClient({ university, photos }: { universit
             {otherPhotos.length > 0 ? (
               otherPhotos.map((p, i) => (
                 <div key={i} className="relative group rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-100 cursor-pointer">
-                  <img src={imgUrl(p.photo_path) || ''} alt="Photo" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <img
+                    src={imgUrl(p.photo_path) || '/placeholder-university.jpg'}
+                    alt="Photo"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    onError={(e) => setFallbackImage(e, '/placeholder-university.jpg')}
+                  />
                   <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                     <Navigation className="text-white drop-shadow rotate-45" size={24} />
                   </div>
@@ -383,7 +408,13 @@ export default function UniversityHeroClient({ university, photos }: { universit
         <div className="bg-white p-3">
           <div className="flex items-center gap-4 mb-5">
             <div className="w-20 h-20 shrink-0 bg-white border border-gray-100 rounded-2xl p-1.5 flex items-center justify-center shadow-sm">
-              <img src={logoSrc || '/placeholder-logo.png'} alt="Logo" className="max-w-full max-h-full object-contain" fetchPriority="high" />
+              <img
+                src={logoSrc || '/placeholder-logo.png'}
+                alt="Logo"
+                className="max-w-full max-h-full object-contain"
+                fetchPriority="high"
+                onError={(e) => setFallbackImage(e, '/placeholder-logo.png')}
+              />
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-bold text-gray-900 leading-tight mb-1">{university.name}</h1>
@@ -401,7 +432,13 @@ export default function UniversityHeroClient({ university, photos }: { universit
           </div>
 
           <div className="relative mb-6 rounded-2xl overflow-hidden shadow-lg border border-gray-100 aspect-16/10 bg-gray-200">
-             <img src={bannerSrc || '/placeholder-university.jpg'} alt="Banner" className="w-full h-full object-cover" fetchPriority="high" />
+             <img
+               src={bannerSrc || '/placeholder-university.jpg'}
+               alt="Banner"
+               className="w-full h-full object-cover"
+               fetchPriority="high"
+               onError={(e) => setFallbackImage(e, '/placeholder-university.jpg')}
+             />
              <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent pointer-events-none" />
              <button onClick={openGallery} className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-md text-blue-800 px-3 py-1.5 rounded-lg text-xs font-bold shadow-md border border-white/20 flex items-center gap-1.5">
                <ImageIcon size={14} />

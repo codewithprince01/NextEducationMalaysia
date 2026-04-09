@@ -2,6 +2,7 @@
 
 import { useMemo, useRef } from 'react'
 import PopularCourses from './PopularCourses'
+import { storageUrl } from '@/lib/constants'
 
 type Section = {
   id: number
@@ -17,7 +18,6 @@ type Props = {
   universitySlug: string | null
 }
 
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
 const POPULAR_COURSES_TOKENS = [
   'university popular courses',
   'malaysia popular courses',
@@ -174,7 +174,7 @@ export default function UniversityOverview({ overviews, universityName, universi
               {section.thumbnail_path && !section.thumbnail_path.includes('default') && (
                 <div className="w-full overflow-hidden rounded-xl shadow-lg aspect-video max-h-[400px] bg-gray-100">
                   <img
-                    src={`${IMAGE_BASE}/storage/${section.thumbnail_path.replace(/^\/+/, '')}`}
+                    src={storageUrl(section.thumbnail_path) || ''}
                     alt={section.tab || 'Section image'}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />

@@ -35,7 +35,15 @@ export const SITE_VAR = process.env.SITE_VAR || 'MYS'
 export function storageUrl(path: string | null | undefined): string | null {
   if (!path) return null
   const cleaned = String(path).trim()
-  if (/^https?:\/\//i.test(cleaned)) return cleaned
+  if (!cleaned || /^https?:?$/i.test(cleaned)) return null
+  if (/^https?:\/\//i.test(cleaned)) {
+    try {
+      const url = new URL(cleaned)
+      return url.hostname ? cleaned : null
+    } catch {
+      return null
+    }
+  }
   return `${IMAGE_DELIVERY_BASE_URL}/storage/${cleaned.replace(/^\//, '')}`
 }
 

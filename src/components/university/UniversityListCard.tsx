@@ -3,13 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { MapPin, Clock, BookOpen, Eye, Star, ChevronDown } from 'lucide-react'
-
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
+import { storageUrl } from '@/lib/constants'
 
 function imgUrl(path: string | null | undefined) {
-  if (!path) return null
-  const clean = String(path).replace(/^\/+/, '')
-  return `${IMAGE_BASE}/storage/${clean}`
+  return storageUrl(path)
 }
 
 type University = {

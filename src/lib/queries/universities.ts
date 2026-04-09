@@ -256,5 +256,5 @@ export const getUniversityFull = unstable_cache(
     })
   },
   ['university-full'],
-  { revalidate: 86400, tags: ['universities'] }
+  { revalidate: 300, tags: ['universities'] }
 )

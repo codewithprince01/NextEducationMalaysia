@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type SyntheticEvent } from 'react'
 import { Search, X, ImageIcon } from 'lucide-react'
-
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL ?? 'https://admin.educationmalaysia.in'
+import { storageUrl } from '@/lib/constants'
 
 type Photo = {
   id: number
@@ -44,9 +43,14 @@ export default function UniversityGalleryClient({ slug, initialPhotos = [] }: Pr
   }, [slug, initialPhotos.length])
 
   const getFullUrl = (path: string | null) => {
-    if (!path) return ''
-    if (path.startsWith('http')) return path
-    return `${IMAGE_BASE}/storage/${path.replace(/^\/+/, '')}`
+    return storageUrl(path) || ''
+  }
+
+  const onImgError = (e: SyntheticEvent<HTMLImageElement, Event>) => {
+    const img = e.currentTarget
+    if (img.dataset.fallbackApplied === '1') return
+    img.dataset.fallbackApplied = '1'
+    img.src = '/placeholder-university.jpg'
   }
 
   if (loading) {
@@ -87,6 +91,7 @@ export default function UniversityGalleryClient({ slug, initialPhotos = [] }: Pr
               alt={`Campus ${i + 1}`}
               className="rounded-lg shadow-md object-cover w-full h-48 transition-transform duration-200"
               loading="lazy"
+              onError={onImgError}
             />
             {/* Zoom Icon on Hover */}
             <div className="absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-200">
@@ -111,6 +116,7 @@ export default function UniversityGalleryClient({ slug, initialPhotos = [] }: Pr
             src={selectedImg}
             alt="Zoomed campus"
             className="max-w-full max-h-[90vh] rounded-lg shadow-2xl animate-in zoom-in-95 duration-200"
+            onError={onImgError}
           />
         </div>
       )}

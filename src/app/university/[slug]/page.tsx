@@ -8,7 +8,7 @@ import { serializeBigInt } from '@/lib/utils'
 import { resolveUniversityMeta } from '@/lib/seo/metadata'
 import type { Metadata } from 'next'
 
-export const revalidate = 86400 // 24 hours
+export const revalidate = 300 // 5 minutes
 
 type Props = { params: Promise<{ slug: string }> }
 

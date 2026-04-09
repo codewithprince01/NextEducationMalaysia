@@ -11,7 +11,7 @@ import { prisma } from '@/lib/db'
 import { resolveUniversityMeta } from '@/lib/seo/metadata'
 import type { Metadata } from 'next'
 
-export const revalidate = 86400
+export const revalidate = 300
 
 type Props = { params: Promise<{ slug: string; section: string }> }
 
