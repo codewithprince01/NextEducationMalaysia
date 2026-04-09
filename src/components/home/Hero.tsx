@@ -52,7 +52,6 @@ export default function Hero({ banners: rawBanners }: { banners: Banner[] }) {
     <section className="relative w-full overflow-hidden" style={{ height: '100dvh', minHeight: 480 }}>
       {/* First banner image for LCP — native img for zero JS overhead */}
       <div className="absolute inset-0 z-0">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={firstBannerSrc}
           alt={firstBanner.alt_text || 'Hero banner'}

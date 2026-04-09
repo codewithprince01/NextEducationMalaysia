@@ -169,7 +169,7 @@ export default function SignUpClient() {
 
   const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const code = e.target.value;
-    let newFormData = { ...formData, country_code: code };
+    const newFormData = { ...formData, country_code: code };
 
     if (code) {
       const matchedPhoneObj = phonecode.find((p) => p.phonecode == code);

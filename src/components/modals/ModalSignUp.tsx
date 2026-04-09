@@ -154,7 +154,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const phoneNumber = e.target.value.replace(/\D/g, "");
-    let newFormData = { ...formData, mobile: phoneNumber };
+    const newFormData = { ...formData, mobile: phoneNumber };
     let newPhoneError = "";
     let newPhoneValid = false;
 
@@ -196,7 +196,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
 
   const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const code = e.target.value;
-    let newFormData = { ...formData, country_code: code };
+    const newFormData = { ...formData, country_code: code };
 
     if (code) {
       const matchedPhoneObj = phonecode.find((p) => p.phonecode == code);

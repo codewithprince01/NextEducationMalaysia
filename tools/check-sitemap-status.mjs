@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 const baseUrl = (process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '');
 const sitemapIndexUrl = process.env.SITEMAP_URL || `${baseUrl}/sitemap.xml`;
 const maxUrls = Number(process.env.SITEMAP_MAX_URLS || 0); // 0 => no limit

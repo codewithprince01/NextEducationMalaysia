@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Allow overriding build output dir to avoid stale/locked folders on Windows.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+
   // Disable metadata streaming so tags are emitted in <head> in initial HTML/view-source.
   htmlLimitedBots: /.*/,
 

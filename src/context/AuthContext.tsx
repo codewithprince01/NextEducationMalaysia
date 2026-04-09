@@ -1,11 +1,17 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState } from 'react'
+
+interface AuthUser {
+  id: string
+  email: string | null
+  name: string
+}
 
 interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
-  user: any | null
+  user: AuthUser | null
   login: (token: string, studentId: string, email: string, name?: string) => void
   logout: () => void
 }
@@ -13,23 +19,30 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<any | null>(null)
+  const [authState, setAuthState] = useState<{
+    isAuthenticated: boolean
+    isLoading: boolean
+    user: AuthUser | null
+  }>(() => {
+    if (typeof window === 'undefined') {
+      return { isAuthenticated: false, isLoading: true, user: null }
+    }
 
-  useEffect(() => {
-    // Check for token on mount
     const token = localStorage.getItem('token')
     const studentId = localStorage.getItem('student_id')
     const email = localStorage.getItem('student_email')
     const name = localStorage.getItem('student_name')
 
     if (token && studentId) {
-      setIsAuthenticated(true)
-      setUser({ id: studentId, email: email, name: name || '' })
+      return {
+        isAuthenticated: true,
+        isLoading: false,
+        user: { id: studentId, email, name: name || '' },
+      }
     }
-    setIsLoading(false)
-  }, [])
+
+    return { isAuthenticated: false, isLoading: false, user: null }
+  })
 
   const login = (token: string, studentId: string, email: string, name?: string) => {
     localStorage.setItem('token', token)
@@ -38,8 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (name && String(name).trim()) {
       localStorage.setItem('student_name', String(name).trim())
     }
-    setIsAuthenticated(true)
-    setUser({ id: studentId, email: email, name: (name || '').trim() })
+    setAuthState({
+      isAuthenticated: true,
+      isLoading: false,
+      user: { id: studentId, email, name: (name || '').trim() },
+    })
   }
 
   const logout = () => {
@@ -47,12 +63,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('student_id')
     localStorage.removeItem('student_email')
     localStorage.removeItem('student_name')
-    setIsAuthenticated(false)
-    setUser(null)
+    setAuthState({ isAuthenticated: false, isLoading: false, user: null })
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated: authState.isAuthenticated,
+        isLoading: authState.isLoading,
+        user: authState.user,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

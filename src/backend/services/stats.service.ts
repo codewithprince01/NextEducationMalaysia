@@ -61,7 +61,7 @@ export class StatsService {
     }, {});
 
     // Convert to array and sort
-    let yearsData = Object.values(groupedData);
+    const yearsData = Object.values(groupedData);
 
     if (years && years.length > 0) {
       // Keep requested order if possible

@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 const SITE_VAR = process.env.SITE_VAR || 'MYS'
 
@@ -34,14 +34,12 @@ function createPrismaClient() {
     query: {
       $allModels: {
         async findMany({ model, args, query }) {
-          console.log(`Prisma Query: findMany on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }
           return query(args)
         },
         async findFirst({ model, args, query }) {
-          console.log(`Prisma Query: findFirst on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }
@@ -51,14 +49,12 @@ function createPrismaClient() {
           return query(args)
         },
         async count({ model, args, query }) {
-          console.log(`Prisma Query: count on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }
           return query(args)
         },
         async aggregate({ model, args, query }) {
-          console.log(`Prisma Query: aggregate on model "${model}". Scoped: ${isScopedModel(model)}`);
           if (isScopedModel(model)) {
             args.where = { ...args.where, website: SITE_VAR }
           }

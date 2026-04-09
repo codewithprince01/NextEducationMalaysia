@@ -241,6 +241,11 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
       })
   }, [relatedBlogs])
 
+  const filteredRelatedBlogs = useMemo(
+    () => relatedBlogs.filter((item: any) => Number(item?.id) !== Number(blog?.id)),
+    [relatedBlogs, blog?.id],
+  )
+
   if (loading) return <BlogDetailSkeleton />
   if (error) return <div className="p-6 text-center text-red-600">{error}</div>
 
@@ -250,11 +255,6 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
     { label: category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), href: `/blog/${category}` },
     { label: blog.headline || slugWithId },
   ]
-
-  const filteredRelatedBlogs = useMemo(
-    () => relatedBlogs.filter((item: any) => Number(item?.id) !== Number(blog?.id)),
-    [relatedBlogs, blog?.id],
-  )
 
   return (
     <>

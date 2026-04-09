@@ -221,7 +221,7 @@ export class StudentAuthService {
     }
 
     const storedPassword = student.password ?? '';
-    const isMatch = (await verifyPassword(input.password, storedPassword)) || input.password === storedPassword;
+    const isMatch = await verifyPassword(input.password, storedPassword);
     if (!isMatch) {
       return { status: false, message: 'Invalid email or password.' };
     }

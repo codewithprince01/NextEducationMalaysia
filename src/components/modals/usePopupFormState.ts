@@ -104,7 +104,7 @@ export const usePopupFormState = (isOpen: boolean, formType: string) => {
 
   const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const code = e.target.value;
-    let newFormData = { ...formData, c_code: code };
+    const newFormData = { ...formData, c_code: code };
     if (code) {
       const matchedCountry = countriesData.find((c) => (c.phonecode == code || c.phone_code == code));
       if (matchedCountry) {
@@ -116,7 +116,7 @@ export const usePopupFormState = (isOpen: boolean, formType: string) => {
 
   const handleNationalityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const name = e.target.value;
-    let newFormData = { ...formData, nationality: name };
+    const newFormData = { ...formData, nationality: name };
     const matchedCountry = countriesData.find((c) => c.name === name);
     if (matchedCountry && (matchedCountry.phonecode || matchedCountry.phone_code)) {
       newFormData.c_code = matchedCountry.phonecode || matchedCountry.phone_code;

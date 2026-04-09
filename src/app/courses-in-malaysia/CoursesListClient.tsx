@@ -842,7 +842,7 @@ export default function CoursesListClient({
   }
 
   const handleFilterChange = (key: string, value: string, filterId?: number) => {
-    let nextFilters: FilterState = { ...selectedFilters }
+    const nextFilters: FilterState = { ...selectedFilters }
     
     // 1. Calculate next state
     const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)

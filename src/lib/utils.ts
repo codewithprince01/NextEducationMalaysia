@@ -60,9 +60,9 @@ export function serializeBigInt<T>(data: T): T {
     // Handle Prisma Decimal (Decimal.js structure: { d, e, s })
     // and generic objects with functions
     if ('d' in data && 'e' in data && 's' in data && 'constructor' in data) {
-       // @ts-ignore - Decimal has a toNumber method
-      if (typeof (data as any).toNumber === 'function') {
-        return (data as any).toNumber()
+      const maybeDecimal = data as { toNumber?: () => number }
+      if (typeof maybeDecimal.toNumber === 'function') {
+        return maybeDecimal.toNumber() as T
       }
     }
 

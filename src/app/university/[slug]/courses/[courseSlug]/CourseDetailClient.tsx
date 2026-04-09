@@ -112,8 +112,6 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
     { label: courseDetails?.course_name || 'Course Details' },
   ]
 
-  if (!courseDetails) return null
-
   useEffect(() => {
     const timer = setTimeout(() => {
       const element =
@@ -125,6 +123,8 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
     }, 120)
     return () => clearTimeout(timer)
   }, [slug, courseSlug])
+
+  if (!courseDetails) return null
 
   return (
     <div id="course-detail-section" className="min-h-screen bg-transparent scroll-mt-24">

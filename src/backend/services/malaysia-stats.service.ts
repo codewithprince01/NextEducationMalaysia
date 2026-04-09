@@ -61,7 +61,7 @@ export class MalaysiaStatsService {
     }, {});
 
     // Convert to array and handle ordering
-    let yearsData = Object.values(groupedData);
+    const yearsData = Object.values(groupedData);
 
     if (years && years.length > 0) {
       yearsData.sort((a: any, b: any) => {

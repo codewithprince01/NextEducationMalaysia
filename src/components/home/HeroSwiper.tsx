@@ -25,12 +25,12 @@ export default function HeroSwiper({ banners }: Props) {
 
   useEffect(() => {
     // Defer Swiper CSS loading off the critical path
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error – CSS modules lack type declarations; bundler resolves at build time
+     
+    // @ts-expect-error: CSS module import is resolved by bundler at runtime.
     import('swiper/css')
-    // @ts-expect-error
+    // @ts-expect-error: CSS module import is resolved by bundler at runtime.
     import('swiper/css/pagination')
-    // @ts-expect-error
+    // @ts-expect-error: CSS module import is resolved by bundler at runtime.
     import('swiper/css/effect-fade')
 
     const mediaQuery = window.matchMedia("(min-width: 768px)")

@@ -64,7 +64,6 @@ export default function Pagination({
   onPageChange,
   className = '',
 }: PaginationProps) {
-  if (totalPages <= 1) return null
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -74,6 +73,8 @@ export default function Pagination({
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
   }, [])
+
+  if (totalPages <= 1) return null
 
   const tokens = buildPageTokens(currentPage, totalPages, isMobile)
   const canGoPrev = currentPage > 1

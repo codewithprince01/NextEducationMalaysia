@@ -5,7 +5,7 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest, { params
   try {
     const slug = params.slug?.[0] || 'index';
     let data: any;
-    let message = 'Sitemap data fetched successfully';
+    const message = 'Sitemap data fetched successfully';
     let parent: any[] = [];
 
     switch (slug) {

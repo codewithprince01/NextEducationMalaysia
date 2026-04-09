@@ -8,7 +8,10 @@ import type { JwtPayload, Student } from '../types';
 // Students are stored in `leads` table, not `users`.
 // ============================================================
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret';
+function getJwtSecret(): string | null {
+  const secret = process.env.JWT_SECRET;
+  return secret && secret.trim() ? secret : null;
+}
 
 /**
  * Verifies the Authorization: Bearer <token> header.
@@ -22,6 +25,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret';
 export async function requireAuth(
   request: Request
 ): Promise<{ student: JwtPayload } | NextResponse> {
+  const jwtSecret = getJwtSecret();
+  if (!jwtSecret) {
+    return NextResponse.json(
+      { status: false, message: 'Server configuration error: JWT secret missing.' },
+      { status: 500 }
+    );
+  }
+
   const authHeader = request.headers.get('authorization');
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -34,7 +45,7 @@ export async function requireAuth(
   const token = authHeader.slice(7); // Remove "Bearer "
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as unknown as JwtPayload;
+    const payload = jwt.verify(token, jwtSecret) as unknown as JwtPayload;
     return { student: payload };
   } catch (err) {
     const isExpired = err instanceof TokenExpiredError;
@@ -55,9 +66,14 @@ export async function requireAuth(
  * Mirrors Laravel `$student->createToken('StudentAPIToken')->plainTextToken`.
  */
 export function issueToken(student: Pick<Student, 'id' | 'email'>): string {
+  const jwtSecret = getJwtSecret();
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET env variable is required to issue auth tokens.');
+  }
+
   return jwt.sign(
     { sub: Number(student.id), email: student.email ?? '' } satisfies JwtPayload,
-    JWT_SECRET,
+    jwtSecret,
     { expiresIn: 60 * 60 * 24 * 7 } // 7 days
   );
 }
