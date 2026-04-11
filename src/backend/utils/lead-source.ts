@@ -89,6 +89,15 @@ function inferSourceLabel(input: BuildLeadSourceInput, sourcePath: string): stri
 
 export function buildLeadSource(input: BuildLeadSourceInput): { source: string; source_path: string } {
   const source_path = normalizeLeadSourcePath(input.sourceUrl || input.sourcePath || '/');
+  const explicitFormType = cleanText(input.formType);
+  const showNumberPrefix = 'Education Malaysia - Modal Form - Show Number - ';
+  if (explicitFormType.startsWith(showNumberPrefix)) {
+    return {
+      source: explicitFormType.slice(0, 180),
+      source_path,
+    };
+  }
+
   const label = inferSourceLabel(input, source_path);
   const merged = `Education Malaysia - ${label}`.slice(0, 180);
   return {

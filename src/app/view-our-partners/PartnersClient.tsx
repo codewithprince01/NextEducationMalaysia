@@ -281,6 +281,7 @@ export default function PartnersClient() {
   const [loading, setLoading] = useState(true)
   const [isPopupOpen, setIsPopupOpen] = useState(false)
   const [activePartnerId, setActivePartnerId] = useState<string | null>(null)
+  const [activePartnerName, setActivePartnerName] = useState<string>('')
   const [unlockedPartnerIds, setUnlockedPartnerIds] = useState<Set<string>>(new Set())
 
   const loadUnlockedPartnerIds = () => {
@@ -299,9 +300,10 @@ export default function PartnersClient() {
     localStorage.setItem(PARTNER_UNLOCK_KEY, JSON.stringify(Array.from(next)))
   }
 
-  const handleShowNumberClick = (partnerId: string | number) => {
-    const key = String(partnerId)
+  const handleShowNumberClick = (partner: Partner) => {
+    const key = String(partner.id)
     if (unlockedPartnerIds.has(key)) return
+    setActivePartnerName(String(partner.name || '').trim())
     setActivePartnerId(key)
     setIsPopupOpen(true)
   }
@@ -322,6 +324,7 @@ export default function PartnersClient() {
   const handlePopupClose = () => {
     setIsPopupOpen(false)
     setActivePartnerId(null)
+    setActivePartnerName('')
   }
 
   useEffect(() => {
@@ -615,7 +618,7 @@ export default function PartnersClient() {
                         partner={partner}
                         isUnlocked={unlockedPartnerIds.has(String(partner.id))}
                         onContactClick={handleContactClick}
-                        onShowNumberClick={() => handleShowNumberClick(partner.id)}
+                        onShowNumberClick={() => handleShowNumberClick(partner)}
                       />
                     ) : (
                       <PartnerListCard
@@ -623,7 +626,7 @@ export default function PartnersClient() {
                         partner={partner}
                         isUnlocked={unlockedPartnerIds.has(String(partner.id))}
                         onContactClick={handleContactClick}
-                        onShowNumberClick={() => handleShowNumberClick(partner.id)}
+                        onShowNumberClick={() => handleShowNumberClick(partner)}
                       />
                     )
                   )}
@@ -763,6 +766,8 @@ export default function PartnersClient() {
         isOpen={isPopupOpen}
         onClose={handlePopupClose}
         mode="manual"
+        triggerSource={activePartnerId ? 'show-number' : undefined}
+        agentName={activePartnerName}
         onSuccess={handlePopupSuccess}
       />
     </div>

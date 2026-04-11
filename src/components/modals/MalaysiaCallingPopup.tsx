@@ -8,6 +8,8 @@ type PopupProps = {
   isOpen: boolean
   onClose: () => void
   mode?: 'auto' | 'manual'
+  triggerSource?: 'show-number'
+  agentName?: string
   onSuccess?: () => void
 }
 
@@ -35,7 +37,14 @@ type FormDataState = {
   captcha: string
 }
 
-const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupProps) => {
+const ContactFormPopup = ({
+  isOpen,
+  onClose,
+  mode = 'auto',
+  triggerSource,
+  agentName,
+  onSuccess,
+}: PopupProps) => {
   const [formData, setFormData] = useState<FormDataState>({
     name: '',
     email: '',
@@ -222,6 +231,12 @@ const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupPr
     setIsSubmitting(true)
 
     try {
+      const cleanAgentName = String(agentName || '').trim().replace(/\s+/g, ' ')
+      const isShowNumberFlow = mode === 'manual' && triggerSource === 'show-number' && cleanAgentName.length > 0
+      const formType = isShowNumberFlow
+        ? `Education Malaysia - Modal Form - Show Number - ${cleanAgentName}`
+        : 'Malaysia Calling Popup'
+
       const payload = {
         name: formData.name,
         email: formData.email,
@@ -232,10 +247,12 @@ const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupPr
         interested_course_category: formData.program,
         university: '',
         message: '',
-        formType: 'Malaysia Calling Popup',
+        formType,
         sourceUrl: typeof window !== 'undefined' ? window.location.href : '/',
         source_path: typeof window !== 'undefined' ? window.location.href : '/',
         popup_mode: mode,
+        popup_trigger_source: isShowNumberFlow ? 'show-number' : '',
+        agent_name: isShowNumberFlow ? cleanAgentName : '',
         allow_duplicate_email: mode === 'manual',
       }
 
