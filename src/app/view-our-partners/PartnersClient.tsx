@@ -3,12 +3,15 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Globe, Search, MapPin, Phone, Mail, Star, CheckCircle, Shield, TrendingUp, Handshake, Target, FileText, LayoutDashboard, GraduationCap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import Breadcrumb from '@/components/Breadcrumb'
 
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 const DEFAULT_AVATAR =
   'https://media.istockphoto.com/id/1337144146/vector/default-avatar-profile-icon-vector.jpg?s=612x612&w=0&k=20&c=BIbFwuv7FxTWvh5S3vB6bkT0Qv8Vn8N5Ffseq84ClGI='
+const MalaysiaCallingPopup = dynamic(() => import('@/components/modals/MalaysiaCallingPopup'))
+const PARTNER_UNLOCK_KEY = 'partnersUnlockedV1'
 
 type Partner = {
   id: number | string
@@ -81,8 +84,42 @@ const resolveImage = (partner: Partner) => {
   return `${base}/storage/${clean}`
 }
 
-const PartnerGridCard = ({ partner }: { partner: Partner }) => {
-  const phone = partner.phone || partner.mobile || partner.contact_number || 'Not Available'
+const maskPhone = (value: string) => {
+  const text = String(value || '').trim()
+  if (!text || text === 'Not Available') return 'Not Available'
+  const totalDigits = (text.match(/\d/g) || []).length
+  if (totalDigits <= 5) return text.replace(/\d/g, 'X')
+
+  let seen = 0
+  return text.replace(/\d/g, (digit) => {
+    seen += 1
+    return seen > totalDigits - 5 ? 'X' : digit
+  })
+}
+
+const maskEmail = (value?: string) => {
+  const text = String(value || '').trim()
+  if (!text || text === 'Not Available') return 'Not Available'
+  const at = text.indexOf('@')
+  if (at <= 0 || at === text.length - 1) return text
+  return `***${text.slice(at)}`
+}
+
+const PartnerGridCard = ({
+  partner,
+  isUnlocked,
+  onShowNumberClick,
+  onContactClick,
+}: {
+  partner: Partner
+  isUnlocked: boolean
+  onShowNumberClick: () => void
+  onContactClick: () => void
+}) => {
+  const phoneRaw = partner.phone || partner.mobile || partner.contact_number || 'Not Available'
+  const emailRaw = partner.email || 'Not Available'
+  const phone = isUnlocked ? phoneRaw : maskPhone(phoneRaw)
+  const email = isUnlocked ? emailRaw : maskEmail(emailRaw)
   const students = partner.students_placed ?? 0
   const exp = partner.experience_years ?? 'N/A'
   const rating = partner.rating || partner.average_rating || 0
@@ -123,7 +160,7 @@ const PartnerGridCard = ({ partner }: { partner: Partner }) => {
         <div className="space-y-2 mb-4 text-sm text-gray-600">
           <div className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-gray-400" />{city}</div>
           <div className="flex items-center"><Phone className="w-4 h-4 mr-2 text-gray-400" />{phone}</div>
-          <div className="flex items-center"><Mail className="w-4 h-4 mr-2 text-gray-400" />{partner.email || 'Not Available'}</div>
+          <div className="flex items-center"><Mail className="w-4 h-4 mr-2 text-gray-400" />{email}</div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4 text-center">
@@ -137,16 +174,40 @@ const PartnerGridCard = ({ partner }: { partner: Partner }) => {
           </div>
         </div>
 
-        <button className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-          Contact Now
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={onShowNumberClick}
+            className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            Show Number
+          </button>
+          <button
+            onClick={onContactClick}
+            className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            Contact Now
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-const PartnerListCard = ({ partner }: { partner: Partner }) => {
-  const phone = partner.phone || partner.mobile || partner.contact_number || 'Not Available'
+const PartnerListCard = ({
+  partner,
+  isUnlocked,
+  onShowNumberClick,
+  onContactClick,
+}: {
+  partner: Partner
+  isUnlocked: boolean
+  onShowNumberClick: () => void
+  onContactClick: () => void
+}) => {
+  const phoneRaw = partner.phone || partner.mobile || partner.contact_number || 'Not Available'
+  const emailRaw = partner.email || 'Not Available'
+  const phone = isUnlocked ? phoneRaw : maskPhone(phoneRaw)
+  const email = isUnlocked ? emailRaw : maskEmail(emailRaw)
   const rating = partner.rating || partner.average_rating || 0
   const image = resolveImage(partner)
 
@@ -176,7 +237,7 @@ const PartnerListCard = ({ partner }: { partner: Partner }) => {
         <div className="space-y-1 text-sm text-gray-600">
           <div className="flex items-center"><MapPin className="w-3 h-3 mr-1" />{partner.company_addrs_city || partner.city || 'Kuala Lumpur'}</div>
           <div className="flex items-center"><Phone className="w-3 h-3 mr-1" />{phone}</div>
-          <div className="flex items-center"><Mail className="w-3 h-3 mr-1" />{partner.email || 'Not Available'}</div>
+          <div className="flex items-center"><Mail className="w-3 h-3 mr-1" />{email}</div>
         </div>
         <div className="text-center">
           <div className="text-lg font-bold text-blue-600">{partner.students_placed ?? 0}</div>
@@ -186,8 +247,17 @@ const PartnerListCard = ({ partner }: { partner: Partner }) => {
             <span className="text-sm font-medium">{rating || 'N/A'}</span>
           </div>
         </div>
-        <div className="text-right">
-          <button className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+        <div className="text-right space-y-2">
+          <button
+            onClick={onShowNumberClick}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            Show Number
+          </button>
+          <button
+            onClick={onContactClick}
+            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
             Contact Now
           </button>
         </div>
@@ -209,6 +279,50 @@ export default function PartnersClient() {
   const [states, setStates] = useState<string[]>(['All States'])
   const [cities, setCities] = useState<string[]>(['All Cities'])
   const [loading, setLoading] = useState(true)
+  const [isPopupOpen, setIsPopupOpen] = useState(false)
+  const [activePartnerId, setActivePartnerId] = useState<string | null>(null)
+  const [unlockedPartnerIds, setUnlockedPartnerIds] = useState<Set<string>>(new Set())
+
+  const loadUnlockedPartnerIds = () => {
+    if (typeof window === 'undefined') return new Set<string>()
+    try {
+      const raw = localStorage.getItem(PARTNER_UNLOCK_KEY)
+      const parsed = raw ? JSON.parse(raw) : []
+      return new Set(Array.isArray(parsed) ? parsed.map((v) => String(v)) : [])
+    } catch {
+      return new Set<string>()
+    }
+  }
+
+  const persistUnlockedPartnerIds = (next: Set<string>) => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(PARTNER_UNLOCK_KEY, JSON.stringify(Array.from(next)))
+  }
+
+  const handleShowNumberClick = (partnerId: string | number) => {
+    const key = String(partnerId)
+    if (unlockedPartnerIds.has(key)) return
+    setActivePartnerId(key)
+    setIsPopupOpen(true)
+  }
+  const handleContactClick = () => {
+    router.push('/contact-us')
+  }
+
+  const handlePopupSuccess = () => {
+    if (!activePartnerId) return
+    setUnlockedPartnerIds((prev) => {
+      const next = new Set(prev)
+      next.add(activePartnerId)
+      persistUnlockedPartnerIds(next)
+      return next
+    })
+  }
+
+  const handlePopupClose = () => {
+    setIsPopupOpen(false)
+    setActivePartnerId(null)
+  }
 
   useEffect(() => {
     const init = async () => {
@@ -231,6 +345,10 @@ export default function PartnersClient() {
     }
     init()
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }, [])
+
+  useEffect(() => {
+    setUnlockedPartnerIds(loadUnlockedPartnerIds())
   }, [])
 
   useEffect(() => {
@@ -492,9 +610,21 @@ export default function PartnersClient() {
                 <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8' : 'space-y-6'}>
                   {statePartners.filter((p) => p && p.id).map((partner) =>
                     viewMode === 'grid' ? (
-                      <PartnerGridCard key={partner.id} partner={partner} />
+                      <PartnerGridCard
+                        key={partner.id}
+                        partner={partner}
+                        isUnlocked={unlockedPartnerIds.has(String(partner.id))}
+                        onContactClick={handleContactClick}
+                        onShowNumberClick={() => handleShowNumberClick(partner.id)}
+                      />
                     ) : (
-                      <PartnerListCard key={partner.id} partner={partner} />
+                      <PartnerListCard
+                        key={partner.id}
+                        partner={partner}
+                        isUnlocked={unlockedPartnerIds.has(String(partner.id))}
+                        onContactClick={handleContactClick}
+                        onShowNumberClick={() => handleShowNumberClick(partner.id)}
+                      />
                     )
                   )}
                 </div>
@@ -628,6 +758,13 @@ export default function PartnersClient() {
           </div>
         </div>
       </section>
+
+      <MalaysiaCallingPopup
+        isOpen={isPopupOpen}
+        onClose={handlePopupClose}
+        mode="manual"
+        onSuccess={handlePopupSuccess}
+      />
     </div>
   )
 }

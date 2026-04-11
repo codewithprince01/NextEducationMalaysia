@@ -7,6 +7,8 @@ import { toast } from 'react-toastify'
 type PopupProps = {
   isOpen: boolean
   onClose: () => void
+  mode?: 'auto' | 'manual'
+  onSuccess?: () => void
 }
 
 type Country = {
@@ -33,7 +35,7 @@ type FormDataState = {
   captcha: string
 }
 
-const ContactFormPopup = ({ isOpen, onClose }: PopupProps) => {
+const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupProps) => {
   const [formData, setFormData] = useState<FormDataState>({
     name: '',
     email: '',
@@ -234,6 +236,8 @@ const ContactFormPopup = ({ isOpen, onClose }: PopupProps) => {
         formType: 'Malaysia Calling Popup',
         sourceUrl: typeof window !== 'undefined' ? window.location.href : '/',
         source_path: typeof window !== 'undefined' ? window.location.href : '/',
+        popup_mode: mode,
+        allow_duplicate_email: mode === 'manual',
       }
 
       const response = await fetch('/api/v1/inquiry/modal-form', {
@@ -246,6 +250,7 @@ const ContactFormPopup = ({ isOpen, onClose }: PopupProps) => {
       if (response.ok && data?.status) {
         setIsSubmitted(true)
         localStorage.setItem('scholarshipFormSubmitted', 'true')
+        onSuccess?.()
         toast.success('Application Received! We will contact you soon.')
 
         setTimeout(() => {

@@ -24,6 +24,8 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       sourcePath: body.source_path,
     });
     const website = process.env.SITE_VAR || 'MYS';
+    const popupMode = String(body.popup_mode || '').trim().toLowerCase();
+    const allowDuplicateEmail = Boolean(body.allow_duplicate_email) && popupMode === 'manual';
 
     const errors: Record<string, string[]> = {};
 
@@ -43,15 +45,17 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       return apiError('Validation failed', 422, { errors });
     }
 
-    const existing: any[] = await prisma.$queryRawUnsafe(
-      `SELECT id FROM leads WHERE email = ? AND website = ? ORDER BY id DESC LIMIT 1`,
-      email,
-      website
-    );
-    if (existing.length > 0) {
-      return apiError('This email is already registered. Please use another email.', 409, {
-        errors: { email: ['This email is already registered'] }
-      });
+    if (!allowDuplicateEmail) {
+      const existing: any[] = await prisma.$queryRawUnsafe(
+        `SELECT id FROM leads WHERE email = ? AND website = ? ORDER BY id DESC LIMIT 1`,
+        email,
+        website
+      );
+      if (existing.length > 0) {
+        return apiError('This email is already registered. Please use another email.', 409, {
+          errors: { email: ['This email is already registered'] }
+        });
+      }
     }
 
     const otp = Math.floor(1000 + Math.random() * 9000);
