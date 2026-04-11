@@ -48,7 +48,6 @@ const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupPr
     captcha: '',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [qualifications, setQualifications] = useState<SelectOption[]>([])
   const [programs, setPrograms] = useState<SelectOption[]>([])
@@ -248,14 +247,11 @@ const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupPr
       const data = await response.json().catch(() => ({}))
 
       if (response.ok && data?.status) {
-        setIsSubmitted(true)
         localStorage.setItem('scholarshipFormSubmitted', 'true')
         onSuccess?.()
         toast.success('Application Received! We will contact you soon.')
 
-        setTimeout(() => {
-          onClose()
-        }, 3000)
+        onClose()
       } else if (data?.errors) {
         const backendErrors: Record<string, string> = {}
         Object.entries(data.errors).forEach(([field, messages]) => {
@@ -331,20 +327,7 @@ const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupPr
           </div>
 
           <div className="p-4 sm:p-5">
-            {isSubmitted ? (
-              <div className="text-center py-8">
-                <h4 className="text-2xl font-bold text-green-600 mb-2">
-                  Application Received!
-                </h4>
-                <p className="text-gray-600">
-                  Our team will contact you within 24 hours.
-                </p>
-                <p className="text-sm text-gray-500 mt-4">
-                  ( SUBMIT ONCE - NO MORE POPUPS AFTER THAT! )
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <input
@@ -547,7 +530,6 @@ const ContactFormPopup = ({ isOpen, onClose, mode = 'auto', onSuccess }: PopupPr
                   {isSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
               </form>
-            )}
           </div>
         </div>
       </div>
