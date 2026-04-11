@@ -5,11 +5,18 @@ import {
   OtpVerifyInput,
   ResetPasswordInput,
 } from '../validators/auth';
-import { hashPassword, verifyPassword, generateOtp } from '../utils/auth';
+import {
+  hashPassword,
+  verifyPassword,
+  generateOtp,
+  issueAccessToken,
+  issueRefreshToken,
+  verifyRefreshToken,
+  sha256,
+} from '../utils/auth';
 import { sendMail } from '../email/sender';
 import { otpEmailHtml } from '../email/templates/otp';
 import { forgotPasswordLinkEmailHtml } from '../email/templates/forgot-password-link';
-import { issueToken } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { serializeBigInt } from '@/lib/utils';
 import crypto from 'crypto';
@@ -30,8 +37,19 @@ type LeadRow = {
   [key: string]: any;
 };
 
+type AuthClientMeta = {
+  userAgent?: string | null;
+  ipAddress?: string | null;
+};
+
+type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export class StudentAuthService {
   private static instance: StudentAuthService;
+  private refreshTableReady: Promise<void> | null = null;
 
   private constructor() {}
 
@@ -58,6 +76,149 @@ export class StudentAuthService {
       SITE_VAR,
     )) as LeadRow[];
     return rows[0] ?? null;
+  }
+
+  private async ensureRefreshTokenTable(): Promise<void> {
+    if (this.refreshTableReady) {
+      await this.refreshTableReady;
+      return;
+    }
+
+    this.refreshTableReady = prisma.$executeRawUnsafe(
+      `CREATE TABLE IF NOT EXISTS student_refresh_tokens (
+         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+         student_id BIGINT NOT NULL,
+         token_hash CHAR(64) NOT NULL,
+         token_jti VARCHAR(64) NOT NULL,
+         expires_at DATETIME NOT NULL,
+         revoked_at DATETIME NULL,
+         replaced_by_hash CHAR(64) NULL,
+         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         last_used_at DATETIME NULL,
+         user_agent VARCHAR(255) NULL,
+         ip_address VARCHAR(64) NULL,
+         PRIMARY KEY (id),
+         UNIQUE KEY uq_student_refresh_tokens_hash (token_hash),
+         KEY idx_student_refresh_tokens_student (student_id),
+         KEY idx_student_refresh_tokens_jti (token_jti),
+         KEY idx_student_refresh_tokens_expires (expires_at)
+       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
+    ).then(() => undefined);
+
+    await this.refreshTableReady;
+  }
+
+  private extractRefreshExpiryDate(token: string): Date {
+    const payload = verifyRefreshToken(token) as { exp?: number };
+    const exp = Number(payload.exp || 0);
+    const ms = exp > 0 ? exp * 1000 : Date.now() + 30 * 24 * 60 * 60 * 1000;
+    return new Date(ms);
+  }
+
+  private async persistRefreshToken(studentId: number, refreshToken: string, meta?: AuthClientMeta): Promise<void> {
+    await this.ensureRefreshTokenTable();
+    const tokenHash = sha256(refreshToken);
+    const jti = String((verifyRefreshToken(refreshToken) as any).jti || crypto.randomUUID());
+    const expiresAt = this.extractRefreshExpiryDate(refreshToken);
+
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO student_refresh_tokens
+       (student_id, token_hash, token_jti, expires_at, user_agent, ip_address, created_at, last_used_at)
+       VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+      studentId,
+      tokenHash,
+      jti,
+      expiresAt,
+      meta?.userAgent || null,
+      meta?.ipAddress || null
+    );
+  }
+
+  private async issueAuthTokens(student: Pick<LeadRow, 'id' | 'email'>, meta?: AuthClientMeta): Promise<AuthTokens> {
+    const sub = Number(student.id);
+    const email = String(student.email || '');
+    const accessToken = issueAccessToken({ sub, email });
+    const refreshToken = issueRefreshToken({ sub, email }, crypto.randomUUID());
+    await this.persistRefreshToken(sub, refreshToken, meta);
+    return { accessToken, refreshToken };
+  }
+
+  async refreshAccessToken(refreshToken: string, meta?: AuthClientMeta): Promise<ApiResponse<{ token: string; refresh_token: string; id: number; email: string | null; student: any }>> {
+    await this.ensureRefreshTokenTable();
+    let payload: { sub: number; email?: string; jti?: string; exp?: number };
+    try {
+      payload = verifyRefreshToken(refreshToken) as any;
+    } catch {
+      return { status: false, message: 'Invalid refresh token.' };
+    }
+
+    const tokenHash = sha256(refreshToken);
+    const rows = await prisma.$queryRawUnsafe<Array<{
+      id: bigint | number;
+      student_id: bigint | number;
+      revoked_at: Date | null;
+      expires_at: Date | string;
+    }>>(
+      `SELECT id, student_id, revoked_at, expires_at
+       FROM student_refresh_tokens
+       WHERE token_hash = ?
+       LIMIT 1`,
+      tokenHash
+    );
+
+    const session = rows[0];
+    if (!session) return { status: false, message: 'Refresh session not found.' };
+    if (session.revoked_at) return { status: false, message: 'Refresh session revoked.' };
+
+    const expiresAt = new Date(session.expires_at);
+    if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() < Date.now()) {
+      return { status: false, message: 'Refresh token expired.' };
+    }
+
+    const studentId = Number(session.student_id);
+    if (!studentId || Number(payload.sub) !== studentId) {
+      return { status: false, message: 'Invalid refresh token subject.' };
+    }
+
+    const student = await this.findLeadById(studentId);
+    if (!student || Number(student.status || 0) !== 1 || Number(student.email_verify || 0) !== 1) {
+      return { status: false, message: 'Student account is not active.' };
+    }
+
+    const nextTokens = await this.issueAuthTokens(student, meta);
+    const nextHash = sha256(nextTokens.refreshToken);
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE student_refresh_tokens
+       SET revoked_at = NOW(), replaced_by_hash = ?, last_used_at = NOW()
+       WHERE id = ?`,
+      nextHash,
+      Number(session.id)
+    );
+
+    return {
+      status: true,
+      message: 'Token refreshed successfully.',
+      data: {
+        token: nextTokens.accessToken,
+        refresh_token: nextTokens.refreshToken,
+        id: studentId,
+        email: student.email,
+        student: serializeBigInt(student),
+      } as any,
+    };
+  }
+
+  async revokeRefreshToken(refreshToken: string): Promise<void> {
+    if (!refreshToken) return;
+    await this.ensureRefreshTokenTable();
+    const tokenHash = sha256(refreshToken);
+    await prisma.$executeRawUnsafe(
+      `UPDATE student_refresh_tokens
+       SET revoked_at = COALESCE(revoked_at, NOW()), last_used_at = NOW()
+       WHERE token_hash = ?`,
+      tokenHash
+    );
   }
 
   async register(input: StudentRegisterInput): Promise<ApiResponse> {
@@ -141,7 +302,10 @@ export class StudentAuthService {
     };
   }
 
-  async verifyOtp(input: OtpVerifyInput): Promise<ApiResponse<{ token: string; student: any }>> {
+  async verifyOtp(
+    input: OtpVerifyInput,
+    meta?: AuthClientMeta
+  ): Promise<ApiResponse<{ token: string; refresh_token: string; student: any }>> {
     const student = input.id
       ? await this.findLeadById(Number(input.id))
       : await this.findLeadByEmail(String(input.email || ''));
@@ -173,13 +337,17 @@ export class StudentAuthService {
     );
 
     const updated = await this.findLeadById(Number(student.id));
-    const token = issueToken({ id: Number(student.id), email: updated?.email ?? '' });
+    const tokens = await this.issueAuthTokens(
+      { id: Number(student.id), email: updated?.email ?? '' } as any,
+      meta
+    );
 
     return {
       status: true,
       message: 'Email verified successfully.',
       data: {
-        token,
+        token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
         id: Number(student.id),
         email: updated?.email,
         student: serializeBigInt(updated),
@@ -187,7 +355,10 @@ export class StudentAuthService {
     };
   }
 
-  async login(input: StudentLoginInput): Promise<ApiResponse<{ token: string; student: any }>> {
+  async login(
+    input: StudentLoginInput,
+    meta?: AuthClientMeta
+  ): Promise<ApiResponse<{ token: string; refresh_token: string; student: any }>> {
     const student = await this.findLeadByEmail(input.email);
     if (!student) {
       return { status: false, message: 'Invalid email or password.' };
@@ -231,14 +402,15 @@ export class StudentAuthService {
       Number(student.id),
     );
 
-    const token = issueToken({ id: Number(student.id), email: student.email ?? '' });
+    const tokens = await this.issueAuthTokens(student, meta);
     const latest = await this.findLeadById(Number(student.id));
 
     return {
       status: true,
       message: 'Logged in successfully.',
       data: {
-        token,
+        token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
         id: Number(student.id),
         email: student.email,
         student: serializeBigInt(latest),

@@ -7,9 +7,11 @@
 export * from './middleware/api-key';
 export * from './middleware/with-middleware';
 export * from './middleware/auth';
+export * from './middleware/rate-limit';
 
 // ─── UTILS ────────────────────────────────────────────────────
 export * from './utils/response';
+export * from './utils/auth-cookies';
 export * from './utils/formatters';
 export * from './utils/seo-tags';
 export * from './utils/error';

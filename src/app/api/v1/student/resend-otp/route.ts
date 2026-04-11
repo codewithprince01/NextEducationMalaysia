@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 import { 
-  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService } from '@/backend';
+  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService, authRateLimit } from '@/backend';
 
-export const POST = withMiddleware(checkApiKey)(async (request: NextRequest) => {
+export const POST = withMiddleware(checkApiKey, authRateLimit)(async (request: NextRequest) => {
   try {
     const { id, email } = await request.json();
     if (!id && !email) return apiError('id or email is required', 422);

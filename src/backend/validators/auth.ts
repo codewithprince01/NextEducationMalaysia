@@ -5,10 +5,19 @@ import { z } from 'zod';
 // Zod schemas for student authentication flows.
 // ============================================================
 
+const strongPassword = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128, 'Password is too long')
+  .regex(/[a-z]/, 'Password must include at least one lowercase letter')
+  .regex(/[A-Z]/, 'Password must include at least one uppercase letter')
+  .regex(/\d/, 'Password must include at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Password must include at least one special character');
+
 export const studentRegisterSchema = z.object({
   name: z.string().min(2, 'Name is too short').max(100),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: strongPassword,
   confirm_password: z.string().optional(),
   country_code: z.string().optional(),
   mobile: z.string().min(5, 'Mobile number is too short').optional(),
@@ -41,7 +50,7 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   uid: z.coerce.number().int().positive('Invalid user id'),
   token: z.string().min(10, 'Invalid reset token'),
-  new_password: z.string().min(8, 'Password must be at least 8 characters'),
+  new_password: strongPassword,
   confirm_new_password: z.string().min(8, 'Confirm password is required'),
 }).refine((data) => data.new_password === data.confirm_new_password, {
   message: "Passwords don't match",

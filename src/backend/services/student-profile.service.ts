@@ -605,7 +605,7 @@ export class StudentProfileService {
     }
 
     const storedPassword = String(student.password || '');
-    const isMatch = (await verifyPassword(input.old_password, storedPassword)) || input.old_password === storedPassword;
+    const isMatch = await verifyPassword(input.old_password, storedPassword);
     if (!isMatch) {
       return { status: false, message: 'The old password is incorrect.' };
     }

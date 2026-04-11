@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server';
 import { 
-  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService } from '@/backend';
+  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService, authRateLimit } from '@/backend';
 
-export const POST = withMiddleware(checkApiKey)(async (request: NextRequest) => {
+export const POST = withMiddleware(checkApiKey, authRateLimit)(async (request: NextRequest) => {
   try {
     const { email } = await request.json();
     if (!email) return apiError('Email is required', 422);
