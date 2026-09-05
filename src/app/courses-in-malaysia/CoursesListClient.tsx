@@ -41,34 +41,37 @@ const cache = {
 }
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
-function CourseCardSkeleton() {
+function CourseCardSkeleton({ viewMode = 'list' }: { viewMode?: 'list' | 'grid' }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden animate-pulse mb-3 w-full p-3.5 sm:p-4 space-y-2.5">
-      <div className="flex items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="w-13 h-13 sm:w-16 sm:h-16 bg-slate-200 rounded-xl shrink-0" />
-          <div className="space-y-1.5">
-            <div className="h-3.5 bg-slate-200 rounded w-44" />
-            <div className="h-3 bg-slate-100 rounded w-28" />
+    <div className={`bg-white rounded-2xl border border-slate-200/80 overflow-hidden animate-pulse p-3.5 sm:p-4 space-y-3 ${
+      viewMode === 'grid' ? 'flex flex-col h-full' : 'w-full mb-3'
+    }`}>
+      {/* Header: Uni info on left, badges on upper right corner */}
+      <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-200 rounded-xl shrink-0" />
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="h-4 bg-slate-200 rounded w-3/4" />
+            <div className="h-3 bg-slate-100 rounded w-1/2" />
           </div>
         </div>
-        <div className="flex gap-1.5">
-          <div className="h-6 bg-slate-200 rounded-full w-20 hidden sm:block" />
-          <div className="h-6 bg-slate-200 rounded-full w-28 hidden sm:block" />
+        <div className="flex gap-1.5 shrink-0">
+          <div className="h-5 bg-slate-200 rounded-full w-16" />
+          <div className="h-5 bg-slate-200 rounded-full w-20" />
         </div>
       </div>
-      <div className="h-4.5 bg-slate-200 rounded w-2/3" />
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2">
+      {/* Title */}
+      <div className="h-5 bg-slate-200 rounded w-4/5 my-1" />
+      {/* Specs */}
+      <div className={`grid gap-1.5 sm:gap-2 ${viewMode === 'grid' ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
         {[1, 2, 3, 4].map(i => (
           <div key={i} className="h-12 bg-slate-100 rounded-xl" />
         ))}
       </div>
-      <div className="flex justify-between items-center pt-1.5">
-        <div className="flex gap-2">
-          <div className="h-8 w-28 bg-slate-100 rounded-xl" />
-          <div className="h-8 w-24 bg-slate-100 rounded-xl" />
-        </div>
-        <div className="h-8 w-24 bg-slate-200 rounded-xl" />
+      {/* Buttons */}
+      <div className="pt-2.5 border-t border-slate-100 mt-auto flex gap-2">
+        <div className="h-8.5 bg-slate-100 rounded-xl flex-1" />
+        <div className="h-8.5 bg-slate-200 rounded-xl flex-1" />
       </div>
     </div>
   )
@@ -162,16 +165,17 @@ function CourseCard({
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group relative overflow-hidden ${
-        viewMode === "grid" ? "flex flex-col h-full" : "w-full mb-3"
+      className={`bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group relative overflow-hidden flex flex-col justify-between ${
+        viewMode === "grid" ? "h-full" : "w-full mb-3"
       }`}
     >
       <div className="p-3.5 sm:p-4 flex flex-col h-full">
-        {/* University Header & Meta */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
-          <div className="flex items-center gap-3 min-w-0">
-            {/* Logo */}
-            <div className="w-13 h-13 sm:w-16 sm:h-16 bg-white rounded-xl flex items-center justify-center shrink-0 border border-slate-200/80 shadow-2xs overflow-hidden p-1 group-hover:border-blue-200 transition-colors">
+        {/* Header: University Info on Left + Badges in UPPER RIGHT CORNER */}
+        <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+          {/* Left: University Logo & Details */}
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {/* Bigger Logo */}
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-xl flex items-center justify-center shrink-0 border border-slate-200/80 shadow-2xs overflow-hidden p-1.5 group-hover:border-blue-200 transition-colors">
               {course.university?.logo_path ? (
                 <img
                   src={`${IMAGE_BASE}/storage/${course.university.logo_path}`}
@@ -190,13 +194,13 @@ function CourseCard({
             <div className="min-w-0 flex-1">
               <h3
                 onClick={() => onUniversityClick(course.university)}
-                className="text-[14.5px] sm:text-[16px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors truncate leading-tight"
+                className="text-[14px] sm:text-[15.5px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors truncate leading-tight"
                 title={course.university?.name}
               >
                 {course.university?.name}
               </h3>
 
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11.5px] text-slate-500 mt-0.5">
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px] text-slate-500 mt-1">
                 {(course.university?.city || course.university?.state) && (
                   <span className="flex items-center gap-1">
                     <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
@@ -217,57 +221,59 @@ function CourseCard({
             </div>
           </div>
 
-          {/* Right Corner: Degree (Level), Dynamic Scholarship, Local/Int'l & Rating */}
-          <div className="flex items-center gap-1.5 flex-wrap sm:justify-end shrink-0">
+          {/* Right Side Upper Corner: Degree (Level), Scholarship, Local/Int'l & Rating */}
+          <div className="flex items-center justify-end gap-1.5 flex-wrap shrink-0">
             {course.level && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
                 {course.level}
               </span>
             )}
 
             {scholarshipBadge && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                 <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <span>{scholarshipBadge}</span>
               </span>
             )}
 
             {Number(course.is_local) === 1 && (
-              <span className="inline-flex items-center gap-1 bg-blue-50 text-[#003893] border border-blue-200/80 px-2 py-0.5 rounded-full text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 bg-blue-50/70 text-[#003893] border border-blue-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
                 <Home className="w-2.5 h-2.5 text-[#003893]" />
                 <span>Local</span>
               </span>
             )}
 
             {Number(course.is_international) === 1 && (
-              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200/80 px-2 py-0.5 rounded-full text-[11px] font-semibold">
+              <span className="inline-flex items-center gap-1 bg-green-50/70 text-green-700 border border-green-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
                 <Globe className="w-2.5 h-2.5 text-green-600" />
                 <span>Int&apos;l</span>
               </span>
             )}
 
-            <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200/80 px-2 py-0.5 rounded-full font-bold text-[11.5px] shadow-2xs">
+            <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200/80 px-2.5 py-0.5 rounded-full font-bold text-[11px] shadow-2xs shrink-0">
               <span>{course.university?.rating || "4.5"}</span>
               <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
             </div>
           </div>
         </div>
 
-        {/* Course Title + Accreditations */}
-        <div className="pt-2 pb-2">
+        {/* Course Title & Accreditations */}
+        <div className="py-2.5 flex-1">
           <h4
             onClick={() => onViewDetail(course)}
-            className="text-[16px] sm:text-[17.5px] font-bold text-slate-900 group-hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-2"
+            className={`font-bold text-slate-900 group-hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-2 ${
+              viewMode === 'grid' ? 'text-[15px] sm:text-[16px] min-h-[44px]' : 'text-[15.5px] sm:text-[17px]'
+            }`}
           >
             {courseDisplayName}
           </h4>
 
           {accreditations.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
               {accreditations.map((acc, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/70 whitespace-nowrap"
+                  className="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/70 whitespace-nowrap"
                 >
                   {acc}
                 </span>
@@ -276,12 +282,14 @@ function CourseCard({
           )}
         </div>
 
-        {/* Specs Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 mb-2.5">
+        {/* Specs Grid: 4 columns in list view, 2x2 grid in card/grid view */}
+        <div className={`grid gap-1.5 sm:gap-2 mb-3 ${
+          viewMode === 'grid' ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'
+        }`}>
           {specs.map(({ label, value, icon: Icon, highlight }) => (
             <div
               key={label}
-              className="bg-slate-50/80 hover:bg-blue-50/30 border border-slate-200/60 rounded-xl px-2.5 py-1.5 sm:py-2 transition-colors flex flex-col justify-center"
+              className="bg-slate-50/85 hover:bg-blue-50/30 border border-slate-200/60 rounded-xl px-2.5 py-1.5 sm:py-2 transition-colors flex flex-col justify-center"
             >
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-0.5">
                 <Icon className="w-3 h-3 text-slate-400 shrink-0" />
@@ -296,7 +304,7 @@ function CourseCard({
 
         {/* Action Buttons */}
         {viewMode === 'grid' ? (
-          <div className="space-y-2 pt-2.5 border-t border-slate-100 mt-auto">
+          <div className="pt-2.5 border-t border-slate-100 mt-auto space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => onCompareUniversity(course)}
@@ -314,7 +322,7 @@ function CourseCard({
             <button
               onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
               disabled={appliedCourses.has(course.id)}
-              className={`w-full font-bold py-2 px-4 rounded-xl text-xs sm:text-[13px] transition-all shadow-sm cursor-pointer ${
+              className={`w-full font-bold py-2.5 px-4 rounded-xl text-xs sm:text-[13px] transition-all shadow-sm cursor-pointer ${
                 appliedCourses.has(course.id)
                   ? 'bg-emerald-600 text-white cursor-not-allowed'
                   : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-md'
@@ -1444,7 +1452,7 @@ export default function CoursesListClient({
               {/* Course Cards */}
               <div className={`${viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : 'space-y-4'}`}>
                 {loading && courses.length === 0
-                  ? [...Array(5)].map((_, i) => <CourseCardSkeleton key={i} />)
+                  ? [...Array(6)].map((_, i) => <CourseCardSkeleton key={i} viewMode={viewMode} />)
                   : courses.length > 0
                     ? courses.map(course => (
                         <CourseCard 
