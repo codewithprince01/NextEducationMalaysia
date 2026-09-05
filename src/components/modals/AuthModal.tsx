@@ -46,16 +46,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
     }
   }, [isOpen]);
 
-  // Prevent body scroll when modal is open
+  // Prevent body & html scroll when modal is open
   useEffect(() => {
     if (isOpen) {
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
+      document.documentElement.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prevBodyOverflow || "unset";
+        document.documentElement.style.overflow = prevHtmlOverflow || "unset";
+      };
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen]);
 
   const applyCourse = async (token: string, showLoader = true) => {
@@ -132,14 +134,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 px-4 overflow-y-auto py-8">
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl my-auto max-h-[95vh] overflow-y-auto animate-fadeIn transform transition-all [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-auto max-h-[92vh] overflow-y-auto animate-fadeIn border border-slate-100 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition z-10 cursor-pointer"
+          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center z-20 cursor-pointer"
           aria-label="Close modal"
         >
-          <X size={24} />
+          <X size={18} />
         </button>
 
         {isApplying ? (

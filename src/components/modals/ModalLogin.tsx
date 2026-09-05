@@ -205,23 +205,23 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
         toast.error(resData.message || "Login failed. Please try again.");
       }
     } catch (error: any) {
-        console.error("Login failed:", error);
-        toast.error(error.response?.data?.message || "Login failed. Please check your credentials.");
+      console.error("Login failed:", error);
+      toast.error(error.response?.data?.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Sign In</h2>
-        <p className="mt-2 text-gray-500 text-sm">
+    <div className="w-full max-w-md mx-auto p-4 sm:p-6">
+      <div className="text-center mb-5">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Sign In</h2>
+        <p className="mt-1 text-slate-500 text-xs sm:text-sm">
           Please enter your details to sign in.
         </p>
       </div>
 
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <ModernInput
           label="Email"
           type="email"
@@ -252,24 +252,24 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/20 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-600/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-sm"
         >
           {loading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Sign In <FaArrowRight />
+              Sign In <FaArrowRight className="text-xs" />
             </>
           )}
         </button>
 
         {onSwitchToSignUp && (
-          <p className="text-center text-sm text-gray-500">
-            Don't have an account?
+          <p className="text-center text-xs text-slate-500 pt-0.5">
+            Don&apos;t have an account?
             <button
               type="button"
               onClick={onSwitchToSignUp}
-              className="font-bold text-blue-600 hover:text-blue-700 hover:underline ml-1 cursor-pointer"
+              className="font-bold text-[#003893] hover:text-blue-700 hover:underline ml-1 cursor-pointer"
             >
               Sign Up
             </button>

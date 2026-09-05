@@ -382,129 +382,150 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
-        <p className="mt-2 text-gray-500 text-sm">
+    <div className="w-full max-w-2xl mx-auto p-4 sm:p-6">
+      <div className="text-center mb-4 sm:mb-5">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Create Account</h2>
+        <p className="mt-1 text-slate-500 text-xs sm:text-sm">
           Enter your details to register and apply for the course.
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <ModernInput
-          label="Full Name"
-          icon={<FaUser />}
-          placeholder="Enter your full name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-          error={errors.name}
-        />
+      <form className="space-y-3" onSubmit={handleSubmit}>
+        {/* Row 1: Full Name & Email Address */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ModernInput
+            label="Full Name"
+            icon={<FaUser />}
+            placeholder="Enter your full name"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+            error={errors.name}
+            compact
+          />
 
-        <ModernInput
-          label="Email Address"
-          icon={<FaEnvelope />}
-          type="email"
-          placeholder="Enter your email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
-          error={errors.email}
-        />
-
-        {/* Phone Number */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-semibold text-gray-700 ml-1">
-            Phone Number
-          </label>
-          <div className="flex gap-3">
-            <div className="relative w-1/3">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-lg pointer-events-none z-10">
-                {formData.country_code && getCountryFlag(formData.country_code)}
-              </div>
-              <select
-                name="country_code"
-                value={formData.country_code}
-                onChange={handleCountryCodeChange}
-                className="appearance-none w-full pl-10 pr-8 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm outline-none cursor-pointer"
-                required
-              >
-                <option value="">Code</option>
-                {phonecode.map((code, idx) => (
-                  <option key={idx} value={code.phonecode}>
-                    {code.iso || code.country_code} (+{code.phonecode})
-                  </option>
-                ))}
-              </select>
-              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            </div>
-            <div className="relative flex-1 group">
-              <FaPhoneAlt className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" />
-              <input
-                type="tel"
-                placeholder="Phone Number"
-                name="mobile"
-                value={formData.mobile}
-                onChange={handlePhoneChange}
-                className={`w-full pl-11 pr-10 py-3 bg-gray-50 border rounded-xl text-gray-900 font-medium focus:bg-white focus:ring-4 transition-all text-sm outline-none ${phoneError ? "border-red-300 focus:border-red-500 focus:ring-red-100" : phoneValid ? "border-green-300 focus:border-green-500 focus:ring-green-100" : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/10"}`}
-                required
-              />
-              {phoneValid && (
-                <MdCheckCircle className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500" />
-              )}
-              {phoneError && (
-                <MdError className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500" />
-              )}
-            </div>
-          </div>
-          {phoneError && (
-            <p className="text-red-500 text-xs ml-1 font-medium">
-              {phoneError}
-            </p>
-          )}
+          <ModernInput
+            label="Email Address"
+            icon={<FaEnvelope />}
+            type="email"
+            placeholder="Enter your email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            required
+            error={errors.email}
+            compact
+          />
         </div>
 
-        <ModernSelect
-          label="Qualification Level"
-          icon={<FaGraduationCap />}
-          name="highest_qualification"
-          value={formData.highest_qualification}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          options={levels.map((level) => level.level || level.name)}
-          required
-          error={errors.highest_qualification}
-        />
+        {/* Row 2: Phone Number & Nationality */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Phone Number */}
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-700 ml-0.5">
+              Phone Number <span className="text-rose-500">*</span>
+            </label>
+            <div className="flex gap-2">
+              <div className="relative w-28 sm:w-32 shrink-0">
+                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none z-10">
+                  {formData.country_code && getCountryFlag(formData.country_code)}
+                </div>
+                <select
+                  name="country_code"
+                  value={formData.country_code}
+                  onChange={handleCountryCodeChange}
+                  className="appearance-none w-full pl-8 pr-6 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-[#003893] focus:ring-2 focus:ring-blue-500/10 transition-all text-xs sm:text-[13px] outline-none cursor-pointer"
+                  required
+                >
+                  <option value="">Code</option>
+                  {phonecode.map((code, idx) => (
+                    <option key={idx} value={code.phonecode}>
+                      {code.iso || code.country_code} (+{code.phonecode})
+                    </option>
+                  ))}
+                </select>
+                <FiChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+              </div>
+              <div className="relative flex-1 group">
+                <FaPhoneAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#003893] transition-colors text-xs" />
+                <input
+                  type="tel"
+                  placeholder="Phone number"
+                  name="mobile"
+                  value={formData.mobile}
+                  onChange={handlePhoneChange}
+                  className={`w-full pl-8 pr-8 py-2.5 bg-gray-50 border rounded-xl text-gray-900 font-medium focus:bg-white focus:ring-2 transition-all text-xs sm:text-[13px] outline-none ${
+                    phoneError
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : phoneValid
+                      ? "border-green-300 focus:border-green-500 focus:ring-green-100"
+                      : "border-gray-200 focus:border-[#003893] focus:ring-blue-500/10"
+                  }`}
+                  required
+                />
+                {phoneValid && (
+                  <MdCheckCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 text-green-500 text-sm" />
+                )}
+                {phoneError && (
+                  <MdError className="absolute right-2.5 top-1/2 -translate-y-1/2 text-red-500 text-sm" />
+                )}
+              </div>
+            </div>
+            {phoneError && (
+              <p className="text-red-500 text-[11px] ml-1 font-medium">
+                {phoneError}
+              </p>
+            )}
+          </div>
 
-        <ModernSelect
-          label="Interested Course"
-          icon={<FaBookOpen />}
-          name="interested_course_category"
-          value={formData.interested_course_category}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          options={courseCategories.map((cat) => cat.name)}
-          required
-          error={errors.interested_course_category}
-        />
+          <ModernSelect
+            label="Nationality"
+            icon={<FaGlobe />}
+            name="nationality"
+            value={formData.nationality}
+            onChange={handleNationalityChange}
+            onBlur={handleBlur}
+            options={countriesData.map((country) => country.name)}
+            required
+            error={errors.nationality}
+            compact
+          />
+        </div>
 
-        <ModernSelect
-          label="Nationality"
-          icon={<FaGlobe />}
-          name="nationality"
-          value={formData.nationality}
-          onChange={handleNationalityChange}
-          onBlur={handleBlur}
-          options={countriesData.map((country) => country.name)}
-          required
-          error={errors.nationality}
-        />
+        {/* Row 3: Qualification Level & Interested Course */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <ModernSelect
+            label="Qualification Level"
+            icon={<FaGraduationCap />}
+            name="highest_qualification"
+            value={formData.highest_qualification}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            options={levels.map((level) => level.level || level.name)}
+            required
+            error={errors.highest_qualification}
+            compact
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ModernSelect
+            label="Interested Course"
+            icon={<FaBookOpen />}
+            name="interested_course_category"
+            value={formData.interested_course_category}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            options={courseCategories.map((cat) => cat.name)}
+            required
+            error={errors.interested_course_category}
+            compact
+          />
+        </div>
+
+        {/* Row 4: Password & Confirm Password */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <PasswordInput
             label="Password"
             icon={<FaLock />}
@@ -519,6 +540,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             error={errors.password}
             showStrength={true}
             strength={passwordStrength}
+            compact
           />
           <PasswordInput
             label="Confirm Password"
@@ -532,56 +554,60 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             setShowPassword={setShowConfirmPassword}
             required
             error={errors.confirm_password}
+            compact
           />
         </div>
 
-        <div className="space-y-1.5 p-4 bg-gray-50 rounded-xl border border-gray-100">
-          <label className="text-sm font-semibold text-gray-700">
-            Verify Security
-          </label>
-          <div className="flex items-center gap-3">
-            <div className="bg-white px-4 py-2.5 rounded-lg border border-gray-200 font-bold text-gray-800 tracking-wider shadow-sm select-none min-w-[80px] text-center">
-              {captcha}
+        {/* Row 5: Captcha Verification */}
+        <div className="pt-0.5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-2.5 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-gray-600 shrink-0">Security:</span>
+              <div className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 font-bold text-gray-800 tracking-wider shadow-2xs select-none min-w-[76px] text-center text-xs sm:text-sm">
+                {captcha}
+              </div>
+              <button
+                type="button"
+                onClick={generateCaptcha}
+                className="p-2 text-gray-500 hover:text-[#003893] hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-2xs cursor-pointer text-xs"
+                title="New captcha"
+              >
+                <LuRefreshCw />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={generateCaptcha}
-              className="p-2.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 hover:shadow-sm cursor-pointer"
-            >
-              <LuRefreshCw />
-            </button>
             <input
               type="text"
-              placeholder="Result?"
+              placeholder="Answer?"
               value={userCaptcha}
               onChange={(e) => setUserCaptcha(e.target.value)}
-              className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-gray-400"
+              className="flex-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:border-[#003893] focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-gray-400"
               required
             />
           </div>
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/20 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-600/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-sm"
         >
           {loading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Create Account <FaArrowRight />
+              Create Account & Apply <FaArrowRight className="text-xs" />
             </>
           )}
         </button>
 
         {onSwitchToLogin && (
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-xs text-gray-500 pt-0.5">
             Already have an account?
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="font-bold text-blue-600 hover:text-blue-700 hover:underline ml-1 cursor-pointer"
+              className="font-bold text-[#003893] hover:text-blue-700 hover:underline ml-1 cursor-pointer"
             >
               Sign In
             </button>

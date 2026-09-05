@@ -13,6 +13,7 @@ interface ModernInputProps {
   icon: React.ReactNode;
   required?: boolean;
   error?: string;
+  compact?: boolean;
 }
 
 export const ModernInput = ({
@@ -26,11 +27,14 @@ export const ModernInput = ({
   icon,
   required,
   error,
+  compact = false,
 }: ModernInputProps) => (
-  <div className="space-y-1.5">
-    <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
+  <div className={compact ? "space-y-1" : "space-y-1.5"}>
+    <label className={`${compact ? "text-xs" : "text-sm"} font-semibold text-slate-700 ml-0.5`}>
+      {label} {required && <span className="text-rose-500">*</span>}
+    </label>
     <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+      <div className={`absolute ${compact ? "left-3 text-xs" : "left-4"} top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors`}>
         {icon}
       </div>
       <input
@@ -41,7 +45,7 @@ export const ModernInput = ({
         onChange={onChange}
         onBlur={onBlur}
         required={required}
-        className={`w-full pl-11 pr-4 py-3.5 bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-4 transition-all outline-none text-sm font-medium ${
+        className={`w-full ${compact ? "pl-9 pr-3.5 py-2.5 text-xs sm:text-[13px]" : "pl-11 pr-4 py-3.5 text-sm"} bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-4 transition-all outline-none font-medium ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
             : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/10"
@@ -49,7 +53,7 @@ export const ModernInput = ({
       />
     </div>
     {error && (
-      <p className="text-red-600 text-xs mt-1 ml-1 font-medium flex items-center gap-1">
+      <p className="text-red-600 text-xs mt-0.5 ml-1 font-medium flex items-center gap-1">
         <span className="inline-block w-1 h-1 bg-red-600 rounded-full" />
         {error}
       </p>
@@ -67,6 +71,7 @@ interface ModernSelectProps {
   onBlur: (e: React.FocusEvent<HTMLSelectElement>) => void;
   required?: boolean;
   error?: string;
+  compact?: boolean;
 }
 
 export const ModernSelect = ({
@@ -79,11 +84,14 @@ export const ModernSelect = ({
   onBlur,
   required,
   error,
+  compact = false,
 }: ModernSelectProps) => (
-  <div className="space-y-1.5">
-    <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
+  <div className={compact ? "space-y-1" : "space-y-1.5"}>
+    <label className={`${compact ? "text-xs" : "text-sm"} font-semibold text-slate-700 ml-0.5`}>
+      {label} {required && <span className="text-rose-500">*</span>}
+    </label>
     <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 z-10 transition-colors">
+      <div className={`absolute ${compact ? "left-3 text-xs" : "left-4"} top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 z-10 transition-colors`}>
         {icon}
       </div>
       <select
@@ -92,7 +100,7 @@ export const ModernSelect = ({
         onChange={onChange}
         onBlur={onBlur}
         required={required}
-        className={`appearance-none w-full pl-11 pr-10 py-3.5 bg-gray-50 border rounded-xl text-gray-900 font-medium focus:bg-white focus:ring-4 transition-all outline-none text-sm cursor-pointer ${
+        className={`appearance-none w-full ${compact ? "pl-9 pr-8 py-2.5 text-xs sm:text-[13px]" : "pl-11 pr-10 py-3.5 text-sm"} bg-gray-50 border rounded-xl text-gray-900 font-medium focus:bg-white focus:ring-4 transition-all outline-none cursor-pointer ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
             : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/10"
@@ -107,10 +115,10 @@ export const ModernSelect = ({
           </option>
         ))}
       </select>
-      <FiChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+      <FiChevronDown className={`absolute ${compact ? "right-3 text-xs" : "right-4"} top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none`} />
     </div>
     {error && (
-      <p className="text-red-600 text-xs mt-1 ml-1 font-medium flex items-center gap-1">
+      <p className="text-red-600 text-xs mt-0.5 ml-1 font-medium flex items-center gap-1">
         <span className="inline-block w-1 h-1 bg-red-600 rounded-full" />
         {error}
       </p>
@@ -132,6 +140,7 @@ interface PasswordInputProps {
   error?: string;
   showStrength?: boolean;
   strength?: { level: number; color: string; text: string };
+  compact?: boolean;
 }
 
 export const PasswordInput = ({
@@ -148,11 +157,14 @@ export const PasswordInput = ({
   error,
   showStrength,
   strength,
+  compact = false,
 }: PasswordInputProps) => (
-  <div className="space-y-1.5">
-    <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
+  <div className={compact ? "space-y-1" : "space-y-1.5"}>
+    <label className={`${compact ? "text-xs" : "text-sm"} font-semibold text-slate-700 ml-0.5`}>
+      {label} {required && <span className="text-rose-500">*</span>}
+    </label>
     <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
+      <div className={`absolute ${compact ? "left-3 text-xs" : "left-4"} top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors`}>
         {icon}
       </div>
       <input
@@ -163,7 +175,7 @@ export const PasswordInput = ({
         onChange={onChange}
         onBlur={onBlur}
         required={required}
-        className={`w-full pl-11 pr-12 py-3.5 bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-4 transition-all outline-none text-sm font-medium ${
+        className={`w-full ${compact ? "pl-9 pr-9 py-2.5 text-xs sm:text-[13px]" : "pl-11 pr-12 py-3.5 text-sm"} bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-4 transition-all outline-none font-medium ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
             : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/10"
@@ -172,7 +184,7 @@ export const PasswordInput = ({
       <button
         type="button"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+        className={`absolute ${compact ? "right-3 text-xs" : "right-4"} top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer`}
       >
         {showPassword ? <FaEyeSlash /> : <FaEye />}
       </button>
@@ -205,7 +217,7 @@ export const PasswordInput = ({
       </div>
     )}
     {error && (
-      <p className="text-red-600 text-xs mt-1 ml-1 font-medium flex items-center gap-1">
+      <p className="text-red-600 text-xs mt-0.5 ml-1 font-medium flex items-center gap-1">
         <span className="inline-block w-1 h-1 bg-red-600 rounded-full" />
         {error}
       </p>
