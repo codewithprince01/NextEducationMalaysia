@@ -66,10 +66,10 @@ function CourseCardSkeleton() {
 
 function FilterPanelSkeleton() {
   return (
-    <div className="hidden lg:block w-[280px] min-w-[280px] shrink-0 bg-white border border-blue-100 p-6 rounded-2xl shadow-xl space-y-4 animate-pulse">
-      <div className="h-6 bg-gray-200 rounded w-1/2" />
-      {[1,2,3,4].map(i => (
-        <div key={i} className="bg-gray-100 rounded-xl border border-gray-200 p-3 h-12" />
+    <div className="hidden lg:block w-[290px] min-w-[290px] xl:w-[300px] xl:min-w-[300px] shrink-0 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm space-y-3 animate-pulse sticky top-[88px]">
+      <div className="h-5 bg-slate-200 rounded w-1/2 mb-4" />
+      {[1, 2, 3, 4, 5].map(i => (
+        <div key={i} className="bg-slate-100 rounded-xl h-10 border border-slate-200/40" />
       ))}
     </div>
   )
@@ -263,67 +263,108 @@ function CourseCard({
 function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, activeFilterCount, specializationSearch, onToggleFilter, onFilterChange, onReset, onSpecializationSearch }: any) {
   if (loading) return <FilterPanelSkeleton />
   return (
-    <div className="hidden lg:block w-[280px] min-w-[280px] shrink-0 bg-linear-to-br from-white to-blue-50/30 border border-blue-100 p-6 rounded-2xl shadow-xl space-y-5 text-base sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto scrollbar-hide">
-      <div className="pb-4 border-b-2 border-blue-100">
-        <div className="flex items-center gap-2.5 mb-3">
-          <div className="bg-linear-to-br from-blue-600 to-blue-700 p-1.5 rounded-lg shadow-sm">
-            <Filter className="w-4 h-4 text-white" />
+    <div className="hidden lg:block w-[290px] min-w-[290px] xl:w-[300px] xl:min-w-[300px] shrink-0 bg-white border border-slate-200/80 p-4 sm:p-5 rounded-2xl shadow-xs space-y-4 text-base sticky top-[88px] self-start max-h-[calc(100vh-6.5rem)] overflow-y-auto scrollbar-thin">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#003893] flex items-center justify-center shrink-0">
+            <Filter className="w-4 h-4" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">Filters</h2>
+          <h2 className="text-[15.5px] font-bold text-slate-900 tracking-tight">Filters</h2>
           {activeFilterCount > 0 && (
-            <span className="flex items-center justify-center w-5 h-5 text-[11px] font-semibold bg-blue-600 text-white rounded-full">{activeFilterCount}</span>
+            <span className="flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold bg-[#003893] text-white rounded-full">
+              {activeFilterCount}
+            </span>
           )}
         </div>
         {activeFilterCount > 0 && (
-          <div className="flex justify-end">
-            <button onClick={onReset} className="text-md text-red-600 hover:text-red-700 font-bold transition-all hover:underline cursor-pointer">Clear All</button>
-          </div>
+          <button
+            onClick={onReset}
+            className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-md transition-colors cursor-pointer"
+          >
+            Reset all
+          </button>
         )}
       </div>
-      <div className="space-y-3">
+
+      {/* Accordion groups */}
+      <div className="space-y-2.5">
         {Object.entries(filters).map(([key, items]: [string, any]) => (
-          <div key={key} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-all">
-            <button onClick={() => onToggleFilter(key)} className="w-full flex items-center justify-between p-3 text-left hover:bg-linear-to-r hover:from-blue-50 hover:to-transparent transition-all">
-              <span className="font-bold text-gray-900 capitalize flex items-center gap-2">
+          <div
+            key={key}
+            className="rounded-xl border border-slate-200/70 overflow-hidden bg-slate-50/40 hover:border-slate-300 transition-colors"
+          >
+            <button
+              onClick={() => onToggleFilter(key)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 text-left hover:bg-slate-100/60 transition-colors"
+            >
+              <span className="font-semibold text-slate-800 text-[13.5px] capitalize flex items-center gap-2">
                 {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
                 {selectedFilters[key]?.length > 0 && (
-                  <span className="bg-linear-to-r from-blue-500 to-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">{selectedFilters[key].length}</span>
+                  <span className="bg-[#003893] text-white text-[10.5px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
+                    {selectedFilters[key].length}
+                  </span>
                 )}
               </span>
-              <div className={`transition-transform duration-200 ${openFilters[key] ? 'rotate-180' : ''}`}>
-                <ChevronDown className="w-5 h-5 text-blue-600" />
-              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                  openFilters[key] ? 'rotate-180 text-[#003893]' : ''
+                }`}
+              />
             </button>
+
             {openFilters[key] && (
-              <div className="px-3 pb-3 space-y-1.5 max-h-56 overflow-y-auto bg-linear-to-b from-gray-50/50 to-white">
+              <div className="px-3 pb-3 pt-1 space-y-1 max-h-56 overflow-y-auto border-t border-slate-200/50 bg-white scrollbar-thin">
                 {key === 'specializations' && (
-                  <div className="sticky top-0 bg-white z-10 pb-2 mb-2 border-b border-gray-200">
-                    <input type="text" placeholder="Search specializations..." value={specializationSearch} onChange={e => onSpecializationSearch(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                  <div className="sticky top-0 bg-white z-10 pb-2 pt-1 mb-1 border-b border-slate-100">
+                    <div className="relative flex items-center">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search specializations..."
+                        value={specializationSearch}
+                        onChange={e => onSpecializationSearch(e.target.value)}
+                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-[#003893] outline-none transition-all"
+                      />
+                    </div>
                   </div>
                 )}
-                {(Array.isArray(items) ? items : []).filter((item: any) => {
-                  if (key !== 'specializations' || !specializationSearch) return true
-                  return (item.label || item.name || item.slug || '').toLowerCase().includes(specializationSearch.toLowerCase())
-                }).map((item: any) => {
-                  const value = item.value || item.slug || item.name || item.month || item.study_mode || item
-                  const displayRaw = item.label || item.name || item.slug || item.month || item.study_mode || item
-                  const display = formatFilterDisplayLabel(key, displayRaw)
-                  const normalizedValue = normalizeFilterValue(key, value)
-                  const isChecked = selectedFilters[key]?.includes(normalizedValue) || false
-                  const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
-                  return (
-                    <label key={item.id || value} className={`flex items-center gap-3 py-2 px-3 cursor-pointer rounded-lg transition-all group ${isChecked ? 'bg-linear-to-r from-blue-100 to-blue-50 border border-blue-200 shadow-sm' : 'hover:bg-blue-50/50 border border-transparent'}`}>
-                      <input 
-                        type={isSingleSelect ? "radio" : "checkbox"} 
-                        name={`course-${key}-desktop`} 
-                        className="w-4 h-4 text-blue-600 border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 shrink-0 cursor-pointer rounded-full" 
-                        checked={isChecked} 
-                        onChange={() => onFilterChange(key, normalizedValue, item.id)} 
-                      />
-                      <span className={`text-sm font-medium text-left transition-colors ${isChecked ? 'text-blue-900 font-semibold' : 'text-gray-700 group-hover:text-blue-700'}`}>{display}</span>
-                    </label>
-                  )
-                })}
+                {(Array.isArray(items) ? items : [])
+                  .filter((item: any) => {
+                    if (key !== 'specializations' || !specializationSearch) return true
+                    return (item.label || item.name || item.slug || '')
+                      .toLowerCase()
+                      .includes(specializationSearch.toLowerCase())
+                  })
+                  .map((item: any) => {
+                    const value = item.value || item.slug || item.name || item.month || item.study_mode || item
+                    const displayRaw = item.label || item.name || item.slug || item.month || item.study_mode || item
+                    const display = formatFilterDisplayLabel(key, displayRaw)
+                    const normalizedValue = normalizeFilterValue(key, value)
+                    const isChecked = selectedFilters[key]?.includes(normalizedValue) || false
+                    const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
+                    return (
+                      <label
+                        key={item.id || value}
+                        className={`flex items-center gap-2.5 py-1.5 px-2.5 cursor-pointer rounded-lg transition-all text-left ${
+                          isChecked
+                            ? 'bg-blue-50 text-[#003893] font-semibold'
+                            : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                      >
+                        <input
+                          type={isSingleSelect ? 'radio' : 'checkbox'}
+                          name={`course-${key}-desktop`}
+                          className={`w-3.5 h-3.5 text-[#003893] border-slate-300 focus:ring-2 focus:ring-blue-500/20 shrink-0 cursor-pointer ${
+                            isSingleSelect ? 'rounded-full' : 'rounded'
+                          }`}
+                          checked={isChecked}
+                          onChange={() => onFilterChange(key, normalizedValue, item.id)}
+                        />
+                        <span className="text-[13px] leading-snug line-clamp-2">{display}</span>
+                      </label>
+                    )
+                  })}
               </div>
             )}
           </div>
@@ -336,34 +377,61 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
 // ── FilterDrawer Mobile ───────────────────────────────────────────────────────
 function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilterCount, specializationSearch, onToggleFilter, onFilterChange, onReset, onClose, onSpecializationSearch }: any) {
   return (
-    <div className="fixed inset-0 z-50 flex backdrop-blur-[5px]">
-      <div className="w-4/5 max-w-xs bg-white p-5 rounded-r-xl shadow-xl h-full overflow-y-auto space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+    <div className="fixed inset-0 z-50 flex backdrop-blur-xs bg-slate-900/40">
+      <div className="w-4/5 max-w-xs bg-white p-5 rounded-r-2xl shadow-2xl h-full overflow-y-auto space-y-4">
+        <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-blue-600" />
-            <h2 className="text-xl font-bold text-gray-900">Filters</h2>
-            {activeFilterCount > 0 && <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">{activeFilterCount}</span>}
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#003893] flex items-center justify-center shrink-0">
+              <Filter className="w-4 h-4" />
+            </div>
+            <h2 className="text-[16px] font-bold text-slate-900">Filters</h2>
+            {activeFilterCount > 0 && (
+              <span className="flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold bg-[#003893] text-white rounded-full">
+                {activeFilterCount}
+              </span>
+            )}
           </div>
-          <button className="text-2xl font-bold text-gray-600 hover:text-gray-900" onClick={onClose}>×</button>
+          <button className="text-2xl font-bold text-slate-400 hover:text-slate-700 leading-none" onClick={onClose}>×</button>
         </div>
         {activeFilterCount > 0 && (
-          <button onClick={() => { onReset(); onClose() }} className="text-sm text-blue-600 hover:text-blue-700 font-semibold hover:underline">Clear All Filters</button>
+          <button
+            onClick={() => { onReset(); onClose() }}
+            className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline"
+          >
+            Clear all filters
+          </button>
         )}
         <div className="space-y-2">
           {Object.entries(filters).map(([key, items]: [string, any]) => (
-            <div key={key} className="border-b border-gray-100 last:border-0 pb-2">
-              <button onClick={() => onToggleFilter(key)} className="w-full flex items-center justify-between py-2 text-left hover:bg-gray-50 rounded-lg px-2">
-                <span className="font-semibold text-gray-900 capitalize flex items-center gap-2">
+            <div key={key} className="rounded-xl border border-slate-200/70 overflow-hidden bg-slate-50/40">
+              <button
+                onClick={() => onToggleFilter(key)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-slate-100/60 transition-colors"
+              >
+                <span className="font-semibold text-slate-800 text-[13px] capitalize flex items-center gap-2">
                   {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
-                  {selectedFilters[key].length > 0 && <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">{selectedFilters[key].length}</span>}
+                  {selectedFilters[key]?.length > 0 && (
+                    <span className="bg-[#003893] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
+                      {selectedFilters[key].length}
+                    </span>
+                  )}
                 </span>
-                {openFilters[key] ? <ChevronUp className="w-5 h-5 text-gray-600" /> : <ChevronDown className="w-5 h-5 text-gray-600" />}
+                {openFilters[key] ? <ChevronUp className="w-4 h-4 text-[#003893]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
               </button>
               {openFilters[key] && (
-                <div className="mt-2 space-y-2 pl-2 max-h-56 overflow-y-auto">
+                <div className="px-2.5 pb-2.5 pt-1 space-y-1 max-h-56 overflow-y-auto border-t border-slate-200/50 bg-white">
                   {key === 'specializations' && (
-                    <div className="sticky top-0 bg-white z-10 pb-2 mb-2 border-b border-gray-200 pr-2">
-                      <input type="text" placeholder="Search specializations..." value={specializationSearch} onChange={e => onSpecializationSearch(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    <div className="sticky top-0 bg-white z-10 pb-2 pt-1 mb-1 border-b border-slate-100">
+                      <div className="relative flex items-center">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 pointer-events-none" />
+                        <input
+                          type="text"
+                          placeholder="Search specializations..."
+                          value={specializationSearch}
+                          onChange={e => onSpecializationSearch(e.target.value)}
+                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-[#003893] outline-none"
+                        />
+                      </div>
                     </div>
                   )}
                   {(items as any[]).filter((item: any) => {
@@ -374,17 +442,25 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                     const displayRaw = item.label || item.name || item.slug || item.month || item.study_mode || item
                     const display = formatFilterDisplayLabel(key, displayRaw)
                     const normalizedValue = normalizeFilterValue(key, value)
+                    const isChecked = selectedFilters[key]?.includes(normalizedValue) || false
                     const isSingleSelect = SINGLE_SELECT_FILTERS.includes(key)
                     return (
-                      <label key={item.id || value} className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-blue-50 rounded-lg pl-0 pr-2 transition-all group">
+                      <label
+                        key={item.id || value}
+                        className={`flex items-center gap-2 py-1.5 px-2 cursor-pointer rounded-lg transition-all text-left ${
+                          isChecked ? 'bg-blue-50 text-[#003893] font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
                         <input 
                           type={isSingleSelect ? "radio" : "checkbox"} 
                           name={`course-${key}-mobile`} 
-                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-2 focus:ring-blue-500 shrink-0 rounded-full" 
-                          checked={selectedFilters[key].includes(normalizedValue)} 
+                          className={`w-3.5 h-3.5 text-[#003893] border-slate-300 focus:ring-2 focus:ring-blue-500/20 shrink-0 cursor-pointer ${
+                            isSingleSelect ? 'rounded-full' : 'rounded'
+                          }`}
+                          checked={isChecked} 
                           onChange={() => onFilterChange(key, normalizedValue, item.id)} 
                         />
-                        <span className="text-gray-700 text-sm font-medium group-hover:text-blue-700 text-left">{display}</span>
+                        <span className="text-[13px] leading-snug">{display}</span>
                       </label>
                     )
                   })}
