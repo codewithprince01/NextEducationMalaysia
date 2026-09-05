@@ -100,7 +100,7 @@ export default function UniversityContentClient({ slug, overviews, universityNam
 
   return (
     <>
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-14 z-10">
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-[68px] z-10">
         <div className="max-w-[1400px] mx-auto px-2 md:px-4 flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {TABS.map((tab, index) => (
             <button

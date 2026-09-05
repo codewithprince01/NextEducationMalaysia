@@ -169,7 +169,7 @@ const CategorySidebar = ({
   const BarIcon = selectedCategory === 'all' ? BookOpen : getCategoryIcon(selectedCategoryData?.name || '')
 
   return (
-    <div className="w-full lg:w-72 xl:w-80 shrink-0 lg:self-start sticky top-[56px] z-50 lg:top-16 bg-[#f0f5fe] lg:bg-transparent pt-2 pb-2 lg:pt-0 lg:pb-0">
+    <div className="w-full lg:w-72 xl:w-80 shrink-0 lg:self-start sticky top-[68px] z-50 lg:top-[76px] bg-[#f0f5fe] lg:bg-transparent pt-2 pb-2 lg:pt-0 lg:pb-0">
       <div className="bg-white rounded-xl shadow-md lg:shadow-lg p-3 sm:p-4 lg:p-5 max-h-[80vh] overflow-hidden flex flex-col transition-all duration-300">
         <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
           Categories
