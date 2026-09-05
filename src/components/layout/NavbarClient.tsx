@@ -159,26 +159,26 @@ export default function NavbarClient() {
 
   return (
     <>
-      <nav className="px-4 sm:px-8 fixed top-0 left-0 right-0 z-[9999] h-[76px] flex items-center bg-white/95 backdrop-blur text-black shadow-lg">
-        <div className="flex items-center justify-between w-full">
+      <nav className="fixed top-0 left-0 right-0 z-[9999] h-[76px] bg-white/95 backdrop-blur-md text-black shadow-md border-b border-slate-100">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between w-full">
           {/* Logo */}
-          <Link href="/" aria-label="Home" className="overflow-hidden flex items-center h-[76px] shrink-0">
+          <Link href="/" aria-label="Home" className="flex items-center h-full shrink-0">
             <Image
               src="/logo.png"
               alt="Education Malaysia Logo"
-              width={250}
-              height={64}
+              width={240}
+              height={56}
               priority
-              className="h-11 sm:h-12 md:h-14 w-auto max-w-[280px] object-contain"
+              className="h-10 sm:h-11 md:h-12 lg:h-13 w-auto max-w-[220px] sm:max-w-[260px] object-contain"
             />
           </Link>
 
           {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-6 lg:space-x-8 text-[17px] lg:text-[18px] font-medium">
+          <div className="hidden lg:flex items-center gap-3.5 xl:gap-5 2xl:gap-7 text-[15px] xl:text-[16px] 2xl:text-[17px] font-semibold text-slate-800">
             <Link
               href="/"
-              className={`hover:text-blue-700 transition ${
-                isActive('/') ? 'text-blue-900 font-bold underline underline-offset-8' : ''
+              className={`hover:text-[#003893] transition-colors ${
+                isActive('/') ? 'text-[#003893] font-bold underline underline-offset-8 decoration-2' : ''
               }`}
             >
               Home
@@ -201,20 +201,20 @@ export default function NavbarClient() {
                     setIsDropdownLocked(true)
                   }
                 }}
-                className="flex items-center gap-1.5 hover:text-blue-700"
+                className="flex items-center gap-1.5 hover:text-[#003893] transition-colors cursor-pointer"
               >
                 Resources
-                <ChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={16} />
+                <ChevronDown className={`transition-transform duration-200 ${showDropdown ? 'rotate-180 text-[#003893]' : ''}`} size={16} />
               </button>
 
               {showDropdown && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 w-[750px] z-50">
-                  <div className="bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border border-blue-50 p-8 grid grid-cols-4 gap-6 relative">
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-l border-t border-blue-50" />
+                <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3 w-[720px] max-w-[90vw] z-50">
+                  <div className="bg-white/98 backdrop-blur-xl shadow-2xl rounded-2xl border border-slate-100 p-7 grid grid-cols-4 gap-6 relative">
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-l border-t border-slate-100" />
 
-                    <div className="col-span-4 mb-2 flex justify-between items-center border-b border-gray-100 pb-4">
-                      <h3 className="text-xl font-bold text-gray-900">Resources Hub</h3>
-                      <Link href="/resources" className="text-blue-600 font-semibold hover:text-blue-700 flex items-center text-sm">
+                    <div className="col-span-4 mb-1 flex justify-between items-center border-b border-slate-100 pb-3">
+                      <h3 className="text-lg font-bold text-slate-900">Resources Hub</h3>
+                      <Link href="/resources" className="text-[#003893] font-semibold hover:underline flex items-center text-xs">
                         View All <ChevronRight size={14} className="ml-1" />
                       </Link>
                     </div>
@@ -226,13 +226,15 @@ export default function NavbarClient() {
                       { title: 'About Us', href: '/resources/about', items: RESOURCES_LINKS.about },
                     ].map(group => (
                       <div key={group.title}>
-                        <Link href={group.href} className="font-bold text-blue-600 mb-3 hover:underline block">
+                        <Link href={group.href} className="font-bold text-[#003893] mb-2.5 hover:underline block text-sm">
                           {group.title}
                         </Link>
-                        <ul className="space-y-2 text-sm">
+                        <ul className="space-y-1.5 text-xs text-slate-600">
                           {group.items.map(item => (
                             <li key={item.href}>
-                              <Link href={item.href} className="hover:underline">{item.label}</Link>
+                              <Link href={item.href} className="hover:text-[#003893] hover:underline transition-colors block py-0.5">
+                                {item.label}
+                              </Link>
                             </li>
                           ))}
                         </ul>
@@ -247,8 +249,8 @@ export default function NavbarClient() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`hover:text-blue-700 transition ${
-                  isActive(link.href) ? 'text-blue-900 font-bold underline underline-offset-8' : ''
+                className={`hover:text-[#003893] transition-colors ${
+                  isActive(link.href) ? 'text-[#003893] font-bold underline underline-offset-8 decoration-2' : ''
                 }`}
               >
                 {link.label}
@@ -258,7 +260,7 @@ export default function NavbarClient() {
             {/* CTA — min-w prevents CLS when text swaps from 'Get Started' to 'Profile' */}
             <Link
               href={isLoggedIn ? '/student/profile' : '/signup'}
-              className="bg-blue-900 text-white px-6 py-2.5 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[130px] text-center inline-block text-[16px] lg:text-[17px]"
+              className="bg-[#003893] hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl shadow-xs transition-all font-bold min-w-[125px] text-center inline-block text-[14.5px] xl:text-[15.5px] shrink-0 hover:shadow-md"
             >
               {isLoggedIn ? displayName : 'Get Started'}
             </Link>
@@ -267,21 +269,21 @@ export default function NavbarClient() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-blue-900 text-2xl z-60"
+            className="lg:hidden text-[#003893] p-2 rounded-xl hover:bg-slate-100 transition-colors z-60 cursor-pointer"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
-            {menuOpen ? <XIcon size={28} /> : <MenuIcon size={28} />}
+            {menuOpen ? <XIcon size={26} /> : <MenuIcon size={26} />}
           </button>
         </div>
       </nav>
 
       {/* Mobile full-screen menu */}
       <div
-        className={`fixed top-0 right-0 h-full w-full bg-white shadow-2xl z-[9998] transform transition-transform duration-300 ease-in-out md:hidden ${
+        className={`fixed top-0 right-0 h-full w-full bg-white shadow-2xl z-[9998] transform transition-transform duration-300 ease-in-out lg:hidden ${
           menuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="p-6 space-y-4 font-medium overflow-y-auto h-full pt-28">
+        <div className="p-6 space-y-4 font-medium overflow-y-auto h-full pt-24">
           <div className="absolute top-4 right-4">
             <button onClick={() => setMenuOpen(false)} className="text-blue-900 text-3xl" aria-label="Close menu">
               <XIcon size={24} />
@@ -346,7 +348,7 @@ export default function NavbarClient() {
       {/* Overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-[9997] md:hidden"
+          className="fixed inset-0 bg-black/50 z-[9997] lg:hidden"
           onClick={() => setMenuOpen(false)}
           role="button"
           aria-label="Close menu overlay"

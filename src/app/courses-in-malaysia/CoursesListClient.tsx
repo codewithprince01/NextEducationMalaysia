@@ -7,7 +7,7 @@ import Breadcrumb from '@/components/Breadcrumb'
 import {
   Filter, ChevronDown, ChevronUp, X, Search, ArrowUpDown,
   List, LayoutGrid, MapPin, Building, Star, BookOpen, Globe, Home, Layers,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, GraduationCap, Clock, Calendar, Coins,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Pagination from '@/components/common/Pagination'
@@ -43,22 +43,32 @@ const cache = {
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 function CourseCardSkeleton() {
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden animate-pulse mb-4 w-full">
-      <div className="px-4 py-3 space-y-3">
+    <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden animate-pulse mb-3 w-full p-3.5 sm:p-4 space-y-2.5">
+      <div className="flex items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 bg-gray-200 rounded-lg shrink-0" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-3/4" />
-            <div className="h-3 bg-gray-100 rounded w-1/2" />
+          <div className="w-13 h-13 sm:w-16 sm:h-16 bg-slate-200 rounded-xl shrink-0" />
+          <div className="space-y-1.5">
+            <div className="h-3.5 bg-slate-200 rounded w-44" />
+            <div className="h-3 bg-slate-100 rounded w-28" />
           </div>
         </div>
-        <div className="h-4 bg-gray-200 rounded w-2/3" />
-        <div className="grid grid-cols-4 gap-2">
-          {[1,2,3,4].map(i => <div key={i} className="h-14 bg-gray-100 rounded" />)}
+        <div className="flex gap-1.5">
+          <div className="h-6 bg-slate-200 rounded-full w-20 hidden sm:block" />
+          <div className="h-6 bg-slate-200 rounded-full w-28 hidden sm:block" />
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {[1,2,3].map(i => <div key={i} className="h-9 bg-gray-200 rounded-lg" />)}
+      </div>
+      <div className="h-4.5 bg-slate-200 rounded w-2/3" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="h-12 bg-slate-100 rounded-xl" />
+        ))}
+      </div>
+      <div className="flex justify-between items-center pt-1.5">
+        <div className="flex gap-2">
+          <div className="h-8 w-28 bg-slate-100 rounded-xl" />
+          <div className="h-8 w-24 bg-slate-100 rounded-xl" />
         </div>
+        <div className="h-8 w-24 bg-slate-200 rounded-xl" />
       </div>
     </div>
   )
@@ -73,6 +83,16 @@ function FilterPanelSkeleton() {
       ))}
     </div>
   )
+}
+
+const formatFee = (val: any) => {
+  if (!val) return 'N/A'
+  const str = String(val).trim()
+  if (!str || str === '0' || str.toLowerCase() === 'n/a') return 'N/A'
+  if (/^[\d,.]+$/.test(str)) {
+    return `RM ${str}`
+  }
+  return str
 }
 
 function CourseCard({ 
@@ -106,154 +126,234 @@ function CourseCard({
     })
     .join(' ')
 
-  const uniSlug = course.university?.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') || ''
+  // Dynamic scholarship support: checks course.scholarship, scholarship_name, scholarship_amount, scholarship_text, etc.
+  // When admin creates the scholarship field later, it will automatically reflect that dynamic data.
+  const scholarshipBadge = (() => {
+    if (course.scholarship === false || course.has_scholarship === false || course.is_scholarship === 0) {
+      return null
+    }
+    if (typeof course.scholarship === 'string' && course.scholarship.trim()) {
+      return course.scholarship.trim()
+    }
+    if (typeof course.scholarship_text === 'string' && course.scholarship_text.trim()) {
+      return course.scholarship_text.trim()
+    }
+    if (typeof course.scholarship_title === 'string' && course.scholarship_title.trim()) {
+      return course.scholarship_title.trim()
+    }
+    if (typeof course.scholarship_name === 'string' && course.scholarship_name.trim()) {
+      return course.scholarship_name.trim()
+    }
+    if (typeof course.scholarship_amount === 'string' && course.scholarship_amount.trim()) {
+      return course.scholarship_amount.trim()
+    }
+    if (typeof course.scholarship_discount === 'string' && course.scholarship_discount.trim()) {
+      return course.scholarship_discount.trim()
+    }
+    return 'Scholarship Available'
+  })()
 
-    return (
+  const specs = [
+    { label: 'Mode', value: course.study_mode || 'Full Time', icon: BookOpen },
+    { label: 'Duration', value: course.duration || 'N/A', icon: Clock },
+    { label: 'Intakes', value: course.intake || 'N/A', icon: Calendar },
+    { label: 'Tuition Fee', value: formatFee(course.fee || course.tution_fee || course.tuition_fee), icon: Coins, highlight: true },
+  ]
+
+  return (
     <div
-      className={`bg-white rounded-xl shadow-md border border-blue-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:border-blue-300 group relative ${
-        viewMode === "grid" ? "flex flex-col h-full" : "mb-4 w-full"
+      className={`bg-white rounded-2xl border border-slate-200/90 hover:border-blue-300 hover:shadow-xl transition-all duration-300 group relative overflow-hidden ${
+        viewMode === "grid" ? "flex flex-col h-full" : "w-full mb-3"
       }`}
     >
-      <div className="px-4 sm:px-5 py-2.5 sm:py-3">
-        {/* University Header */}
-        <div className="flex flex-col sm:flex-row items-start justify-between gap-2.5 mb-2.5">
-          <div className="flex items-center gap-4 w-full">
+      <div className="p-3.5 sm:p-4 flex flex-col h-full">
+        {/* University Header & Meta */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
+          <div className="flex items-center gap-3 min-w-0">
             {/* Logo */}
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-13 h-13 sm:w-16 sm:h-16 bg-white rounded-xl flex items-center justify-center shrink-0 border border-slate-200/80 shadow-2xs overflow-hidden p-1 group-hover:border-blue-200 transition-colors">
               {course.university?.logo_path ? (
                 <img
                   src={`${IMAGE_BASE}/storage/${course.university.logo_path}`}
                   alt={course.university?.name || 'University'}
-                  className="w-full h-full object-contain p-1"
+                  className="w-full h-full object-contain"
                   loading="lazy"
-                  width={56}
-                  height={56}
+                  width={64}
+                  height={64}
                 />
               ) : (
-                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-xs text-gray-400">Logo</div>
+                <div className="w-full h-full bg-slate-50 flex items-center justify-center text-xs font-semibold text-slate-400">Logo</div>
               )}
             </div>
 
             {/* University Info */}
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <h3
                 onClick={() => onUniversityClick(course.university)}
-                className="text-lg sm:text-xl font-bold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors truncate leading-tight"
+                className="text-[14.5px] sm:text-[16px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors truncate leading-tight"
+                title={course.university?.name}
               >
                 {course.university?.name}
               </h3>
 
-              <div className="flex items-center text-gray-600 text-sm mt-0.5">
-                <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
-                <span className="truncate">
-                  {course.university?.city}, {course.university?.state}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2.5 text-sm text-gray-600 mt-0.5">
-                <div className="flex items-center">
-                  <Building className="w-3.5 h-3.5 mr-0.5" />
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11.5px] text-slate-500 mt-0.5">
+                {(course.university?.city || course.university?.state) && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span className="truncate">{[course.university?.city, course.university?.state].filter(Boolean).join(', ')}</span>
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Building className="w-3 h-3 text-slate-400 shrink-0" />
                   <span>{course.university?.inst_type || "Private"}</span>
-                </div>
-                <div className="flex items-center">
-                  <BookOpen className="w-3.5 h-3.5 mr-0.5" />
-                  <span>{course.university?.programs_count} Courses</span>
-                </div>
+                </span>
+                {Boolean(course.university?.programs_count) && (
+                  <span className="flex items-center gap-1">
+                    <BookOpen className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>{course.university?.programs_count} Courses</span>
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Rating & Badges */}
-          <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
-            <div className="flex gap-1.5">
-              {Number(course.is_local) === 1 && (
-                <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded border border-blue-200">
-                  <Home className="w-3 h-3 text-blue-600" />
-                  <span className="text-xs font-semibold text-blue-700">
-                    Local
-                  </span>
-                </div>
-              )}
-              {Number(course.is_international) === 1 && (
-                <div className="flex items-center gap-1 bg-green-50 px-2 py-1 rounded border border-green-200">
-                  <Globe className="w-3 h-3 text-green-600" />
-                  <span className="text-xs font-semibold text-green-700">
-                    Int&apos;l
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-0.5 bg-linear-to-br from-amber-50 to-yellow-50 px-2 py-1 rounded border border-amber-200">
-              <span className="text-sm font-bold text-gray-900">
-                {course.university?.rating || "N/A"}
+          {/* Right Corner: Degree (Level), Dynamic Scholarship, Local/Int'l & Rating */}
+          <div className="flex items-center gap-1.5 flex-wrap sm:justify-end shrink-0">
+            {course.level && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
+                {course.level}
               </span>
-              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+            )}
+
+            {scholarshipBadge && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>{scholarshipBadge}</span>
+              </span>
+            )}
+
+            {Number(course.is_local) === 1 && (
+              <span className="inline-flex items-center gap-1 bg-blue-50 text-[#003893] border border-blue-200/80 px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                <Home className="w-2.5 h-2.5 text-[#003893]" />
+                <span>Local</span>
+              </span>
+            )}
+
+            {Number(course.is_international) === 1 && (
+              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200/80 px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                <Globe className="w-2.5 h-2.5 text-green-600" />
+                <span>Int&apos;l</span>
+              </span>
+            )}
+
+            <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200/80 px-2 py-0.5 rounded-full font-bold text-[11.5px] shadow-2xs">
+              <span>{course.university?.rating || "4.5"}</span>
+              <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
             </div>
           </div>
         </div>
 
-        {/* Course Title + Specs */}
-        <div className="border-t border-gray-200 pt-3 mb-2.5">
+        {/* Course Title + Accreditations */}
+        <div className="pt-2 pb-2">
           <h4
             onClick={() => onViewDetail(course)}
-            className="text-lg sm:text-xl font-semibold text-blue-600 mb-2 hover:text-blue-700 cursor-pointer transition-colors line-clamp-2 leading-tight block"
+            className="text-[16px] sm:text-[17.5px] font-bold text-slate-900 group-hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-2"
           >
             {courseDisplayName}
           </h4>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-2.5">
-            {[
-              { label: 'Mode', value: course.study_mode },
-              { label: 'Duration', value: course.duration },
-              { label: 'Intakes', value: course.intake },
-              { label: 'Tuition Fee', value: course.fee, },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-gray-50 rounded p-2 border border-gray-200 flex flex-col justify-center min-h-[58px]">
-                <p className="text-xs text-gray-500 mb-0.5 font-semibold uppercase">{label}</p>
-                <p className="text-sm sm:text-[15px] font-semibold text-gray-900 line-clamp-1">{value || 'N/A'}</p>
-              </div>
-            ))}
-          </div>
+          {accreditations.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+              {accreditations.map((acc, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/70 whitespace-nowrap"
+                >
+                  {acc}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Accreditation Badges */}
-        {accreditations.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-2.5">
-            {accreditations.map((acc, i) => (
-              <span key={i} className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-green-300 whitespace-nowrap">
-                {acc}
+        {/* Specs Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 mb-2.5">
+          {specs.map(({ label, value, icon: Icon, highlight }) => (
+            <div
+              key={label}
+              className="bg-slate-50/80 hover:bg-blue-50/30 border border-slate-200/60 rounded-xl px-2.5 py-1.5 sm:py-2 transition-colors flex flex-col justify-center"
+            >
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-0.5">
+                <Icon className="w-3 h-3 text-slate-400 shrink-0" />
+                {label}
               </span>
-            ))}
-          </div>
-        )}
+              <span className={`text-xs sm:text-[13px] font-bold line-clamp-1 ${highlight ? 'text-[#003893]' : 'text-slate-800'}`}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 w-full">
-          <button
-            onClick={() => onViewDetail(course)}
-            className="cursor-pointer bg-white text-gray-800 font-bold py-2.5 px-2 rounded-lg border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
-          >
-            View Detail
-          </button>
-          <button
-            onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
-            className={`font-bold py-2.5 px-2 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs sm:text-sm ${
-              appliedCourses.has(course.id)
-                ? "bg-green-600 text-white cursor-not-allowed hover:transform-none hover:shadow-md"
-                : "bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
-            }`}
-            disabled={appliedCourses.has(course.id)}
-          >
-            {appliedCourses.has(course.id) ? "Applied" : "Apply Now"}
-          </button>
-          <button
-            onClick={() => onCompareUniversity(course)}
-            className="cursor-pointer font-bold py-2.5 px-2 rounded-lg border-2 transition-all duration-200 shadow-sm hover:shadow-md bg-white text-blue-600 border-blue-300 hover:border-blue-400 hover:bg-blue-50 text-xs sm:text-sm"
-          >
-            Compare University
-          </button>
-        </div>
+        {viewMode === 'grid' ? (
+          <div className="space-y-2 pt-2.5 border-t border-slate-100 mt-auto">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => onCompareUniversity(course)}
+                className="cursor-pointer font-semibold py-2 px-2 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 transition-all text-xs text-center shadow-2xs"
+              >
+                Compare
+              </button>
+              <button
+                onClick={() => onViewDetail(course)}
+                className="cursor-pointer font-semibold py-2 px-2 rounded-xl border border-blue-200/80 bg-blue-50/50 hover:bg-blue-100/60 text-[#003893] transition-all text-xs text-center shadow-2xs"
+              >
+                View Detail
+              </button>
+            </div>
+            <button
+              onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
+              disabled={appliedCourses.has(course.id)}
+              className={`w-full font-bold py-2 px-4 rounded-xl text-xs sm:text-[13px] transition-all shadow-sm cursor-pointer ${
+                appliedCourses.has(course.id)
+                  ? 'bg-emerald-600 text-white cursor-not-allowed'
+                  : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-md'
+              }`}
+            >
+              {appliedCourses.has(course.id) ? 'Applied' : 'Apply Now'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2.5 border-t border-slate-100 mt-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => onCompareUniversity(course)}
+                className="flex-1 sm:flex-initial cursor-pointer font-semibold py-2 px-3.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 transition-all text-xs sm:text-[13px] shadow-2xs"
+              >
+                Compare University
+              </button>
+              <button
+                onClick={() => onViewDetail(course)}
+                className="flex-1 sm:flex-initial cursor-pointer font-semibold py-2 px-3.5 rounded-xl border border-blue-200/80 bg-blue-50/50 hover:bg-blue-100/60 text-[#003893] transition-all text-xs sm:text-[13px] shadow-2xs"
+              >
+                View Detail
+              </button>
+            </div>
+            <div className="w-full sm:w-auto">
+              <button
+                onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
+                disabled={appliedCourses.has(course.id)}
+                className={`w-full sm:w-auto sm:min-w-[130px] font-bold py-2 px-4.5 rounded-xl text-xs sm:text-[13px] transition-all shadow-sm cursor-pointer ${
+                  appliedCourses.has(course.id)
+                    ? 'bg-emerald-600 text-white cursor-not-allowed'
+                    : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-md'
+                }`}
+              >
+                {appliedCourses.has(course.id) ? 'Applied' : 'Apply Now'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
