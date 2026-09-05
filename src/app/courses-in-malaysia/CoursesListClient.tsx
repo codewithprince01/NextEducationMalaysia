@@ -263,7 +263,7 @@ function CourseCard({
 function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, activeFilterCount, specializationSearch, onToggleFilter, onFilterChange, onReset, onSpecializationSearch }: any) {
   if (loading) return <FilterPanelSkeleton />
   return (
-    <div className="hidden lg:block w-[290px] min-w-[290px] xl:w-[300px] xl:min-w-[300px] shrink-0 bg-white border border-slate-200/80 p-4 sm:p-5 rounded-2xl shadow-xs space-y-4 text-base sticky top-[88px] self-start max-h-[calc(100vh-6.5rem)] overflow-y-auto scrollbar-thin">
+    <div className="hidden lg:block w-[290px] min-w-[290px] xl:w-[300px] xl:min-w-[300px] shrink-0 bg-white border border-slate-200/80 p-4 sm:p-5 rounded-2xl shadow-xs space-y-4 text-base sticky top-[88px] self-start max-h-[calc(100vh-6.5rem)] overflow-y-auto scrollbar-hide">
       {/* Header */}
       <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
         <div className="flex items-center gap-2">
@@ -314,7 +314,7 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
             </button>
 
             {openFilters[key] && (
-              <div className="px-3 pb-3 pt-1 space-y-1 max-h-56 overflow-y-auto border-t border-slate-200/50 bg-white scrollbar-thin">
+              <div className="px-3 pb-3 pt-1 space-y-1 max-h-56 overflow-y-auto border-t border-slate-200/50 bg-white scrollbar-hide">
                 {key === 'specializations' && (
                   <div className="sticky top-0 bg-white z-10 pb-2 pt-1 mb-1 border-b border-slate-100">
                     <div className="relative flex items-center">
@@ -378,7 +378,7 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
 function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilterCount, specializationSearch, onToggleFilter, onFilterChange, onReset, onClose, onSpecializationSearch }: any) {
   return (
     <div className="fixed inset-0 z-50 flex backdrop-blur-xs bg-slate-900/40">
-      <div className="w-4/5 max-w-xs bg-white p-5 rounded-r-2xl shadow-2xl h-full overflow-y-auto space-y-4">
+      <div className="w-4/5 max-w-xs bg-white p-5 rounded-r-2xl shadow-2xl h-full overflow-y-auto scrollbar-hide space-y-4">
         <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#003893] flex items-center justify-center shrink-0">
@@ -419,7 +419,7 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                 {openFilters[key] ? <ChevronUp className="w-4 h-4 text-[#003893]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
               </button>
               {openFilters[key] && (
-                <div className="px-2.5 pb-2.5 pt-1 space-y-1 max-h-56 overflow-y-auto border-t border-slate-200/50 bg-white">
+                <div className="px-2.5 pb-2.5 pt-1 space-y-1 max-h-56 overflow-y-auto border-t border-slate-200/50 bg-white scrollbar-hide">
                   {key === 'specializations' && (
                     <div className="sticky top-0 bg-white z-10 pb-2 pt-1 mb-1 border-b border-slate-100">
                       <div className="relative flex items-center">
