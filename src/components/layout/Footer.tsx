@@ -91,29 +91,30 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-5 w-full lg:w-auto border border-blue-200/70 shadow-xs flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="rounded-2xl bg-gradient-to-br from-blue-50/90 via-indigo-50/50 to-white p-4 sm:p-5 w-full lg:w-auto shadow-xs border border-blue-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6">
             <div>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <h4 className="text-slate-900 font-bold text-sm sm:text-[15px]">Start Your Journey Today</h4>
-              </div>
-              <p className="text-xs text-slate-500">Free admission guidance & visa support</p>
+              <h4 className="text-slate-900 font-bold text-[15px] sm:text-base tracking-tight leading-tight">
+                Start Your Journey Today
+              </h4>
+              <p className="text-slate-600 text-xs sm:text-[13px] mt-0.5">
+                Free admission guidance &amp; visa support
+              </p>
             </div>
-            <div className="flex items-center gap-2.5">
+
+            <div className="flex items-center gap-2.5 shrink-0">
               <a
                 href="tel:+919818560331"
-                className="flex items-center gap-1.5 bg-gradient-to-r from-[#003893] to-[#004dc7] hover:from-[#002d75] hover:to-[#003893] text-white px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition-all"
+                className="flex items-center gap-2 bg-[#003893] hover:bg-[#00286b] text-white px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition-all transform hover:-translate-y-0.5"
               >
-                <PhoneIcon /> Call Now
+                <PhoneIcon />
+                <span>Call Now</span>
               </a>
               <a
                 href="mailto:info@educationmalaysia.in"
-                className="flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100 text-[#003893] border border-blue-200/80 px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm shadow-2xs hover:border-blue-300 transition-all"
+                className="flex items-center gap-2 bg-white hover:bg-blue-50 text-[#003893] border border-blue-200 hover:border-blue-300 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-2xs transition-all transform hover:-translate-y-0.5"
               >
-                <MailIcon /> Email Us
+                <MailIcon />
+                <span>Email Us</span>
               </a>
             </div>
           </div>
