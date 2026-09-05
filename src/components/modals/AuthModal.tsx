@@ -128,28 +128,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
     <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 overflow-y-auto sm:overflow-hidden">
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl sm:max-w-2xl my-auto border border-slate-200 overflow-hidden animate-fadeIn">
         
-        {/* ── HEADER (CENTERED CONTENT) ── */}
-        <div className="relative px-5 sm:px-10 pt-4 pb-3 sm:pt-7 sm:pb-5 bg-slate-50/70 border-b border-slate-150 text-center">
-          {/* Close Button */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute top-3 right-3 sm:top-5 sm:right-5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center border border-slate-200 shadow-2xs cursor-pointer outline-none focus:outline-none z-10"
-            aria-label="Close modal"
-          >
-            <X size={15} className="sm:hidden" />
-            <X size={18} className="hidden sm:block" />
-          </button>
+        {/* Close Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center cursor-pointer outline-none focus:outline-none z-20"
+          aria-label="Close modal"
+        >
+          <X size={18} />
+        </button>
 
-          {/* Main Headline */}
-          <h2 className="font-bold text-slate-900 leading-snug max-w-lg mx-auto">
-            <span className="block text-[15px] sm:text-[19px] md:text-[21px]">Apply to up to 5</span>
-            <span className="block text-[15px] sm:text-[19px] md:text-[21px]">Malaysian universities</span>
-            <span className="block text-[13.5px] sm:text-[17px] md:text-[19px] whitespace-nowrap">through one application process.</span>
+        {/* ── CLEAN CENTERED TOP HEADER ── */}
+        <div className="px-5 sm:px-10 pt-6 pb-2 sm:pt-8 sm:pb-3 bg-white text-center">
+          {/* Main Headline (Single responsive H2) */}
+          <h2 className="text-[17px] sm:text-[23px] md:text-[26px] font-extrabold text-slate-900 tracking-tight leading-snug text-center max-w-xl mx-auto">
+            Apply to up to 5 Malaysian universities<br className="hidden sm:inline" /> through one application process.
           </h2>
 
           {/* Subtitle */}
-          <p className="text-[11.5px] sm:text-[13.5px] text-slate-600 mt-1.5 sm:mt-2 leading-normal sm:leading-relaxed max-w-lg mx-auto">
+          <p className="text-[12px] sm:text-[13.5px] text-slate-500 mt-2 sm:mt-2.5 leading-relaxed max-w-lg mx-auto text-center font-normal">
             Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
             <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
           </p>
@@ -161,7 +158,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
             <button
               type="button"
               onClick={() => setAuthStep("signup")}
-              className={`pb-2 pt-2 sm:pb-2.5 sm:pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2.5 pt-1 text-xs sm:text-[14px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "signup"
                   ? "border-[#003893] text-[#003893]"
                   : "border-transparent text-slate-400 hover:text-slate-700"
@@ -172,7 +169,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
             <button
               type="button"
               onClick={() => setAuthStep("login")}
-              className={`pb-2 pt-2 sm:pb-2.5 sm:pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2.5 pt-1 text-xs sm:text-[14px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "login"
                   ? "border-[#003893] text-[#003893]"
                   : "border-transparent text-slate-400 hover:text-slate-700"
