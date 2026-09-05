@@ -63,8 +63,17 @@ export class HomeService {
           },
           take: 20,
         }),
-        prisma.$queryRawUnsafe('SELECT * FROM static_page_contents WHERE page_name = "home" AND status = 1 LIMIT 1').then(res => (res as any)[0] || null),
-        prisma.$queryRawUnsafe('SELECT * FROM testimonials WHERE status = 1 LIMIT 20'),
+        prisma.$queryRawUnsafe(`
+          SELECT id, website, page_name, position, uri, description, status,
+                 CASE WHEN CAST(created_at AS CHAR) LIKE '0000%' THEN NULL ELSE created_at END AS created_at,
+                 CASE WHEN CAST(updated_at AS CHAR) LIKE '0000%' THEN NULL ELSE updated_at END AS updated_at
+          FROM static_page_contents WHERE page_name = 'home' AND status = 1 LIMIT 1
+        `).then(res => (res as any)[0] || null),
+        prisma.$queryRawUnsafe(`
+          SELECT id, user_type, name, email, country, review, dpname, dppath, website, status, created_at,
+                 CASE WHEN CAST(updated_at AS CHAR) LIKE '0000%' THEN NULL ELSE updated_at END AS updated_at
+          FROM testimonials WHERE status = 1 LIMIT 20
+        `),
       ]);
 
       const seoMeta = await seoService.getStaticPageSeo('home', {

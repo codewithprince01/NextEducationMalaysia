@@ -77,8 +77,7 @@ export default async function RootLayout({
           rel="preload"
           as="image"
           href="/girl-banner.webp"
-          // @ts-expect-error — fetchpriority is valid HTML but not yet in React types
-          fetchpriority="high"
+          fetchPriority="high"
         />
         <link rel="preconnect" href={imageOrigin} />
         <link rel="dns-prefetch" href={imageOrigin} />

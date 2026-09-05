@@ -162,24 +162,120 @@ async function fetchSpecializationDetail(slug: string) {
 // which is what makes admin edits appear on the site straight away instead of
 // waiting out the 24h window. The long `revalidate` stays as a safety net for
 // the case where the version probe itself fails.
-const cachedSpecializationSlugs = unstable_cache(
-  async (_version: string) => {
-    const rows = await prisma.$queryRawUnsafe(`
-      SELECT slug
-      FROM course_specializations
-      WHERE website = ?
-        AND slug IS NOT NULL
-        AND slug <> ''
-        AND EXISTS (
-          SELECT 1
-          FROM specialization_contents sc
-          WHERE sc.specialization_id = course_specializations.id
-        )
-      ORDER BY name ASC
-    `, SITE_VAR) as any[]
+async function fetchSpecializationSlugs(): Promise<string[]> {
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT slug
+    FROM course_specializations
+    WHERE website = ?
+      AND slug IS NOT NULL
+      AND slug <> ''
+      AND EXISTS (
+        SELECT 1
+        FROM specialization_contents sc
+        WHERE sc.specialization_id = course_specializations.id
+      )
+    ORDER BY name ASC
+  `, SITE_VAR) as any[]
 
-    return rows.map((row) => row.slug).filter(Boolean) as string[]
-  },
+  return rows.map((row) => row.slug).filter(Boolean) as string[]
+}
+
+async function fetchSpecializationLevel(specSlug: string, levelSlug: string) {
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT
+      sl.*,
+      cs.name AS specialization_name,
+      cs.slug AS specialization_slug
+    FROM specialization_levels sl
+    JOIN course_specializations cs ON cs.id = sl.specialization_id
+    WHERE cs.slug = ?
+      AND cs.website = ?
+    ORDER BY sl.id
+  `, specSlug, SITE_VAR) as any[]
+
+  const level = rows.find((row) => {
+    const rawSlug = row.url_slug || row.level_slug || ''
+    const composedSlug =
+      row.level_slug && row.specialization_name
+        ? `${row.level_slug}-in-${toSeoSlug(row.specialization_name)}`
+        : row.level_slug || ''
+
+    return rawSlug === levelSlug || composedSlug === levelSlug
+  })
+  if (!level) return null
+
+  const contents = await prisma.$queryRawUnsafe(`
+    SELECT *
+    FROM specialization_level_contents
+    WHERE specialization_level_id = ?
+    ORDER BY COALESCE(position, 0), id
+  `, level.id) as any[]
+
+  return serializeBigInt({
+    ...level,
+    specialization: {
+      name: level.specialization_name,
+      slug: level.specialization_slug,
+    },
+    contents,
+  })
+}
+
+async function fetchAllSpecializations() {
+  const rows = await prisma.$queryRawUnsafe(`
+    SELECT
+      cs.id,
+      cs.name,
+      cs.slug,
+      cs.banner_path,
+      cs.course_category_id,
+      cc.name AS course_category_name,
+      cc.slug AS course_category_slug,
+      (
+        SELECT COUNT(*)
+        FROM university_programs up
+        WHERE up.specialization_id = cs.id
+          AND up.status = 1
+          AND up.website = ?
+      ) AS program_count
+    FROM course_specializations cs
+    LEFT JOIN course_categories cc ON cc.id = cs.course_category_id
+    WHERE cs.website = ?
+      AND EXISTS (
+        SELECT 1
+        FROM specialization_contents sc
+        WHERE sc.specialization_id = cs.id
+      )
+    ORDER BY cs.name ASC
+  `, SITE_VAR, SITE_VAR) as any[]
+
+  return serializeBigInt(
+    rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      banner_path: row.banner_path,
+      courseCategory: row.course_category_id
+        ? {
+            name: row.course_category_name,
+            slug: row.course_category_slug,
+          }
+        : null,
+      _count: {
+        programs: Number(row.program_count || 0),
+      },
+    }))
+  )
+}
+
+// Every exported query below takes the current content version as its first
+// argument. It is never read inside the function — it exists purely so that
+// unstable_cache derives a new cache key the moment an editor saves something,
+// which is what makes admin edits appear on the site straight away instead of
+// waiting out the 24h window. The long `revalidate` stays as a safety net for
+// the case where the version probe itself fails.
+const cachedSpecializationSlugs = unstable_cache(
+  async (_version: string) => fetchSpecializationSlugs(),
   ['specialization-slugs'],
   { revalidate: 86400, tags: ['specialization'] },
 )
@@ -191,97 +287,13 @@ const cachedSpecializationDetail = unstable_cache(
 )
 
 const cachedSpecializationLevel = unstable_cache(
-  async (_version: string, specSlug: string, levelSlug: string) => {
-    const rows = await prisma.$queryRawUnsafe(`
-      SELECT
-        sl.*,
-        cs.name AS specialization_name,
-        cs.slug AS specialization_slug
-      FROM specialization_levels sl
-      JOIN course_specializations cs ON cs.id = sl.specialization_id
-      WHERE cs.slug = ?
-        AND cs.website = ?
-      ORDER BY sl.id
-    `, specSlug, SITE_VAR) as any[]
-
-    const level = rows.find((row) => {
-      const rawSlug = row.url_slug || row.level_slug || ''
-      const composedSlug =
-        row.level_slug && row.specialization_name
-          ? `${row.level_slug}-in-${toSeoSlug(row.specialization_name)}`
-          : row.level_slug || ''
-
-      return rawSlug === levelSlug || composedSlug === levelSlug
-    })
-    if (!level) return null
-
-    const contents = await prisma.$queryRawUnsafe(`
-      SELECT *
-      FROM specialization_level_contents
-      WHERE specialization_level_id = ?
-      ORDER BY COALESCE(position, 0), id
-    `, level.id) as any[]
-
-    return serializeBigInt({
-      ...level,
-      specialization: {
-        name: level.specialization_name,
-        slug: level.specialization_slug,
-      },
-      contents,
-    })
-  },
+  async (_version: string, specSlug: string, levelSlug: string) => fetchSpecializationLevel(specSlug, levelSlug),
   ['specialization-level-detail'],
   { revalidate: 86400, tags: ['specialization'] },
 )
 
 const cachedAllSpecializations = unstable_cache(
-  async (_version: string) => {
-    const rows = await prisma.$queryRawUnsafe(`
-      SELECT
-        cs.id,
-        cs.name,
-        cs.slug,
-        cs.banner_path,
-        cs.course_category_id,
-        cc.name AS course_category_name,
-        cc.slug AS course_category_slug,
-        (
-          SELECT COUNT(*)
-          FROM university_programs up
-          WHERE up.specialization_id = cs.id
-            AND up.status = 1
-            AND up.website = ?
-        ) AS program_count
-      FROM course_specializations cs
-      LEFT JOIN course_categories cc ON cc.id = cs.course_category_id
-      WHERE cs.website = ?
-        AND EXISTS (
-          SELECT 1
-          FROM specialization_contents sc
-          WHERE sc.specialization_id = cs.id
-        )
-      ORDER BY cs.name ASC
-    `, SITE_VAR, SITE_VAR) as any[]
-
-    return serializeBigInt(
-      rows.map((row) => ({
-        id: row.id,
-        name: row.name,
-        slug: row.slug,
-        banner_path: row.banner_path,
-        courseCategory: row.course_category_id
-          ? {
-              name: row.course_category_name,
-              slug: row.course_category_slug,
-            }
-          : null,
-        _count: {
-          programs: Number(row.program_count || 0),
-        },
-      }))
-    )
-  },
+  async (_version: string) => fetchAllSpecializations(),
   ['all-specializations'],
   { revalidate: 86400, tags: ['specialization'] },
 )
@@ -290,20 +302,34 @@ const cachedAllSpecializations = unstable_cache(
 // Public API — unchanged signatures, so callers need no edits. Each one probes
 // the content version first (cheap, and itself memoised for a few seconds) and
 // passes it through to the cached query above.
+// In development mode, we bypass caching completely so that any database changes
+// are reflected immediately on page refresh without needing server restarts.
 // ---------------------------------------------------------------------------
 
 export async function getAllSpecializationSlugs() {
+  if (process.env.NODE_ENV === 'development') {
+    return fetchSpecializationSlugs()
+  }
   return cachedSpecializationSlugs(await getContentVersion('specialization'))
 }
 
 export async function getSpecializationBySlug(slug: string) {
+  if (process.env.NODE_ENV === 'development') {
+    return fetchSpecializationDetail(slug)
+  }
   return cachedSpecializationDetail(await getContentVersion('specialization'), slug)
 }
 
 export async function getSpecializationLevel(specSlug: string, levelSlug: string) {
+  if (process.env.NODE_ENV === 'development') {
+    return fetchSpecializationLevel(specSlug, levelSlug)
+  }
   return cachedSpecializationLevel(await getContentVersion('specialization'), specSlug, levelSlug)
 }
 
 export async function getAllSpecializations() {
+  if (process.env.NODE_ENV === 'development') {
+    return fetchAllSpecializations()
+  }
   return cachedAllSpecializations(await getContentVersion('specialization'))
 }

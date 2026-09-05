@@ -18,7 +18,7 @@ model University {
   id                     Int       @id @default(autoincrement())
   name                   String?
   uname                  String?   // URL slug
-  views                  Int?      @default(0)
+  views                  String?
   click                  Int?      @default(0)
   city                   String?
   state                  String?
@@ -27,13 +27,13 @@ model University {
   qs_asia_rank           String?
   shortnote              String?   @db.Text
   established_year       String?
-  local_students         String?
-  international_students String?
+  local_students         Int?
+  international_students Int?
   accredited_by          String?
   approved_by            String?
   latitude_longitude     String?
   featured               Int?      @default(0)
-  rating                 String?
+  rating                 Float?
   logo_path              String?
   banner_path            String?
   institute_type         Int?
