@@ -24,6 +24,7 @@ import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import TrendingCourses from '@/components/common/TrendingCourses'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import { storageUrl } from '@/lib/constants'
+import { formatRichText } from '@/lib/richText'
 
 type SpecializationContent = {
   id?: number | string
@@ -121,26 +122,6 @@ const statStyles = {
   },
 } as const
 
-function formatHTML(html: string): string {
-  if (!html) return ''
-
-  return html
-    .replace(/<a /g, '<a style="color:#2563eb;text-decoration:underline;font-weight:500;" ')
-    .replace(
-      /<table\b[^>]*>/gi,
-      '<div style="overflow-x:auto;width:100%;display:block;"><table style="width:100%;border-collapse:collapse;">',
-    )
-    .replace(/<\/table>/gi, '</table></div>')
-    .replace(
-      /<th>/g,
-      '<th style="background:#2563eb;color:#fff;padding:8px 12px;font-size:0.8rem;font-weight:600;text-align:left;border-bottom:1px solid #1d4ed8;">',
-    )
-    .replace(
-      /<td>/g,
-      '<td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:0.875rem;">',
-    )
-}
-
 function toLevelSlug(value: string) {
   return (value || '')
     .toLowerCase()
@@ -149,6 +130,14 @@ function toLevelSlug(value: string) {
     .trim()
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
+}
+
+/** "POST-GRADUATE-DIPLOMA" -> "Post-Graduate-Diploma", "PHD" -> "PhD" */
+function toTitleCase(value: string) {
+  return (value || '')
+    .toLowerCase()
+    .replace(/\b[a-z]/g, (char) => char.toUpperCase())
+    .replace(/\bPhd\b/g, 'PhD')
 }
 
 function toTitleFromSlug(value: string) {
@@ -323,7 +312,9 @@ export default function SpecializationDetailClient({
     const hashId = window.location.hash.replace('#', '').trim()
     if (!hashId) return
 
-    const target = document.getElementById(hashId)
+    // Tab links write `#about-course` while the section id is `tab-about-course`,
+    // so fall back to the prefixed id before giving up.
+    const target = document.getElementById(hashId) || document.getElementById(`tab-${hashId}`)
     if (!target) return
 
     const navOffset = 52
@@ -381,6 +372,13 @@ export default function SpecializationDetailClient({
     )
   }
 
+  // A level page must not reuse the specialization's <h1> — that would give all
+  // seven level URLs the same heading. Level pages get a level-specific one.
+  const pageHeading =
+    levelSlug && currentLevel.title
+      ? `${toTitleCase(currentLevel.title)} in ${specialization.name || toTitleFromSlug(slug)}`
+      : specialization.name || toTitleFromSlug(slug)
+
   const breadcrumbItems = [
     { label: 'Home', href: '/' },
     { label: 'Specializations', href: '/specialization' },
@@ -407,7 +405,7 @@ export default function SpecializationDetailClient({
             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12">
               <div className="max-w-4xl mx-auto">
                 <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
-                  {specialization.name}
+                  {pageHeading}
                 </h1>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 md:gap-6 text-white/90">
                   <div className="flex items-center gap-1.5 sm:gap-2">
@@ -579,8 +577,8 @@ export default function SpecializationDetailClient({
                   <section key={name} id={sectionId(name)} className="scroll-mt-24">
                     <div className="bg-linear-to-br from-white to-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-5 md:p-6 border border-blue-100 shadow-md hover:shadow-lg transition-shadow">
                       <div
-                        className="prose prose-sm sm:prose prose-blue max-w-none text-gray-700 leading-relaxed [&_a]:text-blue-600 [&_a]:font-medium [&_a:hover]:underline [&_a_span]:text-blue-600!"
-                        dangerouslySetInnerHTML={{ __html: formatHTML(contentMap[name] || '') }}
+                        className="cms-content max-w-none"
+                        dangerouslySetInnerHTML={{ __html: formatRichText(contentMap[name]) }}
                       />
                     </div>
                   </section>
@@ -710,8 +708,8 @@ export default function SpecializationDetailClient({
                           <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 group-open:rotate-90 transition-transform shrink-0" />
                         </summary>
                         <div
-                          className="px-4 sm:px-6 pb-3 sm:pb-4 text-gray-700 leading-relaxed prose prose-sm max-w-none text-xs sm:text-sm [&_a]:text-blue-600 [&_a]:font-medium [&_a:hover]:underline"
-                          dangerouslySetInnerHTML={{ __html: formatHTML(faq.answer || '') }}
+                          className="cms-content max-w-none px-4 sm:px-6 pb-3 sm:pb-4"
+                          dangerouslySetInnerHTML={{ __html: formatRichText(faq.answer) }}
                         />
                       </details>
                     ))}

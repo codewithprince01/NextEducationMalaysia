@@ -174,7 +174,7 @@ export const getAllSpecializationSlugs = unstable_cache(
     return rows.map((row) => row.slug).filter(Boolean) as string[]
   },
   ['specialization-slugs'],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ['specialization'] },
 )
 
 export const getSpecializationBySlug = unstable_cache(
@@ -225,7 +225,7 @@ export const getSpecializationLevel = unstable_cache(
     })
   },
   ['specialization-level-detail'],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ['specialization'] },
 )
 
 export const getAllSpecializations = unstable_cache(
@@ -276,5 +276,5 @@ export const getAllSpecializations = unstable_cache(
     )
   },
   ['all-specializations'],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ['specialization'] },
 )

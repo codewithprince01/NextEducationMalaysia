@@ -329,3 +329,179 @@ h3.text-white, .text-white h3 { color: white !important; }
 
 .university-info-table tbody tr td:first-child { color: #000000 !important; font-weight: 600 !important; }
 .university-info-table tbody tr:hover { background-color: #f3f4f6; transition: background-color 0.2s ease; }
+
+/* ============================================
+   CMS RICH-TEXT CONTENT (.cms-content)
+   --------------------------------------------
+   Tailwind's preflight strips margins, list markers, heading sizes/weights and
+   link decoration from every element. The `prose` classes used to be relied on
+   here, but @tailwindcss/typography is NOT installed, so editor formatting
+   (paragraph spacing, bold, italic, underline, links, bullets, headings) had no
+   styling at all. This block restores it, scoped to CMS output only.
+
+   MUST stay at the end of this file: it overrides the global `h2/h3` rules
+   above, which use !important.
+   ============================================ */
+.cms-content {
+  color: #374151;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.cms-content > *:first-child { margin-top: 0 !important; }
+.cms-content > *:last-child { margin-bottom: 0 !important; }
+
+/* --- Block spacing --- */
+.cms-content p {
+  margin: 0 0 1rem !important;
+  line-height: 1.75;
+}
+
+/* Deliberate blank lines from the editor. A <p>&nbsp;</p> or <p><br></p> already
+   has a line box, but a truly empty <p></p> collapses to zero height — give it
+   one line so the page shows the same spacing the author saw in the editor. */
+.cms-content p:empty {
+  min-height: 1.75em;
+}
+.cms-content > *:last-child:empty { margin-bottom: 0 !important; }
+
+/* --- Headings --- */
+.cms-content h1,
+.cms-content h2,
+.cms-content h3,
+.cms-content h4,
+.cms-content h5,
+.cms-content h6 {
+  color: #111827 !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  margin: 1.75rem 0 0.75rem !important;
+}
+.cms-content h1 { font-size: 1.5rem !important; }
+.cms-content h2 { font-size: 1.375rem !important; }
+.cms-content h3 { font-size: 1.125rem !important; }
+.cms-content h4 { font-size: 1rem !important; font-weight: 600 !important; }
+.cms-content h5,
+.cms-content h6 { font-size: 0.9375rem !important; font-weight: 600 !important; }
+
+/* --- Inline formatting from the editor toolbar --- */
+.cms-content strong,
+.cms-content b { font-weight: 700; color: #111827; }
+.cms-content em,
+.cms-content i { font-style: italic; }
+.cms-content u,
+.cms-content ins { text-decoration: underline; text-underline-offset: 2px; }
+.cms-content s,
+.cms-content strike,
+.cms-content del { text-decoration: line-through; }
+.cms-content mark { background: #fef08a; color: #111827; padding: 0 0.15em; }
+.cms-content sub { vertical-align: sub; font-size: 0.75em; }
+.cms-content sup { vertical-align: super; font-size: 0.75em; }
+.cms-content small { font-size: 0.85em; }
+
+/* Editor-authored spans keep their own inline colour/size — don't fight them,
+   but make sure a link's own colour still wins. */
+.cms-content a {
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+.cms-content a:hover { color: #1d4ed8; }
+.cms-content a * { color: inherit !important; }
+
+/* --- Lists --- */
+.cms-content ul,
+.cms-content ol {
+  margin: 0 0 1rem !important;
+  padding-left: 1.5rem !important;
+}
+.cms-content ul { list-style: disc outside !important; }
+.cms-content ol { list-style: decimal outside !important; }
+.cms-content ul ul { list-style: circle outside !important; }
+.cms-content ul ul ul { list-style: square outside !important; }
+.cms-content ol ol { list-style: lower-alpha outside !important; }
+.cms-content ol ol ol { list-style: lower-roman outside !important; }
+.cms-content li {
+  display: list-item !important;
+  margin: 0 0 0.375rem;
+  line-height: 1.7;
+}
+.cms-content li::marker { color: #2563eb; }
+.cms-content li > ul,
+.cms-content li > ol { margin: 0.375rem 0 0 !important; }
+.cms-content li > p { margin-bottom: 0.375rem !important; }
+.cms-content li > p:last-child { margin-bottom: 0 !important; }
+
+/* --- Quotes, rules, media --- */
+.cms-content blockquote {
+  margin: 1.25rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-left: 4px solid #bfdbfe;
+  color: #4b5563;
+  font-style: italic;
+}
+.cms-content hr {
+  margin: 1.75rem 0;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+}
+.cms-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+}
+.cms-content figure { margin: 1.25rem 0; }
+.cms-content figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  text-align: center;
+}
+.cms-content iframe,
+.cms-content video {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+
+/* --- Code --- */
+.cms-content code {
+  background: #f3f4f6;
+  padding: 0.125rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.cms-content pre {
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1.25rem 0;
+}
+.cms-content pre code { background: transparent; color: inherit; padding: 0; }
+
+/* --- Tables (visual rules live in the TABLE STYLING block above) --- */
+.cms-content .responsive-table-wrapper { margin: 1.5rem 0; }
+@media (max-width: 768px) {
+  /* A wrapped table must stay a real table — the wrapper is the scroller.
+     Without this the global "main table { display: block }" rule above turns
+     it into a second, nested scroller. */
+  .cms-content .responsive-table-wrapper > table {
+    display: table !important;
+    width: max-content !important;
+    min-width: 100%;
+  }
+  /* Any table the editor left unwrapped scrolls on its own. */
+  .cms-content > table {
+    display: block !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
