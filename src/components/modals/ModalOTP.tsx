@@ -2,11 +2,8 @@
 
 import React, { useState } from "react";
 import { KeyRound } from "lucide-react";
-import axios from "axios";
+import { apiPostWithFallback } from "./authApi";
 import { toast } from "react-toastify";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
-const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 interface ModalOTPProps {
   studentId: any;
@@ -30,11 +27,9 @@ const ModalOTP: React.FC<ModalOTPProps> = ({ studentId, onSuccess }) => {
 
       setLoading(true);
 
-      const response = await axios.post(`${API_BASE}/student/verify-otp`, {
+      const response = await apiPostWithFallback('/student/verify-otp', {
         id: id,
         otp,
-      }, {
-        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
       });
 
       const resData: any = response.data;
@@ -79,10 +74,8 @@ const ModalOTP: React.FC<ModalOTPProps> = ({ studentId, onSuccess }) => {
       setLoading(true);
       const id = studentId || localStorage.getItem("student_id");
 
-      const response = await axios.post(`${API_BASE}/student/resend-otp`, {
+      const response = await apiPostWithFallback('/student/resend-otp', {
         id: id,
-      }, {
-        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
       });
 
       if (response.data) {

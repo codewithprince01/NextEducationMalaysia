@@ -1686,6 +1686,7 @@ export default function CoursesListClient({
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
         courseId={pendingCourse?.id || null}
+        courseData={pendingCourse}
         onSuccess={() => {
           if (pendingCourse?.id) {
             setAppliedCourses(prev => new Set([...prev, pendingCourse.id]))

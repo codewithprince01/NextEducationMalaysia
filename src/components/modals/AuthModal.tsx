@@ -5,20 +5,18 @@ import { X } from "lucide-react";
 import ModalSignUp from "./ModalSignUp";
 import ModalLogin from "./ModalLogin";
 import ModalOTP from "./ModalOTP";
-import axios from "axios";
+import { apiGetWithFallback } from "./authApi";
 import { toast } from "react-toastify";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
-const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   courseId: number | string | null;
+  courseData?: any;
   onSuccess?: () => void;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSuccess }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, courseData, onSuccess }) => {
   const [authStep, setAuthStep] = useState<"signup" | "login" | "otp">("signup");
   const [studentId, setStudentId] = useState<any>(null);
   const [isApplying, setIsApplying] = useState(false);
@@ -71,14 +69,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
     }
 
     try {
-      const headers: Record<string, string> = {
-        Authorization: `Bearer ${token}`,
-      };
-      if (API_KEY) headers['x-api-key'] = API_KEY;
-
-      await axios.get(`${API_BASE}/student/apply-program/${courseId}`, {
-        headers,
-      });
+      await apiGetWithFallback(`/student/apply-program/${courseId}`, token);
 
       toast.success("Course applied successfully!");
 
@@ -134,21 +125,70 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, onSucc
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-auto max-h-[92vh] overflow-y-auto animate-fadeIn border border-slate-100 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        <button
-          onClick={onClose}
-          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center z-20 cursor-pointer"
-          aria-label="Close modal"
-        >
-          <X size={18} />
-        </button>
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 overflow-y-auto sm:overflow-hidden">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl sm:max-w-2xl my-auto border border-slate-200 overflow-hidden animate-fadeIn">
+        
+        {/* ── CLEAN COMPACT HEADER (NO EXTRA CHIPS/BADGES) ── */}
+        <div className="relative px-5 sm:px-6 pt-4 pb-3 bg-slate-50/70 border-b border-slate-150">
+          {/* Close Button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center border border-slate-200 shadow-2xs cursor-pointer outline-none focus:outline-none z-10"
+            aria-label="Close modal"
+          >
+            <X size={16} />
+          </button>
 
+          {/* Main Headline */}
+          <h2 className="text-[15px] sm:text-[17px] font-bold text-slate-900 leading-snug pr-8">
+            Apply to up to 5 Malaysian universities through one application process.
+          </h2>
+
+          {/* Subtitle */}
+          <p className="text-[11.5px] sm:text-[12.5px] text-slate-600 mt-1 leading-relaxed">
+            Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
+            <span className="font-semibold text-[#003893]">7 working days</span>.
+          </p>
+        </div>
+
+        {/* ── CLEAN CENTERED TABS ── */}
+        {authStep !== "otp" && !isApplying && (
+          <div className="flex justify-center border-b border-slate-200 px-5 sm:px-6 bg-white gap-8 sm:gap-12">
+            <button
+              type="button"
+              onClick={() => setAuthStep("signup")}
+              className={`pb-2 pt-2 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+                authStep === "signup"
+                  ? "border-[#003893] text-[#003893]"
+                  : "border-transparent text-slate-400 hover:text-slate-700"
+              }`}
+            >
+              Create Account
+            </button>
+            <button
+              type="button"
+              onClick={() => setAuthStep("login")}
+              className={`pb-2 pt-2 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+                authStep === "login"
+                  ? "border-[#003893] text-[#003893]"
+                  : "border-transparent text-slate-400 hover:text-slate-700"
+              }`}
+            >
+              Sign In
+            </button>
+          </div>
+        )}
+
+        {/* ── MODAL BODY (SIGNUP / LOGIN / OTP) ── */}
         {isApplying ? (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-lg font-semibold text-gray-700">
-              Applying for course...
+            <div className="w-14 h-14 border-4 border-[#003893] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-base font-bold text-slate-800">
+              Submitting your application...
+            </p>
+            <p className="text-xs text-slate-500 mt-1">
+              Please wait while we connect with the university admissions system.
             </p>
           </div>
         ) : (

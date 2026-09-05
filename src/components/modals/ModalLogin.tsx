@@ -1,114 +1,15 @@
 "use client"
 
 import React, { useState } from 'react'
-import { 
-  FaEnvelope, 
-  FaLock, 
-  FaEye, 
-  FaEyeSlash, 
-  FaArrowRight 
-} from 'react-icons/fa'
-import axios from 'axios'
+import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa'
+import { ModernInput, PasswordInput } from '@/components/auth/AuthFormInputs'
+import { apiPostWithFallback } from './authApi'
 import { toast } from 'react-toastify'
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
-const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 interface ModalLoginProps {
   onSuccess: (data: any) => void;
   onSwitchToSignUp: () => void;
 }
-
-const ModernInput = ({
-  label,
-  type,
-  name,
-  placeholder,
-  value,
-  onChange,
-  onBlur,
-  icon,
-  required,
-  error,
-}: any) => (
-  <div className="space-y-1.5">
-    <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
-    <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
-        {icon}
-      </div>
-      <input
-        type={type}
-        name={name}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        required={required}
-        className={`w-full pl-11 pr-4 py-3.5 bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-4 transition-all outline-none text-sm font-medium ${
-          error
-            ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-            : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/10"
-        }`}
-      />
-    </div>
-    {error && (
-      <p className="text-red-600 text-xs mt-1 ml-1 font-medium flex items-center gap-1">
-        <span className="inline-block w-1 h-1 bg-red-600 rounded-full"></span>
-        {error}
-      </p>
-    )}
-  </div>
-);
-
-const PasswordInput = ({
-  label,
-  name,
-  placeholder,
-  value,
-  onChange,
-  onBlur,
-  showPassword,
-  setShowPassword,
-  icon,
-  error,
-}: any) => (
-  <div className="space-y-1.5">
-    <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
-    <div className="relative group">
-      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors">
-        {icon}
-      </div>
-      <input
-        type={showPassword ? "text" : "password"}
-        name={name}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        onBlur={onBlur}
-        required
-        className={`w-full pl-11 pr-12 py-3.5 bg-gray-50 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-4 transition-all outline-none text-sm font-medium ${
-          error
-            ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-            : "border-gray-200 focus:border-blue-500 focus:ring-blue-500/10"
-        }`}
-      />
-      <button
-        type="button"
-        onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
-      >
-        {showPassword ? <FaEyeSlash /> : <FaEye />}
-      </button>
-    </div>
-    {error && (
-      <p className="text-red-600 text-xs mt-1 ml-1 font-medium flex items-center gap-1">
-        <span className="inline-block w-1 h-1 bg-red-600 rounded-full"></span>
-        {error}
-      </p>
-    )}
-  </div>
-);
 
 const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) => {
   const [formData, setFormData] = useState({
@@ -177,9 +78,7 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE}/student/login`, formData, {
-        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
-      });
+      const response = await apiPostWithFallback('/student/login', formData);
       const resData: any = response.data;
       const responseData = resData.data || resData;
       const responseName =
@@ -213,15 +112,8 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-4 sm:p-6">
-      <div className="text-center mb-5">
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Sign In</h2>
-        <p className="mt-1 text-slate-500 text-xs sm:text-sm">
-          Please enter your details to sign in.
-        </p>
-      </div>
-
-      <form className="space-y-4" onSubmit={handleSubmit}>
+    <div className="w-full max-w-md mx-auto px-5 sm:px-6 py-4">
+      <form className="space-y-3" onSubmit={handleSubmit}>
         <ModernInput
           label="Email"
           type="email"
@@ -233,6 +125,7 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
           icon={<FaEnvelope />}
           error={errors.email}
           required
+          compact
         />
 
         <PasswordInput
@@ -247,24 +140,25 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
           icon={<FaLock />}
           error={errors.password}
           required
+          compact
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-600/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-sm"
+          className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2 sm:py-2.5 rounded-lg shadow-md shadow-blue-600/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-[13px]"
         >
           {loading ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Sign In <FaArrowRight className="text-xs" />
+              Sign In <FaArrowRight className="text-[11px]" />
             </>
           )}
         </button>
 
         {onSwitchToSignUp && (
-          <p className="text-center text-xs text-slate-500 pt-0.5">
+          <p className="text-center text-[11px] text-slate-500 pt-0.5">
             Don&apos;t have an account?
             <button
               type="button"

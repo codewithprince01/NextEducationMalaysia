@@ -28,10 +28,13 @@ import {
   ModernSelect,
   PasswordInput,
 } from "@/components/auth/AuthFormInputs";
-import axios from "axios";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
-const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
+import {
+  apiGetWithFallback,
+  apiPostWithFallback,
+  parseApiList,
+  DEFAULT_LEVELS,
+  DEFAULT_COURSE_CATEGORIES,
+} from "./authApi";
 
 interface ModalSignUpProps {
   onSuccess: (studentId: any) => void;
@@ -74,21 +77,26 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [pcRes, cRes, lRes, catRes] = await Promise.all([
-          axios.get(`${API_BASE}/phonecodes`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
-          axios.get(`${API_BASE}/countries`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
-          axios.get(`${API_BASE}/levels`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
-          axios.get(`${API_BASE}/course-categories`, { headers: API_KEY ? { 'x-api-key': API_KEY } : undefined }),
+        const [pcRes, cRes, lRes, catRes] = await Promise.allSettled([
+          apiGetWithFallback("/phonecodes"),
+          apiGetWithFallback("/countries"),
+          apiGetWithFallback("/levels"),
+          apiGetWithFallback("/course-categories"),
         ]);
 
-        const safeArray = (res: any) => Array.isArray(res.data) ? res.data : Array.isArray(res.data?.data) ? res.data.data : [];
+        const pcData = pcRes.status === "fulfilled" ? parseApiList(pcRes.value.data) : [];
+        const cData = cRes.status === "fulfilled" ? parseApiList(cRes.value.data) : [];
+        const lData = lRes.status === "fulfilled" ? parseApiList(lRes.value.data) : [];
+        const catData = catRes.status === "fulfilled" ? parseApiList(catRes.value.data) : [];
 
-        setPhonecode(safeArray(pcRes));
-        setCountriesData(safeArray(cRes));
-        setLevels(safeArray(lRes));
-        setCourseCategories(safeArray(catRes));
+        setPhonecode(pcData);
+        setCountriesData(cData);
+        setLevels(lData.length > 0 ? lData : DEFAULT_LEVELS);
+        setCourseCategories(catData.length > 0 ? catData : DEFAULT_COURSE_CATEGORIES);
       } catch (error) {
         console.error("Error fetching data:", error);
+        setLevels(DEFAULT_LEVELS);
+        setCourseCategories(DEFAULT_COURSE_CATEGORIES);
       }
     };
     fetchData();
@@ -152,41 +160,56 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     return error;
   };
 
+  const getAlphaCodeFromName = (name: string): string => {
+    const cleaned = String(name || "").trim();
+    if (!cleaned) return "";
+    const words = cleaned.split(/[\s-]+/).filter(Boolean);
+    if (!words.length) return "";
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
+    return `${words[0][0] || ""}${words[1][0] || ""}`.toUpperCase();
+  };
+
+  const getCountryIsoByPhoneCode = (phoneCodeValue: string): string => {
+    if (!phoneCodeValue) return "";
+    const pc = phonecode.find((p) => String(p.phonecode) === String(phoneCodeValue));
+    if (!pc) return "";
+
+    const directIso = String(pc.iso || pc.country_code || pc.sortname || "").toUpperCase().trim();
+    if (directIso) return directIso;
+
+    const pcName = String(pc.name || pc.country || "").toLowerCase().trim();
+    if (pcName) {
+      const byName = countriesData.find((c) => String(c.name || "").toLowerCase().trim() === pcName);
+      if (byName) {
+        const iso = String(byName.iso || byName.sortname || byName.code || "").toUpperCase().trim();
+        if (iso) return iso;
+      }
+    }
+
+    return getAlphaCodeFromName(String(pc.name || pc.country || ""));
+  };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const phoneNumber = e.target.value.replace(/\D/g, "");
     const newFormData = { ...formData, mobile: phoneNumber };
     let newPhoneError = "";
     let newPhoneValid = false;
 
-    if (phoneNumber.length >= 6) {
+    if (phoneNumber.length >= 6 && formData.country_code) {
       try {
-        let detectedCountryCode = null;
-        for (const code of phonecode) {
-          const fullNumber = `+${code.phonecode}${phoneNumber}`;
-          try {
-            if (isValidPhoneNumber(fullNumber)) {
-              const parsed = parsePhoneNumber(fullNumber);
-              if (parsed && parsed.country) {
-                detectedCountryCode = code.phonecode;
-                newPhoneValid = true;
-                break;
-              }
-            }
-          } catch (err) {}
+        const fullNumber = `+${formData.country_code}${phoneNumber}`;
+        if (isValidPhoneNumber(fullNumber)) {
+          newPhoneValid = true;
+        } else {
+          newPhoneError = "Invalid phone number for selected country";
         }
-
-        if (detectedCountryCode) {
-          if (!formData.country_code || formData.country_code !== detectedCountryCode) {
-            newFormData.country_code = detectedCountryCode;
-          }
-        } else if (formData.country_code) {
-          if (isValidPhoneNumber(`+${formData.country_code}${phoneNumber}`)) {
-            newPhoneValid = true;
-          } else {
-            newPhoneError = "Invalid phone number for selected country";
-          }
-        }
-      } catch (error) {}
+      } catch (err) {
+        newPhoneError = "Invalid phone number";
+      }
+    } else if (phoneNumber.length >= 6 && !formData.country_code) {
+      newPhoneError = "Please select a country code";
     }
 
     setPhoneError(newPhoneError);
@@ -199,7 +222,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     const newFormData = { ...formData, country_code: code };
 
     if (code) {
-      const matchedPhoneObj = phonecode.find((p) => p.phonecode == code);
+      const matchedPhoneObj = phonecode.find((p) => String(p.phonecode) === String(code));
       if (matchedPhoneObj) {
         let matchedCountry = null;
         const pIso = (
@@ -208,24 +231,40 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
           matchedPhoneObj.sortname ||
           ""
         ).toUpperCase();
+
         if (pIso && countriesData.length > 0) {
+          matchedCountry = countriesData.find((c) => {
+            const cIso = (c.iso || c.sortname || c.code || "").toUpperCase();
+            return cIso === pIso;
+          });
+        }
+
+        if (!matchedCountry && matchedPhoneObj.name) {
+          const pName = matchedPhoneObj.name.toLowerCase().trim();
           matchedCountry = countriesData.find(
-            (c) => (c.iso || c.sortname || c.code || "").toUpperCase() === pIso,
+            (c) => (c.name || "").toLowerCase().trim() === pName,
           );
         }
+
         if (matchedCountry) newFormData.nationality = matchedCountry.name;
       }
     }
 
-    if (newFormData.mobile && code && newFormData.mobile.length >= 6) {
-        try {
-          if (isValidPhoneNumber(`+${code}${newFormData.mobile}`))
-            setPhoneValid(true);
-          else setPhoneError("Phone number doesn't match this country code");
-        } catch (err) {}
+    let newPhoneError = "";
+    let newPhoneValid = false;
+    if (newFormData.mobile && code) {
+      try {
+        const fullNumber = `+${code}${newFormData.mobile}`;
+        if (isValidPhoneNumber(fullNumber)) newPhoneValid = true;
+        else newPhoneError = "Phone number doesn't match this country code";
+      } catch (err) {
+        newPhoneError = "Invalid phone number";
+      }
     }
 
     setFormData(newFormData);
+    setPhoneError(newPhoneError);
+    setPhoneValid(newPhoneValid);
   };
 
   const handleNationalityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -235,42 +274,57 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     const matchedCountry = countriesData.find((c) => c.name === selectedName);
 
     if (matchedCountry) {
-      let matchingPhone = null;
-      const cIso = (
-        matchedCountry.iso ||
-        matchedCountry.sortname ||
-        matchedCountry.code ||
-        ""
-      ).toUpperCase();
+      if (matchedCountry.phonecode) {
+        newCountryCode = String(matchedCountry.phonecode);
+      } else {
+        const cIso = (
+          matchedCountry.iso ||
+          matchedCountry.sortname ||
+          matchedCountry.code ||
+          ""
+        ).toUpperCase();
 
-      if (cIso) {
-        matchingPhone = phonecode.find((p) => {
-          const pIso = (
-            p.iso ||
-            p.country_code ||
-            p.sortname ||
-            ""
-          ).toUpperCase();
-          return pIso === cIso;
-        });
-      }
+        let matchingPhone = null;
+        if (cIso) {
+          matchingPhone = phonecode.find((p) => {
+            const pIso = (p.iso || p.country_code || p.sortname || "").toUpperCase();
+            return pIso === cIso;
+          });
+        }
 
-      if (!matchingPhone) {
-        matchingPhone = phonecode.find(
-          (p) => p.name && p.name.toLowerCase() === selectedName.toLowerCase(),
-        );
-      }
+        if (!matchingPhone) {
+          matchingPhone = phonecode.find(
+            (p) => p.name && p.name.toLowerCase() === selectedName.toLowerCase(),
+          );
+        }
 
-      if (matchingPhone) {
-        newCountryCode = matchingPhone.phonecode;
+        if (matchingPhone) {
+          newCountryCode = String(matchingPhone.phonecode);
+        }
       }
     }
 
-    setFormData({
+    const newFormData = {
       ...formData,
       nationality: selectedName,
       country_code: newCountryCode,
-    });
+    };
+
+    let newPhoneError = "";
+    let newPhoneValid = false;
+    if (newFormData.mobile && newCountryCode) {
+      try {
+        const fullNumber = `+${newCountryCode}${newFormData.mobile}`;
+        if (isValidPhoneNumber(fullNumber)) newPhoneValid = true;
+        else newPhoneError = "Phone number doesn't match this country code";
+      } catch (err) {
+        newPhoneError = "Invalid phone number";
+      }
+    }
+
+    setFormData(newFormData);
+    setPhoneError(newPhoneError);
+    setPhoneValid(newPhoneValid);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -336,9 +390,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     }
 
     try {
-      const response = await axios.post(`${API_BASE}/student/register`, formData, {
-        headers: API_KEY ? { 'x-api-key': API_KEY } : undefined,
-      });
+      const response = await apiPostWithFallback("/student/register", formData);
       const resData: any = response.data;
       const studentId =
         resData?.id ||
@@ -346,7 +398,9 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         resData?.student_id;
 
       if (studentId) {
-        localStorage.setItem("student_id", studentId);
+        localStorage.setItem("student_id", String(studentId));
+        localStorage.setItem("student_email", formData.email);
+        if (formData.name) localStorage.setItem("student_name", String(formData.name).trim());
         const token = resData?.token || resData?.data?.token;
         if (token) localStorage.setItem("token", token);
 
@@ -356,11 +410,11 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
           onSuccess(studentId);
         }
       } else {
-        toast.error("Registration failed. Please check your details.");
+        toast.error(resData?.message || "Registration failed. Please check your details.");
       }
     } catch (error: any) {
       if (error.response?.data?.errors) {
-         toast.error(Object.values(error.response.data.errors).flat().join("\n"));
+        toast.error(Object.values(error.response.data.errors).flat().join("\n"));
       } else if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
@@ -372,27 +426,19 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
   };
 
   const getCountryFlag = (phoneCodeValue: string) => {
-    const pc = phonecode.find((p) => p.phonecode == phoneCodeValue);
-    const iso = pc?.iso || pc?.country_code || pc?.sortname || "US";
+    const iso = getCountryIsoByPhoneCode(phoneCodeValue) || "MY";
     try {
       return iso.toUpperCase().replace(/./g, (char: string) => 
         String.fromCodePoint(char.charCodeAt(0) + 127397)
       );
-    } catch (e) { return "🏳️"; }
+    } catch (e) { return "🇲🇾"; }
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 sm:p-6">
-      <div className="text-center mb-4 sm:mb-5">
-        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Create Account</h2>
-        <p className="mt-1 text-slate-500 text-xs sm:text-sm">
-          Enter your details to register and apply for the course.
-        </p>
-      </div>
-
-      <form className="space-y-3" onSubmit={handleSubmit}>
+    <div className="w-full max-w-2xl mx-auto px-5 sm:px-6 py-3">
+      <form className="space-y-2 sm:space-y-2.5" onSubmit={handleSubmit}>
         {/* Row 1: Full Name & Email Address */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           <ModernInput
             label="Full Name"
             icon={<FaUser />}
@@ -422,60 +468,63 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         </div>
 
         {/* Row 2: Phone Number & Nationality */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           {/* Phone Number */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-700 ml-0.5">
+          <div className="space-y-0.5">
+            <label className="text-[11.5px] font-semibold text-slate-700 ml-0.5">
               Phone Number <span className="text-rose-500">*</span>
             </label>
-            <div className="flex gap-2">
-              <div className="relative w-28 sm:w-32 shrink-0">
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none z-10">
+            <div className="flex gap-1.5">
+              <div className="relative w-24 sm:w-28 shrink-0">
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 text-xs pointer-events-none z-10">
                   {formData.country_code && getCountryFlag(formData.country_code)}
                 </div>
                 <select
                   name="country_code"
                   value={formData.country_code}
                   onChange={handleCountryCodeChange}
-                  className="appearance-none w-full pl-8 pr-6 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-[#003893] focus:ring-2 focus:ring-blue-500/10 transition-all text-xs sm:text-[13px] outline-none cursor-pointer"
+                  className="appearance-none w-full pl-6 pr-5 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-medium focus:bg-white focus:border-[#003893] focus:ring-1 focus:ring-blue-500/10 transition-all text-xs outline-none cursor-pointer"
                   required
                 >
                   <option value="">Code</option>
-                  {phonecode.map((code, idx) => (
-                    <option key={idx} value={code.phonecode}>
-                      {code.iso || code.country_code} (+{code.phonecode})
-                    </option>
-                  ))}
+                  {phonecode.map((code, idx) => {
+                    const iso = getCountryIsoByPhoneCode(String(code.phonecode)) || code.name || "NA";
+                    return (
+                      <option key={idx} value={code.phonecode}>
+                        {iso} (+{code.phonecode})
+                      </option>
+                    );
+                  })}
                 </select>
-                <FiChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+                <FiChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
               </div>
               <div className="relative flex-1 group">
-                <FaPhoneAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#003893] transition-colors text-xs" />
+                <FaPhoneAlt className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#003893] transition-colors text-[10px]" />
                 <input
                   type="tel"
                   placeholder="Phone number"
                   name="mobile"
                   value={formData.mobile}
                   onChange={handlePhoneChange}
-                  className={`w-full pl-8 pr-8 py-2.5 bg-gray-50 border rounded-xl text-gray-900 font-medium focus:bg-white focus:ring-2 transition-all text-xs sm:text-[13px] outline-none ${
+                  className={`w-full pl-7 pr-7 py-1.5 sm:py-2 bg-gray-50 border rounded-lg text-gray-900 font-medium focus:bg-white focus:ring-1 transition-all text-xs outline-none ${
                     phoneError
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      ? "border-red-300 focus:border-red-500"
                       : phoneValid
-                      ? "border-green-300 focus:border-green-500 focus:ring-green-100"
-                      : "border-gray-200 focus:border-[#003893] focus:ring-blue-500/10"
+                      ? "border-green-300 focus:border-green-500"
+                      : "border-gray-200 focus:border-[#003893]"
                   }`}
                   required
                 />
                 {phoneValid && (
-                  <MdCheckCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 text-green-500 text-sm" />
+                  <MdCheckCircle className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500 text-xs" />
                 )}
                 {phoneError && (
-                  <MdError className="absolute right-2.5 top-1/2 -translate-y-1/2 text-red-500 text-sm" />
+                  <MdError className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 text-xs" />
                 )}
               </div>
             </div>
             {phoneError && (
-              <p className="text-red-500 text-[11px] ml-1 font-medium">
+              <p className="text-red-500 text-[10px] ml-1 font-medium">
                 {phoneError}
               </p>
             )}
@@ -496,7 +545,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         </div>
 
         {/* Row 3: Qualification Level & Interested Course */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           <ModernSelect
             label="Qualification Level"
             icon={<FaGraduationCap />}
@@ -525,7 +574,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         </div>
 
         {/* Row 4: Password & Confirm Password */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
           <PasswordInput
             label="Password"
             icon={<FaLock />}
@@ -538,8 +587,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             setShowPassword={setShowPassword}
             required
             error={errors.password}
-            showStrength={true}
-            strength={passwordStrength}
+            showStrength={false}
             compact
           />
           <PasswordInput
@@ -558,51 +606,47 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
           />
         </div>
 
-        {/* Row 5: Captcha Verification */}
-        <div className="pt-0.5">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 p-2.5 bg-gray-50 rounded-xl border border-gray-100">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-gray-600 shrink-0">Security:</span>
-              <div className="bg-white px-3 py-1.5 rounded-lg border border-gray-200 font-bold text-gray-800 tracking-wider shadow-2xs select-none min-w-[76px] text-center text-xs sm:text-sm">
-                {captcha}
-              </div>
-              <button
-                type="button"
-                onClick={generateCaptcha}
-                className="p-2 text-gray-500 hover:text-[#003893] hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-2xs cursor-pointer text-xs"
-                title="New captcha"
-              >
-                <LuRefreshCw />
-              </button>
-            </div>
-            <input
-              type="text"
-              placeholder="Answer?"
-              value={userCaptcha}
-              onChange={(e) => setUserCaptcha(e.target.value)}
-              className="flex-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:border-[#003893] focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-gray-400"
-              required
-            />
+        {/* Row 5: Compact Captcha */}
+        <div className="flex items-center gap-2 p-1.5 sm:p-2 bg-slate-50/90 rounded-lg border border-slate-200/80">
+          <span className="text-[11px] font-bold text-slate-600 shrink-0">Security:</span>
+          <div className="bg-white px-2.5 py-1 rounded-md border border-slate-200 font-bold text-slate-800 tracking-wider shadow-2xs select-none text-xs">
+            {captcha}
           </div>
+          <button
+            type="button"
+            onClick={generateCaptcha}
+            className="p-1 text-slate-400 hover:text-[#003893] hover:bg-white rounded transition-all border border-transparent hover:border-slate-200 cursor-pointer text-xs outline-none focus:outline-none"
+            title="New captcha"
+          >
+            <LuRefreshCw size={12} />
+          </button>
+          <input
+            type="text"
+            placeholder="Answer"
+            value={userCaptcha}
+            onChange={(e) => setUserCaptcha(e.target.value)}
+            className="flex-1 px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs focus:border-[#003893] focus:ring-1 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 font-medium"
+            required
+          />
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-600/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-sm"
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#003893] via-[#0047ba] to-blue-600 hover:from-[#002f7a] hover:to-blue-700 text-white font-bold py-2 sm:py-2.5 rounded-lg shadow-md shadow-blue-900/10 hover:shadow-lg transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-[13px] outline-none focus:outline-none tracking-wide"
         >
           {loading ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Create Account & Apply <FaArrowRight className="text-xs" />
+              Create Account & Apply <FaArrowRight className="text-[11px]" />
             </>
           )}
         </button>
 
         {onSwitchToLogin && (
-          <p className="text-center text-xs text-gray-500 pt-0.5">
+          <p className="text-center text-[11px] text-slate-500 pt-0.5">
             Already have an account?
             <button
               type="button"

@@ -283,6 +283,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
         courseId={courseDetails.id}
+        courseData={courseDetails}
         onSuccess={() => setIsApplied(true)}
       />
     </div>

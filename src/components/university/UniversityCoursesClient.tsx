@@ -408,6 +408,7 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
         courseId={selectedCourseId}
+        courseData={{ university }}
         onSuccess={() => {
           if (selectedCourseId) {
             setAppliedPrograms(prev => [...prev, Number(selectedCourseId)]);
