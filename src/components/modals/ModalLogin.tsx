@@ -112,8 +112,8 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-5 sm:px-6 py-4">
-      <form className="space-y-3" onSubmit={handleSubmit}>
+    <div className="w-full max-w-md mx-auto px-6 sm:px-8 py-5 sm:py-6">
+      <form className="space-y-3.5" onSubmit={handleSubmit}>
         <ModernInput
           label="Email"
           type="email"
@@ -146,29 +146,16 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-2 sm:py-2.5 rounded-lg shadow-md shadow-blue-600/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-[13px]"
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#003893] via-[#0047ba] to-blue-600 hover:from-[#002f7a] hover:to-blue-700 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-900/15 hover:shadow-lg transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm"
         >
           {loading ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Sign In <FaArrowRight className="text-[11px]" />
+              Sign In <FaArrowRight className="text-xs" />
             </>
           )}
         </button>
-
-        {onSwitchToSignUp && (
-          <p className="text-center text-[11px] text-slate-500 pt-0.5">
-            Don&apos;t have an account?
-            <button
-              type="button"
-              onClick={onSwitchToSignUp}
-              className="font-bold text-[#003893] hover:text-blue-700 hover:underline ml-1 cursor-pointer"
-            >
-              Sign Up
-            </button>
-          </p>
-        )}
       </form>
     </div>
   );

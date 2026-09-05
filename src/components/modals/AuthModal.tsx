@@ -128,25 +128,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
     <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 overflow-y-auto sm:overflow-hidden">
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl sm:max-w-2xl my-auto border border-slate-200 overflow-hidden animate-fadeIn">
         
-        {/* ── CLEAN COMPACT HEADER (NO EXTRA CHIPS/BADGES) ── */}
-        <div className="relative px-5 sm:px-6 pt-4 pb-3 bg-slate-50/70 border-b border-slate-150">
+        {/* ── HEADER (CENTERED CONTENT) ── */}
+        <div className="relative px-6 sm:px-10 pt-6 pb-4 sm:pt-7 sm:pb-5 bg-slate-50/70 border-b border-slate-150 text-center">
           {/* Close Button */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center border border-slate-200 shadow-2xs cursor-pointer outline-none focus:outline-none z-10"
+            className="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center border border-slate-200 shadow-2xs cursor-pointer outline-none focus:outline-none z-10"
             aria-label="Close modal"
           >
-            <X size={16} />
+            <X size={18} />
           </button>
 
           {/* Main Headline */}
-          <h2 className="text-[15px] sm:text-[17px] font-bold text-slate-900 leading-snug pr-8">
+          <h2 className="text-[17px] sm:text-[21px] font-bold text-slate-900 leading-snug max-w-xl mx-auto">
             Apply to up to 5 Malaysian universities through one application process.
           </h2>
 
           {/* Subtitle */}
-          <p className="text-[11.5px] sm:text-[12.5px] text-slate-600 mt-1 leading-relaxed">
+          <p className="text-xs sm:text-[13px] text-slate-600 mt-2 leading-relaxed max-w-lg mx-auto">
             Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
             <span className="font-semibold text-[#003893]">7 working days</span>.
           </p>
@@ -154,11 +154,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
 
         {/* ── CLEAN CENTERED TABS ── */}
         {authStep !== "otp" && !isApplying && (
-          <div className="flex justify-center border-b border-slate-200 px-5 sm:px-6 bg-white gap-8 sm:gap-12">
+          <div className="flex justify-center border-b border-slate-200 px-6 bg-white gap-8 sm:gap-12">
             <button
               type="button"
               onClick={() => setAuthStep("signup")}
-              className={`pb-2 pt-2 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2.5 pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "signup"
                   ? "border-[#003893] text-[#003893]"
                   : "border-transparent text-slate-400 hover:text-slate-700"
@@ -169,7 +169,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
             <button
               type="button"
               onClick={() => setAuthStep("login")}
-              className={`pb-2 pt-2 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2.5 pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "login"
                   ? "border-[#003893] text-[#003893]"
                   : "border-transparent text-slate-400 hover:text-slate-700"
