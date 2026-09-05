@@ -1125,7 +1125,7 @@ export default function CoursesListClient({
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
             {/* Mobile filter button */}
-            <div className="lg:hidden sticky top-[68px] z-30 bg-[#eff6ff] pt-2 pb-2 -mx-2 px-2 w-[calc(100%+16px)]">
+            <div className="lg:hidden sticky top-[76px] z-30 bg-[#eff6ff] pt-2 pb-2 -mx-2 px-2 w-[calc(100%+16px)]">
               <div className="w-full flex justify-between items-center bg-white rounded-xl p-3 shadow-lg border border-blue-100">
                 <span className="text-sm font-bold text-gray-800">
                   <span className="text-blue-600">{totalCourses}</span> Courses Found

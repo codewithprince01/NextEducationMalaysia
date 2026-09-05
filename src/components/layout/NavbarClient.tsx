@@ -159,22 +159,22 @@ export default function NavbarClient() {
 
   return (
     <>
-      <nav className="px-4 sm:px-8 fixed top-0 left-0 right-0 z-[9999] h-[68px] flex items-center bg-white/95 backdrop-blur text-black shadow-lg">
+      <nav className="px-4 sm:px-8 fixed top-0 left-0 right-0 z-[9999] h-[76px] flex items-center bg-white/95 backdrop-blur text-black shadow-lg">
         <div className="flex items-center justify-between w-full">
           {/* Logo */}
-          <Link href="/" aria-label="Home" className="overflow-hidden flex items-center h-[68px] shrink-0">
+          <Link href="/" aria-label="Home" className="overflow-hidden flex items-center h-[76px] shrink-0">
             <Image
               src="/logo.png"
               alt="Education Malaysia Logo"
               width={250}
               height={64}
               priority
-              className="h-10 sm:h-11 md:h-12 w-auto max-w-[250px] object-contain"
+              className="h-11 sm:h-12 md:h-14 w-auto max-w-[280px] object-contain"
             />
           </Link>
 
           {/* Desktop menu */}
-          <div className="hidden md:flex items-center space-x-6 lg:space-x-8 text-[15.5px] lg:text-[16.5px] font-medium">
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-8 text-[17px] lg:text-[18px] font-medium">
             <Link
               href="/"
               className={`hover:text-blue-700 transition ${
@@ -204,7 +204,7 @@ export default function NavbarClient() {
                 className="flex items-center gap-1.5 hover:text-blue-700"
               >
                 Resources
-                <ChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={15} />
+                <ChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={16} />
               </button>
 
               {showDropdown && (
@@ -258,7 +258,7 @@ export default function NavbarClient() {
             {/* CTA — min-w prevents CLS when text swaps from 'Get Started' to 'Profile' */}
             <Link
               href={isLoggedIn ? '/student/profile' : '/signup'}
-              className="bg-blue-900 text-white px-5.5 py-2.5 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[125px] text-center inline-block text-[15px] lg:text-base"
+              className="bg-blue-900 text-white px-6 py-2.5 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[130px] text-center inline-block text-[16px] lg:text-[17px]"
             >
               {isLoggedIn ? displayName : 'Get Started'}
             </Link>
@@ -270,7 +270,7 @@ export default function NavbarClient() {
             className="md:hidden text-blue-900 text-2xl z-60"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
-            {menuOpen ? <XIcon size={26} /> : <MenuIcon size={26} />}
+            {menuOpen ? <XIcon size={28} /> : <MenuIcon size={28} />}
           </button>
         </div>
       </nav>
@@ -281,7 +281,7 @@ export default function NavbarClient() {
           menuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="p-6 space-y-4 font-medium overflow-y-auto h-full pt-24">
+        <div className="p-6 space-y-4 font-medium overflow-y-auto h-full pt-28">
           <div className="absolute top-4 right-4">
             <button onClick={() => setMenuOpen(false)} className="text-blue-900 text-3xl" aria-label="Close menu">
               <XIcon size={24} />

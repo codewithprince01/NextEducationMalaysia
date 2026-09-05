@@ -530,7 +530,7 @@ export default function SpecializationDetailClient({
           }`}
           style={{
             position: 'sticky',
-            top: '68px',
+            top: '76px',
             zIndex: 9998,
             backgroundColor: 'white',
             margin: 0,

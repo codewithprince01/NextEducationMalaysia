@@ -339,7 +339,7 @@ export default function StudentProfileClient() {
 
   return (
     <div className="relative w-full bg-white rounded-2xl">
-      <div className="sticky top-[68px] z-20 bg-white border-b md:border-none shadow-sm md:shadow-none">
+      <div className="sticky top-[76px] z-20 bg-white border-b md:border-none shadow-sm md:shadow-none">
         <div className="flex overflow-x-auto md:flex-wrap gap-3 py-3 px-4 text-sm font-semibold max-w-5xl mx-auto scrollbar-hide">
           {TABS.map(({ id, label }) => (
             <button

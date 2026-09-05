@@ -144,7 +144,7 @@ export default function ScholarshipDetailClient({ data }: { data: ScholarshipDat
         </motion.h1>
 
         <motion.div
-          className="sticky top-[68px] z-50 w-full flex items-center gap-3 overflow-x-auto border-b border-gray-200 py-3 mb-8 no-scrollbar px-2 bg-white shadow-sm"
+          className="sticky top-[76px] z-50 w-full flex items-center gap-3 overflow-x-auto border-b border-gray-200 py-3 mb-8 no-scrollbar px-2 bg-white shadow-sm"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
