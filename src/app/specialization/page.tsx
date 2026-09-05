@@ -1,7 +1,10 @@
 import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import SpecializationListClient, { type SpecializationListInitialData } from './SpecializationListClient'
 
-export const revalidate = 86400
+// Rendered per request so an edit saved in the admin panel shows up straight away.
+// The `next: { revalidate }` options below inherit this value, which keeps the
+// listing's own API fetches in step with the page.
+export const revalidate = 0
 
 export async function generateMetadata() {
   return resolveStaticMetaAny(

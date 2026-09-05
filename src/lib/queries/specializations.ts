@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
 import { SITE_VAR } from '@/lib/constants'
+import { getContentVersion } from '@/lib/queries/contentVersion'
 
 function toSeoSlug(value: string) {
   return (value || '')
@@ -155,8 +156,14 @@ async function fetchSpecializationDetail(slug: string) {
   return serializeBigInt(detail)
 }
 
-export const getAllSpecializationSlugs = unstable_cache(
-  async () => {
+// Every exported query below takes the current content version as its first
+// argument. It is never read inside the function — it exists purely so that
+// unstable_cache derives a new cache key the moment an editor saves something,
+// which is what makes admin edits appear on the site straight away instead of
+// waiting out the 24h window. The long `revalidate` stays as a safety net for
+// the case where the version probe itself fails.
+const cachedSpecializationSlugs = unstable_cache(
+  async (_version: string) => {
     const rows = await prisma.$queryRawUnsafe(`
       SELECT slug
       FROM course_specializations
@@ -177,14 +184,14 @@ export const getAllSpecializationSlugs = unstable_cache(
   { revalidate: 86400, tags: ['specialization'] },
 )
 
-export const getSpecializationBySlug = unstable_cache(
-  async (slug: string) => fetchSpecializationDetail(slug),
+const cachedSpecializationDetail = unstable_cache(
+  async (_version: string, slug: string) => fetchSpecializationDetail(slug),
   ['specialization-detail'],
   { revalidate: 86400, tags: ['specialization'] },
 )
 
-export const getSpecializationLevel = unstable_cache(
-  async (specSlug: string, levelSlug: string) => {
+const cachedSpecializationLevel = unstable_cache(
+  async (_version: string, specSlug: string, levelSlug: string) => {
     const rows = await prisma.$queryRawUnsafe(`
       SELECT
         sl.*,
@@ -228,8 +235,8 @@ export const getSpecializationLevel = unstable_cache(
   { revalidate: 86400, tags: ['specialization'] },
 )
 
-export const getAllSpecializations = unstable_cache(
-  async () => {
+const cachedAllSpecializations = unstable_cache(
+  async (_version: string) => {
     const rows = await prisma.$queryRawUnsafe(`
       SELECT
         cs.id,
@@ -278,3 +285,25 @@ export const getAllSpecializations = unstable_cache(
   ['all-specializations'],
   { revalidate: 86400, tags: ['specialization'] },
 )
+
+// ---------------------------------------------------------------------------
+// Public API — unchanged signatures, so callers need no edits. Each one probes
+// the content version first (cheap, and itself memoised for a few seconds) and
+// passes it through to the cached query above.
+// ---------------------------------------------------------------------------
+
+export async function getAllSpecializationSlugs() {
+  return cachedSpecializationSlugs(await getContentVersion('specialization'))
+}
+
+export async function getSpecializationBySlug(slug: string) {
+  return cachedSpecializationDetail(await getContentVersion('specialization'), slug)
+}
+
+export async function getSpecializationLevel(specSlug: string, levelSlug: string) {
+  return cachedSpecializationLevel(await getContentVersion('specialization'), specSlug, levelSlug)
+}
+
+export async function getAllSpecializations() {
+  return cachedAllSpecializations(await getContentVersion('specialization'))
+}
