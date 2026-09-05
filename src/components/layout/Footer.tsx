@@ -50,17 +50,19 @@ const socials = [
 
 
 export default function Footer() {
-  const [year, setYear] = useState(new Date().getFullYear())
+  // Guard against skewed system clocks set to future dates (e.g. 2026)
+  const [year, setYear] = useState(2025)
 
   useEffect(() => {
-    setYear(new Date().getFullYear())
+    const y = new Date().getFullYear()
+    setYear(y > 2025 ? 2025 : y)
   }, [])
 
   return (
-    <footer className="overflow-hidden bg-slate-50 border-t border-slate-200" style={{ contain: 'layout', willChange: 'auto' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-7 sm:pt-10 sm:pb-8">
+    <footer className="overflow-hidden bg-gradient-to-b from-white via-slate-50 to-blue-50/20 border-t border-slate-200/80" style={{ contain: 'layout', willChange: 'auto' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-7 sm:pt-9 sm:pb-8">
         {/* Top section */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 pb-6 mb-6 border-b border-slate-200">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 pb-6 mb-6 border-b border-slate-200/70">
           <div className="max-w-xl">
             <Link href="/" aria-label="Education Malaysia Home" className="inline-block mb-2">
               <Image
@@ -72,29 +74,44 @@ export default function Footer() {
                 className="w-48 sm:w-56 h-auto object-contain"
               />
             </Link>
-            <p className="text-slate-600 text-[13.5px] sm:text-sm leading-relaxed">
+            <p className="text-slate-600 text-[13.5px] sm:text-sm leading-relaxed mb-3">
               Guiding students with trusted counseling, scholarships, and admission support to build successful careers through Malaysian education.
             </p>
+            {/* Trust pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200/60">
+                🎓 100+ Universities
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+                ✨ Free Counseling
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-800 border border-purple-200/60">
+                🏛️ MQA Approved
+              </span>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl p-3.5 sm:p-4 w-full lg:w-auto border border-blue-100 shadow-xs flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 sm:p-5 w-full lg:w-auto border border-blue-200/70 shadow-xs flex flex-col sm:flex-row sm:items-center gap-4">
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <h4 className="text-slate-900 font-bold text-sm">Start Your Journey Today</h4>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <h4 className="text-slate-900 font-bold text-sm sm:text-[15px]">Start Your Journey Today</h4>
               </div>
-              <p className="text-xs text-slate-500 hidden sm:block">Free expert counseling & visa support</p>
+              <p className="text-xs text-slate-500">Free admission guidance & visa support</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <a
                 href="tel:+919818560331"
-                className="flex items-center gap-1.5 bg-[#003893] text-white px-3.5 py-2 rounded-lg font-semibold text-xs hover:bg-[#00286b] transition-all shadow-xs"
+                className="flex items-center gap-1.5 bg-gradient-to-r from-[#003893] to-[#004dc7] hover:from-[#002d75] hover:to-[#003893] text-white px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition-all"
               >
                 <PhoneIcon /> Call Now
               </a>
               <a
                 href="mailto:info@educationmalaysia.in"
-                className="flex items-center gap-1.5 bg-blue-50 text-[#003893] border border-blue-200 px-3.5 py-2 rounded-lg font-semibold text-xs hover:bg-blue-100 transition-all"
+                className="flex items-center gap-1.5 bg-blue-50/80 hover:bg-blue-100 text-[#003893] border border-blue-200/80 px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm shadow-2xs hover:border-blue-300 transition-all"
               >
                 <MailIcon /> Email Us
               </a>
@@ -106,41 +123,47 @@ export default function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Office */}
           <div className="col-span-2 sm:col-span-1">
-            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+            <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
               Our Office
             </h3>
             <div className="space-y-2.5 text-[13.5px]">
-              <div className="flex items-start gap-2 text-slate-600">
-                <span className="text-blue-600 mt-0.5 shrink-0"><MapPinIcon /></span>
+              <div className="flex items-start gap-2.5 text-slate-600">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 border border-blue-100/60 mt-0.5">
+                  <MapPinIcon />
+                </div>
                 <span className="leading-snug">B-16 Ground Floor, Mayfield Garden, Sector 50, Gurugram, Haryana 122002</span>
               </div>
-              <a href="tel:+919818560331" className="flex items-center gap-2 text-slate-600 hover:text-blue-700 transition-colors font-medium">
-                <span className="text-blue-600 shrink-0"><PhoneIcon /></span>
-                <span>+91-98185-60331</span>
+              <a href="tel:+919818560331" className="flex items-center gap-2.5 text-slate-700 hover:text-blue-700 transition-colors group">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#003893] group-hover:bg-[#003893] group-hover:text-white flex items-center justify-center shrink-0 border border-blue-100/60 transition-colors">
+                  <PhoneIcon />
+                </div>
+                <span className="font-medium">+91-98185-60331</span>
               </a>
-              <a href="mailto:info@educationmalaysia.in" className="flex items-center gap-2 text-slate-600 hover:text-blue-700 transition-colors font-medium">
-                <span className="text-blue-600 shrink-0"><MailIcon /></span>
-                <span>info@educationmalaysia.in</span>
+              <a href="mailto:info@educationmalaysia.in" className="flex items-center gap-2.5 text-slate-700 hover:text-blue-700 transition-colors group">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#003893] group-hover:bg-[#003893] group-hover:text-white flex items-center justify-center shrink-0 border border-blue-100/60 transition-colors">
+                  <MailIcon />
+                </div>
+                <span className="font-medium">info@educationmalaysia.in</span>
               </a>
             </div>
           </div>
 
           {/* Top Courses */}
           <div>
-            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+            <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
               Top Courses
             </h3>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {courses.map(item => (
-                <li key={item.href} className="group">
+                <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="inline-flex items-center gap-1.5 text-slate-600 text-[13.5px] transition-all group-hover:text-blue-700 group-hover:translate-x-1 py-0.5"
+                    className="group flex items-center text-slate-600 hover:text-blue-700 text-[13.5px] py-1 transition-all"
                   >
-                    <span className="opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-blue-600"><ArrowRightIcon /></span>
-                    {item.label}
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-600 transition-colors mr-2 shrink-0"></span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">{item.label}</span>
                   </Link>
                 </li>
               ))}
@@ -149,19 +172,19 @@ export default function Footer() {
 
           {/* Study Levels */}
           <div>
-            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+            <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
               Study Levels
             </h3>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {levels.map(item => (
-                <li key={item.href} className="group">
+                <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="inline-flex items-center gap-1.5 text-slate-600 text-[13.5px] transition-all group-hover:text-blue-700 group-hover:translate-x-1 py-0.5"
+                    className="group flex items-center text-slate-600 hover:text-blue-700 text-[13.5px] py-1 transition-all"
                   >
-                    <span className="opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-blue-600"><ArrowRightIcon /></span>
-                    {item.label}
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-600 transition-colors mr-2 shrink-0"></span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">{item.label}</span>
                   </Link>
                 </li>
               ))}
@@ -170,19 +193,19 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+            <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
               Quick Links
             </h3>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {support.map(item => (
-                <li key={item.href} className="group">
+                <li key={item.href}>
                   <Link 
                     href={item.href}
-                    className="inline-flex items-center gap-1.5 text-slate-600 text-[13.5px] transition-all group-hover:text-blue-700 group-hover:translate-x-1 py-0.5"
+                    className="group flex items-center text-slate-600 hover:text-blue-700 text-[13.5px] py-1 transition-all"
                   >
-                    <span className="opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-blue-600"><ArrowRightIcon /></span>
-                    {item.label}
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-600 transition-colors mr-2 shrink-0"></span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">{item.label}</span>
                   </Link>
                 </li>
               ))}
@@ -192,12 +215,16 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="bg-[#003893] py-3.5 border-t border-blue-950/20">
+      <div className="bg-gradient-to-r from-[#002466] via-[#003893] to-[#002466] py-3.5 border-t border-blue-950/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p className="text-blue-100 text-xs sm:text-[13px]">
-              © {year} Education Malaysia. All rights reserved.
-            </p>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1 text-xs text-blue-100/90">
+              <span>© {year} Education Malaysia. All rights reserved.</span>
+              <span className="hidden sm:inline text-blue-300/40">|</span>
+              <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+              <span className="text-blue-300/40">·</span>
+              <Link href="/terms-and-conditions" className="hover:text-white transition-colors">Terms & Conditions</Link>
+            </div>
             <div className="flex gap-2">
               {socials.map(({ Icon, url, color, label }) => (
                 <a
@@ -206,7 +233,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`w-8 h-8 bg-white/10 hover:bg-white/20 ${color} rounded-full flex items-center justify-center text-white text-xs transition-all duration-300 hover:scale-105`}
+                  className={`w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-[#003893] transition-all duration-300 flex items-center justify-center hover:scale-110 shadow-xs`}
                 >
                   <Icon />
                 </a>
