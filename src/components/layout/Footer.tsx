@@ -57,127 +57,145 @@ export default function Footer() {
   }, [])
 
   return (
-    <footer className="overflow-hidden" style={{ contain: 'layout', willChange: 'auto' }}>
-      <div className="bg-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-          {/* Top section */}
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pb-8 mb-8 border-b border-gray-200">
-            <div className="flex-1">
+    <footer className="overflow-hidden bg-slate-50 border-t border-slate-200" style={{ contain: 'layout', willChange: 'auto' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-7 sm:pt-10 sm:pb-8">
+        {/* Top section */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 pb-6 mb-6 border-b border-slate-200">
+          <div className="max-w-xl">
+            <Link href="/" aria-label="Education Malaysia Home" className="inline-block mb-2">
               <Image
                 src="/logo.png" 
                 alt="Education Malaysia" 
-                width={256}
-                height={64}
+                width={220}
+                height={56}
                 loading="lazy"
-                className="w-56 sm:w-64 mb-3 brightness-125 drop-shadow-lg"
+                className="w-48 sm:w-56 h-auto object-contain"
               />
-              <p className="text-gray-600 text-sm max-w-md leading-relaxed">
-                Guiding students with trusted counseling, scholarships, and admission support to build successful careers through Malaysian education.
+            </Link>
+            <p className="text-slate-600 text-[13.5px] sm:text-sm leading-relaxed">
+              Guiding students with trusted counseling, scholarships, and admission support to build successful careers through Malaysian education.
             </p>
-            </div>
+          </div>
 
-            <div className="bg-blue-50 rounded-xl p-4 sm:p-6 w-full lg:w-auto border border-blue-100">
-              <h4 className="text-gray-800 font-semibold mb-3 text-sm sm:text-base">Start Your Journey Today</h4>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href="tel:+919818560331"
-                  className="flex items-center gap-2 bg-[#003893] text-white px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-[#002966] transition-all"
-                >
-                  <PhoneIcon /> Call Now
-                </a>
-                <a
-                  href="mailto:info@educationmalaysia.in"
-                  className="flex items-center gap-2 border-2 border-[#003893] text-[#003893] px-4 py-2.5 rounded-lg font-medium text-sm hover:bg-[#003893] hover:text-white transition-all"
-                >
-                  <MailIcon /> Email Us
-                </a>
+          <div className="bg-white rounded-xl p-3.5 sm:p-4 w-full lg:w-auto border border-blue-100 shadow-xs flex flex-col sm:flex-row sm:items-center gap-3">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <h4 className="text-slate-900 font-bold text-sm">Start Your Journey Today</h4>
               </div>
+              <p className="text-xs text-slate-500 hidden sm:block">Free expert counseling & visa support</p>
             </div>
-          </div>
-
-          {/* Links grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-            {/* Office */}
-            <div className="col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[#003893]"><MapPinIcon /></span>
-                <h3 className="text-gray-800 text-2xl font-bold leading-none">Our Office</h3>
-                   </div>
-              <p className="text-gray-600 text-sm leading-relaxed mb-4 mt-2">
-                B-16 Ground Floor, Mayfield Garden, Sector 50, Gurugram, Haryana 122002
-              </p>
-              <div className="space-y-2 text-sm">
-                <a href="tel:+919818560331" className="flex items-center gap-2 text-gray-600 hover:text-[#003893] transition-colors">
-                  <PhoneIcon /> +91-98185-60331
-                      </a>
-                <a href="mailto:info@educationmalaysia.in" className="flex items-center gap-2 text-gray-600 hover:text-[#003893] transition-colors">
-                  <MailIcon /> info@educationmalaysia.in
-                      </a>
-                   </div>
-                </div>
-
-            {/* Top Courses */}
-            <div>
-              <h3 className="text-gray-800 text-2xl font-bold mb-4">Top Courses</h3>
-              <ul className="space-y-2">
-                {courses.map(item => (
-                  <li key={item.href} className="group">
-                    <Link
-                      href={item.href}
-                      className="inline-flex items-center gap-1 text-gray-600 text-sm transition-all group-hover:text-[#003893] group-hover:translate-x-1"
-                    >
-                      <span className="opacity-0 transition-all group-hover:opacity-100"><ArrowRightIcon /></span>
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-        </div>
-
-            {/* Study Levels */}
-            <div>
-              <h3 className="text-gray-800 text-2xl font-bold mb-4">Study Levels</h3>
-              <ul className="space-y-2">
-                {levels.map(item => (
-                  <li key={item.href} className="group">
-                    <Link
-                      href={item.href}
-                      className="inline-flex items-center gap-1 text-gray-600 text-sm transition-all group-hover:text-[#003893] group-hover:translate-x-1"
-                    >
-                      <span className="opacity-0 transition-all group-hover:opacity-100"><ArrowRightIcon /></span>
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-          </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-gray-800 text-2xl font-bold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                {support.map(item => (
-                  <li key={item.href} className="group">
-                    <Link 
-                      href={item.href}
-                      className="inline-flex items-center gap-1 text-gray-600 text-sm transition-all group-hover:text-[#003893] group-hover:translate-x-1"
-                    >
-                      <span className="opacity-0 transition-all group-hover:opacity-100"><ArrowRightIcon /></span>
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            <div className="flex items-center gap-2">
+              <a
+                href="tel:+919818560331"
+                className="flex items-center gap-1.5 bg-[#003893] text-white px-3.5 py-2 rounded-lg font-semibold text-xs hover:bg-[#00286b] transition-all shadow-xs"
+              >
+                <PhoneIcon /> Call Now
+              </a>
+              <a
+                href="mailto:info@educationmalaysia.in"
+                className="flex items-center gap-1.5 bg-blue-50 text-[#003893] border border-blue-200 px-3.5 py-2 rounded-lg font-semibold text-xs hover:bg-blue-100 transition-all"
+              >
+                <MailIcon /> Email Us
+              </a>
             </div>
           </div>
         </div>
+
+        {/* Links grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Office */}
+          <div className="col-span-2 sm:col-span-1">
+            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+              Our Office
+            </h3>
+            <div className="space-y-2.5 text-[13.5px]">
+              <div className="flex items-start gap-2 text-slate-600">
+                <span className="text-blue-600 mt-0.5 shrink-0"><MapPinIcon /></span>
+                <span className="leading-snug">B-16 Ground Floor, Mayfield Garden, Sector 50, Gurugram, Haryana 122002</span>
+              </div>
+              <a href="tel:+919818560331" className="flex items-center gap-2 text-slate-600 hover:text-blue-700 transition-colors font-medium">
+                <span className="text-blue-600 shrink-0"><PhoneIcon /></span>
+                <span>+91-98185-60331</span>
+              </a>
+              <a href="mailto:info@educationmalaysia.in" className="flex items-center gap-2 text-slate-600 hover:text-blue-700 transition-colors font-medium">
+                <span className="text-blue-600 shrink-0"><MailIcon /></span>
+                <span>info@educationmalaysia.in</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Top Courses */}
+          <div>
+            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+              Top Courses
+            </h3>
+            <ul className="space-y-1.5">
+              {courses.map(item => (
+                <li key={item.href} className="group">
+                  <Link
+                    href={item.href}
+                    className="inline-flex items-center gap-1.5 text-slate-600 text-[13.5px] transition-all group-hover:text-blue-700 group-hover:translate-x-1 py-0.5"
+                  >
+                    <span className="opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-blue-600"><ArrowRightIcon /></span>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Study Levels */}
+          <div>
+            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+              Study Levels
+            </h3>
+            <ul className="space-y-1.5">
+              {levels.map(item => (
+                <li key={item.href} className="group">
+                  <Link
+                    href={item.href}
+                    className="inline-flex items-center gap-1.5 text-slate-600 text-[13.5px] transition-all group-hover:text-blue-700 group-hover:translate-x-1 py-0.5"
+                  >
+                    <span className="opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-blue-600"><ArrowRightIcon /></span>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Quick Links */}
+          <div>
+            <h3 className="text-slate-900 text-[15px] font-bold tracking-tight mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+              Quick Links
+            </h3>
+            <ul className="space-y-1.5">
+              {support.map(item => (
+                <li key={item.href} className="group">
+                  <Link 
+                    href={item.href}
+                    className="inline-flex items-center gap-1.5 text-slate-600 text-[13.5px] transition-all group-hover:text-blue-700 group-hover:translate-x-1 py-0.5"
+                  >
+                    <span className="opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0 text-blue-600"><ArrowRightIcon /></span>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
+      </div>
 
       {/* Bottom bar */}
-      <div className="bg-blue-900 py-5">
+      <div className="bg-[#003893] py-3.5 border-t border-blue-950/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-white text-xs sm:text-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p className="text-blue-100 text-xs sm:text-[13px]">
               © {year} Education Malaysia. All rights reserved.
             </p>
             <div className="flex gap-2">
@@ -188,12 +206,12 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`w-8 h-8 sm:w-9 sm:h-9 bg-white/10 ${color} rounded-full flex items-center justify-center text-white text-sm transition-all duration-300`}
+                  className={`w-8 h-8 bg-white/10 hover:bg-white/20 ${color} rounded-full flex items-center justify-center text-white text-xs transition-all duration-300 hover:scale-105`}
                 >
                   <Icon />
                 </a>
               ))}
-           </div>
+            </div>
           </div>
         </div>
       </div>
