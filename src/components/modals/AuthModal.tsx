@@ -129,26 +129,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl sm:max-w-2xl my-auto border border-slate-200 overflow-hidden animate-fadeIn">
         
         {/* ── HEADER (CENTERED CONTENT) ── */}
-        <div className="relative px-6 sm:px-10 pt-6 pb-4 sm:pt-7 sm:pb-5 bg-slate-50/70 border-b border-slate-150 text-center">
+        <div className="relative px-5 sm:px-10 pt-4 pb-3 sm:pt-7 sm:pb-5 bg-slate-50/70 border-b border-slate-150 text-center">
           {/* Close Button */}
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 sm:top-5 sm:right-5 w-8 h-8 rounded-full bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center border border-slate-200 shadow-2xs cursor-pointer outline-none focus:outline-none z-10"
+            className="absolute top-3 right-3 sm:top-5 sm:right-5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center border border-slate-200 shadow-2xs cursor-pointer outline-none focus:outline-none z-10"
             aria-label="Close modal"
           >
-            <X size={18} />
+            <X size={15} className="sm:hidden" />
+            <X size={18} className="hidden sm:block" />
           </button>
 
           {/* Main Headline */}
-          <h2 className="text-[17px] sm:text-[21px] font-bold text-slate-900 leading-snug max-w-xl mx-auto">
-            Apply to up to 5 Malaysian universities through one application process.
+          <h2 className="font-bold text-slate-900 leading-snug max-w-lg mx-auto">
+            <span className="block text-[15px] sm:text-[19px] md:text-[21px]">Apply to up to 5</span>
+            <span className="block text-[15px] sm:text-[19px] md:text-[21px]">Malaysian universities</span>
+            <span className="block text-[13.5px] sm:text-[17px] md:text-[19px] whitespace-nowrap">through one application process.</span>
           </h2>
 
           {/* Subtitle */}
-          <p className="text-xs sm:text-[13px] text-slate-600 mt-2 leading-relaxed max-w-lg mx-auto">
+          <p className="text-[11.5px] sm:text-[13.5px] text-slate-600 mt-1.5 sm:mt-2 leading-normal sm:leading-relaxed max-w-lg mx-auto">
             Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
-            <span className="font-semibold text-[#003893]">7 working days</span>.
+            <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
           </p>
         </div>
 
@@ -158,7 +161,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
             <button
               type="button"
               onClick={() => setAuthStep("signup")}
-              className={`pb-2.5 pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2 pt-2 sm:pb-2.5 sm:pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "signup"
                   ? "border-[#003893] text-[#003893]"
                   : "border-transparent text-slate-400 hover:text-slate-700"
@@ -169,7 +172,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
             <button
               type="button"
               onClick={() => setAuthStep("login")}
-              className={`pb-2.5 pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2 pt-2 sm:pb-2.5 sm:pt-2.5 text-xs sm:text-[13.5px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "login"
                   ? "border-[#003893] text-[#003893]"
                   : "border-transparent text-slate-400 hover:text-slate-700"

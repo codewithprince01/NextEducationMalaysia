@@ -207,13 +207,184 @@ function CourseCard({
       }`}
     >
       <div className="p-3.5 sm:p-4 flex flex-col h-full justify-between">
+        {/* ── MOBILE CARD LAYOUT (EXACTLY AS PER USER SCREENSHOT) ── */}
+        <div className="flex md:hidden flex-col h-full justify-between">
+          <div>
+            {/* 1. TOP ROW BADGES: Level, Scholarship, Rating */}
+            <div className="flex items-center justify-between gap-1.5 mb-3">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {course.level && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
+                    {course.level}
+                  </span>
+                )}
+                {scholarshipBadge && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                    <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span>{scholarshipBadge}</span>
+                  </span>
+                )}
+                {Number(course.is_local) === 1 && (
+                  <span className="inline-flex items-center gap-1 bg-blue-50/70 text-[#003893] border border-blue-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                    <Home className="w-2.5 h-2.5 text-[#003893]" />
+                    <span>Local</span>
+                  </span>
+                )}
+                {Number(course.is_international) === 1 && (
+                  <span className="inline-flex items-center gap-1 bg-green-50/70 text-green-700 border border-green-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                    <Globe className="w-2.5 h-2.5 text-green-600" />
+                    <span>Int&apos;l</span>
+                  </span>
+                )}
+              </div>
+              <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200/80 px-2.5 py-0.5 rounded-full font-bold text-[11px] shadow-2xs shrink-0">
+                <span>{course.university?.rating || "4.5"}</span>
+                <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+              </div>
+            </div>
+
+            {/* 2. UNIVERSITY INFO: Logo Left + Name & Meta Right */}
+            <div className="flex items-center gap-3 mb-2.5 pb-2.5 border-b border-slate-100">
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shrink-0 border border-slate-200/80 shadow-2xs overflow-hidden p-1">
+                {course.university?.logo_path ? (
+                  <img
+                    src={`${IMAGE_BASE}/storage/${course.university.logo_path}`}
+                    alt={course.university?.name || 'University'}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                    width={48}
+                    height={48}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-slate-50 flex items-center justify-center text-[10px] font-semibold text-slate-400">Logo</div>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3
+                  onClick={() => onUniversityClick(course.university)}
+                  className="text-[14px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors truncate leading-tight"
+                  title={course.university?.name}
+                >
+                  {course.university?.name}
+                </h3>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 mt-1">
+                  {(course.university?.city || course.university?.state) && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="truncate">{[course.university?.city, course.university?.state].filter(Boolean).join(', ')}</span>
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Building className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>{course.university?.inst_type || "Private Institution"}</span>
+                  </span>
+                  {Boolean(course.university?.programs_count) && (
+                    <span className="flex items-center gap-1">
+                      <BookOpen className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{course.university?.programs_count} Courses</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. COURSE TITLE */}
+            <div className="mb-2.5">
+              <h4
+                onClick={() => onViewDetail(course)}
+                className="text-[15px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-2"
+              >
+                {courseDisplayName}
+              </h4>
+            </div>
+
+            {/* 4. SPECS 2x2 GRID */}
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {specs.map(({ label, value, icon: Icon, highlight }) => (
+                <div
+                  key={label}
+                  className={`rounded-xl px-2.5 py-2 border ${
+                    highlight
+                      ? 'bg-blue-50/50 border-blue-200/60'
+                      : 'bg-slate-50/90 border-slate-200/60'
+                  }`}
+                >
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mb-0.5">
+                    <Icon className={`w-3 h-3 shrink-0 ${highlight ? 'text-blue-600' : 'text-slate-400'}`} />
+                    {label}
+                  </span>
+                  <span className={`text-xs font-bold line-clamp-1 uppercase ${highlight ? 'text-[#003893]' : 'text-slate-800'}`}>
+                    {value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 5. ACTION BUTTONS (Row 1: Compare & View Detail, Row 2: Full Width Apply Now) */}
+          <div className="space-y-2 pt-2 border-t border-slate-100 mt-auto">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => onCompareUniversity(course)}
+                className="w-full cursor-pointer font-semibold py-2 px-2 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 transition-all text-xs text-center shadow-2xs truncate"
+              >
+                Compare University
+              </button>
+              <button
+                type="button"
+                onClick={() => onViewDetail(course)}
+                className="w-full cursor-pointer font-semibold py-2 px-2 rounded-xl border border-blue-200/80 bg-white hover:bg-blue-50/50 text-[#003893] transition-all text-xs text-center shadow-2xs truncate"
+              >
+                View Detail
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
+              disabled={appliedCourses.has(course.id)}
+              className={`w-full font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-all shadow-md cursor-pointer ${
+                appliedCourses.has(course.id)
+                  ? 'bg-emerald-600 text-white cursor-not-allowed'
+                  : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-lg active:scale-[0.99]'
+              }`}
+            >
+              {appliedCourses.has(course.id) ? 'Applied' : 'Apply Now'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── DESKTOP CARD LAYOUT (GRID & LIST) ── */}
+        <div className="hidden md:flex flex-col h-full justify-between">
         {viewMode === 'grid' ? (
           /* ── GRID / CARD VIEW SPECIFIC LAYOUT ── */
           <>
             <div>
-              {/* 1. TOP BAR: University Logo (Left) + Upper Right Corner Badges */}
-              <div className="flex items-start justify-between gap-2.5 mb-2.5">
-                {/* University Logo */}
+              {/* 1. TOP BAR: Badges on Top */}
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {course.level && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
+                      {course.level}
+                    </span>
+                  )}
+
+                  {scholarshipBadge && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                      <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>{scholarshipBadge}</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200/80 px-2.5 py-0.5 rounded-full font-bold text-[11px] shadow-2xs shrink-0">
+                  <span>{course.university?.rating || "4.5"}</span>
+                  <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                </div>
+              </div>
+
+              {/* 2. UNIVERSITY NAME & LOCATION (Logo Left + Name Right) */}
+              <div className="flex items-center gap-3 pb-2.5 mb-2.5 border-b border-slate-100">
                 <div className="w-13 h-13 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shrink-0 border border-slate-200/80 shadow-2xs overflow-hidden p-1.5 group-hover:border-blue-200 transition-colors">
                   {course.university?.logo_path ? (
                     <img
@@ -229,69 +400,33 @@ function CourseCard({
                   )}
                 </div>
 
-                {/* Upper Right Corner Badges (Degree, Scholarship, Local/Int'l, Rating) */}
-                <div className="flex items-center justify-end gap-1.5 flex-wrap shrink-0 max-w-[72%]">
-                  {course.level && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
-                      {course.level}
-                    </span>
-                  )}
+                <div className="min-w-0 flex-1">
+                  <h3
+                    onClick={() => onUniversityClick(course.university)}
+                    className="text-[14.5px] sm:text-[15.5px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-1"
+                    title={course.university?.name}
+                  >
+                    {course.university?.name}
+                  </h3>
 
-                  {scholarshipBadge && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                      <GraduationCap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                      <span>{scholarshipBadge}</span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 mt-1">
+                    {(course.university?.city || course.university?.state) && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">{[course.university?.city, course.university?.state].filter(Boolean).join(', ')}</span>
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Building className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{course.university?.inst_type || "Private"}</span>
                     </span>
-                  )}
-
-                  {Number(course.is_local) === 1 && (
-                    <span className="inline-flex items-center gap-1 bg-blue-50/70 text-[#003893] border border-blue-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                      <Home className="w-2.5 h-2.5 text-[#003893]" />
-                      <span>Local</span>
-                    </span>
-                  )}
-
-                  {Number(course.is_international) === 1 && (
-                    <span className="inline-flex items-center gap-1 bg-green-50/70 text-green-700 border border-green-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                      <Globe className="w-2.5 h-2.5 text-green-600" />
-                      <span>Int&apos;l</span>
-                    </span>
-                  )}
-
-                  <div className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 border border-amber-200/80 px-2.5 py-0.5 rounded-full font-bold text-[11px] shadow-2xs shrink-0">
-                    <span>{course.university?.rating || "4.5"}</span>
-                    <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                    {Boolean(course.university?.programs_count) && (
+                      <span className="flex items-center gap-1">
+                        <BookOpen className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span>{course.university?.programs_count} Courses</span>
+                      </span>
+                    )}
                   </div>
-                </div>
-              </div>
-
-              {/* 2. UNIVERSITY NAME & LOCATION (Full width, no cramming) */}
-              <div className="pb-2.5 mb-2.5 border-b border-slate-100">
-                <h3
-                  onClick={() => onUniversityClick(course.university)}
-                  className="text-[14.5px] sm:text-[15.5px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-1"
-                  title={course.university?.name}
-                >
-                  {course.university?.name}
-                </h3>
-
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-500 mt-1">
-                  {(course.university?.city || course.university?.state) && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span className="truncate">{[course.university?.city, course.university?.state].filter(Boolean).join(', ')}</span>
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Building className="w-3 h-3 text-slate-400 shrink-0" />
-                    <span>{course.university?.inst_type || "Private"}</span>
-                  </span>
-                  {Boolean(course.university?.programs_count) && (
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="w-3 h-3 text-slate-400 shrink-0" />
-                      <span>{course.university?.programs_count} Courses</span>
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -344,26 +479,28 @@ function CourseCard({
               </div>
             </div>
 
-            {/* 5. ACTION BUTTONS (Single balanced row in Grid View) */}
-            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 mt-auto">
-              <button
-                onClick={() => onCompareUniversity(course)}
-                className="cursor-pointer font-semibold py-2.5 px-1.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 transition-all text-xs text-center shadow-2xs truncate"
-                title="Compare University"
-              >
-                Compare
-              </button>
-              <button
-                onClick={() => onViewDetail(course)}
-                className="cursor-pointer font-semibold py-2.5 px-1.5 rounded-xl border border-blue-200/80 bg-blue-50/50 hover:bg-blue-100/60 text-[#003893] transition-all text-xs text-center shadow-2xs truncate"
-                title="View Course Details"
-              >
-                View Detail
-              </button>
+            {/* 5. ACTION BUTTONS */}
+            <div className="space-y-2 pt-3 border-t border-slate-100 mt-auto">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => onCompareUniversity(course)}
+                  className="cursor-pointer font-semibold py-2 px-1.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 transition-all text-xs text-center shadow-2xs truncate"
+                  title="Compare University"
+                >
+                  Compare University
+                </button>
+                <button
+                  onClick={() => onViewDetail(course)}
+                  className="cursor-pointer font-semibold py-2 px-1.5 rounded-xl border border-blue-200/80 bg-white hover:bg-blue-50/50 text-[#003893] transition-all text-xs text-center shadow-2xs truncate"
+                  title="View Course Details"
+                >
+                  View Detail
+                </button>
+              </div>
               <button
                 onClick={() => !appliedCourses.has(course.id) && onApplyNow(course)}
                 disabled={appliedCourses.has(course.id)}
-                className={`font-bold py-2.5 px-2 rounded-xl text-xs text-center transition-all shadow-sm cursor-pointer truncate ${
+                className={`w-full font-bold py-2.5 px-2 rounded-xl text-xs text-center transition-all shadow-sm cursor-pointer ${
                   appliedCourses.has(course.id)
                     ? 'bg-emerald-600 text-white cursor-not-allowed'
                     : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-md'
@@ -536,6 +673,7 @@ function CourseCard({
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   )
