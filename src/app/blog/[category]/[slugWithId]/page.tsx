@@ -1,5 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
-import { getBlogBySlugAndId, getAllBlogSlugs } from '@/lib/queries/blogs'
+import { unstable_cache } from 'next/cache'
+import { getBlogBySlugAndId } from '@/lib/queries/blogs'
+import { getContentVersion } from '@/lib/queries/contentVersion'
 import { resolveBlogMeta } from '@/lib/seo/metadata'
 import FaqSection from '@/components/seo/FaqSection'
 import { SITE_URL } from '@/lib/constants'
@@ -7,10 +9,23 @@ import BlogDetailClient from './BlogDetailClient'
 import BlogListClient from '../../BlogListClient'
 import { prisma } from '@/lib/db-fresh'
 import { normalizeFaqs } from '@/lib/seo/faq-schema'
+import { blogService } from '@/backend'
 
-export const revalidate = 21600
-export const dynamicParams = true
-export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+const cachedBlogDetail = unstable_cache(
+  async (_version: string, category: string, slugWithId: string) =>
+    blogService.getBlogDetail(category, slugWithId),
+  ['blog-detail-service-payload'],
+  { revalidate: 86400, tags: ['blog'] },
+)
+
+async function getCachedBlogDetail(category: string, slugWithId: string) {
+  if (process.env.NODE_ENV === 'development') {
+    return blogService.getBlogDetail(category, slugWithId)
+  }
+  return cachedBlogDetail(await getContentVersion('blog'), category, slugWithId)
+}
 
 type Props = { params: Promise<{ category: string; slugWithId: string }> }
 
@@ -21,14 +36,6 @@ function parseSlugWithId(slugWithId: string) {
   if (isNaN(id)) return null
   const slug = slugWithId.substring(0, lastDash)
   return { slug, id }
-}
-
-export async function generateStaticParams() {
-  const all = await getAllBlogSlugs()
-  return all.map((b: { category: string; slugWithId: string }) => ({
-    category: b.category,
-    slugWithId: b.slugWithId,
-  }))
 }
 
 export async function generateMetadata({ params }: Props) {
@@ -56,8 +63,6 @@ export async function generateMetadata({ params }: Props) {
     return {}
   }
 }
-
-import { blogService } from '@/backend'
 
 export default async function BlogDetailPage({ params }: Props) {
   const { category, slugWithId } = await params
@@ -102,7 +107,7 @@ export default async function BlogDetailPage({ params }: Props) {
 
   let result: Awaited<ReturnType<typeof blogService.getBlogDetail>> = null
   try {
-    result = await blogService.getBlogDetail(canonicalCategory, `${canonical.slug}-${canonical.id}`)
+    result = await getCachedBlogDetail(canonicalCategory, `${canonical.slug}-${canonical.id}`)
   } catch {
     result = null
   }

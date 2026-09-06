@@ -44,7 +44,7 @@ const DOMAIN_TABLES = {
   ],
   university: ['universities', 'university_programs', 'university_program_contents'],
   scholarship: ['scholarships'],
-  blog: ['blogs', 'blog_categories'],
+  blog: ['blogs', 'blog_categories', 'blog_contents', 'blog_faqs'],
   'page-contents': ['page_contents', 'page_banners'],
 } as const
 

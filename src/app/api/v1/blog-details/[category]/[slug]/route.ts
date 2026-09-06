@@ -2,6 +2,9 @@ import { NextRequest } from 'next/server';
 import { 
   withMiddleware, checkApiKey, apiSuccess, blogService, NotFoundError } from '@/backend';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * GET /api/v1/blog-details/[category]/[slug]
  */

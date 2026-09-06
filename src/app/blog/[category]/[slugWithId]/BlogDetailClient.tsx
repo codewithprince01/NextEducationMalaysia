@@ -10,30 +10,12 @@ const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = '/api/v1'
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
-// ── Session cache ────────────────────────────────────────────────────────────
-const CACHE_TTL = 5 * 60 * 1000
-const BLOG_DETAIL_CACHE_VERSION = 'v2'
-const blogDetailCache = {
-  get(key: string) {
-    try {
-      const raw = sessionStorage.getItem(`blog_detail_${BLOG_DETAIL_CACHE_VERSION}_${key}`)
-      if (!raw) return null
-      const { data, ts } = JSON.parse(raw)
-      if (Date.now() - ts > CACHE_TTL) { sessionStorage.removeItem(`blog_detail_${BLOG_DETAIL_CACHE_VERSION}_${key}`); return null }
-      return data
-    } catch { return null }
-  },
-  set(key: string, data: unknown) {
-    try { sessionStorage.setItem(`blog_detail_${BLOG_DETAIL_CACHE_VERSION}_${key}`, JSON.stringify({ data, ts: Date.now() })) } catch { /* ignore */ }
-  },
-}
-
-// ── HTML formatter matching the old project exactly ──────────────────────────
-function formatBlogHTML(html: string, sectionIndex: string | number | null = null): string {
+// ── HTML Formatter Helper ───────────────────────────────────────────────────
+function formatBlogHTML(html?: string | null, sectionIndex: number | string | null = null) {
   if (!html) return ''
   let formatted = html
-  let h2Counter = 0
-  let h3Counter = 0
+  let h2Counter = 1
+  let h3Counter = 1
 
   // Links styling
   formatted = formatted.replace(
@@ -145,9 +127,11 @@ function normalizeDetailPayload(payload: any) {
   }
 }
 
-export default function BlogDetailClient({ category, slugWithId, initialData }: BlogDetailClientProps & { initialData?: any }) {
-  const cacheKey = `${category}_${slugWithId}`
-
+export default function BlogDetailClient({
+  category,
+  slugWithId,
+  initialData,
+}: BlogDetailClientProps & { initialData?: any }) {
   const normalizedInitial = normalizeDetailPayload(initialData)
   const [blog, setBlog] = useState<any>(normalizedInitial.blog)
   const [relatedBlogs, setRelatedBlogs] = useState<any[]>(normalizedInitial.relatedBlogs)
@@ -167,19 +151,10 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
       return
     }
 
-    const cached = blogDetailCache.get(cacheKey)
-    if (cached) {
-      setBlog(cached.blog || { headline: '', created_at: new Date().toISOString(), author: { name: '' }, description: '', parent_contents: [], categories: [] })
-      setRelatedBlogs(cached.relatedBlogs || [])
-      setCategories(cached.categories || [])
-      setCourses(cached.courses || [])
-      setLoading(false)
-    }
-
     const controller = new AbortController()
     const fetchBlogData = async () => {
       try {
-        if (!cached) setLoading(true)
+        setLoading(true)
         setError(null)
         let res = await fetch(`${API_BASE}/blog-details/${category}/${slugWithId}`, {
           headers: { 'x-api-key': API_KEY },
@@ -217,8 +192,6 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
         setRelatedBlogs(relatedData)
         setCategories(catsData)
         setCourses(coursesData)
-
-        blogDetailCache.set(cacheKey, { blog: blogData, relatedBlogs: relatedData, categories: catsData, courses: coursesData })
       } catch (err) {
         if ((err as Error)?.name === 'AbortError') return
         setError('Failed to load blog details.')
@@ -228,7 +201,7 @@ export default function BlogDetailClient({ category, slugWithId, initialData }: 
     }
     fetchBlogData()
     return () => controller.abort()
-  }, [category, slugWithId, initialData, cacheKey])
+  }, [category, slugWithId, initialData])
 
   useEffect(() => {
     if (relatedBlogs.length === 0) return
