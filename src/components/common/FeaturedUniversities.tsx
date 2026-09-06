@@ -45,9 +45,13 @@ const FALLBACK_UNIVERSITIES: University[] = [
   { id: 5, name: 'INTI International University', uname: 'inti-international-university', city: 'Nilai', logo_path: '' },
 ]
 
+const featuredCache: Record<string, University[]> = {}
+
 export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: FeaturedUniversitiesProps) {
-  const [universities, setUniversities] = useState<University[]>([])
-  const [loading, setLoading] = useState(true)
+  const cacheKey = `${variant}_${excludeSlug || 'all'}`
+  const initialUnis = featuredCache[cacheKey] || FALLBACK_UNIVERSITIES.filter((u) => u.uname !== excludeSlug).slice(0, variant === 'sidebar' ? 5 : undefined)
+  const [universities, setUniversities] = useState<University[]>(initialUnis)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     const fetchUnis = async () => {
@@ -55,7 +59,7 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         const parseList = (json: any) => json?.data?.universities || json?.universities || []
 
         const query = excludeSlug ? `?exclude=${encodeURIComponent(excludeSlug)}` : ''
-        const localRes = await fetch(`/api/featured-universities${query}`, { cache: 'no-store' })
+        const localRes = await fetch(`/api/featured-universities${query}`, { next: { revalidate: 300 } })
         const localJson = await localRes.json().catch(() => ({}))
         let list = parseList(localJson)
 
@@ -70,18 +74,16 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         const filtered = (Array.isArray(list) ? list : []).filter((u: University) => u?.uname && u.uname !== excludeSlug)
         const fallbackFiltered = FALLBACK_UNIVERSITIES.filter((u) => u.uname !== excludeSlug)
         const safeList = filtered.length > 0 ? filtered : fallbackFiltered
-        setUniversities(variant === 'sidebar' ? safeList.slice(0, 5) : safeList)
+        const finalList = variant === 'sidebar' ? safeList.slice(0, 5) : safeList
+        featuredCache[cacheKey] = finalList
+        setUniversities(finalList)
       } catch (error) {
         console.error('Error fetching featured universities:', error)
-        const fallbackFiltered = FALLBACK_UNIVERSITIES.filter((u) => u.uname !== excludeSlug)
-        setUniversities(variant === 'sidebar' ? fallbackFiltered.slice(0, 5) : fallbackFiltered)
-      } finally {
-        setLoading(false)
       }
     }
 
     fetchUnis()
-  }, [variant, excludeSlug])
+  }, [variant, excludeSlug, cacheKey])
 
   if (loading) {
     if (variant === 'sidebar') {

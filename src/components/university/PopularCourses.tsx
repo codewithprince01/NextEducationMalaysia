@@ -7,13 +7,15 @@ import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
 
+const popularCoursesCache: Record<string, any> = {};
+
 interface PopularCoursesProps {
   slug: string;
 }
 
 const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
-  const [data, setData] = useState<any>({});
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>(() => popularCoursesCache[slug] || {});
+  const [loading, setLoading] = useState<boolean>(() => !popularCoursesCache[slug]);
 
   useEffect(() => {
     const hasCourseLists = (payload: any) => {
@@ -76,41 +78,55 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
 
     const fetchPopularCourses = async () => {
       try {
-        setLoading(true);
+        // If already in memory cache, load instantly
+        if (popularCoursesCache[slug] && hasCourseLists(popularCoursesCache[slug])) {
+          setData(popularCoursesCache[slug]);
+          setLoading(false);
+          return;
+        }
+
+        // Fast local Next.js API call (~50ms)
         try {
-          const localRes: any = await axios.get(`/api/university/${slug}/popular-courses`, {
-            params: { _ts: Date.now() },
-          });
-          const localPayload = extractData(localRes);
-          if (localPayload && Object.keys(localPayload).length > 0 && hasCourseLists(localPayload)) {
-            setData(localPayload);
-            return;
+          const localRes = await fetch(`/api/university/${slug}/popular-courses`, { next: { revalidate: 1800 } });
+          if (localRes.ok) {
+            const localJson = await localRes.json();
+            const localPayload = extractData(localJson);
+            if (localPayload && hasCourseLists(localPayload)) {
+              popularCoursesCache[slug] = localPayload;
+              setData(localPayload);
+              setLoading(false);
+              return;
+            }
           }
         } catch {
-          // Fallback to external API below
+          // Fallback below
         }
 
         const res: any = await axios.get(`${API_BASE}/university-overview/${slug}`);
         const payload = extractData(res);
         if (hasCourseLists(payload)) {
+          popularCoursesCache[slug] = payload;
           setData(payload);
           return;
         }
 
         const coursesRes: any = await axios.get(`/api/university/${slug}/courses`, {
-          params: { page: 1, limit: 50, _ts: Date.now() },
+          params: { page: 1, limit: 50 },
         });
         const coursesPayload = coursesRes?.data?.data || [];
         const fallback = buildFallbackFromUniversityCourses(coursesPayload);
-        setData({ ...payload, ...fallback });
+        const combined = { ...payload, ...fallback };
+        popularCoursesCache[slug] = combined;
+        setData(combined);
       } catch (err) {
         console.error("Failed to fetch popular courses:", err);
         try {
           const coursesRes: any = await axios.get(`/api/university/${slug}/courses`, {
-            params: { page: 1, limit: 50, _ts: Date.now() },
+            params: { page: 1, limit: 50 },
           });
           const coursesPayload = coursesRes?.data?.data || [];
           const fallback = buildFallbackFromUniversityCourses(coursesPayload);
+          popularCoursesCache[slug] = fallback;
           setData(fallback);
         } catch {
           setData({});
