@@ -45,7 +45,7 @@ export default function ModalWrapper({ open, onClose, children, wide = false }: 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <div className="p-6 pt-5">{children}</div>
+          <div className="p-5 sm:p-6 pt-3.5 sm:pt-4">{children}</div>
         </div>
       </div>
     </div>

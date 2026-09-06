@@ -121,8 +121,21 @@ export function BrochureForm({ universityId, universityName, universityLogo, isO
   return (
     <ModalWrapper open={isOpen} onClose={onClose} wide>
       <div className="w-full px-2">
-        <div className="mb-5 px-1 flex flex-row md:flex-col items-center justify-center gap-4 md:gap-3 text-left md:text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl shadow-sm border border-green-100 overflow-hidden p-2 shrink-0">
+        {/* ── TOP HEADLINE & SUBTITLE ── */}
+        <div className="text-center mb-2 px-2 sm:px-6">
+          <h2 className="text-[15px] sm:text-[18px] md:text-[20px] font-extrabold text-slate-900 tracking-tight leading-snug max-w-xl mx-auto">
+            Apply to up to <span className="text-[#003893]">5 Malaysian universities</span>
+            <br className="hidden sm:inline" /> through one application process.
+          </h2>
+          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 leading-relaxed max-w-lg mx-auto font-normal">
+            Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{' '}
+            <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
+          </p>
+        </div>
+
+        {/* ── COMPACT UNIVERSITY BADGE ── */}
+        <div className="mb-2.5 flex items-center justify-center gap-2.5 py-1.5 px-3 bg-green-50/70 border border-green-100/90 rounded-xl w-fit mx-auto">
+          <div className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg shadow-2xs border border-green-100 overflow-hidden p-0.5 shrink-0">
             {logoSrc ? (
               <img
                 src={logoSrc}
@@ -133,15 +146,15 @@ export function BrochureForm({ universityId, universityName, universityLogo, isO
                 }}
               />
             ) : (
-              <span className="text-3xl">BOOK</span>
+              <span className="text-[10px] font-bold text-green-600">BOOK</span>
             )}
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-900 leading-snug">
+          <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-none">
             Download <span className="text-green-700">{universityName}</span> Brochure
           </h3>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2.5">
           <input type="hidden" name="university" value={universityName || ''} />
           <CommonFields
             nationality={form.nationality}
@@ -167,7 +180,7 @@ export function BrochureForm({ universityId, universityName, universityLogo, isO
           <button
             type="submit"
             disabled={form.loading}
-            className={`w-full py-2.5 sm:py-3 px-4 rounded-lg text-white font-bold text-sm sm:text-base transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-blue-200 ${
+            className={`w-full py-2 sm:py-2.5 px-4 rounded-lg text-white font-bold text-xs sm:text-sm transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-blue-200 ${
               form.loading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-300'

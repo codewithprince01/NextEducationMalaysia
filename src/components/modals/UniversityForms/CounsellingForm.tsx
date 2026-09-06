@@ -113,8 +113,21 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
   return (
     <ModalWrapper open={isOpen} onClose={onClose} wide>
       <div className="w-full px-2">
-        <div className="mb-5 px-1 flex flex-row md:flex-col items-center justify-center gap-4 md:gap-3 text-left md:text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 bg-white rounded-xl shadow-sm border border-emerald-100 overflow-hidden p-2 shrink-0">
+        {/* ── TOP HEADLINE & SUBTITLE ── */}
+        <div className="text-center mb-2 px-2 sm:px-6">
+          <h2 className="text-[15px] sm:text-[18px] md:text-[20px] font-extrabold text-slate-900 tracking-tight leading-snug max-w-xl mx-auto">
+            Apply to up to <span className="text-[#003893]">5 Malaysian universities</span>
+            <br className="hidden sm:inline" /> through one application process.
+          </h2>
+          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 leading-relaxed max-w-lg mx-auto font-normal">
+            Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{' '}
+            <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
+          </p>
+        </div>
+
+        {/* ── COMPACT UNIVERSITY BADGE ── */}
+        <div className="mb-2.5 flex items-center justify-center gap-2.5 py-1.5 px-3 bg-emerald-50/70 border border-emerald-100/90 rounded-xl w-fit mx-auto">
+          <div className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg shadow-2xs border border-emerald-100 overflow-hidden p-0.5 shrink-0">
             {logoSrc ? (
               <img
                 src={logoSrc}
@@ -127,15 +140,15 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
                 }}
               />
             ) : (
-              <span className="text-3xl">BOOK</span>
+              <span className="text-[10px] font-bold text-emerald-600">BOOK</span>
             )}
           </div>
-          <h3 className="text-lg md:text-2xl font-bold text-gray-900 leading-snug">
-            Book Your <span className="text-emerald-700">Counselling Session</span>
+          <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-none">
+            Direct University <span className="text-emerald-700">Counselling Session</span> {universityName ? `· ${universityName}` : ''}
           </h3>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-2.5">
           <input type="hidden" name="university" value={universityName || ''} />
 
           <CommonFields
@@ -149,24 +162,38 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
             onCountryCodeChange={form.handleCountryCodeChange}
             accentColor="green"
           />
-          <CourseCategoryField courseCategories={courseCategories} accentColor="green" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+            <CourseCategoryField courseCategories={courseCategories} accentColor="green" />
+            <div className="space-y-0.5">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Time Zone</label>
+              <select
+                name="time_zone"
+                required
+                className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none"
+              >
+                <option value="">Select your timezone</option>
+                <option value="GMT+05:30">(GMT+05:30) India (IST)</option>
+                <option value="GMT+08:00">(GMT+08:00) Malaysia (MYT)</option>
+              </select>
+            </div>
+          </div>
 
-          <div className="grid md:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-1">Preferred Date</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+            <div className="space-y-0.5">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Preferred Date</label>
               <input
                 type="date"
                 name="preferred_date"
                 required
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-sm text-gray-800 font-medium"
+                className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium"
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-1">Preferred Time</label>
+            <div className="space-y-0.5">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Preferred Time</label>
               <select
                 name="preferred_time"
                 required
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-sm text-gray-800 font-medium appearance-none"
+                className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none"
               >
                 <option value="">Choose time slot</option>
                 <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
@@ -179,26 +206,13 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-1">Time Zone</label>
-            <select
-              name="time_zone"
-              required
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-sm text-gray-800 font-medium appearance-none"
-            >
-              <option value="">Select your timezone</option>
-              <option value="GMT+05:30">(GMT+05:30) India (IST)</option>
-              <option value="GMT+08:00">(GMT+08:00) Malaysia (MYT)</option>
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-1">Message (Optional)</label>
-            <textarea
+          <div className="space-y-0.5">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Message (Optional)</label>
+            <input
+              type="text"
               name="message"
-              rows={3}
-              placeholder="Write your query..."
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-sm text-gray-800 placeholder:text-gray-400 font-medium resize-none"
+              placeholder="Write your query (optional)..."
+              className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium"
             />
           </div>
 
@@ -215,7 +229,7 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
           <button
             type="submit"
             disabled={form.loading}
-            className={`w-full py-2.5 sm:py-3 px-4 rounded-lg text-white font-bold text-sm sm:text-base transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-green-200 ${
+            className={`w-full py-2 sm:py-2.5 px-4 rounded-lg text-white font-bold text-xs sm:text-sm transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-md shadow-green-200 ${
               form.loading
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 hover:shadow-green-300'

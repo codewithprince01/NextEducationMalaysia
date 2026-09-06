@@ -52,24 +52,24 @@ export function CommonFields({
   accentColor = 'blue',
 }: CommonFieldsProps) {
   const a = accent[accentColor]
-  const cls = `w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-sm text-gray-800 font-medium`
-  const label = 'text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-1'
+  const cls = `w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium`
+  const label = 'text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5'
 
   return (
     <>
-      <div className="grid md:grid-cols-2 gap-3">
-        <div className="space-y-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+        <div className="space-y-0.5">
           <label className={label}>Full Name</label>
           <input type="text" name="firstName" required placeholder="Enter your full name" className={cls} />
         </div>
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <label className={label}>Email Address</label>
           <input type="email" name="email" required placeholder="Enter your email" className={cls} />
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-3">
-        <div className="space-y-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+        <div className="space-y-0.5">
           <label className={label}>Nationality</label>
           <select name="nationality" required value={nationality} onChange={onNationalityChange} className={`${cls} appearance-none`}>
             <option value="">Select Nationality</option>
@@ -78,7 +78,7 @@ export function CommonFields({
             ))}
           </select>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <label className={label}>Interested Course</label>
           <select name="course" required className={`${cls} appearance-none`}>
             <option value="">Select a course</option>
@@ -89,33 +89,35 @@ export function CommonFields({
         </div>
       </div>
 
-      <div className="space-y-1">
-        <label className={label}>Phone Number</label>
-        <div className="flex gap-2">
-          <select
-            name="countryCode"
-            required
-            value={countryCode}
-            onChange={onCountryCodeChange}
-            className={`w-28 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-sm text-gray-800 font-medium appearance-none`}
-          >
-            <option value="">Code</option>
-            {(phonecode || []).map((c: any, i: number) => (
-              <option key={i} value={String(c.phonecode || c.phone_code || '')}>+{String(c.phonecode || c.phone_code || '')}</option>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+        <div className="space-y-0.5">
+          <label className={label}>Phone Number</label>
+          <div className="flex gap-2">
+            <select
+              name="countryCode"
+              required
+              value={countryCode}
+              onChange={onCountryCodeChange}
+              className={`w-24 sm:w-28 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none`}
+            >
+              <option value="">Code</option>
+              {(phonecode || []).map((c: any, i: number) => (
+                <option key={i} value={String(c.phonecode || c.phone_code || '')}>+{String(c.phonecode || c.phone_code || '')}</option>
+              ))}
+            </select>
+            <input name="phone" required type="tel" placeholder="Enter your mobile number" className={`flex-1 px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium`} />
+          </div>
+        </div>
+
+        <div className="space-y-0.5">
+          <label className={label}>Highest Qualification</label>
+          <select name="level" required className={`${cls} appearance-none`}>
+            <option value="">Select Qualification</option>
+            {(levels || []).map((l: any, i: number) => (
+              <option key={i} value={l.level || l.name}>{l.level || l.name}</option>
             ))}
           </select>
-          <input name="phone" required type="tel" placeholder="Enter your mobile number" className={`flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-sm text-gray-800 placeholder:text-gray-400 font-medium`} />
         </div>
-      </div>
-
-      <div className="space-y-1">
-        <label className={label}>Highest Qualification</label>
-        <select name="level" required className={`${cls} appearance-none`}>
-          <option value="">Select Qualification</option>
-          {(levels || []).map((l: any, i: number) => (
-            <option key={i} value={l.level || l.name}>{l.level || l.name}</option>
-          ))}
-        </select>
       </div>
     </>
   )
@@ -168,11 +170,11 @@ export function CaptchaWidget({
 
   return (
     <>
-      <div className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${a.captchaBox} shadow-sm`}>
-        <p className={`text-sm font-bold ${a.captchaText} whitespace-nowrap`}>
+      <div className={`flex items-center justify-between gap-3 p-2 sm:p-2.5 rounded-xl border ${a.captchaBox} shadow-xs`}>
+        <p className={`text-xs sm:text-sm font-bold ${a.captchaText} whitespace-nowrap`}>
           What is {captchaQuestion.num1} + {captchaQuestion.num2}?
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <input
             type="text"
             inputMode="numeric"
@@ -185,10 +187,10 @@ export function CaptchaWidget({
             }}
             required
             placeholder="?"
-            className={`w-24 md:w-32 px-3 py-2 border rounded-lg focus:ring-2 outline-none font-bold text-center text-sm md:text-base shadow-sm transition-all ${captchaError ? 'border-red-500 bg-red-50' : `${a.inputBorder} bg-white`}`}
+            className={`w-20 sm:w-28 px-2.5 py-1.5 sm:py-2 border rounded-lg focus:ring-2 outline-none font-bold text-center text-xs sm:text-sm shadow-xs transition-all ${captchaError ? 'border-red-500 bg-red-50' : `${a.inputBorder} bg-white`}`}
           />
-          <button type="button" onClick={generateCaptcha} className={`p-2 transition-colors bg-white rounded-lg border shadow-sm hover:shadow-md active:scale-95 ${a.btnText}`} title="Refresh Captcha">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button type="button" onClick={generateCaptcha} className={`p-1.5 sm:p-2 transition-colors bg-white rounded-lg border shadow-xs hover:shadow-md active:scale-95 ${a.btnText}`} title="Refresh Captcha">
+            <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>

@@ -148,8 +148,21 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
   return (
     <ModalWrapper open={isOpen} onClose={onClose} wide>
       <div className="w-full px-2">
-        <div className="mb-4 flex flex-col items-center gap-3 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden p-2 shrink-0">
+        {/* ── TOP HEADLINE & SUBTITLE ── */}
+        <div className="text-center mb-2 px-2 sm:px-6">
+          <h2 className="text-[15px] sm:text-[18px] md:text-[20px] font-extrabold text-slate-900 tracking-tight leading-snug max-w-xl mx-auto">
+            Apply to up to <span className="text-[#003893]">5 Malaysian universities</span>
+            <br className="hidden sm:inline" /> through one application process.
+          </h2>
+          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 leading-relaxed max-w-lg mx-auto font-normal">
+            Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{' '}
+            <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
+          </p>
+        </div>
+
+        {/* ── COMPACT UNIVERSITY BADGE ── */}
+        <div className="mb-2.5 flex items-center justify-center gap-2.5 py-1.5 px-3 bg-amber-50/70 border border-amber-200/80 rounded-xl w-fit mx-auto">
+          <div className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg shadow-2xs border border-amber-100 overflow-hidden p-0.5 shrink-0">
             {logoSrc ? (
               <img
                 src={logoSrc}
@@ -162,18 +175,18 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
                 }}
               />
             ) : (
-              <span className="text-xl">REV</span>
+              <span className="text-[10px] font-bold text-amber-600">REV</span>
             )}
           </div>
-          <h3 className="text-xl font-bold text-gray-900">
-            {universityName ? `${universityName} - ` : ''}Write a Review
+          <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-none">
+            Write a Review {universityName ? `· ${universityName}` : ''}
           </h3>
         </div>
 
-        <div className="mb-4 bg-gray-100 p-4 rounded-md border">
-          <h4 className="text-lg font-bold mb-1 text-blue-500">Your Review of Your Institution Experience Can Help Others</h4>
-          <p className="text-sm text-gray-700">
-            Thank you for writing a review of your experience at <strong>{universityName || 'this university'}</strong>.
+        <div className="mb-3 bg-blue-50/50 p-2.5 sm:p-3 rounded-xl border border-blue-100 text-center">
+          <h4 className="text-xs sm:text-sm font-bold text-[#003893]">Your Review of Your Experience Can Help Others</h4>
+          <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
+            Thank you for writing a review for <strong>{universityName || 'this university'}</strong>.
           </p>
         </div>
 
