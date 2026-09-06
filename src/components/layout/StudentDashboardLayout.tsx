@@ -12,17 +12,31 @@ export default function StudentDashboardLayout({ children }: { children: React.R
   const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [topbarAvatar, setTopbarAvatar] = useState<string | null>(null);
 
-  // Read saved collapsed state from localStorage after mount
+  // Read saved collapsed state and profile avatar from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('student_sidebar_collapsed');
       if (saved !== null) {
         setIsCollapsed(saved === 'true');
       }
+      const savedAvatar = localStorage.getItem('student_profile_avatar');
+      if (savedAvatar) {
+        setTopbarAvatar(savedAvatar);
+      }
     } catch {
       // ignore storage access errors
     }
+
+    const handleAvatarUpdate = () => {
+      try {
+        const savedAvatar = localStorage.getItem('student_profile_avatar');
+        if (savedAvatar) setTopbarAvatar(savedAvatar);
+      } catch {}
+    };
+    window.addEventListener('student_avatar_updated', handleAvatarUpdate);
+    return () => window.removeEventListener('student_avatar_updated', handleAvatarUpdate);
   }, []);
 
   const handleToggleCollapse = () => {
@@ -118,8 +132,12 @@ export default function StudentDashboardLayout({ children }: { children: React.R
             </Link>
 
             <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200/80">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                {initials}
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                {topbarAvatar ? (
+                  <img src={topbarAvatar} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[130px]">{displayName}</p>

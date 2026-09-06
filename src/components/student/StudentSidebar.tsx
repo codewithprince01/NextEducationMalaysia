@@ -15,6 +15,7 @@ import {
   ChevronRight,
   X,
   Sparkles,
+  SquarePen,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -97,6 +98,57 @@ export default function StudentSidebar({
     .join("")
     .toUpperCase() || "ST";
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  // Load avatar from localStorage or studentData
+  useEffect(() => {
+    try {
+      const savedAvatar = localStorage.getItem("student_profile_avatar");
+      if (savedAvatar) {
+        setProfileImage(savedAvatar);
+      } else if (studentData?.profile_image || studentData?.photo || studentData?.avatar) {
+        setProfileImage(studentData.profile_image || studentData.photo || studentData.avatar);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [studentData]);
+
+  // Listen to cross-component avatar updates
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      try {
+        const saved = localStorage.getItem("student_profile_avatar");
+        if (saved) setProfileImage(saved);
+      } catch {}
+    };
+    window.addEventListener("student_avatar_updated", handleAvatarUpdate);
+    return () => window.removeEventListener("student_avatar_updated", handleAvatarUpdate);
+  }, []);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image size should be less than 5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        setProfileImage(result);
+        try {
+          localStorage.setItem("student_profile_avatar", result);
+          window.dispatchEvent(new Event("student_avatar_updated"));
+        } catch (err) {
+          console.error("Failed to save avatar to localStorage:", err);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const navLinks = [
     { href: "/student/overview", icon: LayoutDashboard, label: "Overview" },
     { href: "/student/profile", icon: User, label: "My Profile" },
@@ -108,60 +160,123 @@ export default function StudentSidebar({
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between select-none">
       <div>
-        {/* Decorative top accent banner */}
-        <div className="h-16 bg-linear-to-r from-blue-600 via-blue-500 to-indigo-600 relative shrink-0">
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-xs" />
-          {/* Collapse toggle button on top right of banner */}
-          {!isCollapsed && onToggleCollapse && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-black/20 hover:bg-black/35 text-white transition absolute top-2 right-2 cursor-pointer z-20"
-              title="Collapse sidebar"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-          )}
-          {onCloseMobile && (
-            <button
-              type="button"
-              onClick={onCloseMobile}
-              className="lg:hidden p-1 rounded-md bg-black/20 text-white hover:bg-black/35 transition absolute top-2 right-2 cursor-pointer z-20"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        {/* Hidden File Input for Avatar Upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoUpload}
+          className="hidden"
+        />
 
-        {/* Profile Header (Original Design) */}
+        {/* Profile Header (Matching exact screenshot design) */}
         {!isCollapsed ? (
-          <div className="px-5 pb-4 pt-0 text-center relative border-b border-slate-100">
-            {/* Avatar */}
-            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-600 to-indigo-700 text-white font-black text-xl flex items-center justify-center mx-auto -mt-8 shadow-md shadow-blue-500/20 ring-4 ring-white relative z-10">
-              {initials}
+          <div className="bg-blue-600 px-5 pt-8 pb-6 text-center relative shrink-0">
+            {/* Collapse toggle button on top right of banner */}
+            {onToggleCollapse && (
+              <button
+                type="button"
+                onClick={onToggleCollapse}
+                className="hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-black/15 hover:bg-black/30 text-white transition absolute top-2.5 right-2.5 cursor-pointer z-20"
+                title="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
+            {onCloseMobile && (
+              <button
+                type="button"
+                onClick={onCloseMobile}
+                className="lg:hidden p-1 rounded-md bg-black/15 text-white hover:bg-black/30 transition absolute top-2.5 right-2.5 cursor-pointer z-20"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Circular Profile Image with Upload Badge */}
+            <div className="relative w-24 h-24 mx-auto group">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-24 h-24 rounded-full bg-white shadow-lg overflow-hidden flex items-center justify-center cursor-pointer ring-4 ring-white/20 transition hover:ring-white/40"
+                title="Click to upload profile photo"
+              >
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt={displayName}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <div className="w-full h-full p-2.5 flex items-center justify-center">
+                    <svg
+                      viewBox="0 0 100 100"
+                      className="w-full h-full text-blue-600 fill-current"
+                      preserveAspectRatio="xMidYMid meet"
+                    >
+                      <circle cx="50" cy="36" r="18" />
+                      <path d="M 22 86 C 22 66, 34 55, 50 55 C 66 55, 78 66, 78 86 Z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Pencil Badge Button */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white text-blue-600 shadow-md border border-slate-200/80 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition transform hover:scale-105 active:scale-95 z-10"
+                title="Upload profile photo"
+                aria-label="Upload profile photo"
+              >
+                <SquarePen className="w-4 h-4 text-blue-600" />
+              </button>
             </div>
 
             {/* Student Name & Email */}
-            <h2 className="mt-3 font-bold text-base text-slate-900 tracking-tight truncate">
+            <h2 className="mt-3.5 font-bold text-xl text-white tracking-tight leading-snug truncate px-1">
               {displayName}
             </h2>
-            <p className="text-xs text-slate-500 truncate mt-0.5">
+            <p className="text-xs text-blue-100 truncate mt-0.5 px-1 font-normal opacity-90">
               {displayEmail}
             </p>
-
-            {/* Verified Badge */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 mt-2.5">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              <span>Verified Student</span>
-            </div>
           </div>
         ) : (
-          <div className="py-3 px-2 text-center border-b border-slate-100">
-            <div
-              className="w-10 h-10 rounded-xl bg-linear-to-br from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center mx-auto -mt-7 shadow-xs ring-2 ring-white relative z-10 cursor-pointer"
-              title={`${displayName} (${displayEmail})`}
-            >
-              {initials}
+          <div className="bg-blue-600 py-4 px-2 text-center relative shrink-0">
+            <div className="relative w-11 h-11 mx-auto group">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-11 h-11 rounded-full bg-white shadow-md overflow-hidden flex items-center justify-center cursor-pointer ring-2 ring-white/30"
+                title={`${displayName} (${displayEmail}) - Click to upload photo`}
+              >
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt={displayName}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <div className="w-full h-full p-1 flex items-center justify-center">
+                    <svg
+                      viewBox="0 0 100 100"
+                      className="w-full h-full text-blue-600 fill-current"
+                      preserveAspectRatio="xMidYMid meet"
+                    >
+                      <circle cx="50" cy="36" r="18" />
+                      <path d="M 22 86 C 22 66, 34 55, 50 55 C 66 55, 78 66, 78 86 Z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
+              {/* Tiny pencil badge */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-blue-600 shadow-xs border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-blue-50"
+                title="Upload photo"
+              >
+                <SquarePen className="w-2.5 h-2.5 text-blue-600" />
+              </button>
             </div>
           </div>
         )}
