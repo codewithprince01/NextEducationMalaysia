@@ -7,6 +7,7 @@ import EducationForm from "@/components/student/EducationForm";
 import TestScoresForm from "@/components/student/TestScoresForm";
 import BackgroundForm from "@/components/student/BackgroundForm";
 import DocumentUploadForm from "@/components/student/DocumentUploadForm";
+import { User, GraduationCap, Award, ShieldCheck, FileText } from "lucide-react";
 import {
   validateDateOfBirth,
   validateEmail,
@@ -327,62 +328,130 @@ export default function StudentProfileClient() {
 
   if (loading) {
     return (
-      <p className="text-center">
-        <span className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </p>
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="w-12 h-12 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin mb-4" />
+        <p className="text-sm font-medium text-slate-600">Loading student profile...</p>
+      </div>
     );
   }
 
   if (!student) {
-    return <p className="text-center mt-6 text-red-500">No profile data</p>;
+    return (
+      <div className="text-center py-16 bg-white rounded-2xl border border-slate-200/80 p-8 shadow-xs">
+        <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+          <User className="w-6 h-6" />
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 mb-1">Profile Not Found</h3>
+        <p className="text-sm text-slate-500 mb-4">We couldn't retrieve your student profile information.</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-xs"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
+  const tabIcons: Record<string, React.ReactNode> = {
+    general: <User className="w-4 h-4" />,
+    education: <GraduationCap className="w-4 h-4" />,
+    testScores: <Award className="w-4 h-4" />,
+    "Background Information": <ShieldCheck className="w-4 h-4" />,
+    "Upload Documents": <FileText className="w-4 h-4" />,
+  };
+
   return (
-    <div className="relative w-full bg-white rounded-2xl">
-      <div className="sticky top-[76px] z-20 bg-white border-b md:border-none shadow-sm md:shadow-none">
-        <div className="flex overflow-x-auto md:flex-wrap gap-3 py-3 px-4 text-sm font-semibold max-w-5xl mx-auto scrollbar-hide">
-          {TABS.map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => handleTabClick(id, (refs as any)[id])}
-              className={`px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-300 whitespace-nowrap ${
-                activeTab === id
-                  ? "bg-blue-100 text-blue-700 shadow-md"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-blue-600"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+    <div className="relative w-full space-y-6">
+      {/* Top Header Banner Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-full bg-linear-to-l from-blue-50/60 to-transparent pointer-events-none" />
+        <div className="relative z-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200/70 text-blue-700 text-xs font-semibold mb-2.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+              Student Portal
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              My Profile & Academic Records
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Manage personal details, academic history, test scores, and visa documents in one place.
+            </p>
+          </div>
+          {student?.name && (
+            <div className="shrink-0 flex items-center gap-3 bg-slate-50/80 border border-slate-200/70 px-4 py-2.5 rounded-xl">
+              <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                {student.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 leading-tight">{student.name}</p>
+                <p className="text-[11px] text-slate-500 truncate max-w-[160px]">{student.email}</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div ref={refs.general} className="mb-10 pt-4">
-        <PersonalInfoForm
-          formData={formData}
-          errors={errors}
-          countriesData={countriesData}
-          phoneCode={phoneCode}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          onNationalityChange={handleNationalityChange}
-          onCountryCodeChange={handleCountryCodeChange}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+      {/* Sticky Quick-Nav Tabs */}
+      <div className="sticky top-16 md:top-20 z-20 -mx-1 px-1 sm:mx-0 sm:px-0">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-1.5 shadow-sm">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+            {TABS.map(({ id, label }) => {
+              const isActive = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  onClick={() => handleTabClick(id, (refs as any)[id])}
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap ${
+                    isActive
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
+                  }`}
+                >
+                  <span className={isActive ? "text-white" : "text-slate-400"}>
+                    {tabIcons[id]}
+                  </span>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      <div ref={refs.education}>
-        <EducationForm />
-      </div>
-      <div ref={refs.testScores} className="mt-10">
-        <TestScoresForm />
-      </div>
-      <div ref={refs["Background Information"]} className="mt-10">
-        <BackgroundForm />
-      </div>
-      <div ref={refs["Upload Documents"]} className="mt-10">
-        <DocumentUploadForm />
+      {/* Sections */}
+      <div className="space-y-8">
+        <div ref={refs.general} className="scroll-mt-36">
+          <PersonalInfoForm
+            formData={formData}
+            errors={errors}
+            countriesData={countriesData}
+            phoneCode={phoneCode}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            onNationalityChange={handleNationalityChange}
+            onCountryCodeChange={handleCountryCodeChange}
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
+        </div>
+
+        <div ref={refs.education} className="scroll-mt-36">
+          <EducationForm />
+        </div>
+
+        <div ref={refs.testScores} className="scroll-mt-36">
+          <TestScoresForm />
+        </div>
+
+        <div ref={refs["Background Information"]} className="scroll-mt-36">
+          <BackgroundForm />
+        </div>
+
+        <div ref={refs["Upload Documents"]} className="scroll-mt-36">
+          <DocumentUploadForm />
+        </div>
       </div>
     </div>
   );

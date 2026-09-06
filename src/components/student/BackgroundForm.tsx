@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { validateSelect } from "@/utils/validation";
+import { ShieldCheck, Info, Check } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -60,6 +61,13 @@ export default function BackgroundForm() {
     }
   };
 
+  const handleCancel = () => {
+    setRefusedVisa("");
+    setValidPermit("");
+    setVisaNote("");
+    setErrors({});
+  };
+
   useEffect(() => {
     const fetchBackgroundInfo = async () => {
       try {
@@ -86,82 +94,103 @@ export default function BackgroundForm() {
   }, []);
 
   const inputClass = (key: string) =>
-    `w-full border rounded-xl p-3 focus:ring-2 outline-none transition ${
+    `w-full rounded-xl border px-3.5 py-2.5 text-sm transition-all outline-none ${
       errors[key]
-        ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-        : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+        ? "border-rose-300 bg-rose-50/40 text-rose-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15"
+        : "border-slate-200 bg-slate-50/50 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15"
     }`;
 
   return (
-    <div ref={backgroundRef} className="mb-10">
-      <div className="w-full max-w-4xl mx-auto bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-4 md:p-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold text-blue-700">Background Information</h2>
+    <div ref={backgroundRef} className="w-full">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
+        <div className="flex items-center gap-3 pb-5 mb-6 border-b border-slate-100">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">Background Information</h2>
+            <p className="text-xs text-slate-500">Provide immigration history and current study permit status</p>
+          </div>
         </div>
 
-        <div className="mb-6 space-y-1">
-          <label className="block font-medium text-gray-700 mb-2">
-            Have you been refused a visa from Canada, USA, UK, Australia more...?
-            <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={refusedVisa}
-            onChange={(e) => {
-              setRefusedVisa(e.target.value);
-              setErrors((prev) => ({ ...prev, refusedVisa: "" }));
-            }}
-            className={inputClass("refusedVisa")}
+        <div className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Have you been refused a visa from Canada, USA, UK, Australia or any other country?
+              <span className="text-rose-500 ml-1">*</span>
+            </label>
+            <select
+              value={refusedVisa}
+              onChange={(e) => {
+                setRefusedVisa(e.target.value);
+                setErrors((prev) => ({ ...prev, refusedVisa: "" }));
+              }}
+              className={inputClass("refusedVisa")}
+            >
+              <option value="">Select an option</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+            {errors.refusedVisa && <p className="text-rose-600 text-xs font-medium">{errors.refusedVisa}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+              <span>Do you have a valid Study Permit / Visa?</span>
+              <span className="inline-flex items-center text-slate-400" title="Valid student visa or permit">
+                <Info className="w-3.5 h-3.5" />
+              </span>
+            </label>
+            <select
+              value={validPermit}
+              onChange={(e) => {
+                setValidPermit(e.target.value);
+                setErrors((prev) => ({ ...prev, validPermit: "" }));
+              }}
+              className={inputClass("validPermit")}
+            >
+              <option value="">Select an option</option>
+              <option value="YES">Yes</option>
+              <option value="NO">No</option>
+            </select>
+            {errors.validPermit && <p className="text-rose-600 text-xs font-medium">{errors.validPermit}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              If you answered "Yes" to any of the questions above, please provide more details below:
+              {(refusedVisa === "YES" || validPermit === "YES") && <span className="text-rose-500 ml-1">*</span>}
+            </label>
+            <textarea
+              rows={4}
+              value={visaNote}
+              onChange={(e) => {
+                setVisaNote(e.target.value);
+                setErrors((prev) => ({ ...prev, visaNote: "" }));
+              }}
+              placeholder="Provide visa application reference numbers, refusal dates, or details of your current study permit..."
+              className={inputClass("visaNote")}
+            />
+            {errors.visaNote && <p className="text-rose-600 text-xs font-medium">{errors.visaNote}</p>}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm transition"
           >
-            <option value="">Select</option>
-            <option value="YES">Yes</option>
-            <option value="NO">No</option>
-          </select>
-          {errors.refusedVisa && <p className="text-red-600 text-xs ml-1 font-medium">{errors.refusedVisa}</p>}
-        </div>
-
-        <div className="mb-6 space-y-1">
-          <label className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-            Do you have a valid Study Permit / Visa?
-            <span className="text-blue-500 cursor-pointer text-lg">i</span>
-          </label>
-          <select
-            value={validPermit}
-            onChange={(e) => {
-              setValidPermit(e.target.value);
-              setErrors((prev) => ({ ...prev, validPermit: "" }));
-            }}
-            className={inputClass("validPermit")}
-          >
-            <option value="">Select</option>
-            <option value="YES">Yes</option>
-            <option value="NO">No</option>
-          </select>
-          {errors.validPermit && <p className="text-red-600 text-xs ml-1 font-medium">{errors.validPermit}</p>}
-        </div>
-
-        <div className="mb-6 space-y-1">
-          <label className="block font-medium text-gray-700 mb-2">
-            If you answered "Yes" to any of the questions above, please provide more details below:
-            {(refusedVisa === "YES" || validPermit === "YES") && <span className="text-red-500">*</span>}
-          </label>
-          <textarea
-            rows={4}
-            value={visaNote}
-            onChange={(e) => {
-              setVisaNote(e.target.value);
-              setErrors((prev) => ({ ...prev, visaNote: "" }));
-            }}
-            placeholder="Enter details here..."
-            className={inputClass("visaNote")}
-          />
-          {errors.visaNote && <p className="text-red-600 text-xs ml-1 font-medium">{errors.visaNote}</p>}
-        </div>
-
-        <div className="flex justify-end gap-4">
-          <button onClick={handleSave} className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md transition">
-            Save
+            Reset
           </button>
-          <button className="px-6 py-2 rounded-xl bg-gray-500 hover:bg-gray-700 text-white shadow-md transition">Cancel</button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow transition active:scale-95 flex items-center gap-2"
+          >
+            <Check className="w-4 h-4" />
+            Save Background Info
+          </button>
         </div>
       </div>
     </div>

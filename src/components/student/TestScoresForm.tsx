@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { validateSelect } from "@/utils/validation";
+import { Award, Check } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -43,9 +44,9 @@ export default function TestScoresForm() {
 
     const max = scoreMaxByExam[examType]?.[field];
     if (typeof max === "number" && num > max) {
-      return `The ${field} score field must not be greater than ${max}.`;
+      return `The ${field} score must not be greater than ${max}.`;
     }
-    if (num < 0) return `The ${field} score field must be at least 0.`;
+    if (num < 0) return `The ${field} score must be at least 0.`;
 
     return "";
   };
@@ -79,7 +80,7 @@ export default function TestScoresForm() {
 
   const handleSave = async () => {
     if (!validateForm()) {
-      toast.error("Please select an exam type");
+      toast.error("Please fill all required test score fields");
       return;
     }
 
@@ -135,6 +136,17 @@ export default function TestScoresForm() {
     }
   };
 
+  const handleCancel = () => {
+    setExamType("");
+    setExamDate("");
+    setListening("");
+    setReading("");
+    setWriting("");
+    setSpeaking("");
+    setOverall("");
+    setErrors({});
+  };
+
   useEffect(() => {
     const fetchTestScores = async () => {
       try {
@@ -165,22 +177,30 @@ export default function TestScoresForm() {
   }, []);
 
   const inputClass = (key: string) =>
-    `w-full border rounded-xl p-3 focus:ring-2 outline-none transition ${
+    `w-full rounded-xl border px-3.5 py-2.5 text-sm transition-all outline-none ${
       errors[key]
-        ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-        : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+        ? "border-rose-300 bg-rose-50/40 text-rose-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15"
+        : "border-slate-200 bg-slate-50/50 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15"
     }`;
 
   return (
-    <div ref={testScoresRef} className="mb-10">
-      <div className="w-full max-w-5xl mx-auto bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-4 md:p-8">
-        <div className="mb-6">
-          <h3 className="text-2xl font-semibold text-blue-700">🎯 Test Scores</h3>
-          <p className="text-gray-500 text-sm mt-1">Enter your latest English exam scores</p>
+    <div ref={testScoresRef} className="w-full">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
+        <div className="flex items-center gap-3 pb-5 mb-6 border-b border-slate-100">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Award className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">English Language Test Scores</h3>
+            <p className="text-xs text-slate-500">Add your official standardized English proficiency exam results</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="space-y-1 col-span-4 md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              English Exam Type <span className="text-rose-500">*</span>
+            </label>
             <select
               value={examType}
               onChange={(e) => {
@@ -190,18 +210,20 @@ export default function TestScoresForm() {
               className={inputClass("examType")}
             >
               <option value="">Select English Exam Type</option>
-              <option>I don't have this</option>
-              <option>I dont have this</option>
-              <option>I will provide this later</option>
-              <option>IELTS</option>
-              <option>TOEFL</option>
-              <option>PTE</option>
-              <option>Duolingo English Test</option>
+              <option value="IELTS">IELTS</option>
+              <option value="TOEFL">TOEFL</option>
+              <option value="PTE">PTE (Pearson)</option>
+              <option value="Duolingo English Test">Duolingo English Test</option>
+              <option value="I don't have this">I don't have this</option>
+              <option value="I will provide this later">I will provide this later</option>
             </select>
-            {errors.examType && <p className="text-red-600 text-xs ml-1 font-medium">{errors.examType}</p>}
+            {errors.examType && <p className="text-rose-600 text-xs font-medium">{errors.examType}</p>}
           </div>
 
-          <div className="col-span-4 md:col-span-2 space-y-1">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Exam Date {hasExam && <span className="text-rose-500">*</span>}
+            </label>
             <input
               type="date"
               value={examDate}
@@ -211,37 +233,104 @@ export default function TestScoresForm() {
               }}
               className={inputClass("examDate")}
             />
-            {errors.examDate && <p className="text-red-600 text-xs ml-1 font-medium">{errors.examDate}</p>}
-          </div>
-
-          <div className="col-span-4 md:col-span-1 space-y-1">
-            <input type="text" value={listening} onChange={(e) => setListening(e.target.value)} placeholder="Listening Score" className={inputClass("listening")} />
-            {errors.listening && <p className="text-red-600 text-xs ml-1 font-medium">{errors.listening}</p>}
-          </div>
-          <div className="col-span-4 md:col-span-1 space-y-1">
-            <input type="text" value={reading} onChange={(e) => setReading(e.target.value)} placeholder="Reading Score" className={inputClass("reading")} />
-            {errors.reading && <p className="text-red-600 text-xs ml-1 font-medium">{errors.reading}</p>}
-          </div>
-          <div className="col-span-4 md:col-span-1 space-y-1">
-            <input type="text" value={writing} onChange={(e) => setWriting(e.target.value)} placeholder="Writing Score" className={inputClass("writing")} />
-            {errors.writing && <p className="text-red-600 text-xs ml-1 font-medium">{errors.writing}</p>}
-          </div>
-          <div className="col-span-4 md:col-span-1 space-y-1">
-            <input type="text" value={speaking} onChange={(e) => setSpeaking(e.target.value)} placeholder="Speaking Score" className={inputClass("speaking")} />
-            {errors.speaking && <p className="text-red-600 text-xs ml-1 font-medium">{errors.speaking}</p>}
-          </div>
-          <div className="col-span-4 md:col-span-1 space-y-1">
-            <input type="text" value={overall} onChange={(e) => setOverall(e.target.value)} placeholder="Overall Score" className={inputClass("overall")} />
-            {errors.overall && <p className="text-red-600 text-xs ml-1 font-medium">{errors.overall}</p>}
+            {errors.examDate && <p className="text-rose-600 text-xs font-medium">{errors.examDate}</p>}
           </div>
         </div>
 
-        <div className="flex justify-end gap-4 mt-8">
-          <button onClick={handleSave} className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md transition">
-            Save
+        {hasExam && (
+          <div className="pt-5 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4">
+              Individual Band / Module Scores
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Listening {scoreMaxByExam[examType]?.listening ? `(Max ${scoreMaxByExam[examType]?.listening})` : ""}
+                </label>
+                <input
+                  type="text"
+                  value={listening}
+                  onChange={(e) => setListening(e.target.value)}
+                  placeholder="0.0"
+                  className={inputClass("listening")}
+                />
+                {errors.listening && <p className="text-rose-600 text-[11px] font-medium">{errors.listening}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Reading {scoreMaxByExam[examType]?.reading ? `(Max ${scoreMaxByExam[examType]?.reading})` : ""}
+                </label>
+                <input
+                  type="text"
+                  value={reading}
+                  onChange={(e) => setReading(e.target.value)}
+                  placeholder="0.0"
+                  className={inputClass("reading")}
+                />
+                {errors.reading && <p className="text-rose-600 text-[11px] font-medium">{errors.reading}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Writing {scoreMaxByExam[examType]?.writing ? `(Max ${scoreMaxByExam[examType]?.writing})` : ""}
+                </label>
+                <input
+                  type="text"
+                  value={writing}
+                  onChange={(e) => setWriting(e.target.value)}
+                  placeholder="0.0"
+                  className={inputClass("writing")}
+                />
+                {errors.writing && <p className="text-rose-600 text-[11px] font-medium">{errors.writing}</p>}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Speaking {scoreMaxByExam[examType]?.speaking ? `(Max ${scoreMaxByExam[examType]?.speaking})` : ""}
+                </label>
+                <input
+                  type="text"
+                  value={speaking}
+                  onChange={(e) => setSpeaking(e.target.value)}
+                  placeholder="0.0"
+                  className={inputClass("speaking")}
+                />
+                {errors.speaking && <p className="text-rose-600 text-[11px] font-medium">{errors.speaking}</p>}
+              </div>
+
+              <div className="space-y-1.5 col-span-2 sm:col-span-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Overall {scoreMaxByExam[examType]?.overall ? `(Max ${scoreMaxByExam[examType]?.overall})` : ""}
+                </label>
+                <input
+                  type="text"
+                  value={overall}
+                  onChange={(e) => setOverall(e.target.value)}
+                  placeholder="0.0"
+                  className={inputClass("overall")}
+                />
+                {errors.overall && <p className="text-rose-600 text-[11px] font-medium">{errors.overall}</p>}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-wrap justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm transition"
+          >
+            Reset
           </button>
-          <button className="px-6 py-2 rounded-xl bg-gray-500 hover:bg-gray-700 text-white shadow-md transition">
-            Cancel
+          <button
+            type="button"
+            onClick={handleSave}
+            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow transition active:scale-95 flex items-center gap-2"
+          >
+            <Check className="w-4 h-4" />
+            Save Test Scores
           </button>
         </div>
       </div>

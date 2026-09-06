@@ -5,18 +5,26 @@ import { toast } from "react-toastify";
 import { SchoolListItem, SchoolFormFields } from "./SchoolComponents";
 import { GreForm, GmatForm, SatForm } from "./QualificationForms";
 import { validateRequired, validateScore, validateSelect, validateZipcode } from "@/utils/validation";
+import { GraduationCap, Plus, Check, School, BookOpen, Trash2, X } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 const ToggleRow = ({ label, isOn, onToggle }: { label: string; isOn: boolean; onToggle: () => void }) => (
-  <div className="flex items-center justify-between">
-    <span className="font-medium text-gray-800">{label}</span>
+  <div className="flex items-center justify-between py-1">
+    <span className="text-xs sm:text-sm font-semibold text-slate-800">{label}</span>
     <button
+      type="button"
       onClick={onToggle}
-      className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors duration-300 ${isOn ? "bg-blue-700" : "bg-gray-300"}`}
+      className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors duration-200 cursor-pointer ${
+        isOn ? "bg-blue-600" : "bg-slate-300"
+      }`}
     >
-      <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${isOn ? "translate-x-6" : "translate-x-0"}`} />
+      <div
+        className={`bg-white w-4 h-4 rounded-full shadow-xs transform transition-transform duration-200 ${
+          isOn ? "translate-x-5" : "translate-x-0"
+        }`}
+      />
     </button>
   </div>
 );
@@ -465,94 +473,225 @@ export default function EducationForm() {
     }
   };
 
+  const handleCancelSummary = () => {
+    setCountry("");
+    setLevel("");
+    setGradingScheme("");
+    setGradeAverage("");
+    setSummaryErrors({});
+  };
+
+  const summaryInputClass = (key: string) =>
+    `w-full rounded-xl border px-3.5 py-2.5 text-sm transition-all outline-none ${
+      summaryErrors[key]
+        ? "border-rose-300 bg-rose-50/40 text-rose-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/15"
+        : "border-slate-200 bg-slate-50/50 text-slate-800 hover:border-slate-300 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15"
+    }`;
+
   return (
-    <>
-      <div className="mb-10">
-        <div className="w-full max-w-5xl mx-auto bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-200 p-4 md:p-8">
-          <div className="mb-6">
-            <h3 className="text-2xl font-semibold text-blue-700">Education Summary</h3>
-            <p className="text-gray-500 text-sm mt-1">Provide your latest education details</p>
+    <div className="space-y-8 w-full">
+      {/* 1. Education Summary Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
+        <div className="flex items-center gap-3 pb-5 mb-6 border-b border-slate-100">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">Education Summary</h3>
+            <p className="text-xs text-slate-500">Specify your highest achieved education level and grading criteria</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Country of Education <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={country}
+              onChange={(e) => {
+                setCountry(e.target.value);
+                setSummaryErrors((p: any) => ({ ...p, country: "" }));
+              }}
+              className={summaryInputClass("country")}
+            >
+              <option value="">Select Country</option>
+              {countriesData.map((item: any) => (
+                <option key={item.id || item.code || item.name} value={item.name}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+            {summaryErrors.country && <p className="text-rose-600 text-[11px] font-medium">{summaryErrors.country}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="space-y-1">
-              <select value={country} onChange={(e) => { setCountry(e.target.value); setSummaryErrors((p: any) => ({ ...p, country: '' })); }} className="w-full border rounded-xl p-3 focus:ring-2 outline-none transition border-gray-300 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select Country of Education</option>
-                {countriesData.map((item: any) => (
-                  <option key={item.id || item.code || item.name} value={item.name}>{item.name}</option>
-                ))}
-              </select>
-              {summaryErrors.country && <p className="text-red-600 text-xs ml-1 font-medium">{summaryErrors.country}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <select value={level} onChange={(e) => { setLevel(e.target.value); setSummaryErrors((p: any) => ({ ...p, level: '' })); }} className="w-full border rounded-xl p-3 focus:ring-2 outline-none transition border-gray-300 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select Highest Level</option>
-                {levels.map((item: any) => (
-                  <option key={item.id} value={item.level || item.name}>{item.level || item.name}</option>
-                ))}
-              </select>
-              {summaryErrors.level && <p className="text-red-600 text-xs ml-1 font-medium">{summaryErrors.level}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <select value={gradingScheme} onChange={(e) => { setGradingScheme(e.target.value); setSummaryErrors((p: any) => ({ ...p, gradingScheme: '' })); }} className="w-full border rounded-xl p-3 focus:ring-2 outline-none transition border-gray-300 focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Select Grading Scheme</option>
-                <option value="Percentage">Percentage</option>
-                <option value="CGPA">CGPA</option>
-                <option value="GPA">GPA</option>
-                <option value="Grade (A to E)">Grade (A to E)</option>
-              </select>
-              {summaryErrors.gradingScheme && <p className="text-red-600 text-xs ml-1 font-medium">{summaryErrors.gradingScheme}</p>}
-            </div>
-
-            <div className="space-y-1">
-              <input type="text" value={gradeAverage} onChange={(e) => { setGradeAverage(e.target.value); setSummaryErrors((p: any) => ({ ...p, gradeAverage: '' })); }} placeholder="Enter Grade Average" className="w-full border rounded-xl p-3 focus:ring-2 outline-none transition border-gray-300 focus:ring-blue-500 focus:border-blue-500" />
-              {summaryErrors.gradeAverage && <p className="text-red-600 text-xs ml-1 font-medium">{summaryErrors.gradeAverage}</p>}
-            </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Highest Level <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={level}
+              onChange={(e) => {
+                setLevel(e.target.value);
+                setSummaryErrors((p: any) => ({ ...p, level: "" }));
+              }}
+              className={summaryInputClass("level")}
+            >
+              <option value="">Select Highest Level</option>
+              {levels.map((item: any) => (
+                <option key={item.id} value={item.level || item.name}>
+                  {item.level || item.name}
+                </option>
+              ))}
+            </select>
+            {summaryErrors.level && <p className="text-rose-600 text-[11px] font-medium">{summaryErrors.level}</p>}
           </div>
 
-          <div className="flex justify-end gap-4 mt-8">
-            <button onClick={handleSaveSummary} className="px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md transition">Save</button>
-            <button className="px-6 py-2 rounded-xl bg-gray-500 hover:bg-gray-700 text-white shadow-md transition">Cancel</button>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Grading Scheme <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={gradingScheme}
+              onChange={(e) => {
+                setGradingScheme(e.target.value);
+                setSummaryErrors((p: any) => ({ ...p, gradingScheme: "" }));
+              }}
+              className={summaryInputClass("gradingScheme")}
+            >
+              <option value="">Select Grading Scheme</option>
+              <option value="Percentage">Percentage (%)</option>
+              <option value="CGPA">CGPA (out of 10 or 4)</option>
+              <option value="GPA">GPA</option>
+              <option value="Grade (A to E)">Letter Grade (A to E)</option>
+            </select>
+            {summaryErrors.gradingScheme && <p className="text-rose-600 text-[11px] font-medium">{summaryErrors.gradingScheme}</p>}
           </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Grade Average <span className="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={gradeAverage}
+              onChange={(e) => {
+                setGradeAverage(e.target.value);
+                setSummaryErrors((p: any) => ({ ...p, gradeAverage: "" }));
+              }}
+              placeholder="e.g. 85% or 3.8"
+              className={summaryInputClass("gradeAverage")}
+            />
+            {summaryErrors.gradeAverage && <p className="text-rose-600 text-[11px] font-medium">{summaryErrors.gradeAverage}</p>}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
+          <button
+            type="button"
+            onClick={handleCancelSummary}
+            className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm transition"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveSummary}
+            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow transition active:scale-95 flex items-center gap-2"
+          >
+            <Check className="w-4 h-4" />
+            Save Education Summary
+          </button>
         </div>
       </div>
 
-      <div className="w-full p-4 md:p-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Schools Attended</h2>
+      {/* 2. Schools Attended Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-6 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+              <School className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900">Schools & Universities Attended</h3>
+              <p className="text-xs text-slate-500">Record all secondary and higher education institutions you attended</p>
+            </div>
+          </div>
           <button
+            type="button"
             onClick={() => {
               setEditingSchoolId(null);
               setSchoolFormData({
-                country_of_institution: "", name_of_institution: "", level_of_education: "", primary_language_of_instruction: "", attended_institution_from: "", attended_institution_to: "", graduation_date: "", degree_name: "", graduated: "YES", graduated_from_this: false, address: "", city: "", state: "", zipcode: "",
+                country_of_institution: "",
+                name_of_institution: "",
+                level_of_education: "",
+                primary_language_of_instruction: "",
+                attended_institution_from: "",
+                attended_institution_to: "",
+                graduation_date: "",
+                degree_name: "",
+                graduated: "YES",
+                graduated_from_this: false,
+                address: "",
+                city: "",
+                state: "",
+                zipcode: "",
               });
               setShowSchoolForm(true);
             }}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-md flex items-center"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow transition active:scale-95 shrink-0"
           >
-            Add Attended School <span className="ml-1">+</span>
+            <Plus className="w-4 h-4" />
+            Add Attended School
           </button>
         </div>
 
-        <div className="space-y-4">
+        {/* School list */}
+        <div className="space-y-3.5">
           {schools.length > 0 ? (
             schools.map((school: any) => (
-              <SchoolListItem key={school.id} school={school} onExpand={handleSchoolExpand} onDelete={handleSchoolDelete} />
+              <SchoolListItem
+                key={school.id}
+                school={school}
+                onExpand={handleSchoolExpand}
+                onDelete={handleSchoolDelete}
+              />
             ))
           ) : (
-            <p className="text-center text-gray-500">No schools have been added yet.</p>
+            <div className="text-center py-10 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+              <School className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+              <p className="font-semibold text-slate-700 text-sm">No schools added yet</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                Click "+ Add Attended School" to list your high school, diploma, or university degree.
+              </p>
+            </div>
           )}
         </div>
 
+        {/* Form Drawer / Expandable Form */}
         {showSchoolForm && (
-          <div className="mt-6 rounded-2xl p-8 shadow-lg bg-gradient-to-br from-white to-blue-50 border border-gray-100">
+          <div className="mt-6 rounded-2xl p-5 sm:p-7 bg-slate-50/70 border border-slate-200/80 shadow-xs">
+            <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/70">
+              <div>
+                <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                  {editingSchoolId ? "Edit Institution Details" : "Add New Institution"}
+                </h4>
+                <p className="text-xs text-slate-500">Provide verified institution details matching your transcripts</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSchoolForm(false)}
+                className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             <SchoolFormFields
               formData={schoolFormData}
               handleChange={(e: any) => {
                 const { name, value, type, checked } = e.target;
-                setSchoolFormData((prev: any) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+                setSchoolFormData((prev: any) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
                 if (schoolErrors[name]) {
                   setSchoolErrors((prev: any) => ({ ...prev, [name]: "" }));
                 }
@@ -561,23 +700,45 @@ export default function EducationForm() {
               errors={schoolErrors}
             />
 
-            <div className="mt-8 flex gap-4">
-              <button onClick={handleSchoolAddOrEdit} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl shadow-md transition">
-                Save
-              </button>
-              <button onClick={() => setShowSchoolForm(false)} className="bg-gray-700 hover:bg-black text-white px-6 py-2.5 rounded-xl shadow-md transition">
+            <div className="mt-6 pt-5 border-t border-slate-200/70 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowSchoolForm(false)}
+                className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition"
+              >
                 Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSchoolAddOrEdit}
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition active:scale-95 flex items-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                {editingSchoolId ? "Update School" : "Save School"}
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="p-4 md:p-8">
-        <h2 className="text-lg font-semibold mb-4">Additional Qualifications</h2>
-        <div className="space-y-6 p-4 rounded-lg">
-          <div className="p-4 rounded-md bg-white shadow-sm">
-            <ToggleRow label="I Have GRE Exam Scores" isOn={qualifications.gre1} onToggle={() => toggle('gre1')} />
+      {/* 3. Additional Qualifications Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
+        <div className="flex items-center gap-3 pb-5 mb-6 border-b border-slate-100">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">Additional Qualifications</h3>
+            <p className="text-xs text-slate-500">
+              Optional standardized test scores: GRE (Graduate Record Examination), GMAT, or SAT
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* GRE Toggle */}
+          <div className="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50/80 transition">
+            <ToggleRow label="I have GRE Exam Scores" isOn={qualifications.gre1} onToggle={() => toggle("gre1")} />
             <GreForm
               isOpen={qualifications.gre1}
               data={greData}
@@ -589,13 +750,14 @@ export default function EducationForm() {
                 }
               }}
               onBlur={(section, field) => validateQualificationField(section as "gre", field)}
-              onSave={() => saveQualification('/student/update-gre-score', greData, 'GRE', "gre", validateGreForm)}
-              onCancel={() => toggle('gre1')}
+              onSave={() => saveQualification("/student/update-gre-score", greData, "GRE", "gre", validateGreForm)}
+              onCancel={() => toggle("gre1")}
             />
           </div>
 
-          <div className="p-4 rounded-md bg-white shadow-sm">
-            <ToggleRow label="I Have GMAT Exam Scores" isOn={qualifications.gre2} onToggle={() => toggle('gre2')} />
+          {/* GMAT Toggle */}
+          <div className="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50/80 transition">
+            <ToggleRow label="I have GMAT Exam Scores" isOn={qualifications.gre2} onToggle={() => toggle("gre2")} />
             <GmatForm
               isOpen={qualifications.gre2}
               data={gmatData}
@@ -607,13 +769,14 @@ export default function EducationForm() {
                 }
               }}
               onBlur={(section, field) => validateQualificationField(section as "gmat", field)}
-              onSave={() => saveQualification('/student/update-gmat-score', gmatData, 'GMAT', "gmat", validateGmatForm)}
-              onCancel={() => toggle('gre2')}
+              onSave={() => saveQualification("/student/update-gmat-score", gmatData, "GMAT", "gmat", validateGmatForm)}
+              onCancel={() => toggle("gre2")}
             />
           </div>
 
-          <div className="p-4 rounded-md bg-white shadow-sm">
-            <ToggleRow label="I Have SAT Exam Scores" isOn={qualifications.sat} onToggle={() => toggle('sat')} />
+          {/* SAT Toggle */}
+          <div className="p-4 sm:p-5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50/80 transition">
+            <ToggleRow label="I have SAT Exam Scores" isOn={qualifications.sat} onToggle={() => toggle("sat")} />
             <SatForm
               isOpen={qualifications.sat}
               data={satData}
@@ -625,40 +788,46 @@ export default function EducationForm() {
                 }
               }}
               onBlur={(section, field) => validateQualificationField(section as "sat", field)}
-              onSave={() => saveQualification('/student/update-sat-score', satData, 'SAT', "sat", validateSatForm)}
-              onCancel={() => toggle('sat')}
+              onSave={() => saveQualification("/student/update-sat-score", satData, "SAT", "sat", validateSatForm)}
+              onCancel={() => toggle("sat")}
             />
           </div>
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Delete School</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to delete this school record?
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 text-center animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900">Delete School Record</h3>
+            <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+              Are you sure you want to remove this institution? This action cannot be undone.
             </p>
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-5 flex justify-center gap-3">
               <button
+                type="button"
                 onClick={() => {
                   setShowDeleteConfirm(false);
                   setPendingDeleteSchoolId(null);
                 }}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmSchoolDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition shadow-xs"
               >
-                Delete
+                Yes, Delete
               </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
