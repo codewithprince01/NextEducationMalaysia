@@ -5,38 +5,22 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import StudentSidebar from '../student/StudentSidebar'
 import { Menu, PanelLeftClose, PanelLeftOpen, Compass } from 'lucide-react'
-import { useAuth } from '@/context/AuthContext'
 
 export default function StudentDashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [topbarAvatar, setTopbarAvatar] = useState<string | null>(null);
 
-  // Read saved collapsed state and profile avatar from localStorage
+  // Read saved collapsed state from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('student_sidebar_collapsed');
       if (saved !== null) {
         setIsCollapsed(saved === 'true');
       }
-      const savedAvatar = localStorage.getItem('student_profile_avatar');
-      if (savedAvatar) {
-        setTopbarAvatar(savedAvatar);
-      }
     } catch {
       // ignore storage access errors
     }
-
-    const handleAvatarUpdate = () => {
-      try {
-        const savedAvatar = localStorage.getItem('student_profile_avatar');
-        if (savedAvatar) setTopbarAvatar(savedAvatar);
-      } catch {}
-    };
-    window.addEventListener('student_avatar_updated', handleAvatarUpdate);
-    return () => window.removeEventListener('student_avatar_updated', handleAvatarUpdate);
   }, []);
 
   const handleToggleCollapse = () => {
@@ -59,15 +43,6 @@ export default function StudentDashboardLayout({ children }: { children: React.R
     if (pathname?.includes('/change-password')) return 'Change Password';
     return 'Overview';
   };
-
-  const displayName = (user as any)?.name || 'Student';
-  const initials = displayName
-    .split(' ')
-    .map((n: string) => n[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || 'ST';
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-row relative antialiased">
@@ -121,29 +96,15 @@ export default function StudentDashboardLayout({ children }: { children: React.R
             </div>
           </div>
 
-          {/* Right Action Icons & User Info */}
+          {/* Right Action Icons */}
           <div className="flex items-center gap-3">
             <Link
               href="/courses-in-malaysia"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white text-xs font-semibold transition shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white text-xs font-semibold transition shadow-2xs"
             >
               <Compass className="w-3.5 h-3.5" />
               Browse Courses
             </Link>
-
-            <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200/80">
-              <div className="w-8 h-8 rounded-full overflow-hidden bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
-                {topbarAvatar ? (
-                  <img src={topbarAvatar} alt={displayName} className="w-full h-full object-cover" />
-                ) : (
-                  initials
-                )}
-              </div>
-              <div className="hidden md:block text-left">
-                <p className="text-xs font-bold text-slate-800 leading-tight truncate max-w-[130px]">{displayName}</p>
-                <p className="text-[10px] text-emerald-600 font-semibold leading-tight">Student</p>
-              </div>
-            </div>
           </div>
         </header>
 

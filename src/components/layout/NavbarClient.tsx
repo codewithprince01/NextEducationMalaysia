@@ -72,9 +72,23 @@ export default function NavbarClient() {
   const [isDropdownLocked, setIsDropdownLocked] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [displayName, setDisplayName] = useState<string>('Profile')
+  const [avatarImage, setAvatarImage] = useState<string | null>(null)
   const { isAuthenticated: isLoggedIn, user } = useAuth()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
+
+  // Sync avatar from localStorage or custom event
+  useEffect(() => {
+    const syncAvatar = () => {
+      try {
+        const saved = localStorage.getItem('student_profile_avatar')
+        if (saved) setAvatarImage(saved)
+      } catch {}
+    }
+    syncAvatar()
+    window.addEventListener('student_avatar_updated', syncAvatar)
+    return () => window.removeEventListener('student_avatar_updated', syncAvatar)
+  }, [])
 
   const toDisplayName = (value: string): string => {
     const cleaned = String(value || '').trim()
@@ -83,6 +97,14 @@ export default function NavbarClient() {
     if (cleaned.includes('@')) return ''
     return cleaned
   }
+
+  const initials = (displayName && displayName !== 'Profile' ? displayName : 'Student')
+    .split(' ')
+    .map((n: string) => n[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'ST'
 
   // useEffect for manual login check removed, handled by AuthContext
 
@@ -257,13 +279,42 @@ export default function NavbarClient() {
               </Link>
             ))}
 
-            {/* CTA — min-w prevents CLS when text swaps from 'Get Started' to 'Profile' */}
-            <Link
-              href={isLoggedIn ? '/student/profile' : '/signup'}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all font-bold min-w-[125px] text-center inline-block text-[14.5px] xl:text-[15.5px] shrink-0 hover:shadow-lg active:scale-[0.98]"
-            >
-              {isLoggedIn ? displayName : 'Get Started'}
-            </Link>
+            {/* CTA — User profile when logged in, or Get Started */}
+            {isLoggedIn ? (
+              <div className="flex items-center gap-3">
+                {/* Vertical separator line matching screenshot */}
+                <div className="h-8 w-[1px] bg-slate-200 shrink-0" aria-hidden="true" />
+
+                <Link
+                  href="/student/profile"
+                  className="flex items-center gap-2.5 py-1 px-1.5 rounded-xl hover:bg-slate-50 transition-all shrink-0 group"
+                  title="Go to Dashboard Profile"
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+                    {avatarImage ? (
+                      <img src={avatarImage} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      initials
+                    )}
+                  </div>
+                  <div className="text-left leading-none">
+                    <p className="font-bold text-slate-900 text-sm leading-tight group-hover:text-blue-600 transition-colors">
+                      {displayName}
+                    </p>
+                    <p className="text-[11px] font-semibold text-emerald-600 leading-tight mt-0.5">
+                      Student
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            ) : (
+              <Link
+                href="/signup"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all font-bold min-w-[125px] text-center inline-block text-[14.5px] xl:text-[15.5px] shrink-0 hover:shadow-lg active:scale-[0.98]"
+              >
+                Get Started
+              </Link>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -336,12 +387,37 @@ export default function NavbarClient() {
             </Link>
           ))}
 
-          <Link
-            href={isLoggedIn ? '/student/profile' : '/signup'}
-            className="w-full block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow-md shadow-blue-500/20 transition font-bold min-w-[120px] text-center"
-          >
-            {isLoggedIn ? displayName : 'Get Started'}
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/student/profile"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl"
+            >
+              <div className="w-11 h-11 rounded-full bg-blue-600 text-white font-bold text-base flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+                {avatarImage ? (
+                  <img src={avatarImage} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  initials
+                )}
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-slate-900 text-base leading-tight">
+                  {displayName}
+                </p>
+                <p className="text-xs font-semibold text-emerald-600 mt-0.5">
+                  Student
+                </p>
+              </div>
+            </Link>
+          ) : (
+            <Link
+              href="/signup"
+              onClick={() => setMenuOpen(false)}
+              className="w-full block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow-md shadow-blue-500/20 transition font-bold min-w-[120px] text-center"
+            >
+              Get Started
+            </Link>
+          )}
         </div>
       </div>
 
