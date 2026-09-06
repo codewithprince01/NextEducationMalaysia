@@ -1,8 +1,11 @@
 'use client'
 
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import PopularCourses from './PopularCourses'
 import { storageUrl } from '@/lib/constants'
+import AuthModal from '@/components/modals/AuthModal'
+import { CounsellingForm } from '@/components/modals/UniversityForms/CounsellingForm'
 
 type Section = {
   id: number
@@ -16,6 +19,8 @@ type Props = {
   overviews: Section[]
   universityName: string | null
   universitySlug: string | null
+  universityId?: number | null
+  universityLogo?: string | null
 }
 
 const POPULAR_COURSES_TOKENS = [
@@ -87,8 +92,17 @@ const createSlug = (title: string) => {
     .replace(/-+/g, '-')
 }
 
-export default function UniversityOverview({ overviews, universityName, universitySlug }: Props) {
+export default function UniversityOverview({
+  overviews,
+  universityName,
+  universitySlug,
+  universityId,
+  universityLogo,
+}: Props) {
+  const router = useRouter()
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [isCounsellingOpen, setIsCounsellingOpen] = useState(false)
 
   const validSections = useMemo(
     () => overviews.filter(section => section.tab?.trim() !== '' && !isPopularCoursesSection(section.tab)),
@@ -101,6 +115,23 @@ export default function UniversityOverview({ overviews, universityName, universi
       window.history.pushState(null, '', `#${sectionSlug}`)
       element.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
+  }
+
+  const handleApplyClick = () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (token) {
+      if (universitySlug) {
+        router.push(`/university/${universitySlug}/courses`)
+      } else {
+        setIsCounsellingOpen(true)
+      }
+    } else {
+      setIsAuthModalOpen(true)
+    }
+  }
+
+  const handleEnquireClick = () => {
+    setIsCounsellingOpen(true)
   }
 
   if (validSections.length === 0) {
@@ -148,11 +179,20 @@ export default function UniversityOverview({ overviews, universityName, universi
         </div>
       )}
 
+      {/* Action Buttons: Apply Here & Enquire Now */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10 max-w-2xl mx-auto">
-        <button className="w-full sm:w-auto px-10 py-3.5 bg-white text-blue-600 border-2 border-blue-600 rounded-full font-black hover:bg-blue-50 transition-all duration-300 shadow-lg shadow-blue-500/5 active:scale-95 text-sm uppercase tracking-wider cursor-pointer">
+        <button
+          type="button"
+          onClick={handleApplyClick}
+          className="w-full sm:w-auto px-10 py-3.5 bg-blue-600 text-white border-2 border-blue-600 rounded-full font-black hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/20 active:scale-95 text-sm uppercase tracking-wider cursor-pointer"
+        >
           APPLY HERE
         </button>
-        <button className="w-full sm:w-auto px-10 py-3.5 bg-white text-blue-600 border-2 border-blue-600 rounded-full font-black hover:bg-blue-50 transition-all duration-300 shadow-lg shadow-blue-500/5 active:scale-95 text-sm uppercase tracking-wider cursor-pointer">
+        <button
+          type="button"
+          onClick={handleEnquireClick}
+          className="w-full sm:w-auto px-10 py-3.5 bg-white text-blue-600 border-2 border-blue-600 rounded-full font-black hover:bg-blue-50 transition-all duration-300 shadow-lg shadow-blue-500/5 active:scale-95 text-sm uppercase tracking-wider cursor-pointer"
+        >
           ENQUIRE NOW
         </button>
       </div>
@@ -193,6 +233,23 @@ export default function UniversityOverview({ overviews, universityName, universi
       </div>
 
       {universitySlug && <PopularCourses slug={universitySlug} />}
+
+      {/* Application Form Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        courseId={null}
+        courseData={{ university_name: universityName }}
+      />
+
+      {/* Enquiry / Counselling Form Modal */}
+      <CounsellingForm
+        universityId={universityId}
+        universityName={universityName}
+        universityLogo={universityLogo}
+        isOpen={isCounsellingOpen}
+        onClose={() => setIsCounsellingOpen(false)}
+      />
     </div>
   )
 }

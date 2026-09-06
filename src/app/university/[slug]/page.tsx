@@ -60,6 +60,8 @@ export default async function UniversityPage({ params }: Props) {
             overviews={overviews}
             universityName={university.name}
             universitySlug={slug}
+            universityId={university.id}
+            universityLogo={university.logo_path || university.image_path || null}
           />
         </div>
         <aside className="col-span-1 space-y-8">
