@@ -445,73 +445,75 @@ export default function SignUpClient() {
   return (
     <div className="w-full bg-white font-sans">
       <div className="w-full min-h-[calc(100vh-76px)] flex flex-col lg:flex-row items-stretch border-b border-slate-200/80">
-        {/* ── LEFT SIDE: SIMPLE & CLEAN HERO PANEL ── */}
-        <div className="w-full lg:w-1/2 bg-slate-50/70 flex flex-col justify-start px-6 sm:px-10 lg:px-12 xl:px-16 pt-4 sm:pt-6 pb-8 sm:pb-12 text-left border-b lg:border-b-0 lg:border-r border-slate-200/80">
-          <div className="max-w-xl">
+        {/* ── LEFT SIDE: HERO PANEL (FULL PAGE BALANCED) ── */}
+        <div className="w-full lg:w-1/2 bg-slate-50/70 flex flex-col justify-between px-6 sm:px-10 lg:px-14 xl:px-18 pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-12 text-left border-b lg:border-b-0 lg:border-r border-slate-200/80">
+          <div className="max-w-xl w-full">
             {/* Main Headline */}
-            <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold text-slate-900 leading-snug tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-[36px] xl:text-[40px] font-extrabold text-slate-900 leading-[1.2] tracking-tight">
               Apply to up to{" "}
               <span className="text-[#003893]">5 Malaysian Universities</span>{" "}
               through one application process.
             </h1>
 
             {/* Subtitle */}
-            <p className="text-slate-600 text-sm sm:text-[15px] leading-relaxed mt-2.5 mb-6">
+            <p className="text-slate-600 text-sm sm:text-base lg:text-[16.5px] leading-relaxed mt-3.5 mb-7 sm:mb-9 font-normal">
               Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
-              <span className="font-semibold text-slate-900 underline decoration-blue-300 underline-offset-4">
+              <span className="font-bold text-[#003893] underline decoration-blue-300 underline-offset-4">
                 7 working days
               </span>
               .
             </p>
 
-            {/* Clean Value Cards */}
-            <div className="space-y-3.5">
+            {/* Value Cards with Generous Spacing */}
+            <div className="space-y-4 sm:space-y-4.5">
               {/* Point 1 */}
-              <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-base font-bold border border-blue-100">
-                  <FaCheckCircle className="text-blue-600 text-lg" />
+              <div className="flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
+                  <FaCheckCircle className="text-blue-600 text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-bold text-slate-900">
+                  <h3 className="text-base sm:text-[16.5px] font-bold text-slate-900">
                     5 Universities · 1 Single Form
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-normal">
-                    Apply to multiple institutions without repeating details.
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+                    Apply to multiple institutions without repeating details or paperwork.
                   </p>
                 </div>
               </div>
 
               {/* Point 2 */}
-              <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-base font-bold border border-blue-100">
-                  <FaBolt className="text-[#003893] text-lg" />
+              <div className="flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
+                  <FaBolt className="text-[#003893] text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-bold text-slate-900">
+                  <h3 className="text-base sm:text-[16.5px] font-bold text-slate-900">
                     Offer Letter in 7 Working Days
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-normal">
-                    Fast-track eligibility check and streamlined admissions.
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+                    Fast-track eligibility check and streamlined direct admissions process.
                   </p>
                 </div>
               </div>
 
               {/* Point 3 */}
-              <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-base font-bold border border-blue-100">
-                  <FaStar className="text-amber-500 text-lg" />
+              <div className="flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-amber-50/70 text-amber-500 flex items-center justify-center shrink-0 text-xl border border-amber-100 shadow-2xs">
+                  <FaStar className="text-amber-500 text-xl" />
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-bold text-slate-900">
+                  <h3 className="text-base sm:text-[16.5px] font-bold text-slate-900">
                     100% Free Expert Guidance
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-normal">
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
                     Personalised counselling from course matching to visa approval.
                   </p>
                 </div>
               </div>
             </div>
           </div>
+
+
         </div>
 
         {/* ── RIGHT SIDE: SPACIOUS 2-COLUMN FORM ── */}
