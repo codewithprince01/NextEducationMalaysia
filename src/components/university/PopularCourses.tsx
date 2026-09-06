@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react";
-import { FaArrowRight } from "react-icons/fa";
+import { GraduationCap, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 
@@ -77,7 +77,6 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
     const fetchPopularCourses = async () => {
       try {
         setLoading(true);
-        // Prefer local API to avoid remote schema mismatch and keep behavior consistent.
         try {
           const localRes: any = await axios.get(`/api/university/${slug}/popular-courses`, {
             params: { _ts: Date.now() },
@@ -130,43 +129,74 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
   const sections = [
     {
       title: "University Popular Courses",
+      subtitle: "Popular programmes at this university",
+      icon: GraduationCap,
+      badge: "Campus Specialisations",
       courses: universityCourses.slice(0, 15),
     },
     {
       title: "Malaysia Popular Courses",
+      subtitle: "Trending specialisations across Malaysia",
+      icon: TrendingUp,
+      badge: "Popular in Malaysia",
       courses: malaysiaCourses.slice(0, 15),
     },
     {
       title: "Top Courses to Study in Malaysia",
+      subtitle: "In-demand fields with high career outcomes",
+      icon: Sparkles,
+      badge: "High Demand",
       courses: topCourses.slice(0, 15),
     },
   ];
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-10 text-center text-gray-500">
-        Loading courses...
+      <div className="w-full space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="bg-white rounded-2xl p-5 border border-slate-200/80 animate-pulse space-y-3">
+            <div className="h-5 bg-slate-200 rounded w-1/3"></div>
+            <div className="flex flex-wrap gap-2 pt-2">
+              {[1, 2, 3, 4, 5].map((j) => (
+                <div key={j} className="h-8 bg-slate-100 rounded-xl w-28"></div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-10">
-      <div className="grid grid-cols-1 gap-4 sm:gap-8">
-        {sections.map((section, index) => (
+    <div className="w-full space-y-4">
+      {sections.map((section, index) => {
+        const SectionIcon = section.icon;
+        return (
           <div
             key={index}
-            className="bg-[#f6f9fb] rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition group"
+            className="bg-white rounded-xl p-4 sm:p-5 border border-gray-200 shadow-xs"
           >
-            <h2 className="text-base sm:text-lg font-bold text-[#003366] mb-3 sm:mb-4">
-              {section.title}
-            </h2>
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3 pb-3 mb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <SectionIcon className="w-4 h-4 text-blue-600 shrink-0" />
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
+                  {section.title}
+                </h3>
+              </div>
 
-            <h3 className="text-sm sm:text-base font-semibold text-black mb-3 sm:mb-4">
-              Top Streams:
-            </h3>
+              <button
+                type="button"
+                onClick={() => window.location.assign('/courses?from=popular-courses')}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 shrink-0 cursor-pointer"
+              >
+                <span>View All</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
 
-            <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-5">
+            {/* Tags Grid */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {section.courses.length > 0 ? (
                 section.courses.map((course: any, idx: number) => {
                   let targetUrl = "#";
@@ -202,32 +232,22 @@ const PopularCourses: React.FC<PopularCoursesProps> = ({ slug }) => {
                     <Link
                       key={idx}
                       href={targetUrl}
-                      className="flex items-center gap-1.5 sm:gap-2 bg-white px-2.5 sm:px-3 py-1.5 border border-gray-300 rounded-full text-xs sm:text-sm text-gray-800 hover:bg-blue-50 transition cursor-pointer active:scale-95"
+                      className="inline-flex items-center gap-1.5 bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-600 px-2.5 py-1 rounded-lg text-xs font-medium border border-gray-200/80 hover:border-blue-200 transition-colors"
                     >
-                      <FaArrowRight className="text-blue-600 text-[10px] sm:text-xs shrink-0" />
-                      <span className="text-xs sm:text-sm">{course.name}</span>
+                      <span>{course.name}</span>
+                      <ArrowRight className="w-2.5 h-2.5 text-gray-400 group-hover:text-blue-600 shrink-0" />
                     </Link>
                   );
                 })
               ) : (
-                <p className="text-gray-500 text-sm">
-                  No courses available for this section.
+                <p className="text-gray-400 text-xs py-1">
+                  No courses listed for this stream yet.
                 </p>
               )}
             </div>
-
-            <div className="text-right">
-              <button
-                type="button"
-                onClick={() => window.location.assign('/courses?from=popular-courses')}
-                className="bg-[#003366] text-white px-4 sm:px-5 py-2 text-xs sm:text-sm rounded-full hover:bg-[#002244] transition font-medium cursor-pointer"
-              >
-                View All
-              </button>
-            </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 };

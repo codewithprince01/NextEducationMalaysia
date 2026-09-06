@@ -10,10 +10,9 @@ import {
   Clock,
   Award,
   DollarSign,
-  ChevronDown,
-  ChevronUp,
+  ArrowLeft,
+  CheckCircle2,
 } from 'lucide-react'
-import Breadcrumb from '@/components/Breadcrumb'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import UniversityCoursesCard from '@/components/university/UniversityCoursesCard'
@@ -40,7 +39,6 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
   const router = useRouter()
   const [courseDetails] = useState<any>(program)
   const [isApplied, setIsApplied] = useState(false)
-  const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({ 0: true })
   
   // Modal states
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -71,9 +69,6 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
     checkApplicationStatus()
   }, [program?.id])
 
-  const toggleSection = (id: string) =>
-    setExpandedSections((prev) => ({ ...prev, [id]: !prev[id] }))
-
   const handleApplyNow = () => {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -103,15 +98,6 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
     }
   }
 
-  const breadcrumbItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Universities', href: '/universities' },
-    ...(courseDetails?.university?.name || courseDetails?.university_name
-      ? [{ label: courseDetails?.university?.name || courseDetails?.university_name, href: `/university/${slug}` }]
-      : []),
-    { label: courseDetails?.course_name || 'Course Details' },
-  ]
-
   useEffect(() => {
     const timer = setTimeout(() => {
       const element =
@@ -126,150 +112,207 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
 
   if (!courseDetails) return null
 
+  const formatFeeValue = (fee: any) => {
+    if (!fee || fee === '0') return 'N/A'
+    const s = String(fee).trim()
+    if (/^\d+(\.\d+)?$/.test(s.replace(/,/g, ''))) {
+      return `RM ${Number(s.replace(/,/g, '')).toLocaleString()}`
+    }
+    return s.startsWith('RM') ? s : `RM ${s}`
+  }
+
+  const specsList = [
+    { icon: BookOpen, label: 'Study Mode', value: courseDetails.study_mode || 'Full Time' },
+    { icon: Clock, label: 'Duration', value: courseDetails.duration ? (String(courseDetails.duration).toLowerCase().includes('year') ? courseDetails.duration : `${courseDetails.duration} Years`) : 'N/A' },
+    { icon: Calendar, label: 'Intake', value: courseDetails.intake || 'N/A' },
+    { icon: DollarSign, label: 'Tuition Fees', value: formatFeeValue(courseDetails.tuition_fee || courseDetails.tution_fee || courseDetails.fee), highlight: true },
+    { icon: GraduationCap, label: 'Level', value: courseDetails.level || 'Diploma' },
+    { icon: Award, label: 'Exam Accepted', value: courseDetails.exam_accepted || 'N/A' },
+    { icon: Award, label: 'IELTS', value: courseDetails.ielts || 'N/A' },
+    { icon: Award, label: 'TOEFL', value: courseDetails.toefl || 'N/A' },
+  ]
+
+  const contents = courseDetails.contents || []
+
   return (
     <div id="course-detail-section" className="min-h-screen bg-transparent scroll-mt-24">
-      
-      <div className="py-6 px-1 lg:px-6">
+      <div className="py-4 px-1 lg:px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row gap-8 items-start">
-            {/* Main Content — 70% approx */}
-            <div className="flex-1 w-full lg:w-[68%] space-y-6">
-              <button
-                onClick={() => router.push(`/university/${slug}/courses`)}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold text-sm bg-blue-50 px-4 py-2 rounded-lg transition-all active:scale-95 group mb-2 cursor-pointer"
-              >
-                <span className="group-hover:-translate-x-1 transition-transform">←</span>
-                Back to Courses
-              </button>
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            {/* Main Left Column */}
+            <div className="flex-1 w-full lg:w-[68%] space-y-4">
+              {/* Back Button */}
+              <div>
+                <button
+                  onClick={() => router.push(`/university/${slug}/courses`)}
+                  className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-blue-600 font-medium bg-white hover:bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Courses</span>
+                </button>
+              </div>
 
-              {/* Summary card */}
-              <div id="course-summary-card" className="bg-white rounded-lg p-6 border border-gray-300 shadow-sm">
-                <h1 className="text-xl font-medium text-gray-800 mb-6">
-                  {courseDetails.course_name} Fees Structure, Admission, Intake, Deadline
-                </h1>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                  <div className="space-y-4">
-                    {[
-                      { icon: BookOpen, label: 'Study Mode', value: courseDetails.study_mode },
-                      { icon: GraduationCap, label: 'Level', value: courseDetails.level },
-                      { icon: Calendar, label: 'Intake', value: courseDetails.intake },
-                      { icon: Award, label: 'IELTS', value: 'N/A' },
-                    ].map(({ icon: Icon, label, value }) => (
-                      <div key={label} className="flex items-center space-x-3">
-                        <Icon className="w-5 h-5 text-blue-600 shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-blue-600">{label}:</p>
-                          <p className="text-gray-700">{value || 'N/A'}</p>
-                        </div>
-                      </div>
-                    ))}
+              {/* 1. Summary Card */}
+              <div id="course-summary-card" className="bg-white rounded-xl p-5 border border-gray-200 shadow-xs">
+                {/* Header info */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-md">
+                      {courseDetails.level || 'Diploma'} Course
+                    </span>
+                    <span className="text-xs text-gray-400">•</span>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {courseDetails.study_mode || 'Full Time'}
+                    </span>
                   </div>
-                  <div className="space-y-4">
-                    {[
-                      { icon: Clock, label: 'Duration', value: courseDetails.duration },
-                      { icon: Award, label: 'Exam Accepted', value: courseDetails.exam_accepted },
-                      { icon: DollarSign, label: 'Tuition Fees', value: courseDetails.tuition_fee || courseDetails.tution_fee },
-                      { icon: Award, label: 'TOEFL', value: 'N/A' },
-                    ].map(({ icon: Icon, label, value }) => (
-                      <div key={label} className="flex items-center space-x-3">
-                        <Icon className="w-5 h-5 text-blue-600 shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-blue-600">{label}:</p>
-                          <p className="text-gray-700">{value || 'N/A'}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug">
+                    {courseDetails.course_name}
+                  </h1>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Fees Structure, Admission, Intake &amp; Deadline
+                  </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                {/* Specs Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+                  {specsList.map(({ icon: Icon, label, value, highlight }) => (
+                    <div
+                      key={label}
+                      className={`p-2.5 rounded-lg border ${
+                        highlight
+                          ? 'bg-blue-50/50 border-blue-200/80'
+                          : 'bg-gray-50/60 border-gray-200/70'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <Icon className={`w-3.5 h-3.5 ${highlight ? 'text-blue-600' : 'text-gray-400'}`} />
+                        <span className="text-[11px] font-medium text-gray-500">
+                          {label}
+                        </span>
+                      </div>
+                      <div className={`text-xs sm:text-sm font-semibold truncate ${
+                        highlight ? 'text-blue-700' : 'text-gray-800'
+                      }`}>
+                        {value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-gray-100">
                   <button
                     onClick={handleApplyNow}
                     disabled={isApplied}
-                    className={`px-6 py-3 rounded-lg font-medium transition-colors cursor-pointer ${
-                      isApplied ? 'bg-green-600 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                      isApplied 
+                        ? 'bg-emerald-600 text-white cursor-not-allowed' 
+                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
                     }`}
                   >
-                    {isApplied ? 'Applied' : 'Apply Now'}
+                    {isApplied ? (
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Applied</span>
+                      </span>
+                    ) : (
+                      <span>Apply Now</span>
+                    )}
                   </button>
+
                   <button
                     onClick={() => router.push(`/university/${slug}/courses`)}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors text-center cursor-pointer"
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors cursor-pointer"
                   >
                     View all courses
                   </button>
                 </div>
               </div>
 
-              {/* Intake calendar */}
-              <div className="bg-white rounded-lg p-6 border border-gray-200">
-                <h4 className="text-lg font-medium text-gray-800 mb-4">Course Intake</h4>
-                <div className="grid grid-cols-4 gap-3">
+              {/* 2. Course Intake Section */}
+              <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-xs">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-600" />
+                    <h2 className="text-base font-bold text-gray-900">
+                      Course Intake
+                    </h2>
+                  </div>
+                  {courseDetails.intake && (
+                    <span className="text-xs text-gray-500">
+                      Scheduled Intakes: <strong className="text-blue-700 font-semibold">{courseDetails.intake}</strong>
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {INTAKE_MONTHS.map((month) => {
                     const active = courseDetails.intake?.toLowerCase().includes(month.toLowerCase())
                     return (
                       <div
                         key={month}
-                        className={`p-3 text-center rounded-lg border text-sm ${
-                          active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-gray-300'
+                        className={`py-2 px-1 text-center rounded-lg border text-xs ${
+                          active
+                            ? 'bg-blue-50 border-blue-200 text-blue-700 font-semibold'
+                            : 'bg-gray-50/50 border-gray-100 text-gray-400 font-normal'
                         }`}
                       >
-                        {month}
+                        <span>{month}</span>
+                        <span className="block text-[10px] opacity-80 mt-0.5">
+                          {active ? 'Available' : 'Closed'}
+                        </span>
                       </div>
                     )
                   })}
                 </div>
               </div>
 
-              {/* Content Sections */}
-              <div className="bg-white rounded-lg p-6 border border-gray-200">
-                <div className="space-y-3">
-                  {courseDetails.contents?.map((section: any) => (
-                    <div key={section.id} className="border border-gray-300 rounded-lg bg-gray-50 overflow-hidden">
-                      <button
-                        onClick={() => toggleSection(section.id)}
-                        className="w-full flex justify-between items-center p-4 text-left hover:bg-gray-100 transition-colors cursor-pointer"
-                      >
-                        <h2 className="text-lg font-medium text-blue-600">{section.tab_title || section.tab || 'Details'}</h2>
-                        <div className="text-blue-600">
-                          {expandedSections[section.id] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                        </div>
-                      </button>
-                      {expandedSections[section.id] && (
-                        <div className="p-4 border-t border-gray-200 bg-white">
-                          {section.heading && (
-                            <div className="bg-blue-100 p-3 rounded-lg mb-4">
-                              <h3 className="text-lg font-medium text-blue-800">{section.heading}</h3>
-                            </div>
-                          )}
-                          <div
-                            className="space-y-4 text-gray-700 prose max-w-none prose-sm"
-                            dangerouslySetInnerHTML={{ __html: section.description || '' }}
-                          />
-                        </div>
+              {/* 3. Course Details & Curriculum (Direct open display, no dropdowns) */}
+              <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-xs space-y-6">
+                {contents.length > 0 ? (
+                  contents.map((section: any, idx: number) => (
+                    <div key={section.id || idx} className={idx > 0 ? 'pt-5 border-t border-gray-100' : ''}>
+                      {/* Section Title */}
+                      <h3 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <span className="w-1.5 h-4 bg-blue-600 rounded-full"></span>
+                        <span>{section.tab_title || section.tab || 'Course Information'}</span>
+                      </h3>
+
+                      {section.heading && (
+                        <h4 className="text-sm font-medium text-gray-600 mb-2">
+                          {section.heading}
+                        </h4>
                       )}
-                    </div>
-                  ))}
-                  {!courseDetails.contents?.length && (
-                    <div className="border border-gray-300 rounded-lg bg-gray-50">
-                      <div className="p-4">
+
+                      {/* Content Body */}
+                      <div className="overflow-x-auto">
                         <div
-                          className="space-y-4 text-gray-700 prose max-w-none prose-sm"
-                          dangerouslySetInnerHTML={{ __html: courseDetails.description || '' }}
+                          className="text-gray-700 text-sm leading-relaxed prose prose-slate max-w-none prose-p:my-2 prose-headings:text-gray-900 prose-headings:font-semibold prose-headings:text-sm prose-ul:my-2 prose-ul:pl-5 prose-li:my-0.5 prose-table:w-full prose-table:border-collapse prose-table:my-3 prose-th:bg-gray-50 prose-th:border prose-th:border-gray-200 prose-th:p-2.5 prose-th:text-xs prose-th:font-semibold prose-th:text-gray-800 prose-td:border prose-td:border-gray-200 prose-td:p-2.5 prose-td:text-xs prose-td:text-gray-600"
+                          dangerouslySetInnerHTML={{ __html: section.description || '' }}
                         />
                       </div>
                     </div>
-                  )}
-                  
-                  {/* Popular Courses Section */}
-                  <PopularCourses slug={slug} />
-                </div>
+                  ))
+                ) : (
+                  <div>
+                    <h3 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <span className="w-1.5 h-4 bg-blue-600 rounded-full"></span>
+                      <span>Course Overview</span>
+                    </h3>
+                    <div
+                      className="text-gray-700 text-sm leading-relaxed prose prose-slate max-w-none"
+                      dangerouslySetInnerHTML={{ __html: courseDetails.description || 'No detailed curriculum available.' }}
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* 4. Popular Courses Section */}
+              <PopularCourses slug={slug} />
             </div>
 
             {/* Sidebar — 32% approx */}
-            <div className="w-full lg:w-[32%] space-y-6 sticky top-24">
+            <div className="w-full lg:w-[32%] space-y-4 sticky top-24">
               <SideInquiryForm />
               <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
               <UniversityCoursesCard />
@@ -278,7 +321,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Application Form Modal */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
@@ -289,3 +332,4 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
     </div>
   )
 }
+
