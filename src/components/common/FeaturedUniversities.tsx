@@ -120,52 +120,75 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
 
   if (variant === 'sidebar') {
     return (
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mt-8 overflow-hidden">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Featured Universities</h2>
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1 h-5 bg-[#003893] rounded-full" />
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+              Featured Universities
+            </h2>
+          </div>
+          <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Top Ranked
+          </span>
         </div>
 
-        <div className="space-y-4">
+        {/* Universities List */}
+        <div className="divide-y divide-slate-100/80">
           {universities.map((uni) => {
             const img = getImageUrl(uni.logo_path || uni.logo)
             return (
-              <Link key={uni.id} href={`/university/${uni.uname}`} className="block group">
-                <div className="p-4 rounded-xl border border-gray-50 bg-gray-50 group-hover:bg-white group-hover:border-blue-200 group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-300">
-                  <div className="flex gap-4 items-center">
-                    <div className="w-16 h-16 shrink-0 rounded-xl border border-white p-2.5 flex items-center justify-center bg-white shadow-xs group-hover:border-blue-50 transition-colors overflow-hidden">
-                      {img ? (
-                        <img src={img} alt={uni.name} className="w-full h-full object-contain" loading="lazy" decoding="async" />
-                      ) : (
-                        <GraduationCap className="text-gray-300 w-6 h-6" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-800 text-sm mb-1.5 leading-snug group-hover:text-blue-600 transition-colors line-clamp-2">
-                        {uni.name}
-                      </h4>
-                      <div className="flex items-center text-[11px] text-gray-500 font-medium mb-1.5">
-                        <MapPin className="mr-1.5 text-red-400 shrink-0 w-2.5 h-2.5" />
-                        <span className="truncate">{uni.city}</span>
-                      </div>
-                      <div className="flex items-center text-[10px] uppercase tracking-wider text-blue-600 font-bold bg-blue-50 w-fit px-2 py-0.5 rounded-md">
-                        <span>Best Choice</span>
-                      </div>
-                    </div>
+              <Link
+                key={uni.id}
+                href={`/university/${uni.uname}`}
+                className="group flex items-center gap-3 py-3 px-1 -mx-1 rounded-xl transition-all duration-200 hover:bg-slate-50/80"
+              >
+                {/* Logo Box */}
+                <div className="w-12 h-12 shrink-0 rounded-xl bg-white border border-slate-200/90 p-1.5 flex items-center justify-center shadow-2xs group-hover:border-blue-300 transition-all overflow-hidden">
+                  {img ? (
+                    <img
+                      src={img}
+                      alt={uni.name}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <GraduationCap className="text-slate-300 w-5 h-5" />
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-slate-800 text-xs sm:text-sm leading-snug group-hover:text-[#003893] transition-colors line-clamp-1">
+                    {uni.name}
+                  </h4>
+                  <div className="flex items-center text-[11px] text-slate-500 font-medium mt-1">
+                    <MapPin className="mr-1 text-slate-400 shrink-0 w-3 h-3" />
+                    <span className="truncate">{uni.city || 'Malaysia'}</span>
                   </div>
+                </div>
+
+                {/* Hover Arrow */}
+                <div className="text-slate-300 group-hover:text-[#003893] group-hover:translate-x-0.5 transition-all shrink-0 pr-1">
+                  <ChevronRight className="w-4 h-4" />
                 </div>
               </Link>
             )
           })}
         </div>
 
-        <Link
-          href="/universities/international-school-in-malaysia"
-          className="flex items-center justify-center gap-2 mt-6 py-2.5 w-full text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-blue-50"
-        >
-          <span>Explore All Institutions</span>
-          <ChevronRight className="w-2.5 h-2.5" />
-        </Link>
+        {/* Footer Link */}
+        <div className="mt-2 pt-3 border-t border-slate-100">
+          <Link
+            href="/universities/international-school-in-malaysia"
+            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-bold text-[#003893] hover:text-blue-800 hover:bg-blue-50/50 rounded-xl transition-all"
+          >
+            <span>Explore All Institutions</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
       </div>
     )
   }
