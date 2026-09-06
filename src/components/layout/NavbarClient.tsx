@@ -177,8 +177,8 @@ export default function NavbarClient() {
           <div className="hidden lg:flex items-center gap-3.5 xl:gap-5 2xl:gap-7 text-[15px] xl:text-[16px] 2xl:text-[17px] font-semibold text-slate-800">
             <Link
               href="/"
-              className={`hover:text-[#003893] transition-colors ${
-                isActive('/') ? 'text-[#003893] font-bold underline underline-offset-8 decoration-2' : ''
+              className={`hover:text-blue-600 transition-colors ${
+                isActive('/') ? 'text-blue-600 font-bold underline underline-offset-8 decoration-2' : ''
               }`}
             >
               Home
@@ -201,10 +201,10 @@ export default function NavbarClient() {
                     setIsDropdownLocked(true)
                   }
                 }}
-                className="flex items-center gap-1.5 hover:text-[#003893] transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 hover:text-blue-600 transition-colors cursor-pointer"
               >
                 Resources
-                <ChevronDown className={`transition-transform duration-200 ${showDropdown ? 'rotate-180 text-[#003893]' : ''}`} size={16} />
+                <ChevronDown className={`transition-transform duration-200 ${showDropdown ? 'rotate-180 text-blue-600' : ''}`} size={16} />
               </button>
 
               {showDropdown && (
@@ -214,7 +214,7 @@ export default function NavbarClient() {
 
                     <div className="col-span-4 mb-1 flex justify-between items-center border-b border-slate-100 pb-3">
                       <h3 className="text-lg font-bold text-slate-900">Resources Hub</h3>
-                      <Link href="/resources" className="text-[#003893] font-semibold hover:underline flex items-center text-xs">
+                      <Link href="/resources" className="text-blue-600 font-semibold hover:underline flex items-center text-xs">
                         View All <ChevronRight size={14} className="ml-1" />
                       </Link>
                     </div>
@@ -226,13 +226,13 @@ export default function NavbarClient() {
                       { title: 'About Us', href: '/resources/about', items: RESOURCES_LINKS.about },
                     ].map(group => (
                       <div key={group.title}>
-                        <Link href={group.href} className="font-bold text-[#003893] mb-2.5 hover:underline block text-sm">
+                        <Link href={group.href} className="font-bold text-blue-600 mb-2.5 hover:underline block text-sm">
                           {group.title}
                         </Link>
                         <ul className="space-y-1.5 text-xs text-slate-600">
                           {group.items.map(item => (
                             <li key={item.href}>
-                              <Link href={item.href} className="hover:text-[#003893] hover:underline transition-colors block py-0.5">
+                              <Link href={item.href} className="hover:text-blue-600 hover:underline transition-colors block py-0.5">
                                 {item.label}
                               </Link>
                             </li>
@@ -249,8 +249,8 @@ export default function NavbarClient() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`hover:text-[#003893] transition-colors ${
-                  isActive(link.href) ? 'text-[#003893] font-bold underline underline-offset-8 decoration-2' : ''
+                className={`hover:text-blue-600 transition-colors ${
+                  isActive(link.href) ? 'text-blue-600 font-bold underline underline-offset-8 decoration-2' : ''
                 }`}
               >
                 {link.label}
@@ -260,7 +260,7 @@ export default function NavbarClient() {
             {/* CTA — min-w prevents CLS when text swaps from 'Get Started' to 'Profile' */}
             <Link
               href={isLoggedIn ? '/student/profile' : '/signup'}
-              className="bg-[#003893] hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl shadow-xs transition-all font-bold min-w-[125px] text-center inline-block text-[14.5px] xl:text-[15.5px] shrink-0 hover:shadow-md"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-500/20 transition-all font-bold min-w-[125px] text-center inline-block text-[14.5px] xl:text-[15.5px] shrink-0 hover:shadow-lg active:scale-[0.98]"
             >
               {isLoggedIn ? displayName : 'Get Started'}
             </Link>
@@ -269,7 +269,7 @@ export default function NavbarClient() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden text-[#003893] p-2 rounded-xl hover:bg-slate-100 transition-colors z-60 cursor-pointer"
+            className="lg:hidden text-blue-600 p-2 rounded-xl hover:bg-slate-100 transition-colors z-60 cursor-pointer"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
             {menuOpen ? <XIcon size={26} /> : <MenuIcon size={26} />}
@@ -285,14 +285,14 @@ export default function NavbarClient() {
       >
         <div className="p-6 space-y-4 font-medium overflow-y-auto h-full pt-24">
           <div className="absolute top-4 right-4">
-            <button onClick={() => setMenuOpen(false)} className="text-blue-900 text-3xl" aria-label="Close menu">
+            <button onClick={() => setMenuOpen(false)} className="text-slate-700 text-3xl hover:text-blue-600 transition-colors" aria-label="Close menu">
               <XIcon size={24} />
             </button>
           </div>
 
           <Link
             href="/"
-            className="block hover:text-blue-700 transition py-2 text-lg"
+            className="block hover:text-blue-600 transition py-2 text-lg"
           >
             Home
           </Link>
@@ -301,12 +301,12 @@ export default function NavbarClient() {
           <div>
             <button
               onClick={() => setShowDropdown(p => !p)}
-              className="flex items-center gap-1 w-full hover:text-blue-700 py-2 text-lg"
+              className="flex items-center gap-1 w-full hover:text-blue-600 py-2 text-lg"
             >
-              Resources <ChevronDown className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} size={15} />
+              Resources <ChevronDown className={`transition-transform ${showDropdown ? 'rotate-180 text-blue-600' : ''}`} size={15} />
             </button>
             {showDropdown && (
-              <div className="bg-gray-50 border p-4 mt-2 rounded-xl shadow space-y-4">
+              <div className="bg-gray-50 border border-slate-200/80 p-4 mt-2 rounded-xl shadow-xs space-y-4">
                 {[
                   { title: 'Exams', href: '/resources/exams', items: RESOURCES_LINKS.exams },
                   { title: 'Services', href: '/resources/services', items: RESOURCES_LINKS.services },
@@ -316,7 +316,7 @@ export default function NavbarClient() {
                   <div key={group.title}>
                     <Link href={group.href} className="text-blue-600 font-semibold block">{group.title}</Link>
                     {group.items.map(item => (
-                      <Link key={item.href} href={item.href} className="block pl-2 py-1 text-sm hover:text-blue-700">
+                      <Link key={item.href} href={item.href} className="block pl-2 py-1 text-sm hover:text-blue-600">
                         {item.label}
                       </Link>
                     ))}
@@ -330,7 +330,7 @@ export default function NavbarClient() {
             <Link
               key={link.href}
               href={link.href}
-              className="block hover:text-blue-700 transition py-2 text-lg"
+              className="block hover:text-blue-600 transition py-2 text-lg"
             >
               {link.label}
             </Link>
@@ -338,7 +338,7 @@ export default function NavbarClient() {
 
           <Link
             href={isLoggedIn ? '/student/profile' : '/signup'}
-            className="w-full block bg-blue-900 text-white py-2 rounded-lg shadow hover:bg-blue-800 transition font-semibold min-w-[120px] text-center"
+            className="w-full block bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl shadow-md shadow-blue-500/20 transition font-bold min-w-[120px] text-center"
           >
             {isLoggedIn ? displayName : 'Get Started'}
           </Link>

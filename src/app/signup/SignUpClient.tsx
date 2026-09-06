@@ -451,14 +451,14 @@ export default function SignUpClient() {
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-4xl lg:text-[36px] xl:text-[40px] font-extrabold text-slate-900 leading-[1.2] tracking-tight">
               Apply to up to{" "}
-              <span className="text-[#003893]">5 Malaysian Universities</span>{" "}
+              <span className="text-blue-600">5 Malaysian Universities</span>{" "}
               through one application process.
             </h1>
 
             {/* Subtitle */}
             <p className="text-slate-600 text-sm sm:text-base lg:text-[16.5px] leading-relaxed mt-3.5 mb-7 sm:mb-9 font-normal">
               Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
-              <span className="font-bold text-[#003893] underline decoration-blue-300 underline-offset-4">
+              <span className="font-bold text-blue-600 underline decoration-blue-300 underline-offset-4">
                 7 working days
               </span>
               .
@@ -468,7 +468,7 @@ export default function SignUpClient() {
             <div className="space-y-4 sm:space-y-4.5">
               {/* Point 1 */}
               <div className="flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
                   <FaCheckCircle className="text-blue-600 text-xl" />
                 </div>
                 <div>
@@ -483,8 +483,8 @@ export default function SignUpClient() {
 
               {/* Point 2 */}
               <div className="flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
-                  <FaBolt className="text-[#003893] text-xl" />
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
+                  <FaBolt className="text-blue-600 text-xl" />
                 </div>
                 <div>
                   <h3 className="text-base sm:text-[16.5px] font-bold text-slate-900">
@@ -574,7 +574,7 @@ export default function SignUpClient() {
                         name="country_code"
                         value={formData.country_code}
                         onChange={handleCountryCodeChange}
-                        className="appearance-none w-full pl-8 pr-6 py-2.5 sm:py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-[#003893] focus:ring-2 focus:ring-blue-500/10 transition-all text-xs sm:text-sm outline-none cursor-pointer"
+                        className="appearance-none w-full pl-8 pr-6 py-2.5 sm:py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-500/15 transition-all text-xs sm:text-sm outline-none cursor-pointer"
                         required
                       >
                         <option value="">Code</option>
@@ -590,7 +590,7 @@ export default function SignUpClient() {
                       <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
                     </div>
                     <div className="relative flex-1 group">
-                      <FaPhoneAlt className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#003893] transition-colors text-xs" />
+                      <FaPhoneAlt className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors text-xs" />
                       <input
                         type="tel"
                         placeholder="Phone number"
@@ -602,7 +602,7 @@ export default function SignUpClient() {
                             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
                             : phoneValid
                             ? "border-green-300 focus:border-green-500 focus:ring-green-100"
-                            : "border-gray-200 focus:border-[#003893] focus:ring-blue-500/10"
+                            : "border-gray-200 focus:border-blue-600 focus:ring-blue-500/15"
                         }`}
                         required
                       />
@@ -705,7 +705,7 @@ export default function SignUpClient() {
                     <button
                       type="button"
                       onClick={generateCaptcha}
-                      className="p-2 text-gray-500 hover:text-[#003893] hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-2xs cursor-pointer text-xs sm:text-sm"
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-200 shadow-2xs cursor-pointer text-xs sm:text-sm"
                       title="New captcha"
                     >
                       <LuRefreshCw />
@@ -716,7 +716,7 @@ export default function SignUpClient() {
                     placeholder="Enter security answer"
                     value={userCaptcha}
                     onChange={(e) => setUserCaptcha(e.target.value)}
-                    className="flex-1 px-3.5 py-2 sm:py-2.5 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:border-[#003893] focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-gray-400 font-medium"
+                    className="flex-1 px-3.5 py-2 sm:py-2.5 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all placeholder:text-gray-400 font-medium"
                     required
                   />
                 </div>
@@ -726,7 +726,7 @@ export default function SignUpClient() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 sm:py-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base mt-2"
+                className="w-full flex items-center justify-center gap-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 sm:py-4 rounded-xl shadow-md hover:shadow-lg shadow-blue-500/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base mt-2"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -747,7 +747,7 @@ export default function SignUpClient() {
                 Already have an account?
                 <Link
                   href="/login"
-                  className="font-bold text-[#003893] hover:text-blue-700 hover:underline ml-1 cursor-pointer"
+                  className="font-bold text-blue-600 hover:text-blue-700 hover:underline ml-1 cursor-pointer"
                 >
                   Sign In
                 </Link>

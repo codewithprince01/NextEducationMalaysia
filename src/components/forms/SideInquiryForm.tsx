@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { User, Mail, Phone, Flag, Send } from 'lucide-react'
+import { User, Mail, Phone, Flag, Send, ChevronDown, ShieldCheck } from 'lucide-react'
 import { toast } from 'react-toastify'
 
 type CountryRow = {
@@ -211,50 +211,62 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-[40px] border border-gray-100 shadow-2xl relative overflow-hidden"
+        className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden"
       >
-        <header className="flex items-center justify-center gap-4 mb-5 pt-2">
-          <Send className="text-blue-600 w-12 h-12 -rotate-12 shrink-0" />
-          <h2 className="text-4xl font-black text-gray-900 tracking-tight">
-            {title}
-          </h2>
-        </header>
+        {/* Header matching sidebar style */}
+        <div className="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <span className="w-1 h-5 bg-blue-600 rounded-full" />
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+              {title}
+            </h2>
+          </div>
+          <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            Admissions
+          </span>
+        </div>
 
-        <div className="space-y-3 relative">
-          <div className="space-y-3">
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                <User className="w-5 h-5" />
-              </div>
-              <input
-                type="text"
-                required
-                placeholder="Full Name"
-                value={form.name}
-                onChange={e => setField('name', e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 placeholder:text-gray-400 placeholder:font-medium shadow-xs"
-              />
-            </div>
+        <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+          Need expert admission guidance? Fill in your details below and our advisors will connect with you.
+        </p>
 
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                <Mail className="w-5 h-5" />
-              </div>
-              <input
-                type="email"
-                required
-                placeholder="Email Address"
-                value={form.email}
-                onChange={e => setField('email', e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 placeholder:text-gray-400 placeholder:font-medium shadow-xs"
-              />
+        <div className="space-y-3">
+          {/* Full Name */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+              <User className="w-4 h-4" />
             </div>
+            <input
+              type="text"
+              required
+              placeholder="Full Name"
+              value={form.name}
+              onChange={e => setField('name', e.target.value)}
+              className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400"
+            />
           </div>
 
-          <div className="flex gap-3">
+          {/* Email Address */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+              <Mail className="w-4 h-4" />
+            </div>
+            <input
+              type="email"
+              required
+              placeholder="Email Address"
+              value={form.email}
+              onChange={e => setField('email', e.target.value)}
+              className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400"
+            />
+          </div>
+
+          {/* Phone Code + Phone Number */}
+          <div className="flex gap-2">
             <select
               required
               value={form.phoneCode}
@@ -262,7 +274,7 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
                 setField('phoneCode', e.target.value)
                 syncNationalityFromCode(e.target.value)
               }}
-              className="w-24 px-3 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-800 shadow-xs appearance-none text-center"
+              className="w-24 px-2 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all text-xs sm:text-sm font-bold text-slate-800 text-center cursor-pointer"
             >
               {phoneCodeOptions.map((code) => (
                 <option key={code} value={code}>
@@ -272,8 +284,8 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
             </select>
 
             <div className="relative group flex-1">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                <Phone className="w-5 h-5" />
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+                <Phone className="w-4 h-4" />
               </div>
               <input
                 type="tel"
@@ -281,14 +293,15 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
                 placeholder="Phone Number"
                 value={form.phone}
                 onChange={e => void handlePhoneChange(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 placeholder:text-gray-400 placeholder:font-medium shadow-xs"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400"
               />
             </div>
           </div>
 
+          {/* Nationality Dropdown */}
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-blue-500 transition-colors">
-              <Flag className="w-5 h-5" />
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+              <Flag className="w-4 h-4" />
             </div>
             <select
               required
@@ -297,7 +310,7 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
                 setField('country', e.target.value)
                 syncCodeFromNationality(e.target.value)
               }}
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-bold text-gray-700 appearance-none shadow-xs"
+              className="w-full pl-10 pr-8 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all text-xs sm:text-sm font-medium text-slate-800 appearance-none cursor-pointer"
             >
               <option value="">Select Nationality</option>
               {countriesData.map((c, idx) => {
@@ -306,17 +319,18 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
                 return <option key={`${name}-${idx}`} value={name}>{name}</option>
               })}
             </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3 rounded-[22px] bg-linear-to-br from-gray-50 to-white border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-600/60 whitespace-nowrap">
-                Security Check:
+          {/* Security Check */}
+          <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
+              <span className="text-xs font-semibold text-slate-700">
+                Security Check: {securityCheck.first} - {securityCheck.second} =
               </span>
-              <p className="text-lg font-black text-gray-900 tracking-tight whitespace-nowrap">
-                {securityCheck.first} <span className="text-blue-500 mx-0.5">-</span> {securityCheck.second}{' '}
-                <span className="text-blue-500 mx-0.5">=</span>
-              </p>
             </div>
             <input
               type="text"
@@ -329,60 +343,62 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
                 if (!/^\d*$/.test(e.target.value)) return
                 setField('captcha', e.target.value)
               }}
-              className="w-full max-w-[110px] px-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none font-black text-lg text-center text-gray-700 placeholder:text-gray-300 shadow-xs"
+              className="w-20 px-3 py-1 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none font-bold text-center text-xs sm:text-sm text-slate-800"
             />
           </div>
 
-          <div className="flex items-start gap-3 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
+          {/* Terms Agreement */}
+          <div className="flex items-start gap-2.5 pt-0.5">
             <input
               type="checkbox"
               id="side-inquiry-agree"
               checked={form.agree}
               onChange={(e) => setAgree(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer mt-0.5"
+              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-600 transition-all cursor-pointer mt-0.5 shrink-0"
             />
             <label
               htmlFor="side-inquiry-agree"
-              className="text-xs text-gray-500 leading-relaxed cursor-pointer select-none"
+              className="text-[11px] sm:text-xs text-slate-500 leading-snug cursor-pointer select-none"
             >
-              I agree to the <span className="text-blue-600 font-bold hover:underline">Terms and Privacy Statement.</span>{' '}
-              I authorize Education Malaysia to contact me regarding my inquiry.
+              I agree to the <span className="text-blue-600 font-semibold hover:underline">Terms & Privacy</span>. I authorize Education Malaysia to contact me.
             </label>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={status === 'loading'}
-            className={`w-full bg-blue-600 text-white font-black py-3 rounded-xl shadow-lg hover:bg-blue-700 transition-all active:scale-[0.98] ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
+            className={`w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-500/20 transition-all active:scale-[0.99] flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            <span className="flex items-center justify-center gap-2 relative z-10">
-              {status === 'loading' ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Processing...
-                </>
-              ) : (
-                'Submit'
-              )}
-            </span>
+            {status === 'loading' ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Submitting...</span>
+              </>
+            ) : (
+              <>
+                <span>Submit Inquiry</span>
+                <Send className="w-3.5 h-3.5" />
+              </>
+            )}
           </button>
         </div>
       </form>

@@ -134,14 +134,14 @@ export default function LoginClient() {
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-4xl lg:text-[36px] xl:text-[40px] font-extrabold text-slate-900 leading-[1.2] tracking-tight">
               Apply to up to{' '}
-              <span className="text-[#003893]">5 Malaysian Universities</span>{' '}
+              <span className="text-blue-600">5 Malaysian Universities</span>{' '}
               through one application process.
             </h1>
 
             {/* Subtitle */}
             <p className="text-slate-600 text-sm sm:text-base lg:text-[16.5px] leading-relaxed mt-3.5 mb-7 sm:mb-9 font-normal">
               Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{' '}
-              <span className="font-bold text-[#003893] underline decoration-blue-300 underline-offset-4">
+              <span className="font-bold text-blue-600 underline decoration-blue-300 underline-offset-4">
                 7 working days
               </span>
               .
@@ -151,7 +151,7 @@ export default function LoginClient() {
             <div className="space-y-4 sm:space-y-4.5">
               {/* Point 1 */}
               <div className="flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
                   <FaCheckCircle className="text-blue-600 text-xl" />
                 </div>
                 <div>
@@ -166,8 +166,8 @@ export default function LoginClient() {
 
               {/* Point 2 */}
               <div className="flex items-start gap-4 p-4 sm:p-4.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
-                  <FaBolt className="text-[#003893] text-xl" />
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-xl border border-blue-100 shadow-2xs">
+                  <FaBolt className="text-blue-600 text-xl" />
                 </div>
                 <div>
                   <h3 className="text-base sm:text-[16.5px] font-bold text-slate-900">
@@ -252,13 +252,13 @@ export default function LoginClient() {
                     <input
                       type="checkbox"
                       id="remember"
-                      className="w-4 h-4 rounded border-slate-300 text-[#003893] focus:ring-[#003893]/20"
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/20"
                     />
                     <span>Remember for 30 days</span>
                   </label>
                   <Link
                     href="/account/password/reset"
-                    className="text-[#003893] hover:underline font-semibold transition-colors"
+                    className="text-blue-600 hover:underline font-semibold transition-colors"
                   >
                     Forgot password?
                   </Link>
@@ -268,7 +268,7 @@ export default function LoginClient() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#003893] to-blue-700 hover:from-blue-800 hover:to-blue-900 text-white font-bold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg shadow-blue-900/15 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base cursor-pointer mt-2"
+                className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg shadow-blue-500/20 transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base cursor-pointer mt-2"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -287,7 +287,7 @@ export default function LoginClient() {
               Don&apos;t have an account?{' '}
               <Link
                 href="/signup"
-                className="font-bold text-[#003893] hover:underline"
+                className="font-bold text-blue-600 hover:underline"
               >
                 Sign up for free
               </Link>

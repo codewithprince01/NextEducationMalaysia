@@ -48,7 +48,7 @@ export const ModernInput = ({
         className={`w-full ${compact ? "pl-9 pr-3 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl" : "pl-11 pr-4 py-2.5 sm:py-3 text-sm rounded-xl"} bg-gray-50 border text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-2 transition-all outline-none font-medium ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-            : "border-gray-200 focus:border-[#003893] focus:ring-blue-500/10"
+            : "border-gray-200 focus:border-blue-600 focus:ring-blue-500/15"
         }`}
       />
     </div>
@@ -103,7 +103,7 @@ export const ModernSelect = ({
         className={`appearance-none w-full ${compact ? "pl-9 pr-8 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl" : "pl-11 pr-10 py-2.5 sm:py-3 text-sm rounded-xl"} bg-gray-50 border text-gray-900 font-medium focus:bg-white focus:ring-2 transition-all outline-none cursor-pointer ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-            : "border-gray-200 focus:border-[#003893] focus:ring-blue-500/10"
+            : "border-gray-200 focus:border-blue-600 focus:ring-blue-500/15"
         }`}
       >
         <option value="" disabled hidden>
@@ -178,7 +178,7 @@ export const PasswordInput = ({
         className={`w-full ${compact ? "pl-9 pr-9 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl" : "pl-11 pr-12 py-2.5 sm:py-3 text-sm rounded-xl"} bg-gray-50 border text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-2 transition-all outline-none font-medium ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
-            : "border-gray-200 focus:border-[#003893] focus:ring-blue-500/10"
+            : "border-gray-200 focus:border-blue-600 focus:ring-blue-500/15"
         }`}
       />
       <button

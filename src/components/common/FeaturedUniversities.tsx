@@ -124,7 +124,7 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         {/* Header */}
         <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <span className="w-1 h-5 bg-[#003893] rounded-full" />
+            <span className="w-1 h-5 bg-blue-600 rounded-full" />
             <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
               Featured Universities
             </h2>
@@ -161,7 +161,7 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
 
                 {/* Details */}
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-slate-800 text-xs sm:text-sm leading-snug group-hover:text-[#003893] transition-colors line-clamp-1">
+                  <h4 className="font-bold text-slate-800 text-xs sm:text-sm leading-snug group-hover:text-blue-600 transition-colors line-clamp-1">
                     {uni.name}
                   </h4>
                   <div className="flex items-center text-[11px] text-slate-500 font-medium mt-1">
@@ -171,7 +171,7 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
                 </div>
 
                 {/* Hover Arrow */}
-                <div className="text-slate-300 group-hover:text-[#003893] group-hover:translate-x-0.5 transition-all shrink-0 pr-1">
+                <div className="text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all shrink-0 pr-1">
                   <ChevronRight className="w-4 h-4" />
                 </div>
               </Link>
@@ -183,7 +183,7 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         <div className="mt-2 pt-3 border-t border-slate-100">
           <Link
             href="/universities/international-school-in-malaysia"
-            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-bold text-[#003893] hover:text-blue-800 hover:bg-blue-50/50 rounded-xl transition-all"
+            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/60 rounded-xl transition-all"
           >
             <span>Explore All Institutions</span>
             <ArrowRight className="w-3 h-3" />
