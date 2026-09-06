@@ -214,7 +214,7 @@ function CourseCard({
             <div className="flex items-center justify-between gap-1.5 mb-3">
               <div className="flex items-center gap-1.5 flex-wrap">
                 {course.level && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200/80 shadow-2xs">
                     {course.level}
                   </span>
                 )}
@@ -225,8 +225,8 @@ function CourseCard({
                   </span>
                 )}
                 {Number(course.is_local) === 1 && (
-                  <span className="inline-flex items-center gap-1 bg-blue-50/70 text-[#003893] border border-blue-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                    <Home className="w-2.5 h-2.5 text-[#003893]" />
+                  <span className="inline-flex items-center gap-1 bg-blue-50/70 text-blue-600 border border-blue-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                    <Home className="w-2.5 h-2.5 text-blue-600" />
                     <span>Local</span>
                   </span>
                 )}
@@ -262,7 +262,7 @@ function CourseCard({
               <div className="min-w-0 flex-1">
                 <h3
                   onClick={() => onUniversityClick(course.university)}
-                  className="text-[14px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors truncate leading-tight"
+                  className="text-[14px] font-bold text-slate-900 hover:text-blue-600 cursor-pointer transition-colors truncate leading-tight"
                   title={course.university?.name}
                 >
                   {course.university?.name}
@@ -292,7 +292,7 @@ function CourseCard({
             <div className="mb-2.5">
               <h4
                 onClick={() => onViewDetail(course)}
-                className="text-[15px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-2"
+                className="text-[15px] font-bold text-slate-900 hover:text-blue-600 cursor-pointer transition-colors leading-snug line-clamp-2"
               >
                 {courseDisplayName}
               </h4>
@@ -313,7 +313,7 @@ function CourseCard({
                     <Icon className={`w-3 h-3 shrink-0 ${highlight ? 'text-blue-600' : 'text-slate-400'}`} />
                     {label}
                   </span>
-                  <span className={`text-xs font-bold line-clamp-1 uppercase ${highlight ? 'text-[#003893]' : 'text-slate-800'}`}>
+                  <span className={`text-xs font-bold line-clamp-1 uppercase ${highlight ? 'text-blue-600' : 'text-slate-800'}`}>
                     {value}
                   </span>
                 </div>
@@ -334,7 +334,7 @@ function CourseCard({
               <button
                 type="button"
                 onClick={() => onViewDetail(course)}
-                className="w-full cursor-pointer font-semibold py-2 px-2 rounded-xl border border-blue-200/80 bg-white hover:bg-blue-50/50 text-[#003893] transition-all text-xs text-center shadow-2xs truncate"
+                className="w-full cursor-pointer font-semibold py-2 px-2 rounded-xl border border-blue-200/80 bg-white hover:bg-blue-50/50 text-blue-600 transition-all text-xs text-center shadow-2xs truncate"
               >
                 View Detail
               </button>
@@ -346,7 +346,7 @@ function CourseCard({
               className={`w-full font-bold py-2.5 px-4 rounded-xl text-xs text-center transition-all shadow-md cursor-pointer ${
                 appliedCourses.has(course.id)
                   ? 'bg-emerald-600 text-white cursor-not-allowed'
-                  : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-lg active:scale-[0.99]'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20 hover:shadow-lg active:scale-[0.99]'
               }`}
             >
               {appliedCourses.has(course.id) ? 'Applied' : 'Apply Now'}
@@ -364,7 +364,7 @@ function CourseCard({
               <div className="flex items-center justify-between gap-2 mb-3">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {course.level && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200/80 shadow-2xs">
                       {course.level}
                     </span>
                   )}
@@ -403,7 +403,7 @@ function CourseCard({
                 <div className="min-w-0 flex-1">
                   <h3
                     onClick={() => onUniversityClick(course.university)}
-                    className="text-[14.5px] sm:text-[15.5px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-1"
+                    className="text-[14.5px] sm:text-[15.5px] font-bold text-slate-900 hover:text-blue-600 cursor-pointer transition-colors leading-snug line-clamp-1"
                     title={course.university?.name}
                   >
                     {course.university?.name}
@@ -434,7 +434,7 @@ function CourseCard({
               <div className="pb-2.5">
                 <h4
                   onClick={() => onViewDetail(course)}
-                  className="text-[15px] sm:text-[16px] font-bold text-slate-900 group-hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-2 min-h-[44px]"
+                  className="text-[15px] sm:text-[16px] font-bold text-slate-900 group-hover:text-blue-600 cursor-pointer transition-colors leading-snug line-clamp-2 min-h-[44px]"
                 >
                   {courseDisplayName}
                 </h4>
@@ -471,7 +471,7 @@ function CourseCard({
                       <Icon className={`w-3 h-3 shrink-0 ${highlight ? 'text-blue-600' : 'text-slate-400'}`} />
                       {label}
                     </span>
-                    <span className={`text-xs sm:text-[13px] font-bold line-clamp-1 ${highlight ? 'text-[#003893]' : 'text-slate-800'}`}>
+                    <span className={`text-xs sm:text-[13px] font-bold line-clamp-1 ${highlight ? 'text-blue-600' : 'text-slate-800'}`}>
                       {value}
                     </span>
                   </div>
@@ -491,7 +491,7 @@ function CourseCard({
                 </button>
                 <button
                   onClick={() => onViewDetail(course)}
-                  className="cursor-pointer font-semibold py-2 px-1.5 rounded-xl border border-blue-200/80 bg-white hover:bg-blue-50/50 text-[#003893] transition-all text-xs text-center shadow-2xs truncate"
+                  className="cursor-pointer font-semibold py-2 px-1.5 rounded-xl border border-blue-200/80 bg-white hover:bg-blue-50/50 text-blue-600 transition-all text-xs text-center shadow-2xs truncate"
                   title="View Course Details"
                 >
                   View Detail
@@ -503,7 +503,7 @@ function CourseCard({
                 className={`w-full font-bold py-2.5 px-2 rounded-xl text-xs text-center transition-all shadow-sm cursor-pointer ${
                   appliedCourses.has(course.id)
                     ? 'bg-emerald-600 text-white cursor-not-allowed'
-                    : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-md'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20 hover:shadow-md active:scale-[0.99]'
                 }`}
               >
                 {appliedCourses.has(course.id) ? 'Applied' : 'Apply Now'}
@@ -537,7 +537,7 @@ function CourseCard({
                 <div className="min-w-0 flex-1">
                   <h3
                     onClick={() => onUniversityClick(course.university)}
-                    className="text-[14px] sm:text-[15.5px] font-bold text-slate-900 hover:text-[#003893] cursor-pointer transition-colors truncate leading-tight"
+                    className="text-[14px] sm:text-[15.5px] font-bold text-slate-900 hover:text-blue-600 cursor-pointer transition-colors truncate leading-tight"
                     title={course.university?.name}
                   >
                     {course.university?.name}
@@ -567,7 +567,7 @@ function CourseCard({
               {/* Right Side Upper Corner: Degree (Level), Scholarship, Local/Int'l & Rating */}
               <div className="flex items-center justify-end gap-1.5 flex-wrap shrink-0">
                 {course.level && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-[#003893] border border-blue-200/80 shadow-2xs">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-200/80 shadow-2xs">
                     {course.level}
                   </span>
                 )}
@@ -580,8 +580,8 @@ function CourseCard({
                 )}
 
                 {Number(course.is_local) === 1 && (
-                  <span className="inline-flex items-center gap-1 bg-blue-50/70 text-[#003893] border border-blue-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                    <Home className="w-2.5 h-2.5 text-[#003893]" />
+                  <span className="inline-flex items-center gap-1 bg-blue-50/70 text-blue-600 border border-blue-200/70 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                    <Home className="w-2.5 h-2.5 text-blue-600" />
                     <span>Local</span>
                   </span>
                 )}
@@ -604,7 +604,7 @@ function CourseCard({
             <div className="py-2.5 flex-1">
               <h4
                 onClick={() => onViewDetail(course)}
-                className="font-bold text-slate-900 group-hover:text-[#003893] cursor-pointer transition-colors leading-snug line-clamp-2 text-[15.5px] sm:text-[17px]"
+                className="font-bold text-slate-900 group-hover:text-blue-600 cursor-pointer transition-colors leading-snug line-clamp-2 text-[15.5px] sm:text-[17px]"
               >
                 {courseDisplayName}
               </h4>
@@ -634,7 +634,7 @@ function CourseCard({
                     <Icon className="w-3 h-3 text-slate-400 shrink-0" />
                     {label}
                   </span>
-                  <span className={`text-xs sm:text-[13px] font-bold line-clamp-1 ${highlight ? 'text-[#003893]' : 'text-slate-800'}`}>
+                  <span className={`text-xs sm:text-[13px] font-bold line-clamp-1 ${highlight ? 'text-blue-600' : 'text-slate-800'}`}>
                     {value}
                   </span>
                 </div>
@@ -652,7 +652,7 @@ function CourseCard({
                 </button>
                 <button
                   onClick={() => onViewDetail(course)}
-                  className="flex-1 sm:flex-initial cursor-pointer font-semibold py-2 px-3.5 rounded-xl border border-blue-200/80 bg-blue-50/50 hover:bg-blue-100/60 text-[#003893] transition-all text-xs sm:text-[13px] shadow-2xs"
+                  className="flex-1 sm:flex-initial cursor-pointer font-semibold py-2 px-3.5 rounded-xl border border-blue-200/80 bg-blue-50/50 hover:bg-blue-100/60 text-blue-600 transition-all text-xs sm:text-[13px] shadow-2xs"
                 >
                   View Detail
                 </button>
@@ -664,7 +664,7 @@ function CourseCard({
                   className={`w-full sm:w-auto sm:min-w-[130px] font-bold py-2 px-4.5 rounded-xl text-xs sm:text-[13px] transition-all shadow-sm cursor-pointer ${
                     appliedCourses.has(course.id)
                       ? 'bg-emerald-600 text-white cursor-not-allowed'
-                      : 'bg-linear-to-r from-[#003893] to-blue-600 hover:from-blue-700 hover:to-blue-800 text-white hover:shadow-md'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20 hover:shadow-md active:scale-[0.99]'
                   }`}
                 >
                   {appliedCourses.has(course.id) ? 'Applied' : 'Apply Now'}
@@ -687,12 +687,12 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
       {/* Header */}
       <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#003893] flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <Filter className="w-4 h-4" />
           </div>
           <h2 className="text-[15.5px] font-bold text-slate-900 tracking-tight">Filters</h2>
           {activeFilterCount > 0 && (
-            <span className="flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold bg-[#003893] text-white rounded-full">
+            <span className="flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold bg-blue-600 text-white rounded-full">
               {activeFilterCount}
             </span>
           )}
@@ -721,14 +721,14 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
               <span className="font-semibold text-slate-800 text-[13.5px] capitalize flex items-center gap-2">
                 {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
                 {selectedFilters[key]?.length > 0 && (
-                  <span className="bg-[#003893] text-white text-[10.5px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
+                  <span className="bg-blue-600 text-white text-[10.5px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
                     {selectedFilters[key].length}
                   </span>
                 )}
               </span>
               <ChevronDown
                 className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                  openFilters[key] ? 'rotate-180 text-[#003893]' : ''
+                  openFilters[key] ? 'rotate-180 text-blue-600' : ''
                 }`}
               />
             </button>
@@ -744,7 +744,7 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
                         placeholder="Search specializations..."
                         value={specializationSearch}
                         onChange={e => onSpecializationSearch(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-[#003893] outline-none transition-all"
+                        className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -768,14 +768,14 @@ function DesktopFilterPanel({ loading, filters, selectedFilters, openFilters, ac
                         key={item.id || value}
                         className={`flex items-center gap-2.5 py-1.5 px-2.5 cursor-pointer rounded-lg transition-all text-left ${
                           isChecked
-                            ? 'bg-blue-50 text-[#003893] font-semibold'
+                            ? 'bg-blue-50 text-blue-600 font-semibold'
                             : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                         }`}
                       >
                         <input
                           type={isSingleSelect ? 'radio' : 'checkbox'}
                           name={`course-${key}-desktop`}
-                          className={`w-3.5 h-3.5 text-[#003893] border-slate-300 focus:ring-2 focus:ring-blue-500/20 shrink-0 cursor-pointer ${
+                          className={`w-3.5 h-3.5 text-blue-600 border-slate-300 focus:ring-2 focus:ring-blue-500/20 shrink-0 cursor-pointer ${
                             isSingleSelect ? 'rounded-full' : 'rounded'
                           }`}
                           checked={isChecked}
@@ -801,12 +801,12 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
       <div className="w-4/5 max-w-xs bg-white p-5 rounded-r-2xl shadow-2xl h-full overflow-y-auto scrollbar-hide space-y-4">
         <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#003893] flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
               <Filter className="w-4 h-4" />
             </div>
             <h2 className="text-[16px] font-bold text-slate-900">Filters</h2>
             {activeFilterCount > 0 && (
-              <span className="flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold bg-[#003893] text-white rounded-full">
+              <span className="flex items-center justify-center h-5 min-w-5 px-1.5 text-[11px] font-bold bg-blue-600 text-white rounded-full">
                 {activeFilterCount}
               </span>
             )}
@@ -831,12 +831,12 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                 <span className="font-semibold text-slate-800 text-[13px] capitalize flex items-center gap-2">
                   {key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}
                   {selectedFilters[key]?.length > 0 && (
-                    <span className="bg-[#003893] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
+                    <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full min-w-4 text-center">
                       {selectedFilters[key].length}
                     </span>
                   )}
                 </span>
-                {openFilters[key] ? <ChevronUp className="w-4 h-4 text-[#003893]" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                {openFilters[key] ? <ChevronUp className="w-4 h-4 text-blue-600" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
               </button>
               {openFilters[key] && (
                 <div className="px-2.5 pb-2.5 pt-1 space-y-1 max-h-56 overflow-y-auto border-t border-slate-200/50 bg-white scrollbar-hide">
@@ -849,7 +849,7 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                           placeholder="Search specializations..."
                           value={specializationSearch}
                           onChange={e => onSpecializationSearch(e.target.value)}
-                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-[#003893] outline-none"
+                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none"
                         />
                       </div>
                     </div>
@@ -868,13 +868,13 @@ function MobileFilterDrawer({ filters, selectedFilters, openFilters, activeFilte
                       <label
                         key={item.id || value}
                         className={`flex items-center gap-2 py-1.5 px-2 cursor-pointer rounded-lg transition-all text-left ${
-                          isChecked ? 'bg-blue-50 text-[#003893] font-semibold' : 'text-slate-700 hover:bg-slate-50'
+                          isChecked ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-slate-700 hover:bg-slate-50'
                         }`}
                       >
                         <input 
                           type={isSingleSelect ? "radio" : "checkbox"} 
                           name={`course-${key}-mobile`} 
-                          className={`w-3.5 h-3.5 text-[#003893] border-slate-300 focus:ring-2 focus:ring-blue-500/20 shrink-0 cursor-pointer ${
+                          className={`w-3.5 h-3.5 text-blue-600 border-slate-300 focus:ring-2 focus:ring-blue-500/20 shrink-0 cursor-pointer ${
                             isSingleSelect ? 'rounded-full' : 'rounded'
                           }`}
                           checked={isChecked} 
