@@ -104,14 +104,14 @@ export default function Footer() {
             <div className="flex items-center gap-2.5 shrink-0">
               <a
                 href="tel:+919818560331"
-                className="flex items-center gap-2 bg-[#003893] hover:bg-[#00286b] text-white px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition-all transform hover:-translate-y-0.5"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
               >
                 <PhoneIcon />
                 <span>Call Now</span>
               </a>
               <a
                 href="mailto:info@educationmalaysia.in"
-                className="flex items-center gap-2 bg-white hover:bg-blue-50 text-[#003893] border border-blue-200 hover:border-blue-300 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-2xs transition-all transform hover:-translate-y-0.5"
+                className="flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 hover:border-blue-300 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-2xs transition-all transform hover:-translate-y-0.5"
               >
                 <MailIcon />
                 <span>Email Us</span>
@@ -125,24 +125,24 @@ export default function Footer() {
           {/* Office */}
           <div className="col-span-2 sm:col-span-1">
             <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
               Our Office
             </h3>
             <div className="space-y-2.5 text-[13.5px]">
               <div className="flex items-start gap-2.5 text-slate-600">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 border border-blue-100/60 mt-0.5">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60 mt-0.5">
                   <MapPinIcon />
                 </div>
                 <span className="leading-snug">B-16 Ground Floor, Mayfield Garden, Sector 50, Gurugram, Haryana 122002</span>
               </div>
-              <a href="tel:+919818560331" className="flex items-center gap-2.5 text-slate-700 hover:text-blue-700 transition-colors group">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#003893] group-hover:bg-[#003893] group-hover:text-white flex items-center justify-center shrink-0 border border-blue-100/60 transition-colors">
+              <a href="tel:+919818560331" className="flex items-center gap-2.5 text-slate-700 hover:text-blue-600 transition-colors group">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center shrink-0 border border-blue-100/60 transition-colors">
                   <PhoneIcon />
                 </div>
                 <span className="font-medium">+91-98185-60331</span>
               </a>
-              <a href="mailto:info@educationmalaysia.in" className="flex items-center gap-2.5 text-slate-700 hover:text-blue-700 transition-colors group">
-                <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#003893] group-hover:bg-[#003893] group-hover:text-white flex items-center justify-center shrink-0 border border-blue-100/60 transition-colors">
+              <a href="mailto:info@educationmalaysia.in" className="flex items-center gap-2.5 text-slate-700 hover:text-blue-600 transition-colors group">
+                <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center shrink-0 border border-blue-100/60 transition-colors">
                   <MailIcon />
                 </div>
                 <span className="font-medium">info@educationmalaysia.in</span>
@@ -153,7 +153,7 @@ export default function Footer() {
           {/* Top Courses */}
           <div>
             <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
               Top Courses
             </h3>
             <ul className="space-y-1">
@@ -161,7 +161,7 @@ export default function Footer() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="group flex items-center text-slate-600 hover:text-blue-700 text-[13.5px] py-1 transition-all"
+                    className="group flex items-center text-slate-600 hover:text-blue-600 text-[13.5px] py-1 transition-all"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-600 transition-colors mr-2 shrink-0"></span>
                     <span className="group-hover:translate-x-0.5 transition-transform">{item.label}</span>
@@ -174,7 +174,7 @@ export default function Footer() {
           {/* Study Levels */}
           <div>
             <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
               Study Levels
             </h3>
             <ul className="space-y-1">
@@ -182,7 +182,7 @@ export default function Footer() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="group flex items-center text-slate-600 hover:text-blue-700 text-[13.5px] py-1 transition-all"
+                    className="group flex items-center text-slate-600 hover:text-blue-600 text-[13.5px] py-1 transition-all"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-600 transition-colors mr-2 shrink-0"></span>
                     <span className="group-hover:translate-x-0.5 transition-transform">{item.label}</span>
@@ -195,7 +195,7 @@ export default function Footer() {
           {/* Quick Links */}
           <div>
             <h3 className="text-slate-900 text-[14.5px] font-bold tracking-tight mb-3.5 flex items-center gap-2">
-              <span className="w-1.5 h-3.5 bg-[#003893] rounded-full"></span>
+              <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
               Quick Links
             </h3>
             <ul className="space-y-1">
@@ -203,7 +203,7 @@ export default function Footer() {
                 <li key={item.href}>
                   <Link 
                     href={item.href}
-                    className="group flex items-center text-slate-600 hover:text-blue-700 text-[13.5px] py-1 transition-all"
+                    className="group flex items-center text-slate-600 hover:text-blue-600 text-[13.5px] py-1 transition-all"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-blue-600 transition-colors mr-2 shrink-0"></span>
                     <span className="group-hover:translate-x-0.5 transition-transform">{item.label}</span>
@@ -216,7 +216,7 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="bg-gradient-to-r from-[#002466] via-[#003893] to-[#002466] py-3.5 border-t border-blue-950/30">
+      <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-700 py-3.5 border-t border-blue-500/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1 text-xs text-blue-100/90">
@@ -234,7 +234,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-[#003893] transition-all duration-300 flex items-center justify-center hover:scale-110 shadow-xs`}
+                  className={`w-8 h-8 rounded-full bg-white/10 hover:bg-white text-white hover:text-blue-600 transition-all duration-300 flex items-center justify-center hover:scale-110 shadow-xs`}
                 >
                   <Icon />
                 </a>
