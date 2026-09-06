@@ -363,35 +363,6 @@ export default function StudentProfileClient() {
 
   return (
     <div className="relative w-full space-y-6">
-      {/* Top Header Banner Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-full bg-linear-to-l from-blue-50/60 to-transparent pointer-events-none" />
-        <div className="relative z-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200/70 text-blue-700 text-xs font-semibold mb-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-              Student Portal
-            </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              My Profile & Academic Records
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Manage personal details, academic history, test scores, and visa documents in one place.
-            </p>
-          </div>
-          {student?.name && (
-            <div className="shrink-0 flex items-center gap-3 bg-slate-50/80 border border-slate-200/70 px-4 py-2.5 rounded-xl">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                {student.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900 leading-tight">{student.name}</p>
-                <p className="text-[11px] text-slate-500 truncate max-w-[160px]">{student.email}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Sticky Quick-Nav Tabs */}
       <div className="sticky top-16 md:top-20 z-20 -mx-1 px-1 sm:mx-0 sm:px-0">

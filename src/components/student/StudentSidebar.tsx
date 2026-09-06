@@ -172,22 +172,13 @@ export default function StudentSidebar({
         {/* Profile Header (Matching exact screenshot design) */}
         {!isCollapsed ? (
           <div className="bg-blue-600 px-5 pt-8 pb-6 text-center relative shrink-0">
-            {/* Collapse toggle button on top right of banner */}
-            {onToggleCollapse && (
-              <button
-                type="button"
-                onClick={onToggleCollapse}
-                className="hidden lg:flex items-center justify-center w-6 h-6 rounded-md bg-black/15 hover:bg-black/30 text-white transition absolute top-2.5 right-2.5 cursor-pointer z-20"
-                title="Collapse sidebar"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            )}
+            {/* Mobile close button (mobile drawer only) */}
             {onCloseMobile && (
               <button
                 type="button"
                 onClick={onCloseMobile}
-                className="lg:hidden p-1 rounded-md bg-black/15 text-white hover:bg-black/30 transition absolute top-2.5 right-2.5 cursor-pointer z-20"
+                className="lg:hidden p-1.5 rounded-lg bg-black/15 text-white hover:bg-black/30 transition absolute top-2.5 right-2.5 cursor-pointer z-20"
+                aria-label="Close sidebar"
               >
                 <X className="w-4 h-4" />
               </button>
