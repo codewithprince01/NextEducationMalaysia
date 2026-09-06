@@ -445,56 +445,69 @@ export default function SignUpClient() {
   return (
     <div className="w-full bg-white font-sans">
       <div className="w-full min-h-[calc(100vh-76px)] flex flex-col lg:flex-row items-stretch border-b border-slate-200/80">
-        {/* ── LEFT SIDE: CLEAN LIGHT THEME HERO PANEL ── */}
-        <div className="w-full lg:w-1/2 bg-gradient-to-br from-blue-50/90 via-sky-50/50 to-indigo-50/70 flex flex-col justify-between px-6 sm:px-10 lg:px-14 xl:px-20 pt-4 sm:pt-6 pb-8 sm:pb-12 text-left border-b lg:border-b-0 lg:border-r border-slate-200/80 relative">
+        {/* ── LEFT SIDE: SIMPLE & CLEAN HERO PANEL ── */}
+        <div className="w-full lg:w-1/2 bg-slate-50/70 flex flex-col justify-start px-6 sm:px-10 lg:px-12 xl:px-16 pt-4 sm:pt-6 pb-8 sm:pb-12 text-left border-b lg:border-b-0 lg:border-r border-slate-200/80">
           <div className="max-w-xl">
-            {/* Requested Main Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-[36px] xl:text-[40px] font-extrabold text-slate-900 leading-tight tracking-tight mb-2">
+            {/* Main Headline */}
+            <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-extrabold text-slate-900 leading-snug tracking-tight">
               Apply to up to{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#003893] to-blue-600">
-                5 Malaysian Universities
-              </span>{" "}
+              <span className="text-[#003893]">5 Malaysian Universities</span>{" "}
               through one application process.
             </h1>
 
-            {/* Requested Subtitle Content */}
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal mb-5">
+            {/* Subtitle */}
+            <p className="text-slate-600 text-sm sm:text-[15px] leading-relaxed mt-2.5 mb-6">
               Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
-              <span className="font-bold text-[#003893] underline decoration-blue-300 underline-offset-4">
+              <span className="font-semibold text-slate-900 underline decoration-blue-300 underline-offset-4">
                 7 working days
               </span>
               .
             </p>
 
-            {/* Value Points */}
-            <div className="space-y-3 mb-6">
-              <div className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all">
+            {/* Clean Value Cards */}
+            <div className="space-y-3.5">
+              {/* Point 1 */}
+              <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-base font-bold border border-blue-100">
-                  <FaCheckCircle className="text-blue-600" />
+                  <FaCheckCircle className="text-blue-600 text-lg" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900">5 Universities · 1 Single Form</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Apply to multiple institutions without repeating details.</p>
+                  <h3 className="text-[15px] font-bold text-slate-900">
+                    5 Universities · 1 Single Form
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-normal">
+                    Apply to multiple institutions without repeating details.
+                  </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-200/80 shadow-xs hover:border-emerald-200 transition-all">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 text-base font-bold border border-emerald-100">
-                  <FaBolt className="text-emerald-500" />
+              {/* Point 2 */}
+              <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-base font-bold border border-blue-100">
+                  <FaBolt className="text-[#003893] text-lg" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900">Offer Letter in 7 Working Days</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Fast-track eligibility check and streamlined admissions.</p>
+                  <h3 className="text-[15px] font-bold text-slate-900">
+                    Offer Letter in 7 Working Days
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-normal">
+                    Fast-track eligibility check and streamlined admissions.
+                  </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 p-3.5 sm:p-4 rounded-2xl bg-white/95 border border-slate-200/80 shadow-xs hover:border-amber-200 transition-all">
-                <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 text-base font-bold border border-amber-100">
-                  <FaStar className="text-amber-500" />
+              {/* Point 3 */}
+              <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white border border-slate-200/80 shadow-xs hover:border-blue-200 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#003893] flex items-center justify-center shrink-0 text-base font-bold border border-blue-100">
+                  <FaStar className="text-amber-500 text-lg" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900">100% Free Expert Guidance</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5">Personalised counselling from course matching to visa approval.</p>
+                  <h3 className="text-[15px] font-bold text-slate-900">
+                    100% Free Expert Guidance
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-0.5 leading-normal">
+                    Personalised counselling from course matching to visa approval.
+                  </p>
                 </div>
               </div>
             </div>
