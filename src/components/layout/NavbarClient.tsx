@@ -71,24 +71,35 @@ export default function NavbarClient() {
   const [showDropdown, setShowDropdown] = useState(false)
   const [isDropdownLocked, setIsDropdownLocked] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const [displayName, setDisplayName] = useState<string>('Profile')
   const [avatarImage, setAvatarImage] = useState<string | null>(null)
   const { isAuthenticated: isLoggedIn, user } = useAuth()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Sync avatar from localStorage or custom event
   useEffect(() => {
     const syncAvatar = () => {
       try {
         const saved = localStorage.getItem('student_profile_avatar')
-        if (saved) setAvatarImage(saved)
+        if (saved) {
+          setAvatarImage(saved)
+        }
       } catch {}
     }
     syncAvatar()
     window.addEventListener('student_avatar_updated', syncAvatar)
-    return () => window.removeEventListener('student_avatar_updated', syncAvatar)
-  }, [])
+    window.addEventListener('storage', syncAvatar)
+    return () => {
+      window.removeEventListener('student_avatar_updated', syncAvatar)
+      window.removeEventListener('storage', syncAvatar)
+    }
+  }, [isLoggedIn])
 
   const toDisplayName = (value: string): string => {
     const cleaned = String(value || '').trim()
@@ -163,6 +174,10 @@ export default function NavbarClient() {
         })
         const data = await res.json()
         const fetchedName = toDisplayName(String(data?.data?.student?.name || ''))
+        const fetchedPhoto = data?.data?.student?.profile_image || data?.data?.student?.photo || data?.data?.student?.avatar
+        if (!cancelled && fetchedPhoto && !localStorage.getItem('student_profile_avatar')) {
+          setAvatarImage(fetchedPhoto)
+        }
         if (!cancelled && fetchedName) {
           localStorage.setItem('student_name', fetchedName)
           setDisplayName(fetchedName)
@@ -280,7 +295,7 @@ export default function NavbarClient() {
             ))}
 
             {/* CTA — User profile when logged in, or Get Started */}
-            {isLoggedIn ? (
+            {mounted && isLoggedIn ? (
               <div className="flex items-center gap-3">
                 {/* Vertical separator line matching screenshot */}
                 <div className="h-8 w-[1px] bg-slate-200 shrink-0" aria-hidden="true" />
@@ -387,7 +402,7 @@ export default function NavbarClient() {
             </Link>
           ))}
 
-          {isLoggedIn ? (
+          {mounted && isLoggedIn ? (
             <Link
               href="/student/profile"
               onClick={() => setMenuOpen(false)}

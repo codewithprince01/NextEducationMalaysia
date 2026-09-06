@@ -86,8 +86,16 @@ export default function StudentSidebar({
     }
   };
 
-  const displayName = studentData?.name || user?.name || "Student";
-  const displayEmail = studentData?.email || user?.email || "";
+  const [mounted, setMounted] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const displayName = mounted ? (studentData?.name || user?.name || "Student") : "Student";
+  const displayEmail = mounted ? (studentData?.email || user?.email || "") : "";
 
   // Generate initials for avatar
   const initials = displayName
@@ -98,24 +106,71 @@ export default function StudentSidebar({
     .join("")
     .toUpperCase() || "ST";
 
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  // Compress & center-crop avatar image so it's ~20KB and never exceeds localStorage quota
+  const compressAndResizeAvatar = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onerror = () => resolve("");
+      reader.onload = () => {
+        const result = reader.result as string;
+        try {
+          const img = new Image();
+          img.onerror = () => resolve(result);
+          img.onload = () => {
+            try {
+              const canvas = document.createElement("canvas");
+              const MAX_SIZE = 256;
+              const minDim = Math.min(img.width, img.height);
+              const startX = (img.width - minDim) / 2;
+              const startY = (img.height - minDim) / 2;
 
-  // Load avatar from localStorage or studentData
+              canvas.width = MAX_SIZE;
+              canvas.height = MAX_SIZE;
+
+              const ctx = canvas.getContext("2d");
+              if (!ctx) {
+                resolve(result);
+                return;
+              }
+
+              ctx.imageSmoothingEnabled = true;
+              ctx.imageSmoothingQuality = "high";
+              ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, MAX_SIZE, MAX_SIZE);
+
+              // High-quality JPEG (~15-25KB, guaranteed to persist in localStorage)
+              const compressed = canvas.toDataURL("image/jpeg", 0.88);
+              resolve(compressed);
+            } catch {
+              resolve(result);
+            }
+          };
+          img.src = result;
+        } catch {
+          resolve(result);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Load avatar from localStorage or studentData on mount & when studentData changes
   useEffect(() => {
-    try {
-      const savedAvatar = localStorage.getItem("student_profile_avatar");
-      if (savedAvatar) {
-        setProfileImage(savedAvatar);
-      } else if (studentData?.profile_image || studentData?.photo || studentData?.avatar) {
-        setProfileImage(studentData.profile_image || studentData.photo || studentData.avatar);
+    const loadAvatar = () => {
+      try {
+        const savedAvatar = localStorage.getItem("student_profile_avatar");
+        if (savedAvatar) {
+          setProfileImage(savedAvatar);
+        } else if (studentData?.profile_image || studentData?.photo || studentData?.avatar) {
+          setProfileImage(studentData.profile_image || studentData.photo || studentData.avatar);
+        }
+      } catch (err) {
+        console.error("Error reading saved avatar:", err);
       }
-    } catch {
-      // ignore storage errors
-    }
+    };
+    loadAvatar();
   }, [studentData]);
 
-  // Listen to cross-component avatar updates
+  // Listen to cross-component & cross-tab avatar updates
   useEffect(() => {
     const handleAvatarUpdate = () => {
       try {
@@ -124,28 +179,36 @@ export default function StudentSidebar({
       } catch {}
     };
     window.addEventListener("student_avatar_updated", handleAvatarUpdate);
-    return () => window.removeEventListener("student_avatar_updated", handleAvatarUpdate);
+    window.addEventListener("storage", handleAvatarUpdate);
+    return () => {
+      window.removeEventListener("student_avatar_updated", handleAvatarUpdate);
+      window.removeEventListener("storage", handleAvatarUpdate);
+    };
   }, []);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        setProfileImage(result);
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file (PNG, JPG, JPEG, WEBP).");
+      return;
+    }
+
+    try {
+      const compressed = await compressAndResizeAvatar(file);
+      if (compressed) {
+        setProfileImage(compressed);
         try {
-          localStorage.setItem("student_profile_avatar", result);
+          localStorage.setItem("student_profile_avatar", compressed);
+          // Broadcast to navbar and all listeners
           window.dispatchEvent(new Event("student_avatar_updated"));
-        } catch (err) {
-          console.error("Failed to save avatar to localStorage:", err);
+        } catch (storageErr) {
+          console.error("Failed to save avatar to localStorage:", storageErr);
         }
-      };
-      reader.readAsDataURL(file);
+      }
+    } catch (err) {
+      console.error("Error processing photo upload:", err);
     }
   };
 
@@ -224,10 +287,16 @@ export default function StudentSidebar({
             </div>
 
             {/* Student Name & Email */}
-            <h2 className="mt-3.5 font-bold text-xl text-white tracking-tight leading-snug truncate px-1">
+            <h2
+              suppressHydrationWarning
+              className="mt-3.5 font-bold text-xl text-white tracking-tight leading-snug truncate px-1"
+            >
               {displayName}
             </h2>
-            <p className="text-xs text-blue-100 truncate mt-0.5 px-1 font-normal opacity-90">
+            <p
+              suppressHydrationWarning
+              className="text-xs text-blue-100 truncate mt-0.5 px-1 font-normal opacity-90"
+            >
               {displayEmail}
             </p>
           </div>
@@ -238,6 +307,7 @@ export default function StudentSidebar({
                 onClick={() => fileInputRef.current?.click()}
                 className="w-11 h-11 rounded-full bg-white shadow-md overflow-hidden flex items-center justify-center cursor-pointer ring-2 ring-white/30"
                 title={`${displayName} (${displayEmail}) - Click to upload photo`}
+                suppressHydrationWarning
               >
                 {profileImage ? (
                   <img
