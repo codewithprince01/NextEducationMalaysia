@@ -143,22 +143,13 @@ export default function UnpaidApplicationsClient() {
         {/* Quick Navigation to Paid Applications */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <Link
-            href="/student/applied-colleges"
+            href="/student/my-applications"
             className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-700 text-xs font-bold shadow-2xs transition"
           >
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>My Applications (Paid: {paidCount})</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
-        </div>
-      </div>
-
-      {/* Info Alert Strip */}
-      <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-start gap-3">
-        <Info className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-        <div className="text-xs text-amber-900 leading-relaxed">
-          <span className="font-bold">Next Steps for Unpaid Applications: </span>
-          Once you complete the application processing fee or submit your required documents, your university will issue an offer letter and your application will be marked as <strong>Paid & Confirmed</strong>.
         </div>
       </div>
 
@@ -183,7 +174,7 @@ export default function UnpaidApplicationsClient() {
             </Link>
             {paidCount > 0 && (
               <Link
-                href="/student/applied-colleges"
+                href="/student/my-applications"
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
               >
                 View Paid Applications ({paidCount})

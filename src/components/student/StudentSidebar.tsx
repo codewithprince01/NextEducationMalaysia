@@ -254,7 +254,7 @@ export default function StudentSidebar({
   const navLinks = [
     { href: "/student/overview", icon: LayoutDashboard, label: "Overview" },
     { href: "/student/profile", icon: User, label: "My Profile" },
-    { href: "/student/applied-colleges", icon: GraduationCap, label: "My Applications" },
+    { href: "/student/my-applications", icon: GraduationCap, label: "My Applications" },
     { href: "/student/unpaid-applications", icon: CreditCard, label: "Unpaid Applications" },
     { href: "/student/tasks", icon: ListTodo, label: "My Tasks" },
     { href: "/student/conversation", icon: MessageSquare, label: "Conversations" },
@@ -416,7 +416,7 @@ export default function StudentSidebar({
                   {!isCollapsed && <span className="truncate">{link.label}</span>}
 
                   {/* Badges */}
-                  {!isCollapsed && link.href === "/student/applied-colleges" && appCounts && appCounts.paid > 0 && (
+                  {!isCollapsed && link.href === "/student/my-applications" && appCounts && appCounts.paid > 0 && (
                     <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                       {appCounts.paid} Paid
                     </span>

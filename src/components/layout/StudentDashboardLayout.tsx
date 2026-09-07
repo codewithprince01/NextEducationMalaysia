@@ -39,7 +39,7 @@ export default function StudentDashboardLayout({ children }: { children: React.R
   const getPageTitle = () => {
     if (pathname?.includes('/tasks')) return 'My Tasks';
     if (pathname?.includes('/profile')) return 'My Profile';
-    if (pathname?.includes('/applied-colleges')) return 'My Applications';
+    if (pathname?.includes('/my-applications') || pathname?.includes('/applied-colleges')) return 'My Applications';
     if (pathname?.includes('/unpaid-applications')) return 'Unpaid Applications';
     if (pathname?.includes('/applications')) return 'Application Details';
     if (pathname?.includes('/conversation')) return 'Conversations';

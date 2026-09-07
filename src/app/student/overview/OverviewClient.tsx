@@ -429,7 +429,7 @@ export default function OverviewClient() {
 
         {/* Paid Applications Card */}
         <Link
-          href="/student/applied-colleges"
+          href="/student/my-applications"
           className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all group block"
         >
           <div className="flex items-center justify-between">
@@ -508,7 +508,7 @@ export default function OverviewClient() {
                 </div>
               </div>
               <Link
-                href="/student/applied-colleges"
+                href="/student/my-applications"
                 className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
               >
                 View All ({paidApps.length}) <ArrowUpRight className="w-3.5 h-3.5" />
@@ -584,7 +584,7 @@ export default function OverviewClient() {
               {paidApps.length} verified paid {paidApps.length === 1 ? 'application' : 'applications'}
             </span>
             <Link
-              href="/student/applied-colleges"
+              href="/student/my-applications"
               className="text-xs font-bold text-blue-600 hover:text-blue-800"
             >
               Manage Paid Applications &rarr;
@@ -704,7 +704,7 @@ export default function OverviewClient() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <Link
-            href="/student/applied-colleges"
+            href="/student/my-applications"
             className="flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
           >
             <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
