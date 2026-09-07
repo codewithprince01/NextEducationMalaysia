@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import PersonalInfoForm from "@/components/student/PersonalInfoForm";
 import EducationForm from "@/components/student/EducationForm";
 import TestScoresForm from "@/components/student/TestScoresForm";
 import BackgroundForm from "@/components/student/BackgroundForm";
-import DocumentUploadForm from "@/components/student/DocumentUploadForm";
-import { User, GraduationCap, Award, ShieldCheck, FileText } from "lucide-react";
+import DocumentUploadForm, { OFFICIAL_REQUIRED_DOCUMENTS } from "@/components/student/DocumentUploadForm";
+import { User, GraduationCap, Award, ShieldCheck, FileText, AlertCircle, ArrowRight } from "lucide-react";
 import {
   validateDateOfBirth,
   validateEmail,
@@ -87,6 +87,7 @@ export default function StudentProfileClient() {
   const [errors, setErrors] = useState<any>({});
   const [touched, setTouched] = useState<any>({});
   const [student, setStudent] = useState<any>(null);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [countriesData, setCountriesData] = useState<any[]>([]);
   const [phoneCode, setPhoneCode] = useState<any[]>([]);
@@ -98,6 +99,12 @@ export default function StudentProfileClient() {
     "Background Information": useRef<HTMLDivElement | null>(null),
     "Upload Documents": useRef<HTMLDivElement | null>(null),
   };
+
+  const missingDocs = useMemo(() => {
+    return OFFICIAL_REQUIRED_DOCUMENTS.filter((req) => {
+      return !documents.some((d) => req.match(String(d?.document_name || d?.doc_name || d?.imgname || '')));
+    });
+  }, [documents]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -114,14 +121,17 @@ export default function StudentProfileClient() {
 
     const loadProfile = async () => {
       try {
-        const res = await fetch(`${API_BASE}/student/profile`, { headers });
-        const json = await res.json();
-        if (!res.ok || !json?.data?.student) {
-          toast.error(json?.message || "Failed to load profile");
+        const [profileRes, docRes] = await Promise.all([
+          fetch(`${API_BASE}/student/profile`, { headers }).then((r) => r.json()).catch(() => null),
+          fetch(`${API_BASE}/student/documents`, { headers }).then((r) => r.json()).catch(() => null),
+        ]);
+
+        if (!profileRes?.data?.student && !profileRes?.student) {
+          toast.error(profileRes?.message || "Failed to load profile");
           return;
         }
 
-        const studentData = json.data.student;
+        const studentData = profileRes.data?.student || profileRes.student;
         setStudent(studentData);
         setFormData({
           ...INITIAL_FORM,
@@ -131,6 +141,12 @@ export default function StudentProfileClient() {
           c_code: studentData.c_code || studentData.country_code || "",
           country_code: studentData.country_code || studentData.c_code || "",
         });
+
+        if (Array.isArray(docRes?.data?.student_documents)) {
+          setDocuments(docRes.data.student_documents);
+        } else if (Array.isArray(docRes?.student_documents)) {
+          setDocuments(docRes.student_documents);
+        }
       } catch (err) {
         toast.error("Failed to load profile detail");
       } finally {
@@ -370,11 +386,13 @@ export default function StudentProfileClient() {
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
             {TABS.map(({ id, label }) => {
               const isActive = activeTab === id;
+              const isUploadTab = id === "Upload Documents";
+              const showBadge = isUploadTab && missingDocs.length > 0;
               return (
                 <button
                   key={id}
                   onClick={() => handleTabClick(id, (refs as any)[id])}
-                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap ${
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
                     isActive
                       ? "bg-blue-600 text-white shadow-xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
@@ -384,12 +402,57 @@ export default function StudentProfileClient() {
                     {tabIcons[id]}
                   </span>
                   {label}
+                  {showBadge && (
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                        isActive ? "bg-white text-rose-600" : "bg-rose-500 text-white"
+                      }`}
+                    >
+                      {missingDocs.length}
+                    </span>
+                  )}
                 </button>
               );
             })}
           </div>
         </div>
       </div>
+
+      {/* Missing Required Documents Alert Banner */}
+      {missingDocs.length > 0 && (
+        <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200/60">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-sm font-bold text-amber-950">
+                  Admission Alert: {missingDocs.length} Required Document{missingDocs.length > 1 ? "s" : ""} Missing
+                </h4>
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                  Action Required
+                </span>
+              </div>
+              <p className="text-xs text-amber-800 mt-1">
+                You have not uploaded these required documents yet:{" "}
+                <span className="font-semibold text-slate-900">
+                  {missingDocs.slice(0, 3).map((d) => d.dbName).join(", ")}
+                  {missingDocs.length > 3 ? ` + ${missingDocs.length - 3} more` : ""}
+                </span>
+                . Please upload them to complete your university application.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => handleTabClick("Upload Documents", refs["Upload Documents"])}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-xs transition whitespace-nowrap self-start sm:self-auto cursor-pointer"
+          >
+            Upload Missing Documents
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Sections */}
       <div className="space-y-8">

@@ -37,6 +37,7 @@ export default function StudentDashboardLayout({ children }: { children: React.R
 
   // Human-friendly title for the breadcrumb
   const getPageTitle = () => {
+    if (pathname?.includes('/tasks')) return 'My Tasks';
     if (pathname?.includes('/profile')) return 'My Profile';
     if (pathname?.includes('/applied-colleges')) return 'Applied Colleges';
     if (pathname?.includes('/conversation')) return 'Conversations';

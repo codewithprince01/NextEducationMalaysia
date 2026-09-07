@@ -16,6 +16,7 @@ import {
   X,
   Sparkles,
   SquarePen,
+  ListTodo,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -216,6 +217,7 @@ export default function StudentSidebar({
     { href: "/student/overview", icon: LayoutDashboard, label: "Overview" },
     { href: "/student/profile", icon: User, label: "My Profile" },
     { href: "/student/applied-colleges", icon: GraduationCap, label: "Applied Colleges" },
+    { href: "/student/tasks", icon: ListTodo, label: "My Tasks" },
     { href: "/student/conversation", icon: MessageSquare, label: "Conversations" },
     { href: "/student/change-password", icon: Lock, label: "Change Password" },
   ];
@@ -359,7 +361,7 @@ export default function StudentSidebar({
                   href={link.href}
                   onClick={onCloseMobile}
                   title={isCollapsed ? link.label : undefined}
-                  className={`flex items-center rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+                  className={`flex items-center rounded-xl text-xs sm:text-sm font-semibold transition-all relative ${
                     isCollapsed ? "justify-center p-2.5" : "gap-3 px-3.5 py-2.5"
                   } ${
                     isActive
@@ -373,6 +375,14 @@ export default function StudentSidebar({
                 >
                   <Icon className={`w-4 h-4 shrink-0 ${isActive ? (isCollapsed ? "text-white" : "text-blue-600") : "text-slate-400"}`} />
                   {!isCollapsed && <span className="truncate">{link.label}</span>}
+                  {!isCollapsed && link.href === "/student/tasks" && (
+                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200/60">
+                      Checklist
+                    </span>
+                  )}
+                  {isCollapsed && link.href === "/student/tasks" && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                  )}
                 </Link>
               );
             })}
