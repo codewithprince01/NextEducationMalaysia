@@ -242,7 +242,7 @@ export function evaluateStudentChecklist(
       title: 'Health Declaration Form',
       name: 'Health Declaration',
       missingTitle: 'Health Declaration Form Missing',
-      description: 'Completed medical health declaration form in accordance with Education Malaysia Global Services (EMGS) visa protocols.',
+      description: '',
       category: 'Required Documents',
       priority: 'recommended',
       isCompleted: isHealthComplete,
