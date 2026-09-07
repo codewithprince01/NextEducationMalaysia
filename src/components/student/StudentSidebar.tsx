@@ -17,6 +17,7 @@ import {
   Sparkles,
   SquarePen,
   ListTodo,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -213,10 +214,48 @@ export default function StudentSidebar({
     }
   };
 
+  const [appCounts, setAppCounts] = useState<{ paid: number; unpaid: number } | null>(null);
+
+  useEffect(() => {
+    const fetchAppCounts = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/student/applied-college`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+          },
+        });
+        const data = await res.json();
+        const apps = Array.isArray(data?.data?.applied_programs)
+          ? data.data.applied_programs
+          : Array.isArray(data?.applied_programs)
+          ? data.applied_programs
+          : [];
+        const isPaid = (c: any) => {
+          const s = String(c?.app_status || "").toLowerCase().trim();
+          return s === "paid" || s === "accepted" || s === "approved";
+        };
+        const paid = apps.filter((c: any) => isPaid(c)).length;
+        const unpaid = apps.length - paid;
+        setAppCounts({ paid, unpaid });
+      } catch {
+        // ignore
+      }
+    };
+
+    fetchAppCounts();
+    const handleUpdated = () => fetchAppCounts();
+    window.addEventListener('applied_colleges_updated', handleUpdated);
+    return () => window.removeEventListener('applied_colleges_updated', handleUpdated);
+  }, []);
+
   const navLinks = [
     { href: "/student/overview", icon: LayoutDashboard, label: "Overview" },
     { href: "/student/profile", icon: User, label: "My Profile" },
-    { href: "/student/applied-colleges", icon: GraduationCap, label: "Applied Colleges" },
+    { href: "/student/applied-colleges", icon: GraduationCap, label: "My Applications" },
+    { href: "/student/unpaid-applications", icon: CreditCard, label: "Unpaid Applications" },
     { href: "/student/tasks", icon: ListTodo, label: "My Tasks" },
     { href: "/student/conversation", icon: MessageSquare, label: "Conversations" },
     { href: "/student/change-password", icon: Lock, label: "Change Password" },
@@ -375,13 +414,29 @@ export default function StudentSidebar({
                 >
                   <Icon className={`w-4 h-4 shrink-0 ${isActive ? (isCollapsed ? "text-white" : "text-blue-600") : "text-slate-400"}`} />
                   {!isCollapsed && <span className="truncate">{link.label}</span>}
+
+                  {/* Badges */}
+                  {!isCollapsed && link.href === "/student/applied-colleges" && appCounts && appCounts.paid > 0 && (
+                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      {appCounts.paid} Paid
+                    </span>
+                  )}
+                  {!isCollapsed && link.href === "/student/unpaid-applications" && appCounts && appCounts.unpaid > 0 && (
+                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                      {appCounts.unpaid} Unpaid
+                    </span>
+                  )}
+                  {isCollapsed && link.href === "/student/unpaid-applications" && appCounts && appCounts.unpaid > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                  )}
+
                   {!isCollapsed && link.href === "/student/tasks" && (
-                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200/60">
+                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200/60">
                       Checklist
                     </span>
                   )}
                   {isCollapsed && link.href === "/student/tasks" && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white" />
                   )}
                 </Link>
               );

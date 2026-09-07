@@ -26,7 +26,10 @@ import {
   Check,
   UserCheck,
   ClipboardList,
-  Laptop
+  Laptop,
+  CreditCard,
+  Building2,
+  Wallet
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -43,12 +46,15 @@ export default function OverviewClient() {
     total: 0,
     accepted: 0,
     review: 0,
+    paidCount: 0,
+    unpaidCount: 0,
     progress: 0,
   });
-  const [recentApps, setRecentApps] = useState<any[]>([]);
+  const [paidApps, setPaidApps] = useState<any[]>([]);
+  const [unpaidApps, setUnpaidApps] = useState<any[]>([]);
   const [missingItems, setMissingItems] = useState<ChecklistItem[]>([]);
   const [completedItemsCount, setCompletedItemsCount] = useState(0);
-  const [totalItemsCount, setTotalItemsCount] = useState(8);
+  const [totalItemsCount, setTotalItemsCount] = useState(10);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,7 +102,18 @@ export default function OverviewClient() {
           if (dateA !== dateB) return dateB - dateA;
           return Number(b.id || 0) - Number(a.id || 0);
         });
-        setRecentApps(sorted.slice(0, 3));
+
+        // Separate Paid Applications vs Unpaid Applications
+        const isAppPaid = (c: any) => {
+          const s = String(c?.app_status || "").toLowerCase().trim();
+          return s === "paid" || s === "accepted" || s === "approved";
+        };
+
+        const paid = sorted.filter((c: any) => isAppPaid(c));
+        const unpaid = sorted.filter((c: any) => !isAppPaid(c));
+
+        setPaidApps(paid);
+        setUnpaidApps(unpaid);
 
         // 2. Profile & Documents Data
         const profileJson = profileRes ? await profileRes.json().catch(() => null) : null;
@@ -115,7 +132,14 @@ export default function OverviewClient() {
         setCompletedItemsCount(evaluated.completedCount);
         setTotalItemsCount(evaluated.totalCount);
         setMissingItems(evaluated.missingItems);
-        setStats({ total, accepted, review, progress: evaluated.progressPercent });
+        setStats({
+          total,
+          accepted,
+          review,
+          paidCount: paid.length,
+          unpaidCount: unpaid.length,
+          progress: evaluated.progressPercent,
+        });
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -403,180 +427,322 @@ export default function OverviewClient() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-emerald-200 transition-all">
+        {/* Paid Applications Card */}
+        <Link
+          href="/student/applied-colleges"
+          className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all group block"
+        >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{stats.accepted}</p>
-              <p className="text-xs font-semibold text-slate-500 mt-0.5">Accepted Offers</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-2xl sm:text-3xl font-black text-emerald-700 tracking-tight">{stats.paidCount}</p>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 uppercase">Paid</span>
+              </div>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5 group-hover:text-emerald-700 transition-colors">
+                My Applications (Paid)
+              </p>
             </div>
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 shadow-2xs">
-              <CheckCircle className="w-6 h-6" />
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-colors">
+              <CheckCircle2 className="w-6 h-6" />
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-amber-200 transition-all">
+        {/* Unpaid Applications Card */}
+        <Link
+          href="/student/unpaid-applications"
+          className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-sm transition-all group block"
+        >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{stats.review}</p>
-              <p className="text-xs font-semibold text-slate-500 mt-0.5">Under Review</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-2xl sm:text-3xl font-black text-amber-700 tracking-tight">{stats.unpaidCount}</p>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 uppercase">Pending</span>
+              </div>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5 group-hover:text-amber-700 transition-colors">
+                Unpaid Applications
+              </p>
             </div>
-            <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0 shadow-2xs">
-              <Clock className="w-6 h-6" />
+            <div className="w-12 h-12 bg-amber-50 text-amber-600 group-hover:bg-amber-100 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-colors">
+              <CreditCard className="w-6 h-6" />
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-indigo-200 transition-all">
+        {/* Profile Progress Card */}
+        <Link
+          href="/student/tasks"
+          className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all group block"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{stats.progress}%</p>
-              <p className="text-xs font-semibold text-slate-500 mt-0.5">Profile Completion</p>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5 group-hover:text-indigo-700 transition-colors">
+                Profile Completion
+              </p>
             </div>
-            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 rounded-xl flex items-center justify-center shrink-0 shadow-2xs transition-colors">
               <TrendingUp className="w-6 h-6" />
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
-      {/* Main Grid: Recent Applications & Quick Actions */}
+      {/* 🌟 Two Distinct Application Showcase Modules */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Applications Card */}
+        {/* Module 1: My Applications (Paid Universities) */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">Recent Applications</h2>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                    My Applications (Paid)
+                  </h2>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Universities with confirmed admission fee payment
+                  </p>
+                </div>
+              </div>
               <Link
                 href="/student/applied-colleges"
-                className="text-xs text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
+                className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
               >
-                View All <ArrowUpRight className="w-3.5 h-3.5" />
+                View All ({paidApps.length}) <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
             <div className="space-y-3">
-              {recentApps.length > 0 ? (
-                recentApps.map((app, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/60 hover:border-slate-300 transition"
-                  >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          String(app?.app_status || "").toLowerCase() === "accepted"
-                            ? "bg-emerald-100 text-emerald-600"
-                            : "bg-blue-100 text-blue-600"
-                        }`}
-                      >
-                        {String(app?.app_status || "").toLowerCase() === "accepted" ? (
-                          <CheckCircle className="w-5 h-5" />
-                        ) : (
-                          <FileText className="w-5 h-5" />
-                        )}
+              {paidApps.length > 0 ? (
+                paidApps.slice(0, 3).map((app, index) => {
+                  const program = app?.university_program || app?.university_programs || {};
+                  const university = program?.university || {};
+
+                  return (
+                    <div
+                      key={app.id || index}
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50/40 border border-emerald-200/60 hover:border-emerald-300 transition"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
+                          <Building2 className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                            {program?.course_name || app?.program || "Course Application"}
+                          </p>
+                          <p className="text-xs text-slate-600 truncate mt-0.5 font-medium">
+                            {university?.name || app?.university || "University"}
+                          </p>
+                          <p className="flex items-center gap-1 text-[11px] text-slate-400 mt-1">
+                            <Calendar className="w-3 h-3" />
+                            <span>Submitted: {formatDate(app?.created_at || app?.updated_at)}</span>
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-slate-900 text-xs sm:text-sm truncate">
-                          {app?.university_program?.course_name || "Course Application"}
-                        </p>
-                        <p className="text-xs text-slate-500 truncate mt-0.5">
-                          {app?.university_program?.university?.name || "University"}
-                        </p>
-                        <p className="flex items-center gap-1 text-[11px] text-slate-400 mt-1">
-                          <Calendar className="w-3 h-3" />
-                          <span>Updated {formatDate(app?.created_at || app?.updated_at)}</span>
-                        </p>
+                      <div className="shrink-0 pl-2">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full uppercase bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                          <CheckCircle2 className="w-3 h-3" />
+                          Paid & Confirmed
+                        </span>
                       </div>
                     </div>
-                    <div className="shrink-0 pl-2">
-                      <span
-                        className={`inline-block px-2.5 py-1 text-[10px] font-bold rounded-full uppercase border ${getStatusColor(
-                          app?.app_status,
-                        )}`}
-                      >
-                        {app?.app_status || "PENDING"}
-                      </span>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <div className="text-center py-12 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-                  <FileText className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                  <p className="font-bold text-slate-700 text-sm">No applications submitted yet</p>
-                  <p className="text-xs text-slate-400 mt-1 mb-3">Explore programs from Malaysian universities.</p>
+                <div className="text-center py-10 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                    <GraduationCap className="w-5 h-5" />
+                  </div>
+                  <p className="font-bold text-slate-700 text-sm">No paid applications yet</p>
+                  <p className="text-xs text-slate-400 mt-1 mb-3 max-w-xs mx-auto">
+                    Once you submit the processing fee for your applied course, your confirmed universities will show here.
+                  </p>
                   <Link
                     href="/courses-in-malaysia"
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-2xs"
                   >
-                    Browse Courses
+                    Browse University Programs
                   </Link>
                 </div>
               )}
             </div>
           </div>
-        </div>
 
-        {/* Quick Actions Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
-          <div className="pb-4 mb-5 border-b border-slate-100">
-            <h2 className="text-base sm:text-lg font-bold text-slate-900">Quick Actions</h2>
-            <p className="text-xs text-slate-500">Shortcuts to manage your applications and documents</p>
-          </div>
-
-          <div className="space-y-3">
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-xs text-slate-500 font-medium">
+              {paidApps.length} verified paid {paidApps.length === 1 ? 'application' : 'applications'}
+            </span>
             <Link
               href="/student/applied-colleges"
-              className="w-full flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
+              className="text-xs font-bold text-blue-600 hover:text-blue-800"
             >
-              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                <Eye className="w-5 h-5" />
-              </div>
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-bold text-slate-800">View All Applications</p>
-                <p className="text-[11px] text-slate-500">Review status of your course submissions</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/student/profile"
-              className="w-full flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                <Award className="w-5 h-5" />
-              </div>
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-bold text-slate-800">Update Profile & Documents</p>
-                <p className="text-[11px] text-slate-500">Upload transcripts, passports, and test scores</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/student/conversation"
-              className="w-full flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                <MessageCircle className="w-5 h-5" />
-              </div>
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-bold text-slate-800">Conversations & Messages</p>
-                <p className="text-[11px] text-slate-500">Chat with education counselors & advisors</p>
-              </div>
-            </Link>
-
-            <Link
-              href="/contact-us"
-              className="w-full flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                <Plane className="w-5 h-5" />
-              </div>
-              <div className="text-left flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-bold text-slate-800">Visa & Admissions Support</p>
-                <p className="text-[11px] text-slate-500">Get free expert guidance for student visas</p>
-              </div>
+              Manage Paid Applications &rarr;
             </Link>
           </div>
+        </div>
+
+        {/* Module 2: Unpaid Applications (Payment Pending) */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                    Unpaid Applications
+                  </h2>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Applications submitted with pending fee payment
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/student/unpaid-applications"
+                className="text-xs text-amber-700 hover:text-amber-900 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
+              >
+                View All ({unpaidApps.length}) <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="space-y-3">
+              {unpaidApps.length > 0 ? (
+                unpaidApps.slice(0, 3).map((app, index) => {
+                  const program = app?.university_program || app?.university_programs || {};
+                  const university = program?.university || {};
+
+                  return (
+                    <div
+                      key={app.id || index}
+                      className="flex items-center justify-between p-3.5 rounded-xl bg-amber-50/40 border border-amber-200/60 hover:border-amber-300 transition"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+                          <Building2 className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-slate-900 text-xs sm:text-sm truncate">
+                            {program?.course_name || app?.program || "Course Application"}
+                          </p>
+                          <p className="text-xs text-slate-600 truncate mt-0.5 font-medium">
+                            {university?.name || app?.university || "University"}
+                          </p>
+                          <p className="flex items-center gap-1 text-[11px] text-slate-400 mt-1">
+                            <Clock className="w-3 h-3" />
+                            <span>Submitted: {formatDate(app?.created_at || app?.updated_at)}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 pl-2">
+                        <Link
+                          href="/student/unpaid-applications"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold rounded-full uppercase bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300 shadow-2xs transition"
+                        >
+                          <Clock className="w-3 h-3 text-amber-600" />
+                          Unpaid (Pending)
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-10 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <p className="font-bold text-slate-700 text-sm">No unpaid applications</p>
+                  <p className="text-xs text-slate-400 mt-1 mb-3 max-w-xs mx-auto">
+                    You have no pending application fees. Apply to more Malaysian universities anytime.
+                  </p>
+                  <Link
+                    href="/courses-in-malaysia"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition shadow-2xs"
+                  >
+                    Apply for New Program
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-xs text-slate-500 font-medium">
+              {unpaidApps.length} {unpaidApps.length === 1 ? 'application' : 'applications'} pending fee payment
+            </span>
+            <Link
+              href="/student/unpaid-applications"
+              className="text-xs font-bold text-amber-700 hover:text-amber-900"
+            >
+              Complete Fee Payment &rarr;
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions Card Grid */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
+        <div className="pb-4 mb-5 border-b border-slate-100">
+          <h2 className="text-base sm:text-lg font-bold text-slate-900">Quick Dashboard Actions</h2>
+          <p className="text-xs text-slate-500">Shortcuts to manage your applications, profile, and counselor guidance</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <Link
+            href="/student/applied-colleges"
+            className="flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-bold text-slate-800">My Applications</p>
+              <p className="text-[11px] text-slate-500">View paid applications</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/student/unpaid-applications"
+            className="flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <CreditCard className="w-5 h-5" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-bold text-slate-800">Unpaid Applications</p>
+              <p className="text-[11px] text-slate-500">Manage pending fees</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/student/tasks"
+            className="flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <ClipboardList className="w-5 h-5" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-bold text-slate-800">My Tasks Checklist</p>
+              <p className="text-[11px] text-slate-500">Upload pending documents</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/student/conversation"
+            className="flex items-center gap-3.5 p-3.5 rounded-xl border border-slate-200/60 bg-slate-50/60 hover:bg-slate-100/80 hover:border-slate-300 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <MessageCircle className="w-5 h-5" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <p className="text-xs sm:text-sm font-bold text-slate-800">Counselor Messages</p>
+              <p className="text-[11px] text-slate-500">Chat with education experts</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
