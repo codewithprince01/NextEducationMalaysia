@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Sparkles,
   Check,
-  Info
+  Info,
+  Eye
 } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
@@ -292,11 +293,11 @@ export default function AppliedCollegesClient() {
                   {/* Right Actions */}
                   <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-2.5 shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
                     <Link
-                      href="/courses-in-malaysia"
+                      href={`/student/applications/${course.id}`}
                       className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-2xs transition"
                     >
-                      <span>Explore More Courses</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>View Application</span>
                     </Link>
 
                     <button
