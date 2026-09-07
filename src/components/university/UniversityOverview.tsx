@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PopularCourses from './PopularCourses'
 import { storageUrl } from '@/lib/constants'
@@ -117,11 +117,45 @@ export default function UniversityOverview({
     [overviews]
   )
 
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.replace('#', '')
+      if (hash) {
+        const timer = setTimeout(() => {
+          const el = document.getElementById(hash)
+          if (el) {
+            const headerOffset = 150
+            const elPosition = el.getBoundingClientRect().top
+            const offsetPos = elPosition + window.scrollY - headerOffset
+            window.scrollTo({
+              top: Math.max(0, offsetPos),
+              behavior: 'smooth'
+            })
+          }
+        }, 150)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [])
+
   const scrollToSection = (index: number, sectionSlug: string) => {
-    const element = sectionRefs.current[index]
+    const element = document.getElementById(sectionSlug) || sectionRefs.current[index]
     if (element) {
-      window.history.pushState(null, '', `#${sectionSlug}`)
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      // Offset calculation for sticky header (navbar ~76px + sticky university tabs ~55px + 20px breathing room)
+      const headerOffset = 150
+      const elementPosition = element.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.scrollY - headerOffset
+
+      if (typeof window !== 'undefined') {
+        try {
+          window.history.replaceState(null, '', `#${sectionSlug}`)
+        } catch {}
+
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth'
+        })
+      }
     }
   }
 
@@ -169,10 +203,11 @@ export default function UniversityOverview({
             {validSections.map((section, index) => {
               const sectionSlug = createSlug(section.tab || '')
               return (
-                <div
-                  key={section.id}
+                <button
+                  type="button"
+                  key={section.id || index}
                   onClick={() => scrollToSection(index, sectionSlug)}
-                  className="flex items-center gap-3 bg-white rounded-xl p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group border border-gray-50"
+                  className="flex items-center gap-3 bg-white rounded-xl p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group border border-gray-50 text-left w-full focus:outline-none"
                 >
                   <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-[10px] font-black group-hover:scale-110 transition-transform shadow-md shadow-blue-600/10">
                     {index + 1}
@@ -180,7 +215,7 @@ export default function UniversityOverview({
                   <span className="text-xs sm:text-sm text-gray-700 font-bold group-hover:text-blue-700 transition-colors line-clamp-1">
                     {section.tab}
                   </span>
-                </div>
+                </button>
               )
             })}
           </div>
@@ -210,10 +245,10 @@ export default function UniversityOverview({
           const sectionSlug = createSlug(section.tab || '')
           return (
             <div
-              key={section.id}
+              key={section.id || index}
               id={sectionSlug}
               ref={el => { sectionRefs.current[index] = el }}
-              className="space-y-6 scroll-mt-24"
+              className="space-y-6 scroll-mt-40"
             >
               <div className="border-l-4 border-blue-600 pl-4">
                 <h2 className="text-2xl font-bold text-blue-900">{section.tab}</h2>
