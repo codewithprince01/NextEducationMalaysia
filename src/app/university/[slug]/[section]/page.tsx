@@ -57,32 +57,23 @@ export default async function UniversitySectionPage({ params }: Props) {
       })
 
       if (uni) {
-        const [total, programs, levels, categories, specializations, studyModesRaw] = await Promise.all([
-          prisma.universityProgram.count({ where: { university_id: uni.id, status: 1 } as any }),
-          prisma.universityProgram.findMany({
-            where: { university_id: uni.id, status: 1 } as any,
-            select: {
-              id: true,
-              course_name: true,
-              slug: true,
-              level: true,
-              duration: true,
-              tution_fee: true,
-              intake: true,
-              study_mode: true,
-              application_deadline: true,
-              accreditations: true,
-              university_id: true,
-            },
-            orderBy: { course_name: 'asc' },
-            take: 10,
-          }),
-          prisma.universityProgram.findMany({
-            where: { university_id: uni.id, status: 1, level: { not: null } } as any,
-            select: { level: true },
-            distinct: ['level'],
-            orderBy: { level: 'asc' },
-          }),
+        const [totalRes, programsRaw, levelsRaw, categories, specializations, studyModesRaw] = await Promise.all([
+          prisma.$queryRawUnsafe(
+            `SELECT COUNT(*) as total FROM university_programs WHERE university_id = ? AND status = 1`,
+            uni.id
+          ) as Promise<any[]>,
+          prisma.$queryRawUnsafe(
+            `SELECT id, course_name, slug, level, duration, tution_fee, intake, study_mode, application_deadline, accreditations, university_id
+             FROM university_programs
+             WHERE university_id = ? AND status = 1
+             ORDER BY course_name ASC
+             LIMIT 10`,
+            uni.id
+          ) as Promise<any[]>,
+          prisma.$queryRawUnsafe(
+            `SELECT DISTINCT level FROM university_programs WHERE university_id = ? AND status = 1 AND level IS NOT NULL ORDER BY level ASC`,
+            uni.id
+          ) as Promise<any[]>,
           prisma.$queryRawUnsafe(
             `SELECT DISTINCT cc.id, cc.name
              FROM university_programs up
@@ -106,6 +97,15 @@ export default async function UniversitySectionPage({ params }: Props) {
             uni.id
           ) as Promise<any[]>,
         ])
+
+        const total = Number(totalRes[0]?.total || 0)
+        const programs = (programsRaw || []).map((p: any) => ({
+          ...p,
+          id: Number(p.id),
+          university_id: Number(p.university_id),
+          tution_fee: p.tution_fee != null ? String(p.tution_fee) : '',
+        }))
+        const levels = levelsRaw || []
 
         const study_modes = Array.from(
           new Set(

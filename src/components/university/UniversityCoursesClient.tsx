@@ -100,10 +100,6 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
   const [showFormSuccess, setShowFormSuccess] = useState(false)
   const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-  }, [])
-
   // Initial filters from URL
   useEffect(() => {
     const init: { [key: string]: any[] } = {}
@@ -208,6 +204,15 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
     setPage(newPage)
     const url = newPage === 1 ? `/university/${slug}/courses` : `/university/${slug}/courses/page-${newPage}`
     startTransition(() => router.replace(url, { scroll: false }))
+    if (typeof window !== 'undefined') {
+      const tabs = document.getElementById('university-tabs')
+      if (tabs) {
+        const nav = document.querySelector('nav')
+        const navHeight = nav ? nav.getBoundingClientRect().height : 76
+        const y = tabs.getBoundingClientRect().top + window.scrollY - navHeight
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+      }
+    }
   }
 
   const handleFiltersChange = (filters: { [key: string]: any[] }) => {
