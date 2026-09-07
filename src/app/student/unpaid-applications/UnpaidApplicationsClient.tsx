@@ -263,14 +263,6 @@ export default function UnpaidApplicationsClient() {
                       <span>View Application</span>
                     </Link>
 
-                    <Link
-                      href="/contact-us"
-                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-2xs transition"
-                    >
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Complete Fee Payment</span>
-                    </Link>
-
                     <button
                       type="button"
                       onClick={() => setDeleteTargetId(course.id)}

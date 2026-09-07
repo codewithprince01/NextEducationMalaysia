@@ -689,7 +689,7 @@ export default function OverviewClient() {
               href="/student/unpaid-applications"
               className="text-xs font-bold text-amber-700 hover:text-amber-900"
             >
-              Complete Fee Payment &rarr;
+              View Unpaid Applications &rarr;
             </Link>
           </div>
         </div>
