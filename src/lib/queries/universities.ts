@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
+import { getContentVersion } from './contentVersion'
 
 export const getFeaturedUniversities = unstable_cache(
   () =>
@@ -175,86 +176,95 @@ export const getUniversityBySlug = unstable_cache(
   { revalidate: 86400, tags: ['universities', 'seo'] },
 )
 
-export const getUniversityFull = unstable_cache(
-  async (slug: string) => {
-    // 1. Fetch main university data via raw SQL to handle 0000-00-00 dates and type mismatches
-    const universities: any[] = await prisma.$queryRawUnsafe(`
-      SELECT * FROM universities WHERE uname = ? AND status = 1 LIMIT 1
-    `, slug)
+async function fetchUniversityFull(slug: string) {
+  // 1. Fetch main university data via raw SQL to handle 0000-00-00 dates and type mismatches
+  const universities: any[] = await prisma.$queryRawUnsafe(`
+    SELECT * FROM universities WHERE uname = ? AND status = 1 LIMIT 1
+  `, slug)
 
-    if (!universities.length) return null
-    const university = universities[0]
+  if (!universities.length) return null
+  const university = universities[0]
 
-    const universityId = Number(university.id)
+  const universityId = Number(university.id)
 
-    // 2. Fetch relations via raw SQL to bypass zero-date validation issues.
-    // Avoid selecting created_at/updated_at columns because legacy rows may contain
-    // invalid values like 0000-00-00 00:00:00.
-    const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews] = await Promise.all([
-      prisma.$queryRawUnsafe(
-        `SELECT id, university_id, photo_path, is_featured FROM university_photos WHERE university_id = ? ORDER BY is_featured DESC, id ASC`,
-        universityId
-      ) as Promise<any[]>,
-      prisma.$queryRawUnsafe(`SELECT course_name FROM university_programs WHERE university_id = ? AND status = 1`, universityId) as Promise<any[]>,
-      prisma.$queryRawUnsafe(`SELECT type FROM institute_types WHERE id = ?`, Number(university.institute_type)) as Promise<any[]>,
-      (async () => {
-        try {
-          return await prisma.$queryRawUnsafe(
-            `SELECT id, title, description, position FROM university_overviews WHERE university_id = ? ORDER BY position ASC, id ASC`,
-            universityId
-          ) as any[]
-        } catch {
-          return await prisma.$queryRawUnsafe(
-            `SELECT id, title, description FROM university_overviews WHERE university_id = ? ORDER BY id ASC`,
-            universityId
-          ) as any[]
-        }
-      })(),
-      prisma.$queryRawUnsafe(
-        `SELECT COUNT(*) as total FROM university_scholarships WHERE u_id = ?`,
-        universityId
-      ) as Promise<any[]>,
-      prisma.$queryRawUnsafe(
-        `SELECT COUNT(*) AS review_count, ROUND(AVG(rating), 1) AS average_rating
-         FROM reviews
-         WHERE university_id = ? AND status = 1`,
-        universityId
-      ) as Promise<any[]>,
-      prisma.$queryRawUnsafe(
-        `SELECT name, description, rating
-         FROM reviews
-         WHERE university_id = ?
-           AND status = 1
-           AND description IS NOT NULL
-           AND TRIM(description) <> ''
-         ORDER BY id DESC
-         LIMIT 5`,
-        universityId
-      ) as Promise<any[]>
-    ])
+  // 2. Fetch relations via raw SQL to bypass zero-date validation issues.
+  // Avoid selecting created_at/updated_at columns because legacy rows may contain
+  // invalid values like 0000-00-00 00:00:00.
+  const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews] = await Promise.all([
+    prisma.$queryRawUnsafe(
+      `SELECT id, university_id, photo_path, is_featured FROM university_photos WHERE university_id = ? ORDER BY is_featured DESC, id ASC`,
+      universityId
+    ) as Promise<any[]>,
+    prisma.$queryRawUnsafe(`SELECT course_name FROM university_programs WHERE university_id = ? AND status = 1`, universityId) as Promise<any[]>,
+    prisma.$queryRawUnsafe(`SELECT type FROM institute_types WHERE id = ?`, Number(university.institute_type)) as Promise<any[]>,
+    (async () => {
+      try {
+        return await prisma.$queryRawUnsafe(
+          `SELECT id, title, description, position FROM university_overviews WHERE university_id = ? ORDER BY CASE WHEN position IS NULL OR position <= 0 THEN 999999 ELSE position END ASC, id ASC`,
+          universityId
+        ) as any[]
+      } catch {
+        return await prisma.$queryRawUnsafe(
+          `SELECT id, title, description, position FROM university_overviews WHERE university_id = ? ORDER BY id ASC`,
+          universityId
+        ) as any[]
+      }
+    })(),
+    prisma.$queryRawUnsafe(
+      `SELECT COUNT(*) as total FROM university_scholarships WHERE u_id = ?`,
+      universityId
+    ) as Promise<any[]>,
+    prisma.$queryRawUnsafe(
+      `SELECT COUNT(*) AS review_count, ROUND(AVG(rating), 1) AS average_rating
+       FROM reviews
+       WHERE university_id = ? AND status = 1`,
+      universityId
+    ) as Promise<any[]>,
+    prisma.$queryRawUnsafe(
+      `SELECT name, description, rating
+       FROM reviews
+       WHERE university_id = ?
+         AND status = 1
+         AND description IS NOT NULL
+         AND TRIM(description) <> ''
+       ORDER BY id DESC
+       LIMIT 5`,
+      universityId
+    ) as Promise<any[]>
+  ])
 
-    const typeData = instituteType[0]
-    const stats = reviewStats?.[0] || {}
-    const parsedReviewCount = Number(stats.review_count || 0)
-    const parsedAverageRating = Number(stats.average_rating || 0)
+  const typeData = instituteType[0]
+  const stats = reviewStats?.[0] || {}
+  const parsedReviewCount = Number(stats.review_count || 0)
+  const parsedAverageRating = Number(stats.average_rating || 0)
 
-    return serializeBigInt({
-      ...university,
-      photos,
-      programs,
-      overviews,
-      scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
-      active_programs_count: programs.length,
-      instituteType: typeData,
-      review_count: parsedReviewCount,
-      average_rating: parsedAverageRating,
-      reviews: (recentReviews || []).map((row: any) => ({
-        name: row?.name || '',
-        description: row?.description || '',
-        rating: Number(row?.rating || 0),
-      })),
-    })
-  },
+  return serializeBigInt({
+    ...university,
+    photos,
+    programs,
+    overviews,
+    scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
+    active_programs_count: programs.length,
+    instituteType: typeData,
+    review_count: parsedReviewCount,
+    average_rating: parsedAverageRating,
+    reviews: (recentReviews || []).map((row: any) => ({
+      name: row?.name || '',
+      description: row?.description || '',
+      rating: Number(row?.rating || 0),
+    })),
+  })
+}
+
+const cachedUniversityFull = unstable_cache(
+  async (_version: string, slug: string) => fetchUniversityFull(slug),
   ['university-full'],
-  { revalidate: 300, tags: ['universities'] }
+  { revalidate: 86400, tags: ['universities'] }
 )
+
+export async function getUniversityFull(slug: string) {
+  if (process.env.NODE_ENV === 'development') {
+    return fetchUniversityFull(slug)
+  }
+  return cachedUniversityFull(await getContentVersion('university'), slug)
+}

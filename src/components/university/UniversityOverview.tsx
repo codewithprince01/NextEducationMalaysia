@@ -105,7 +105,15 @@ export default function UniversityOverview({
   const [isCounsellingOpen, setIsCounsellingOpen] = useState(false)
 
   const validSections = useMemo(
-    () => overviews.filter(section => section.tab?.trim() !== '' && !isPopularCoursesSection(section.tab)),
+    () =>
+      overviews
+        .filter(section => section.tab?.trim() !== '' && !isPopularCoursesSection(section.tab))
+        .sort((a, b) => {
+          const posA = Number(a.position || 0) > 0 ? Number(a.position) : 999999
+          const posB = Number(b.position || 0) > 0 ? Number(b.position) : 999999
+          if (posA !== posB) return posA - posB
+          return Number(a.id || 0) - Number(b.id || 0)
+        }),
     [overviews]
   )
 

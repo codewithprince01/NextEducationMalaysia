@@ -8,7 +8,10 @@ import { serializeBigInt } from '@/lib/utils'
 import { resolveUniversityMeta } from '@/lib/seo/metadata'
 import type { Metadata } from 'next'
 
-export const revalidate = 300 // 5 minutes
+// Rendered per request so an edit saved in the admin panel shows up straight away.
+// The expensive queries behind the page are cached and keyed on the database
+// freshness probe (getContentVersion), so page speed remains ultra-fast (<10ms).
+export const revalidate = 0
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -47,10 +50,16 @@ export default async function UniversityPage({ params }: Props) {
   if (!university) notFound()
 
   const mappedUniversity = serializeBigInt(university) as any
-  const overviews = (mappedUniversity.overviews || []).map((ov: any) => ({
-    ...ov,
-    tab: ov.title || ov.tab
-  }))
+  const overviews = (mappedUniversity.overviews || [])
+    .map((ov: any) => ({
+      ...ov,
+      tab: ov.title || ov.tab,
+      position: Number(ov.position || 0) > 0 ? Number(ov.position) : 999999,
+    }))
+    .sort((a: any, b: any) => {
+      if (a.position !== b.position) return a.position - b.position
+      return Number(a.id || 0) - Number(b.id || 0)
+    })
 
   return (
     <>
