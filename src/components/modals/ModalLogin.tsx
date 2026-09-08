@@ -112,8 +112,8 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-6 sm:px-8 py-5 sm:py-6">
-      <form className="space-y-3.5" onSubmit={handleSubmit}>
+    <div className="w-full max-w-md mx-auto px-5 sm:px-7 py-3.5 sm:py-4">
+      <form className="space-y-2.5" onSubmit={handleSubmit}>
         <ModernInput
           label="Email"
           type="email"
@@ -146,13 +146,13 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#003893] via-[#0047ba] to-blue-600 hover:from-[#002f7a] hover:to-blue-700 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-900/15 hover:shadow-lg transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm"
+          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-500/20 hover:shadow-lg transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-[13px] outline-none tracking-wide"
         >
           {loading ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Sign In <FaArrowRight className="text-xs" />
+              Sign In <FaArrowRight className="text-[10px]" />
             </>
           )}
         </button>

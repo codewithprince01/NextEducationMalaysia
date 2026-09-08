@@ -125,42 +125,42 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 overflow-y-auto sm:overflow-hidden">
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl sm:max-w-2xl my-auto border border-slate-200 overflow-hidden animate-fadeIn">
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg sm:max-w-xl my-auto border border-slate-200 overflow-hidden animate-fadeIn max-h-[95vh] flex flex-col">
         
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center cursor-pointer outline-none focus:outline-none z-20"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors flex items-center justify-center cursor-pointer outline-none focus:outline-none z-20"
           aria-label="Close modal"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
 
         {/* ── CLEAN CENTERED TOP HEADER ── */}
-        <div className="px-5 sm:px-10 pt-6 pb-2 sm:pt-8 sm:pb-3 bg-white text-center">
-          {/* Main Headline (Single responsive H2) */}
-          <h2 className="text-[17px] sm:text-[23px] md:text-[26px] font-extrabold text-slate-900 tracking-tight leading-snug text-center max-w-xl mx-auto">
-            Apply to up to 5 Malaysian universities<br className="hidden sm:inline" /> through one application process.
+        <div className="px-4 sm:px-6 pt-4 pb-1 sm:pt-4.5 sm:pb-1.5 bg-white text-center shrink-0">
+          {/* Main Headline */}
+          <h2 className="text-[16px] sm:text-[19px] md:text-[21px] font-extrabold text-slate-900 tracking-tight leading-snug text-center max-w-lg mx-auto">
+            Apply to <span className="text-blue-600">Malaysian Universities</span><br className="hidden sm:inline" /> through one application process.
           </h2>
 
           {/* Subtitle */}
-          <p className="text-[12px] sm:text-[13.5px] text-slate-500 mt-2 sm:mt-2.5 leading-relaxed max-w-lg mx-auto text-center font-normal">
+          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 sm:mt-1.5 leading-relaxed max-w-md mx-auto text-center font-normal">
             Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{" "}
-            <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
+            <span className="font-semibold text-blue-600 whitespace-nowrap">7 working days.</span>
           </p>
         </div>
 
         {/* ── CLEAN CENTERED TABS ── */}
         {authStep !== "otp" && !isApplying && (
-          <div className="flex justify-center border-b border-slate-200 px-6 bg-white gap-8 sm:gap-12">
+          <div className="flex justify-center border-b border-slate-200 px-4 bg-white gap-6 sm:gap-8 shrink-0">
             <button
               type="button"
               onClick={() => setAuthStep("signup")}
-              className={`pb-2.5 pt-1 text-xs sm:text-[14px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2 pt-0.5 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "signup"
-                  ? "border-[#003893] text-[#003893]"
+                  ? "border-blue-600 text-blue-600"
                   : "border-transparent text-slate-400 hover:text-slate-700"
               }`}
             >
@@ -169,9 +169,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
             <button
               type="button"
               onClick={() => setAuthStep("login")}
-              className={`pb-2.5 pt-1 text-xs sm:text-[14px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
+              className={`pb-2 pt-0.5 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
                 authStep === "login"
-                  ? "border-[#003893] text-[#003893]"
+                  ? "border-blue-600 text-blue-600"
                   : "border-transparent text-slate-400 hover:text-slate-700"
               }`}
             >
@@ -181,37 +181,39 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
         )}
 
         {/* ── MODAL BODY (SIGNUP / LOGIN / OTP) ── */}
-        {isApplying ? (
-          <div className="p-12 text-center">
-            <div className="w-14 h-14 border-4 border-[#003893] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-base font-bold text-slate-800">
-              Submitting your application...
-            </p>
-            <p className="text-xs text-slate-500 mt-1">
-              Please wait while we connect with the university admissions system.
-            </p>
-          </div>
-        ) : (
-          <>
-            {authStep === "signup" && (
-              <ModalSignUp
-                onSuccess={handleSignUpSuccess}
-                onSwitchToLogin={() => setAuthStep("login")}
-              />
-            )}
+        <div className="overflow-y-auto flex-1">
+          {isApplying ? (
+            <div className="p-8 text-center">
+              <div className="w-12 h-12 border-4 border-[#003893] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm font-bold text-slate-800">
+                Submitting your application...
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Please wait while we connect with the university admissions system.
+              </p>
+            </div>
+          ) : (
+            <>
+              {authStep === "signup" && (
+                <ModalSignUp
+                  onSuccess={handleSignUpSuccess}
+                  onSwitchToLogin={() => setAuthStep("login")}
+                />
+              )}
 
-            {authStep === "login" && (
-              <ModalLogin
-                onSuccess={handleLoginSuccess}
-                onSwitchToSignUp={() => setAuthStep("signup")}
-              />
-            )}
+              {authStep === "login" && (
+                <ModalLogin
+                  onSuccess={handleLoginSuccess}
+                  onSwitchToSignUp={() => setAuthStep("signup")}
+                />
+              )}
 
-            {authStep === "otp" && (
-              <ModalOTP studentId={studentId} onSuccess={handleOTPSuccess} />
-            )}
-          </>
-        )}
+              {authStep === "otp" && (
+                <ModalOTP studentId={studentId} onSuccess={handleOTPSuccess} />
+              )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

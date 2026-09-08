@@ -30,14 +30,14 @@ export default function ModalWrapper({ open, onClose, children, wide = false }: 
 
   return (
     <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black/70" onClick={onClose}>
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-center justify-center p-3 sm:p-4">
         <div
-          className={`relative z-10 bg-white rounded-2xl shadow-2xl ${wide ? 'w-full max-w-2xl' : 'w-full max-w-md'}`}
+          className={`relative z-10 bg-white rounded-2xl shadow-2xl ${wide ? 'w-full max-w-lg sm:max-w-xl' : 'w-full max-w-md'}`}
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-50 p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100 cursor-pointer"
             aria-label="Close"
             type="button"
           >
@@ -45,7 +45,7 @@ export default function ModalWrapper({ open, onClose, children, wide = false }: 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <div className="p-5 sm:p-6 pt-3.5 sm:pt-4">{children}</div>
+          <div className="p-4 sm:p-5 pt-3 sm:pt-3.5">{children}</div>
         </div>
       </div>
     </div>

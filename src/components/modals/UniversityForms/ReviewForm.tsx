@@ -147,22 +147,22 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
 
   return (
     <ModalWrapper open={isOpen} onClose={onClose} wide>
-      <div className="w-full px-2">
+      <div className="w-full">
         {/* ── TOP HEADLINE & SUBTITLE ── */}
-        <div className="text-center mb-2 px-2 sm:px-6">
-          <h2 className="text-[15px] sm:text-[18px] md:text-[20px] font-extrabold text-slate-900 tracking-tight leading-snug max-w-xl mx-auto">
-            Apply to up to <span className="text-[#003893]">5 Malaysian universities</span>
+        <div className="text-center mb-2 px-1 sm:px-4">
+          <h2 className="text-[15px] sm:text-[17px] md:text-[19px] font-extrabold text-slate-900 tracking-tight leading-snug max-w-md mx-auto">
+            Apply to <span className="text-blue-600">Malaysian Universities</span>
             <br className="hidden sm:inline" /> through one application process.
           </h2>
-          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 leading-relaxed max-w-lg mx-auto font-normal">
+          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 leading-relaxed max-w-md mx-auto font-normal">
             Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{' '}
-            <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
+            <span className="font-semibold text-blue-600 whitespace-nowrap">7 working days.</span>
           </p>
         </div>
 
         {/* ── COMPACT UNIVERSITY BADGE ── */}
-        <div className="mb-2.5 flex items-center justify-center gap-2.5 py-1.5 px-3 bg-amber-50/70 border border-amber-200/80 rounded-xl w-fit mx-auto">
-          <div className="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg shadow-2xs border border-amber-100 overflow-hidden p-0.5 shrink-0">
+        <div className="mb-2 flex items-center justify-center gap-2.5 py-1 px-3 bg-amber-50/70 border border-amber-200/80 rounded-xl w-fit mx-auto">
+          <div className="inline-flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-lg shadow-2xs border border-amber-100 overflow-hidden p-0.5 shrink-0">
             {logoSrc ? (
               <img
                 src={logoSrc}
@@ -183,61 +183,56 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
           </h3>
         </div>
 
-        <div className="mb-3 bg-blue-50/50 p-2.5 sm:p-3 rounded-xl border border-blue-100 text-center">
-          <h4 className="text-xs sm:text-sm font-bold text-[#003893]">Your Review of Your Experience Can Help Others</h4>
+        <div className="mb-2.5 bg-blue-50/70 p-2 sm:p-2.5 rounded-xl border border-blue-100 text-center">
+          <h4 className="text-xs sm:text-sm font-bold text-blue-600">Your Review of Your Experience Can Help Others</h4>
           <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
             Thank you for writing a review for <strong>{universityName || 'this university'}</strong>.
           </p>
         </div>
 
-        <div className="p-4 bg-white rounded-md shadow-sm border">
-          <h4 className="text-base font-semibold mb-2">Rate the University -</h4>
-          <p className="text-sm text-gray-600 mb-4">
-            Your email address will not be published. Required fields are marked <span className="text-red-500">*</span>
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-4 mb-4">
+        <div className="p-3 sm:p-4 bg-white rounded-xl shadow-xs border border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 mb-2.5">
             <div className="relative">
-              <FaUser className="absolute top-3 left-3 text-gray-500" />
+              <FaUser className="absolute top-2.5 left-3 text-gray-400 text-xs" />
               <input
                 type="text"
                 value={form.name}
                 onChange={(e) => setField('name', e.target.value)}
                 placeholder="Enter your name *"
-                className="w-full pl-10 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-800 placeholder:text-gray-500 font-medium"
+                className="w-full pl-8 pr-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium"
               />
             </div>
             <div className="relative">
-              <FaEnvelope className="absolute top-3 left-3 text-gray-500" />
+              <FaEnvelope className="absolute top-2.5 left-3 text-gray-400 text-xs" />
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => setField('email', e.target.value)}
                 placeholder="Enter your email *"
-                className="w-full pl-10 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-800 placeholder:text-gray-500 font-medium"
+                className="w-full pl-8 pr-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium"
               />
             </div>
             <div className="relative">
-              <FaMobileAlt className="absolute top-3 left-3 text-gray-500" />
+              <FaMobileAlt className="absolute top-2.5 left-3 text-gray-400 text-xs" />
               <input
                 type="tel"
                 value={form.mobile}
                 onChange={(e) => setField('mobile', e.target.value)}
                 placeholder="Enter your mobile no. *"
-                className="w-full pl-10 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-800 placeholder:text-gray-500 font-medium"
+                className="w-full pl-8 pr-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium"
               />
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 mb-4">
-            <select className="w-full px-3 py-2 border border-gray-200 rounded-lg text-gray-600 bg-gray-100 cursor-not-allowed text-sm font-medium" disabled>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3 mb-2.5">
+            <select className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-gray-600 bg-gray-100 cursor-not-allowed text-xs sm:text-sm font-medium" disabled>
               <option>{universityName || 'University'}</option>
             </select>
 
             <select
               value={form.program}
               onChange={(e) => setField('program', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm font-medium appearance-none"
+              className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-xs sm:text-sm font-medium appearance-none cursor-pointer"
             >
               <option value="">Select Program</option>
               {PROGRAM_OPTIONS.map(option => (
@@ -248,7 +243,7 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
             <select
               value={form.passing_year}
               onChange={(e) => setField('passing_year', e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm font-medium appearance-none"
+              className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-xs sm:text-sm font-medium appearance-none cursor-pointer"
             >
               <option value="">Select Passing Year</option>
               {years.map(year => (
@@ -257,69 +252,75 @@ export function ReviewForm({ universityId, universityName, universityLogo, isOpe
             </select>
           </div>
 
-          <div className="relative mb-4">
-            <FaBriefcase className="absolute top-3 left-3 text-gray-500" />
+          <div className="relative mb-2.5">
+            <FaBriefcase className="absolute top-2.5 left-3 text-gray-400 text-xs" />
             <input
               type="text"
               value={form.review_title}
               onChange={(e) => setField('review_title', e.target.value.slice(0, 100))}
               placeholder="How would you sum up your experience? (Title)"
-              className="w-full pl-10 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-800 placeholder:text-gray-500 font-medium"
+              className="w-full pl-8 pr-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium"
             />
-            <div className="flex justify-between mt-1 ml-1">
-              <p className="text-xs text-blue-600">(Min 20, Max 100 characters)</p>
-              <p className={`text-xs ${form.review_title.length > 100 || (form.review_title.length > 0 && form.review_title.length < 20) ? 'text-red-500' : 'text-gray-400'}`}>
+            <div className="flex justify-between mt-0.5 ml-1">
+              <p className="text-[10px] text-blue-600">(Min 20, Max 100 characters)</p>
+              <p className={`text-[10px] ${form.review_title.length > 100 || (form.review_title.length > 0 && form.review_title.length < 20) ? 'text-red-500' : 'text-gray-400'}`}>
                 {form.review_title.length} / 100
               </p>
             </div>
           </div>
 
-          <div className="relative mb-4">
-            <FaPen className="absolute top-3 left-3 text-gray-500" />
+          <div className="relative mb-2.5">
+            <FaPen className="absolute top-2.5 left-3 text-gray-400 text-xs" />
             <textarea
-              rows={6}
+              rows={4}
               value={form.description}
               onChange={(e) => setField('description', e.target.value)}
               placeholder="Share your experience at this institution..."
-              className="w-full pl-10 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm text-gray-800 placeholder:text-gray-500 font-medium resize-y"
+              className="w-full pl-8 pr-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium resize-y"
             />
-            <div className="flex justify-between mt-1 ml-1">
-              <p className="text-xs text-blue-600">(Min 150 characters)</p>
-              <p className={`text-xs ${form.description.length > 0 && form.description.length < 150 ? 'text-red-500' : 'text-gray-400'}`}>
+            <div className="flex justify-between mt-0.5 ml-1">
+              <p className="text-[10px] text-blue-600">(Min 150 characters)</p>
+              <p className={`text-[10px] ${form.description.length > 0 && form.description.length < 150 ? 'text-red-500' : 'text-gray-400'}`}>
                 {form.description.length} chars
               </p>
             </div>
           </div>
 
-          <div className="flex items-center mb-6 space-x-2">
-            <span className="font-semibold mr-2">Your Rating:</span>
-            {[...Array(5)].map((_, i) => (
-              <span
-                key={i}
-                onClick={() => setRating(i + 1)}
-                className={`text-2xl cursor-pointer transition-transform hover:scale-110 ${i < rating ? 'text-yellow-500' : 'text-gray-300'}`}
-              >
+          {/* ── SINGLE ROW: RATING ON LEFT, SUBMIT ON RIGHT ── */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center space-x-1 sm:space-x-1.5">
+              <span className="text-xs sm:text-sm font-bold text-gray-700 mr-1">Your Rating:</span>
+              {[...Array(5)].map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setRating(i + 1)}
+                  className={`text-2xl sm:text-[26px] cursor-pointer transition-transform hover:scale-115 outline-none leading-none select-none ${
+                    i < rating ? 'text-amber-400' : 'text-gray-300'
+                  }`}
+                  aria-label={`Rate ${i + 1} stars`}
+                >
                   ★
-              </span>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
 
-          <div className="flex gap-3">
             <button
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-all flex items-center justify-center min-w-[180px] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+              className={`w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shadow-blue-500/20 hover:shadow-lg flex items-center justify-center cursor-pointer active:scale-[0.98] ${
+                loading ? 'opacity-70 cursor-not-allowed' : ''
+              }`}
             >
-              {loading ? 'SUBMITTING...' : 'SUBMIT YOUR REVIEW'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded font-semibold"
-            >
-              CANCEL
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>SUBMITTING...</span>
+                </div>
+              ) : (
+                'SUBMIT YOUR REVIEW'
+              )}
             </button>
           </div>
         </div>

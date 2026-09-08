@@ -120,16 +120,16 @@ export function BrochureForm({ universityId, universityName, universityLogo, isO
 
   return (
     <ModalWrapper open={isOpen} onClose={onClose} wide>
-      <div className="w-full px-2">
+      <div className="w-full">
         {/* ── TOP HEADLINE & SUBTITLE ── */}
-        <div className="text-center mb-2 px-2 sm:px-6">
-          <h2 className="text-[15px] sm:text-[18px] md:text-[20px] font-extrabold text-slate-900 tracking-tight leading-snug max-w-xl mx-auto">
-            Apply to up to <span className="text-[#003893]">5 Malaysian universities</span>
+        <div className="text-center mb-2 px-1 sm:px-4">
+          <h2 className="text-[15px] sm:text-[17px] md:text-[19px] font-extrabold text-slate-900 tracking-tight leading-snug max-w-md mx-auto">
+            Apply to <span className="text-blue-600">Malaysian Universities</span>
             <br className="hidden sm:inline" /> through one application process.
           </h2>
-          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 leading-relaxed max-w-lg mx-auto font-normal">
+          <p className="text-[11px] sm:text-[12px] text-slate-500 mt-1 leading-relaxed max-w-md mx-auto font-normal">
             Receive personalised guidance and, subject to eligibility and document verification, receive your offer letter in as little as{' '}
-            <span className="font-semibold text-[#003893] whitespace-nowrap">7 working days.</span>
+            <span className="font-semibold text-blue-600 whitespace-nowrap">7 working days.</span>
           </p>
         </div>
 

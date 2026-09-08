@@ -133,8 +133,8 @@ export default function LoginClient() {
           <div className="max-w-xl w-full">
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-4xl lg:text-[36px] xl:text-[40px] font-extrabold text-slate-900 leading-[1.2] tracking-tight">
-              Apply to up to{' '}
-              <span className="text-blue-600">5 Malaysian Universities</span>{' '}
+              Apply to{' '}
+              <span className="text-blue-600">Malaysian Universities</span>{' '}
               through one application process.
             </h1>
 
