@@ -239,6 +239,8 @@ export class MalaysiaDiscoveryService {
       SELECT COUNT(*) AS total
       FROM university_programs up
       INNER JOIN universities u ON up.university_id = u.id
+      LEFT JOIN course_categories cc ON up.course_category_id = cc.id
+      LEFT JOIN course_specializations cs ON up.specialization_id = cs.id
       WHERE ${baseSqlWhere}
     `;
 
@@ -259,6 +261,8 @@ export class MalaysiaDiscoveryService {
         SELECT COUNT(DISTINCT u.id) AS total_universities
         FROM university_programs up
         INNER JOIN universities u ON up.university_id = u.id
+        LEFT JOIN course_categories cc ON up.course_category_id = cc.id
+        LEFT JOIN course_specializations cs ON up.specialization_id = cs.id
         WHERE ${baseSqlWhere}
       `, ...baseArgs),
       prisma.level.findMany({

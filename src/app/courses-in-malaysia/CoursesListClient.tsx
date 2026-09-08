@@ -18,9 +18,9 @@ const PopupForm = dynamic(() => import('@/components/modals/PopupForm'))
 const CourseCompareBar = dynamic(() => import('./CourseCompareBar'))
 const CourseComparisonModal = dynamic(() => import('./CourseComparisonModal'))
 
-const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
-const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
+const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || 'vN7kO8pM6vGz1Nz0Vw4k5AjcB5n9hTzY6QsErK8gNbE='
 const PER_PAGE = 10
 
 // ── Session cache ────────────────────────────────────────────────────────────
@@ -1157,8 +1157,13 @@ export default function CoursesListClient({
       const cached = cache.get(cacheKey)
       if (cached) { setFilterData(cached); setFilterLoading(false); return }
       try {
-        const res = await fetch(`${API_BASE}/courses/filters`, { headers: { 'x-api-key': API_KEY } })
-        if (!res.ok) throw new Error('Failed')
+        const headers: Record<string, string> = {}
+        if (API_KEY) headers['x-api-key'] = API_KEY
+        const res = await fetch(`${API_BASE}/courses/filters`, { headers })
+        if (!res.ok) {
+          setFilterLoading(false)
+          return
+        }
         const json = await res.json()
         const data = json.data || json
         setFilterData(data)
@@ -1170,7 +1175,7 @@ export default function CoursesListClient({
       }
     }
     fetchFilters()
-  }, [])
+  }, [initialFilterData])
 
   // ── Init filters from URL props ──────────────────────────────────────────
   useEffect(() => {
@@ -1272,8 +1277,15 @@ export default function CoursesListClient({
     }
     setLoading(true)
     try {
-      const res = await fetch(`${API_BASE}/courses-in-malaysia?${qs}`, { headers: { 'x-api-key': API_KEY } })
-      if (!res.ok) throw new Error('Failed')
+      const headers: Record<string, string> = {}
+      if (API_KEY) headers['x-api-key'] = API_KEY
+
+      const res = await fetch(`${API_BASE}/courses-in-malaysia?${qs}`, { headers })
+      if (!res.ok) {
+        console.warn(`Courses fetch warning (status ${res.status})`)
+        setLoading(false)
+        return
+      }
       const json = await res.json()
       
       if (json.status || json.data) {
@@ -1296,7 +1308,6 @@ export default function CoursesListClient({
       }
     } catch (e) {
       console.error('Courses error:', e)
-      setCourses([])
     } finally {
       setLoading(false)
     }
