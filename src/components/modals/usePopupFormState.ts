@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
-export const usePopupFormState = (isOpen: boolean, formType: string) => {
+export const usePopupFormState = (isOpen: boolean, formType: string, universityData?: any) => {
   const [captcha, setCaptcha] = useState("");
   const [userInput, setUserInput] = useState("");
   const [countriesData, setCountriesData] = useState<any[]>([]);
@@ -87,8 +87,51 @@ export const usePopupFormState = (isOpen: boolean, formType: string) => {
 
       const pcData = pcRes.status === 'fulfilled' ? parseList(pcRes.value) : [];
       const cData = cRes.status === 'fulfilled' ? parseList(cRes.value) : [];
-      const lData = lRes.status === 'fulfilled' ? parseList(lRes.value) : [];
-      const catData = catRes.status === 'fulfilled' ? parseList(catRes.value) : [];
+      let lData = lRes.status === 'fulfilled' ? parseList(lRes.value) : [];
+      let catData = catRes.status === 'fulfilled' ? parseList(catRes.value) : [];
+
+      const uniSlug = universityData?.uname || universityData?.slug ||
+        (typeof universityData?.name === 'string'
+          ? universityData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          : '');
+
+      if (uniSlug) {
+        try {
+          const uniRes = await axios.get(`/api/university/${uniSlug}/courses`);
+          const data = uniRes.data as any;
+          if (data && !data.error) {
+            if (Array.isArray(data.levels) && data.levels.length > 0) {
+              lData = data.levels;
+            }
+            if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
+              const seen = new Set();
+              catData = data.all_programs
+                .map((p: any) => ({ name: p.name || p.course_name || '' }))
+                .filter((c: any) => {
+                  if (!c.name) return false;
+                  const key = String(c.name).toLowerCase();
+                  if (seen.has(key)) return false;
+                  seen.add(key);
+                  return true;
+                });
+            } else if (Array.isArray(data.categories) && data.categories.length > 0) {
+              const uniCats = data.categories.map((c: any) => ({ name: c.name || c.title || '' })).filter((c: any) => c.name);
+              if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
+                const progCats = data.programs.data.map((p: any) => ({ name: p.course_name || p.name || p.title || '' })).filter((p: any) => p.name);
+                const seen = new Set();
+                catData = [...uniCats, ...progCats].filter((c: any) => {
+                  const key = String(c.name).toLowerCase();
+                  if (seen.has(key)) return false;
+                  seen.add(key);
+                  return true;
+                });
+              } else {
+                catData = uniCats;
+              }
+            }
+          }
+        } catch {}
+      }
 
       setPhonecode(pcData);
       setCountriesData(cData);
@@ -96,7 +139,7 @@ export const usePopupFormState = (isOpen: boolean, formType: string) => {
       setCourseCategories(catData);
     };
     fetchData();
-  }, []);
+  }, [universityData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

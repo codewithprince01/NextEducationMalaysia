@@ -5,7 +5,7 @@ import { FaEnvelope, FaArrowRight, FaArrowLeft, FaLock } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://admin.educationmalaysia.in/api";
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '');
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || "";
 
 const ModernInput = ({

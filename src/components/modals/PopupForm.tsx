@@ -8,7 +8,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { showInquirySuccessToast } from "@/components/common/inquiryToast";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in';
 
 function buildImageUrl(path?: string | null) {
@@ -47,7 +47,7 @@ const PopupForm: React.FC<PopupFormProps> = ({
     handleChange,
     handleCountryCodeChange,
     handleNationalityChange,
-  } = usePopupFormState(isOpen, formType);
+  } = usePopupFormState(isOpen, formType, universityData);
 
   const formTitle =
     formType === "counselling"

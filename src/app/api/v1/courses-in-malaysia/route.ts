@@ -12,6 +12,9 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
       level: searchParams.get('level') || undefined,
       category: searchParams.get('category') || undefined,
       specialization: searchParams.get('specialization') || undefined,
+      university: searchParams.getAll('university').filter(Boolean).length > 0 
+        ? searchParams.getAll('university').filter(Boolean)
+        : searchParams.get('university') || searchParams.get('university_id') || undefined,
       study_mode: studyModes.length > 0 ? studyModes : undefined,
       intake: intakes.length > 0 ? intakes : undefined,
       search: searchParams.get('search') || undefined,

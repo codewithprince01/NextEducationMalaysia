@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { FiChevronDown } from 'react-icons/fi'
 
 const accent = {
   blue: {
@@ -31,8 +32,12 @@ type AccentColor = keyof typeof accent
 type CommonFieldsProps = {
   nationality: string
   countryCode: string
+  course?: string
+  level?: string
   onNationalityChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
   onCountryCodeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  onCourseChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  onLevelChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void
   countriesData: any[]
   phonecode: any[]
   levels: any[]
@@ -43,8 +48,12 @@ type CommonFieldsProps = {
 export function CommonFields({
   nationality,
   countryCode,
+  course = '',
+  level = '',
   onNationalityChange,
   onCountryCodeChange,
+  onCourseChange,
+  onLevelChange,
   countriesData,
   phonecode,
   levels,
@@ -53,73 +62,108 @@ export function CommonFields({
 }: CommonFieldsProps) {
   const a = accent[accentColor]
   const cls = `w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium`
-  const label = 'text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5'
+  const label = 'text-[10.5px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-0.5'
 
   return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-        <div className="space-y-0.5">
+    <div className="space-y-2.5 sm:space-y-3">
+      {/* Row 1: Full Name & Email Address */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-1">
           <label className={label}>Full Name</label>
-          <input type="text" name="firstName" required placeholder="Enter your full name" className={cls} />
+          <input type="text" name="firstName" required placeholder="Enter your full name" autoComplete="off" className={cls} />
         </div>
-        <div className="space-y-0.5">
+        <div className="space-y-1">
           <label className={label}>Email Address</label>
-          <input type="email" name="email" required placeholder="Enter your email" className={cls} />
+          <input type="email" name="email" required placeholder="Enter your email" autoComplete="off" className={cls} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-        <div className="space-y-0.5">
-          <label className={label}>Nationality</label>
-          <select name="nationality" required value={nationality} onChange={onNationalityChange} className={`${cls} appearance-none`}>
-            <option value="">Select Nationality</option>
-            {(countriesData || []).map((c: any, i: number) => (
-              <option key={i} value={c.name}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-0.5">
-          <label className={label}>Interested Course</label>
-          <select name="course" required className={`${cls} appearance-none`}>
-            <option value="">Select a course</option>
-            {(courseCategories || []).map((c: any, i: number) => (
-              <option key={i} value={c.name}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-        <div className="space-y-0.5">
+      {/* Row 2: Phone Number & Nationality */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-1">
           <label className={label}>Phone Number</label>
-          <div className="flex gap-2">
-            <select
-              name="countryCode"
+          <div className="flex gap-2 sm:gap-2.5">
+            <div className="relative w-22 sm:w-24 shrink-0">
+              <select
+                name="countryCode"
+                required
+                value={countryCode}
+                onChange={onCountryCodeChange}
+                className={`w-full pl-2 sm:pl-2.5 pr-5 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none cursor-pointer`}
+              >
+                <option value="">Code</option>
+                {(phonecode || []).map((c: any, i: number) => (
+                  <option key={i} value={String(c.phonecode || c.phone_code || '')}>+{String(c.phonecode || c.phone_code || '')}</option>
+                ))}
+              </select>
+              <FiChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+            </div>
+            <input
+              name="phone"
               required
-              value={countryCode}
-              onChange={onCountryCodeChange}
-              className={`w-24 sm:w-28 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none`}
-            >
-              <option value="">Code</option>
-              {(phonecode || []).map((c: any, i: number) => (
-                <option key={i} value={String(c.phonecode || c.phone_code || '')}>+{String(c.phonecode || c.phone_code || '')}</option>
-              ))}
-            </select>
-            <input name="phone" required type="tel" placeholder="Enter your mobile number" className={`flex-1 px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium`} />
+              type="tel"
+              placeholder="Enter your mobile number"
+              autoComplete="off"
+              className={`flex-1 min-w-0 px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white ${a.ring} transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium`}
+            />
           </div>
         </div>
 
-        <div className="space-y-0.5">
-          <label className={label}>Highest Qualification</label>
-          <select name="level" required className={`${cls} appearance-none`}>
-            <option value="">Select Qualification</option>
-            {(levels || []).map((l: any, i: number) => (
-              <option key={i} value={l.level || l.name}>{l.level || l.name}</option>
-            ))}
-          </select>
+        <div className="space-y-1">
+          <label className={label}>Nationality</label>
+          <div className="relative">
+            <select name="nationality" required value={nationality} onChange={onNationalityChange} className={`${cls} pr-7 appearance-none cursor-pointer`}>
+              <option value="">Select Nationality</option>
+              {(countriesData || []).map((c: any, i: number) => (
+                <option key={i} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+            <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+          </div>
         </div>
       </div>
-    </>
+
+      {/* Row 3: Qualification Level & Interested Course */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="space-y-1">
+          <label className={label}>Highest Qualification</label>
+          <div className="relative">
+            <select
+              name="level"
+              required
+              value={level}
+              onChange={onLevelChange}
+              className={`${cls} pr-7 appearance-none cursor-pointer`}
+            >
+              <option value="">Select Qualification</option>
+              {(levels || []).map((l: any, i: number) => (
+                <option key={i} value={l.level || l.name}>{l.level || l.name}</option>
+              ))}
+            </select>
+            <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <label className={label}>Interested Course</label>
+          <div className="relative">
+            <select
+              name="course"
+              required
+              value={course}
+              onChange={onCourseChange}
+              className={`${cls} pr-7 appearance-none cursor-pointer`}
+            >
+              <option value="">Select a course</option>
+              {(courseCategories || []).map((c: any, i: number) => (
+                <option key={i} value={c.name}>{c.name}</option>
+              ))}
+            </select>
+            <FiChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

@@ -1,7 +1,8 @@
-﻿'use client'
+'use client'
 
 import { useState, useCallback, useMemo, type SyntheticEvent } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import {
   MapPin, Navigation, Star, Building, BedDouble,
   Phone, Mail, Image as ImageIcon,
@@ -80,7 +81,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const [showFormSuccess, setShowFormSuccess] = useState(false)
   const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
-  // â”€â”€ Breadcrumb Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Breadcrumb Logic ──────────────────────────────────────────────────────
   const breadcrumbItems = useMemo<BreadcrumbItem[]>(() => {
     const items: BreadcrumbItem[] = [
       { label: 'Home', href: '/' },
@@ -102,7 +103,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
     return items
   }, [pathname, university])
 
-  // â”€â”€ Data Prep â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Data Prep ────────────────────────────────────────────────────────────
   const { mainPhoto, otherPhotos, allPhotos } = useMemo(() => {
     const seen = new Set<string>()
     const unique: Photo[] = []
@@ -167,7 +168,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         <Breadcrumb items={breadcrumbItems} />
       </div>
 
-      {/* â”€â”€ DESKTOP HERO â”€â”€ */}
+      {/* ── DESKTOP HERO ── */}
       <div className="hidden sm:block max-w-[1400px] mx-auto px-2 md:px-4 py-4 bg-white">
         {/* Logo + Info Row */}
         <div className="flex flex-row items-center justify-between gap-4 mb-4">
@@ -182,20 +183,20 @@ export default function UniversityHeroClient({ university, photos }: { universit
               />
             </div>
             <div className="flex-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">{university.name}</h1>
-            <div className="flex flex-row items-center gap-2 text-sm text-gray-600 flex-wrap">
-              <div className="flex items-center gap-1 min-w-0">
-                <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
-                <span className="text-blue-600 font-bold truncate">Location: {university.city}</span>
+              <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">{university.name}</h1>
+              <div className="flex flex-row items-center gap-2 text-sm text-gray-600 flex-wrap">
+                <div className="flex items-center gap-1 min-w-0">
+                  <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
+                  <span className="text-blue-600 font-bold truncate">Location: {university.city}</span>
+                </div>
+                <button
+                  onClick={handleDirections}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
+                >
+                  <Navigation size={14} className="rotate-45" />
+                  Get Directions
+                </button>
               </div>
-              <button
-                onClick={handleDirections}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
-              >
-                <Navigation size={14} className="rotate-45" />
-                Get Directions
-              </button>
-            </div>
             </div>
           </div>
 
@@ -363,21 +364,18 @@ export default function UniversityHeroClient({ university, photos }: { universit
               </div>
             </div>
 
-            {university.offeredCourses && university.offeredCourses.length > 0 && (
-              <div className="mt-6 bg-white rounded-2xl shadow-md border border-gray-100 p-4 w-full">
-                <h3 className="text-md font-bold text-gray-900 mb-4">Faculties:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {university.offeredCourses.map((course: string, i: number) => (
-                    <div
-                      key={i}
-                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl text-sm font-medium transition cursor-default"
-                    >
-                      {course}
-                    </div>
-                  ))}
-                </div>
+            <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mt-3">
+              <h3 className="text-base font-semibold text-gray-900 mb-3">Study Options</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {STUDY_OPTIONS.map(opt => (
+                  <div key={opt.label} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
+                    <Check size={14} className={opt.icon} />
+                    <span className={`text-sm font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+
           </div>
           <div className="col-span-1 space-y-3">
              <UniversityActionButtons
@@ -388,22 +386,11 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onReview={() => openPopup('review')}
              />
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
-             <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-               <h3 className="text-lg font-semibold text-gray-900 mb-4">Study Options</h3>
-               <div className="grid grid-cols-3 gap-2">
-                 {STUDY_OPTIONS.map(opt => (
-                   <div key={opt.label} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
-                     <Check size={14} className={opt.icon} />
-                     <span className={`text-sm font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
-                   </div>
-                 ))}
-               </div>
-             </div>
           </div>
         </div>
       </div>
 
-      {/* â”€â”€ MOBILE HERO â”€â”€ */}
+      {/* ── MOBILE HERO ── */}
       <div className="sm:hidden bg-gray-50 pb-8">
         <div className="bg-white p-3">
           <div className="flex items-center gap-4 mb-5">
@@ -562,7 +549,3 @@ export default function UniversityHeroClient({ university, photos }: { universit
     </div>
   )
 }
-
-
-
-

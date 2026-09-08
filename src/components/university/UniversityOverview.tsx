@@ -282,7 +282,11 @@ export default function UniversityOverview({
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         courseId={null}
-        courseData={{ university_name: universityName }}
+        courseData={{
+          university_name: universityName,
+          universitySlug: universitySlug,
+          university: { id: universityId, name: universityName, uname: universitySlug },
+        }}
       />
 
       {/* Enquiry / Counselling Form Modal */}

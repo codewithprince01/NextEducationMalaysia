@@ -48,7 +48,7 @@ type Props = {
 }
 
 export function CounsellingForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
-  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData()
+  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData(universityName)
   const form = useFormState(isOpen, countriesData as any[], phonecode as any[])
   const [logoSrc, setLogoSrc] = React.useState<string | null>(normalizeLogoUrl(universityLogo))
 
@@ -148,39 +148,42 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
           </h3>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-2.5">
+        <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3">
           <input type="hidden" name="university" value={universityName || ''} />
 
           <CommonFields
             nationality={form.nationality}
             countryCode={form.countryCode}
+            course={form.course}
+            level={form.level}
             countriesData={countriesData}
             phonecode={phonecode}
             levels={levels}
             courseCategories={courseCategories}
             onNationalityChange={form.handleNationalityChange}
             onCountryCodeChange={form.handleCountryCodeChange}
+            onCourseChange={form.handleCourseChange}
+            onLevelChange={form.handleLevelChange}
             accentColor="green"
           />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-            <CourseCategoryField courseCategories={courseCategories} accentColor="green" />
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Time Zone</label>
-              <select
-                name="time_zone"
-                required
-                className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none"
-              >
-                <option value="">Select your timezone</option>
-                <option value="GMT+05:30">(GMT+05:30) India (IST)</option>
-                <option value="GMT+08:00">(GMT+08:00) Malaysia (MYT)</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Preferred Date</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Time Zone</label>
+              <div className="relative">
+                <select
+                  name="time_zone"
+                  required
+                  className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none cursor-pointer"
+                >
+                  <option value="">Select your timezone</option>
+                  <option value="GMT+05:30">(GMT+05:30) India (IST)</option>
+                  <option value="GMT+08:00">(GMT+08:00) Malaysia (MYT)</option>
+                </select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Preferred Date</label>
               <input
                 type="date"
                 name="preferred_date"
@@ -188,32 +191,36 @@ export function CounsellingForm({ universityId, universityName, universityLogo, 
                 className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium"
               />
             </div>
-            <div className="space-y-0.5">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Preferred Time</label>
-              <select
-                name="preferred_time"
-                required
-                className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none"
-              >
-                <option value="">Choose time slot</option>
-                <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
-                <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
-                <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
-                <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
-                <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
-                <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
-              </select>
-            </div>
           </div>
 
-          <div className="space-y-0.5">
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Message (Optional)</label>
-            <input
-              type="text"
-              name="message"
-              placeholder="Write your query (optional)..."
-              className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Preferred Time</label>
+              <div className="relative">
+                <select
+                  name="preferred_time"
+                  required
+                  className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 font-medium appearance-none cursor-pointer"
+                >
+                  <option value="">Choose time slot</option>
+                  <option value="09:00 AM - 10:00 AM">09:00 AM - 10:00 AM</option>
+                  <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                  <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                  <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                  <option value="03:00 PM - 04:00 PM">03:00 PM - 04:00 PM</option>
+                  <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
+                </select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10.5px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wide ml-0.5">Message (Optional)</label>
+              <input
+                type="text"
+                name="message"
+                placeholder="Write your query (optional)..."
+                className="w-full px-3 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-green-500/20 focus:border-green-500 transition-all outline-none text-xs sm:text-sm text-gray-800 placeholder:text-gray-400 font-medium"
+              />
+            </div>
           </div>
 
           <CaptchaWidget

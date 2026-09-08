@@ -1,74 +1,64 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function UniversityScrollTop() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const isFirstMountRef = useRef(true)
-  const prevPathnameRef = useRef<string | null>(null)
-  const prevSearchRef = useRef<string | null>(null)
 
   useEffect(() => {
-    // If there is a hash target in the URL (e.g. #overview-section), let hash scroll handle it
+    // If there is a hash target in the URL, let hash scroll handle it
     if (typeof window !== 'undefined' && window.location.hash) {
       return
     }
 
-    const searchStr = searchParams ? searchParams.toString() : ''
-    const isTabContentRoute = /^\/university\/[^/]+\/(courses|gallery|videos|ranking|reviews)(\/.*)?$/.test(pathname)
-    const isInitialMount = isFirstMountRef.current
-    isFirstMountRef.current = false
+    const segments = pathname.split('/').filter(Boolean)
+    // /university/[slug] -> segments: ['university', 'slug'] (length <= 2)
+    // /university/[slug]/courses, /university/[slug]/gallery, /university/[slug]/courses/[courseSlug] -> length > 2
+    const isBaseOverview = segments.length <= 2 && segments[0] === 'university'
 
-    const hasPathnameChanged = prevPathnameRef.current !== null && prevPathnameRef.current !== pathname
-    const hasSearchChanged = prevSearchRef.current !== null && prevSearchRef.current !== searchStr
+    const scrollToPosition = () => {
+      if (typeof window === 'undefined') return
 
-    prevPathnameRef.current = pathname
-    prevSearchRef.current = searchStr
-
-    // If not initial mount and neither path nor search params changed, skip
-    if (!isInitialMount && !hasPathnameChanged && !hasSearchChanged) {
-      return
-    }
-
-    const scrollToTabs = (smooth = true) => {
-      if (isTabContentRoute) {
+      if (isBaseOverview) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
+        if (document.documentElement) document.documentElement.scrollTop = 0
+        if (document.body) document.body.scrollTop = 0
+      } else {
         const tabs = document.getElementById('university-tabs')
         if (tabs) {
-          const nav = document.querySelector('nav')
+          const nav = document.querySelector('nav') || document.querySelector('header')
           const navHeight = nav ? nav.getBoundingClientRect().height : 76
           const y = tabs.getBoundingClientRect().top + window.scrollY - navHeight
-          window.scrollTo({
-            top: Math.max(0, y),
-            left: 0,
-            behavior: smooth ? 'smooth' : 'auto',
-          })
-          return true
+          window.scrollTo({ top: Math.max(0, y), behavior: 'instant' as ScrollBehavior })
+          if (document.documentElement) document.documentElement.scrollTop = Math.max(0, y)
+          if (document.body) document.body.scrollTop = Math.max(0, y)
         }
-      } else if (!isInitialMount && hasPathnameChanged) {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-        return true
-      }
-      return false
-    }
-
-    if (isTabContentRoute) {
-      // Immediate attempt
-      scrollToTabs(false)
-
-      // Timed attempts after hero banner, fonts, and images layout settle
-      const t1 = setTimeout(() => scrollToTabs(true), 100)
-      const t2 = setTimeout(() => scrollToTabs(true), 300)
-      const t3 = setTimeout(() => scrollToTabs(true), 600)
-
-      return () => {
-        clearTimeout(t1)
-        clearTimeout(t2)
-        clearTimeout(t3)
       }
     }
-  }, [pathname, searchParams])
+
+    scrollToPosition()
+    const rAf = requestAnimationFrame(scrollToPosition)
+    const t1 = setTimeout(scrollToPosition, 50)
+    const t2 = setTimeout(scrollToPosition, 150)
+    const t3 = setTimeout(scrollToPosition, 300)
+    const t4 = setTimeout(scrollToPosition, 600)
+    const t5 = setTimeout(scrollToPosition, 1000)
+
+    window.addEventListener('load', scrollToPosition)
+
+    return () => {
+      cancelAnimationFrame(rAf)
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+      clearTimeout(t4)
+      clearTimeout(t5)
+      window.removeEventListener('load', scrollToPosition)
+    }
+  }, [pathname])
 
   return null
 }
+
+

@@ -7,7 +7,7 @@ import { GreForm, GmatForm, SatForm } from "./QualificationForms";
 import { validateRequired, validateScore, validateSelect, validateZipcode } from "@/utils/validation";
 import { GraduationCap, Plus, Check, School, BookOpen, Trash2, X } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 const ToggleRow = ({ label, isOn, onToggle }: { label: string; isOn: boolean; onToggle: () => void }) => (

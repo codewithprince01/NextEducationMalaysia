@@ -16,6 +16,9 @@ export async function GET(
     const specializationId = searchParams.get('specialization_id') || undefined
     const studyMode = searchParams.get('study_mode') || undefined
 
+    const cleanName = decodeURIComponent(slug).toLowerCase().replace(/-/g, ' ')
+    const isNum = !isNaN(Number(slug)) && Number(slug) > 0
+
     const [result, uniRow] = await Promise.all([
       universityService.getUniversityCourses(slug, {
         level,
@@ -25,7 +28,15 @@ export async function GET(
         page,
         limit: 10,
       }),
-      prisma.$queryRawUnsafe(`SELECT id, name FROM universities WHERE uname = ? AND status = 1 LIMIT 1`, slug) as Promise<any[]>,
+      prisma.$queryRawUnsafe(
+        `SELECT id, name, uname FROM universities 
+         WHERE (uname = ? ${isNum ? 'OR id = ?' : ''} OR LOWER(name) = ? OR LOWER(REPLACE(name, "'", "")) = ?) 
+         AND status = 1 LIMIT 1`,
+        slug,
+        ...(isNum ? [Number(slug)] : []),
+        cleanName,
+        cleanName.replace(/'/g, '')
+      ) as Promise<any[]>,
     ])
 
     if (!result || !uniRow.length) {
@@ -74,7 +85,7 @@ export async function GET(
     const specializationWhere = buildWhere({ includeSpecialization: false })
     const studyModeWhere = buildWhere({ includeStudyMode: false })
 
-    const [levelsRaw, categoriesRaw, specializationsRaw, studyModesRaw] = await Promise.all([
+    const [levelsRaw, categoriesRaw, specializationsRaw, studyModesRaw, allProgramsRaw] = await Promise.all([
       prisma.$queryRawUnsafe(
         `SELECT DISTINCT up.level
          FROM university_programs up
@@ -108,11 +119,25 @@ export async function GET(
          AND up.study_mode IS NOT NULL AND up.study_mode <> ''`,
         ...studyModeWhere.args
       ) as Promise<any[]>,
+      prisma.$queryRawUnsafe(
+        `SELECT up.id, up.course_name, up.level, cc.name as category_name
+         FROM university_programs up
+         LEFT JOIN course_categories cc ON up.course_category_id = cc.id
+         WHERE up.university_id = ? AND up.status = 1
+         ORDER BY up.course_name ASC`,
+        universityId
+      ) as Promise<any[]>,
     ])
 
     const levels = levelsRaw.map((r: any) => ({ level: r.level }))
     const categories = categoriesRaw.map((r: any) => ({ id: Number(r.id), name: r.name }))
     const specializations = specializationsRaw.map((r: any) => ({ id: Number(r.id), name: r.name }))
+    const allPrograms = allProgramsRaw.map((r: any) => ({
+      id: Number(r.id),
+      name: r.course_name || r.name || '',
+      level: r.level || '',
+      category_name: r.category_name || '',
+    }))
     const studyModes = Array.from(
       new Set(
         studyModesRaw
@@ -129,6 +154,7 @@ export async function GET(
         last_page: result.pagination.last_page,
         total: result.pagination.total,
       },
+      all_programs: allPrograms,
       levels,
       categories,
       specializations,

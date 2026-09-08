@@ -5,7 +5,7 @@ import { GraduationCap, TrendingUp, Sparkles, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '');
 
 const popularCoursesCache: Record<string, any> = {};
 
