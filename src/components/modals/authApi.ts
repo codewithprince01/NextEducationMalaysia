@@ -50,28 +50,17 @@ export async function apiGetWithFallback(endpoint: string, token?: string) {
 
   // 1. Always attempt Primary Local Next.js API first
   try {
-<<<<<<< HEAD
-    const res = await axios.get(`${LOCAL_API_BASE}${cleanEndpoint}`, { headers, timeout: 5000 });
-    return res;
-  } catch (localErr: any) {
-    try {
-      const res = await axios.get(`${REMOTE_API_BASE}${cleanEndpoint}`, { headers, timeout: 8000 });
-      return res;
-    } catch (remoteErr) {
-      throw localErr;
-=======
     const res = await axios.get(`${LOCAL_API_BASE}${cleanEndpoint}`, { headers, timeout: 8000 });
     return res;
   } catch (localErr: any) {
-    // If local returned 404 or network failed, attempt remote fallback
-    if (!localErr.response || localErr.response.status === 404) {
+    // If local returned 404, server error (>= 500), or network failed, attempt remote fallback
+    if (!localErr.response || localErr.response.status === 404 || localErr.response.status >= 500) {
       try {
-        const res = await axios.get(`${REMOTE_API_BASE}${cleanEndpoint}`, { headers, timeout: 6000 });
+        const res = await axios.get(`${REMOTE_API_BASE}${cleanEndpoint}`, { headers, timeout: 8000 });
         return res;
       } catch (remoteErr) {
         throw localErr;
       }
->>>>>>> 5e0fcf5bb9de7023c447d8d558bf4e13f3fdc0a0
     }
     throw localErr;
   }
@@ -83,31 +72,19 @@ export async function apiPostWithFallback(endpoint: string, data: any, token?: s
 
   // 1. Always attempt Primary Local Next.js API first
   try {
-<<<<<<< HEAD
-    const res = await axios.post(`${LOCAL_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 8000 });
-    return res;
-  } catch (localErr: any) {
-    if (!localErr.response || localErr.response.status === 404 || localErr.response.status >= 500) {
-      try {
-        const res = await axios.post(`${REMOTE_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 12000 });
-=======
     const res = await axios.post(`${LOCAL_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 10000 });
     return res;
   } catch (localErr: any) {
-    // Only fallback to remote if local endpoint does not exist (404) or network dropped
-    if (!localErr.response || localErr.response.status === 404) {
+    // Only fallback to remote if local endpoint does not exist (404), network dropped, or server error (>= 500)
+    if (!localErr.response || localErr.response.status === 404 || localErr.response.status >= 500) {
       try {
-        const res = await axios.post(`${REMOTE_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 8000 });
->>>>>>> 5e0fcf5bb9de7023c447d8d558bf4e13f3fdc0a0
+        const res = await axios.post(`${REMOTE_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 10000 });
         return res;
       } catch (remoteErr) {
         throw localErr;
       }
     }
-<<<<<<< HEAD
-=======
     // If local returned 400, 401, 409 (Email exists), 422 (Validation), throw immediately without delay
->>>>>>> 5e0fcf5bb9de7023c447d8d558bf4e13f3fdc0a0
     throw localErr;
   }
 }
