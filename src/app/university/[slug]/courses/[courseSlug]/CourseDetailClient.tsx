@@ -144,7 +144,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
               {/* Back Button */}
               <div>
                 <button
-                  onClick={() => router.push(`/university/${slug}/courses`)}
+                  onClick={() => router.push(`/university/${slug}/courses`, { scroll: false })}
                   className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-blue-600 font-medium bg-white hover:bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors cursor-pointer shadow-2xs"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
@@ -221,7 +221,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
                   </button>
 
                   <button
-                    onClick={() => router.push(`/university/${slug}/courses`)}
+                    onClick={() => router.push(`/university/${slug}/courses`, { scroll: false })}
                     className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors cursor-pointer"
                   >
                     View all courses

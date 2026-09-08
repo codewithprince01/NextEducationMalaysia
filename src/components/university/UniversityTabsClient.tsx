@@ -27,6 +27,18 @@ export default function UniversityTabsClient({ slug }: Props) {
     return pathname.startsWith(`/university/${slug}${tab.path}`)
   })?.id || 'overview'
 
+  const handleTabClick = () => {
+    if (typeof window !== 'undefined') {
+      const tabs = document.getElementById('university-tabs')
+      if (tabs) {
+        const nav = document.querySelector('nav') || document.querySelector('header')
+        const navHeight = nav ? nav.getBoundingClientRect().height : 76
+        const y = tabs.getBoundingClientRect().top + window.scrollY - navHeight
+        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+      }
+    }
+  }
+
   return (
     <div id="university-tabs" className="bg-white border-b border-gray-200 shadow-sm sticky top-[76px] z-10">
       <div className="max-w-[1400px] mx-auto px-1 sm:px-2 lg:px-4 flex overflow-x-auto scrollbar-hide">
@@ -34,6 +46,8 @@ export default function UniversityTabsClient({ slug }: Props) {
           <Link
             key={tab.id}
             href={`/university/${slug}${tab.path}`}
+            scroll={false}
+            onClick={handleTabClick}
             className={`py-4 text-sm font-medium transition-all border-b-2 cursor-pointer whitespace-nowrap ${index === 0 ? 'pl-0 pr-6' : 'px-6'} ${activeTab === tab.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600 hover:text-blue-500'}`}
           >
             {tab.label}
@@ -43,3 +57,4 @@ export default function UniversityTabsClient({ slug }: Props) {
     </div>
   )
 }
+

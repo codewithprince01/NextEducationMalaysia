@@ -63,12 +63,19 @@ const CourseCard: React.FC<CourseCardProps> = ({
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
-        <h3
-          onClick={() => onViewDetail?.(course)}
+        <Link
+          href={`/university/${universitySlug}/courses/${cSlug}`}
+          scroll={false}
+          onClick={(e) => {
+            if (onViewDetail) {
+              e.preventDefault()
+              onViewDetail(course)
+            }
+          }}
           className="text-xl font-bold text-gray-900 flex-1 cursor-pointer hover:text-blue-600 transition-colors duration-200"
         >
           {title || 'Untitled Course'}
-        </h3>
+        </Link>
         <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-1 bg-linear-to-br from-amber-50 to-yellow-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm">
             <span className="text-lg font-bold text-gray-900">4.5</span>
@@ -135,6 +142,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
       <div className="flex flex-col sm:flex-row gap-3 w-full">
         <Link
           href={`/university/${universitySlug}/courses/${cSlug}`}
+          scroll={false}
           className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl border font-medium transition text-sm ${
             isSelected
               ? 'bg-blue-600 text-white border-blue-600'

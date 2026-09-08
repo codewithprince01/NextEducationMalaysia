@@ -40,6 +40,14 @@ export default function UniversityListCard({ uni, priority = false, onOpenFeeMod
   const imageUrl = imgUrl(uni.banner_path) ?? imgUrl(uni.logo_path) ?? '/placeholder-university.jpg'
   const rating = uni.rating ? parseFloat(String(uni.rating)).toFixed(1) : '0.0'
 
+  const handleScrollTop = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
+      if (document.documentElement) document.documentElement.scrollTop = 0
+      if (document.body) document.body.scrollTop = 0
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 relative group border border-gray-100">
       {/* Banner */}
@@ -74,6 +82,8 @@ export default function UniversityListCard({ uni, priority = false, onOpenFeeMod
 
         <Link
           href={`/university/${slug}`}
+          scroll={true}
+          onClick={handleScrollTop}
           className="font-bold text-gray-800 text-xl group-hover:text-blue-600 mb-2.5 transition-colors line-clamp-2 min-h-14 block"
         >
           {uni.name}
@@ -121,7 +131,9 @@ export default function UniversityListCard({ uni, priority = false, onOpenFeeMod
         <div className="space-y-3">
           <Link
             href={`/university/${slug}`}
-            className="w-full py-3 px-4 bg-linear-to-r from-blue-600 via-blue-600 to-blue-700 text-white rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:shadow-[0_8px_20px_rgba(37,99,235,0.3)] transition-all duration-300 flex items-center justify-center transform hover:scale-[1.02] active:scale-95"
+            scroll={true}
+            onClick={handleScrollTop}
+            className="w-full py-3 px-4 bg-linear-to-r from-blue-600 via-blue-600 to-blue-700 text-white rounded-xl font-bold text-sm shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:shadow-[0_8px_20px_rgba(37,99,235,0.3)] transition-all duration-300 flex items-center justify-center transform hover:scale-[1.02] active:scale-95 cursor-pointer"
           >
             View Details →
           </Link>
@@ -137,6 +149,8 @@ export default function UniversityListCard({ uni, priority = false, onOpenFeeMod
             ) : (
               <Link
                 href={`/university/${slug}?action=fee`}
+                scroll={true}
+                onClick={handleScrollTop}
                 className="py-2.5 px-3 border-2 border-blue-200 text-blue-600 rounded-xl font-bold text-xs hover:bg-blue-50 transition-all duration-200 text-center uppercase tracking-wide"
               >
                 Fee Structure
@@ -153,6 +167,8 @@ export default function UniversityListCard({ uni, priority = false, onOpenFeeMod
             ) : (
               <Link
                 href={`/university/${slug}?action=brochure`}
+                scroll={true}
+                onClick={handleScrollTop}
                 className="py-2.5 px-3 border-2 border-green-200 text-green-600 rounded-xl font-bold text-xs hover:bg-green-50 transition-all duration-200 text-center uppercase tracking-wide"
               >
                 Brochure
