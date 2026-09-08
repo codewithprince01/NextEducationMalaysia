@@ -419,7 +419,17 @@ export class UniversityService {
     page?: number;
     limit?: number;
   }) {
-    const res: any = await prisma.$queryRawUnsafe(`SELECT id FROM universities WHERE uname = ? AND status = 1 LIMIT 1`, uname);
+    const isNum = !isNaN(Number(uname)) && Number(uname) > 0;
+    const cleanName = decodeURIComponent(uname).toLowerCase().replace(/-/g, ' ');
+    const res: any = await prisma.$queryRawUnsafe(
+      `SELECT id FROM universities 
+       WHERE (uname = ? ${isNum ? 'OR id = ?' : ''} OR LOWER(name) = ? OR LOWER(REPLACE(name, "'", "")) = ?) 
+       AND status = 1 LIMIT 1`,
+      uname,
+      ...(isNum ? [Number(uname)] : []),
+      cleanName,
+      cleanName.replace(/'/g, '')
+    );
     if (!res.length) return null;
     const university = res[0];
 

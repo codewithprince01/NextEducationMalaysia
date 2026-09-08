@@ -529,7 +529,11 @@ export default function SignUpClient() {
               </p>
             </div>
 
-            <form className="space-y-3 sm:space-y-3.5" onSubmit={handleSubmit}>
+            <form className="space-y-3 sm:space-y-3.5" onSubmit={handleSubmit} autoComplete="off">
+              {/* Prevent aggressive browser password managers from auto-filling */}
+              <input type="text" name="prevent_autofill_user" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+              <input type="password" name="prevent_autofill_pass" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+
               {/* Row 1: Full Name & Email Address */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <ModernInput
@@ -542,6 +546,7 @@ export default function SignUpClient() {
                   onBlur={handleBlur}
                   required
                   error={errors.name}
+                  autoComplete="off"
                 />
 
                 <ModernInput
@@ -555,6 +560,7 @@ export default function SignUpClient() {
                   onBlur={handleBlur}
                   required
                   error={errors.email}
+                  autoComplete="off"
                 />
               </div>
 
@@ -678,6 +684,7 @@ export default function SignUpClient() {
                   error={errors.password}
                   showStrength={true}
                   strength={passwordStrength}
+                  autoComplete="new-password"
                 />
                 <PasswordInput
                   label="Confirm Password"
@@ -691,6 +698,7 @@ export default function SignUpClient() {
                   setShowPassword={setShowConfirmPassword}
                   required
                   error={errors.confirm_password}
+                  autoComplete="new-password"
                 />
               </div>
 

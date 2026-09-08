@@ -14,6 +14,7 @@ interface ModernInputProps {
   required?: boolean;
   error?: string;
   compact?: boolean;
+  autoComplete?: string;
 }
 
 export const ModernInput = ({
@@ -28,6 +29,7 @@ export const ModernInput = ({
   required,
   error,
   compact = false,
+  autoComplete,
 }: ModernInputProps) => (
   <div className={compact ? "space-y-0.5" : "space-y-1.5"}>
     <label className={`${compact ? "text-[11px] sm:text-xs" : "text-sm"} font-semibold text-slate-700 ml-0.5`}>
@@ -45,6 +47,7 @@ export const ModernInput = ({
         onChange={onChange}
         onBlur={onBlur}
         required={required}
+        autoComplete={autoComplete}
         className={`w-full ${compact ? "pl-7.5 pr-3 py-1.5 sm:py-2 text-xs sm:text-[13px] rounded-lg" : "pl-11 pr-4 py-2.5 sm:py-3 text-sm rounded-xl"} bg-gray-50 border text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-1 transition-all outline-none font-medium ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"
@@ -141,6 +144,7 @@ interface PasswordInputProps {
   showStrength?: boolean;
   strength?: { level: number; color: string; text: string };
   compact?: boolean;
+  autoComplete?: string;
 }
 
 export const PasswordInput = ({
@@ -158,6 +162,7 @@ export const PasswordInput = ({
   showStrength,
   strength,
   compact = false,
+  autoComplete,
 }: PasswordInputProps) => (
   <div className={compact ? "space-y-0.5" : "space-y-1.5"}>
     <label className={`${compact ? "text-[11px] sm:text-xs" : "text-sm"} font-semibold text-slate-700 ml-0.5`}>
@@ -175,6 +180,7 @@ export const PasswordInput = ({
         onChange={onChange}
         onBlur={onBlur}
         required={required}
+        autoComplete={autoComplete}
         className={`w-full ${compact ? "pl-7.5 pr-7 py-1.5 sm:py-2 text-xs sm:text-[13px] rounded-lg" : "pl-11 pr-12 py-2.5 sm:py-3 text-sm rounded-xl"} bg-gray-50 border text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-1 transition-all outline-none font-medium ${
           error
             ? "border-red-300 focus:border-red-500 focus:ring-red-100"

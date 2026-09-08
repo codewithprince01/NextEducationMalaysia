@@ -1414,9 +1414,18 @@ export default function CoursesListClient({
   }, [router])
 
   const handleApplyNow = useCallback(async (course: any) => {
+    const uniCourses = courses.filter(
+      c => (c.university?.id && course.university?.id && c.university.id === course.university.id) ||
+           (c.university?.name && course.university?.name && c.university.name.toLowerCase() === course.university.name.toLowerCase())
+    )
+    const enrichedCourse = {
+      ...course,
+      allUniversityCourses: uniCourses.length > 0 ? uniCourses : [course],
+    }
+
     const token = localStorage.getItem('token')
     if (!token) {
-      setPendingCourse(course)
+      setPendingCourse(enrichedCourse)
       setShowAuthModal(true)
       return
     }
@@ -1448,7 +1457,7 @@ export default function CoursesListClient({
       }
 
       if (response.status === 401) {
-        setPendingCourse(course)
+        setPendingCourse(enrichedCourse)
         setShowAuthModal(true)
         return
       }
@@ -1457,7 +1466,7 @@ export default function CoursesListClient({
     } catch {
       toast.error('Failed to apply. Please try again.')
     }
-  }, [])
+  }, [courses])
 
   const handleViewDetail = useCallback((course: any) => {
     if (!course || !course.university?.name) return
@@ -1713,7 +1722,7 @@ export default function CoursesListClient({
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
                         <input
                           type="text"
-                          placeholder="Search courses..."
+                          placeholder="Search by course or university..."
                           value={searchInput}
                           onChange={e => setSearchInput(e.target.value)}
                           onKeyDown={e => { if (e.key === 'Enter') handleSearch() }}

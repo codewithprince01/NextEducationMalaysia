@@ -48,7 +48,7 @@ type Props = {
 }
 
 export function CounsellingForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
-  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData()
+  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData(universityName)
   const form = useFormState(isOpen, countriesData as any[], phonecode as any[])
   const [logoSrc, setLogoSrc] = React.useState<string | null>(normalizeLogoUrl(universityLogo))
 

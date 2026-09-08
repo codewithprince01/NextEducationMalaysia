@@ -113,6 +113,11 @@ export const getLevels = unstable_cache(
 
 export const getProgramBySlug = unstable_cache(
   async (slug: string, universitySlug?: string) => {
+    const cleanCourseSlug = decodeURIComponent(slug).toLowerCase().trim();
+    const isCourseNum = !isNaN(Number(slug)) ? Number(slug) : 0;
+    const cleanUniSlug = universitySlug ? decodeURIComponent(universitySlug).toLowerCase().trim() : null;
+    const isUniNum = cleanUniSlug && !isNaN(Number(cleanUniSlug)) ? Number(cleanUniSlug) : 0;
+
     const programRows = await prisma.$queryRawUnsafe(
       `
       SELECT
@@ -127,16 +132,31 @@ export const getProgramBySlug = unstable_cache(
       INNER JOIN universities u ON up.university_id = u.id
       LEFT JOIN course_categories cc ON up.course_category_id = cc.id
       LEFT JOIN course_specializations cs ON up.specialization_id = cs.id
-      WHERE up.slug = ?
-        AND up.status = 1
-        AND up.website = 'MYS'
-        AND u.status = 1
-        AND (? IS NULL OR u.uname = ?)
+      WHERE (
+        up.slug = ?
+        OR LOWER(REPLACE(REPLACE(REPLACE(REPLACE(up.course_name, ' ', '-'), '(', ''), ')', ''), '&', 'and')) = ?
+        OR (? > 0 AND up.id = ?)
+      )
+      AND up.status = 1
+      AND up.website = 'MYS'
+      AND u.status = 1
+      AND (
+        ? IS NULL
+        OR u.uname = ?
+        OR LOWER(REPLACE(u.name, ' ', '-')) = ?
+        OR (? > 0 AND u.id = ?)
+      )
       LIMIT 1
       `,
-      slug,
-      universitySlug ?? null,
-      universitySlug ?? null,
+      cleanCourseSlug,
+      cleanCourseSlug,
+      isCourseNum,
+      isCourseNum,
+      cleanUniSlug,
+      cleanUniSlug,
+      cleanUniSlug,
+      isUniNum,
+      isUniNum,
     ) as any[]
 
     if (!programRows?.length) return null

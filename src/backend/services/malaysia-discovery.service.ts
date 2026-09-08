@@ -43,12 +43,13 @@ export class MalaysiaDiscoveryService {
     level?: string;
     category?: string;
     specialization?: string;
+    university?: string | string[];
     study_mode?: string | string[];
     intake?: string | string[];
     search?: string;
     page?: number;
   }) {
-    const { level, category, specialization, study_mode, intake, search, page = 1 } = params;
+    const { level, category, specialization, university, study_mode, intake, search, page = 1 } = params;
     const perPage = 10;
     const skip = (page - 1) * perPage;
     // Resolve slug/name -> model records for filters (tolerant matching like old project)
@@ -159,7 +160,33 @@ export class MalaysiaDiscoveryService {
       seoSourceModel = null;
     }
 
-    if (search) { baseSqlWhere += ' AND u.name LIKE ?'; baseArgs.push(`%${search}%`); }
+    if (search && String(search).trim()) {
+      const searchTerms = String(search).trim();
+      baseSqlWhere += ' AND (up.course_name LIKE ? OR u.name LIKE ? OR cc.name LIKE ? OR cs.name LIKE ?)';
+      baseArgs.push(`%${searchTerms}%`, `%${searchTerms}%`, `%${searchTerms}%`, `%${searchTerms}%`);
+    }
+
+    if (university) {
+      const uniList = Array.isArray(university) ? university.filter(Boolean) : [university];
+      if (uniList.length > 0) {
+        const uniClauses: string[] = [];
+        uniList.forEach((uni) => {
+          const uniVal = String(uni).trim();
+          const isNum = !isNaN(Number(uniVal)) && Number(uniVal) > 0;
+          if (isNum) {
+            uniClauses.push('u.id = ?');
+            baseArgs.push(Number(uniVal));
+          } else {
+            uniClauses.push('(u.uname = ? OR LOWER(REPLACE(u.name, " ", "-")) = ? OR u.name LIKE ?)');
+            baseArgs.push(uniVal.toLowerCase(), uniVal.toLowerCase(), `%${uniVal}%`);
+          }
+        });
+        if (uniClauses.length > 0) {
+          baseSqlWhere += ` AND (${uniClauses.join(' OR ')})`;
+        }
+      }
+    }
+
     if (curLevel) { baseSqlWhere += ' AND up.level = ?'; baseArgs.push(curLevel.level); }
     if (curCatId != null && !Number.isNaN(curCatId)) { baseSqlWhere += ' AND up.course_category_id = ?'; baseArgs.push(curCatId); }
     if (curSpcId != null && !Number.isNaN(curSpcId)) { baseSqlWhere += ' AND up.specialization_id = ?'; baseArgs.push(curSpcId); }

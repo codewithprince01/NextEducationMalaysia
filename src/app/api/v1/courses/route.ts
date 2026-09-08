@@ -24,6 +24,7 @@ async function getHandler(req: NextRequest) {
       level: searchParams.get('levels[]') || searchParams.get('level') || undefined,
       category: searchParams.get('categories[]') || searchParams.get('category') || undefined,
       specialization: searchParams.get('specializations[]') || searchParams.get('specialization') || undefined,
+      university: searchParams.get('university') || searchParams.get('university_id') || undefined,
       study_mode: searchParams.get('study_modes[]') || searchParams.get('study_mode') || undefined,
       intake: searchParams.get('intakes[]') || searchParams.get('intake') || undefined,
       search: searchParams.get('search') || undefined,

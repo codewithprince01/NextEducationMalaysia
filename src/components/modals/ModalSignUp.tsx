@@ -39,9 +39,11 @@ import {
 interface ModalSignUpProps {
   onSuccess: (studentId: any) => void;
   onSwitchToLogin: () => void;
+  courseData?: any;
+  courseId?: number | string | null;
 }
 
-const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin }) => {
+const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, courseData, courseId }) => {
   const [captcha, setCaptcha] = useState("");
   const [userCaptcha, setUserCaptcha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -74,29 +76,166 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     source_path: "",
   });
 
+  const [uniAllPrograms, setUniAllPrograms] = useState<any[]>([]);
+
+  // Extract selected course level & name/category
+  const extractLevel = (cd: any): string => {
+    if (!cd) return "";
+    return String(cd.level || cd.qualification || cd.study_level || cd.level_name || cd.degree || "").trim();
+  };
+
+  const extractCourseCategory = (cd: any): string => {
+    if (!cd) return "";
+    return String(
+      cd.course_name ||
+      cd.program_name ||
+      cd.name ||
+      cd.title ||
+      cd.course_category ||
+      cd.category_name ||
+      cd.category?.name ||
+      cd.category ||
+      ""
+    ).trim();
+  };
+
+  const normalizeLevelStr = (lvl: string): string => {
+    return String(lvl || '')
+      .toLowerCase()
+      .replace(/['’]/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  };
+
+  const matchLevelToAvailable = (target: string, availableList: any[]): string => {
+    if (!target || !availableList || availableList.length === 0) return target || "";
+    const targetNorm = normalizeLevelStr(target);
+
+    // 1. Exact match
+    const exact = availableList.find((l: any) => {
+      const val = typeof l === 'string' ? l : (l.level || l.name || '');
+      return val === target;
+    });
+    if (exact) return typeof exact === 'string' ? exact : (exact.level || exact.name || '');
+
+    // 2. Normalized string match
+    const normMatch = availableList.find((l: any) => {
+      const val = typeof l === 'string' ? l : (l.level || l.name || '');
+      return normalizeLevelStr(val) === targetNorm;
+    });
+    if (normMatch) return typeof normMatch === 'string' ? normMatch : (normMatch.level || normMatch.name || '');
+
+    // 3. Substring & semantic mapping
+    if (targetNorm.includes('under') || targetNorm.includes('bachelor') || targetNorm.includes('ug') || targetNorm.includes('degree')) {
+      const ug = availableList.find((l: any) => {
+        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
+        return n.includes('under') || n.includes('bachelor') || n.includes('ug') || n.includes('degree');
+      });
+      if (ug) return typeof ug === 'string' ? ug : (ug.level || ug.name || '');
+    }
+
+    if (targetNorm.includes('post') || targetNorm.includes('master') || targetNorm.includes('pg')) {
+      const pg = availableList.find((l: any) => {
+        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
+        return n.includes('post') || n.includes('master') || n.includes('pg');
+      });
+      if (pg) return typeof pg === 'string' ? pg : (pg.level || pg.name || '');
+    }
+
+    if (targetNorm.includes('phd') || targetNorm.includes('doctor')) {
+      const doc = availableList.find((l: any) => {
+        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
+        return n.includes('phd') || n.includes('doctor');
+      });
+      if (doc) return typeof doc === 'string' ? doc : (doc.level || doc.name || '');
+    }
+
+    if (targetNorm.includes('diploma')) {
+      const dip = availableList.find((l: any) => {
+        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
+        return n.includes('diploma');
+      });
+      if (dip) return typeof dip === 'string' ? dip : (dip.level || dip.name || '');
+    }
+
+    if (targetNorm.includes('pre') || targetNorm.includes('foundation')) {
+      const pre = availableList.find((l: any) => {
+        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
+        return n.includes('pre') || n.includes('foundation');
+      });
+      if (pre) return typeof pre === 'string' ? pre : (pre.level || pre.name || '');
+    }
+
+    // Default to first available or target
+    const first = availableList[0];
+    return typeof first === 'string' ? first : (first?.level || first?.name || target);
+  };
+
+  const filterProgramsByLevel = (progs: any[], selectedLevel: string, targetCourse?: string) => {
+    if (!progs || progs.length === 0) return [];
+    
+    let filtered = progs;
+    if (selectedLevel) {
+      const normSel = normalizeLevelStr(selectedLevel);
+      const levelMatches = progs.filter(p => {
+        const normP = normalizeLevelStr(p.level || '');
+        return normP === normSel || normP.includes(normSel) || normSel.includes(normP);
+      });
+      if (levelMatches.length > 0) {
+        filtered = levelMatches;
+      }
+    }
+
+    const uniqueMap = new Map<string, any>();
+    filtered.forEach(p => {
+      const name = String(p.name || p.course_name || p.title || '').trim();
+      if (name && !uniqueMap.has(name.toLowerCase())) {
+        uniqueMap.set(name.toLowerCase(), { name });
+      }
+    });
+
+    let result = Array.from(uniqueMap.values());
+    if (targetCourse && !uniqueMap.has(targetCourse.toLowerCase())) {
+      result = [{ name: targetCourse }, ...result];
+    }
+    return result;
+  };
+
   useEffect(() => {
+    const isUniContext = Boolean(
+      courseData?.university ||
+      courseData?.allUniversityCourses ||
+      courseData?.level ||
+      courseData?.course_name ||
+      courseData?.program_name ||
+      courseId
+    );
+
     const fetchData = async () => {
       try {
-        const [pcRes, cRes, lRes, catRes] = await Promise.allSettled([
+        const [pcRes, cRes] = await Promise.allSettled([
           apiGetWithFallback("/phonecodes"),
           apiGetWithFallback("/countries"),
-          apiGetWithFallback("/levels"),
-          apiGetWithFallback("/course-categories"),
         ]);
 
         const pcData = pcRes.status === "fulfilled" ? parseApiList(pcRes.value.data) : [];
         const cData = cRes.status === "fulfilled" ? parseApiList(cRes.value.data) : [];
-        const lData = lRes.status === "fulfilled" ? parseApiList(lRes.value.data) : [];
-        const catData = catRes.status === "fulfilled" ? parseApiList(catRes.value.data) : [];
 
         setPhonecode(pcData);
         setCountriesData(cData);
-        setLevels(lData.length > 0 ? lData : DEFAULT_LEVELS);
-        setCourseCategories(catData.length > 0 ? catData : DEFAULT_COURSE_CATEGORIES);
+
+        // Only fetch global dropdowns if there is NO university or course context
+        if (!isUniContext) {
+          const [lRes, catRes] = await Promise.allSettled([
+            apiGetWithFallback("/levels"),
+            apiGetWithFallback("/course-categories"),
+          ]);
+          const lData = lRes.status === "fulfilled" ? parseApiList(lRes.value.data) : [];
+          const catData = catRes.status === "fulfilled" ? parseApiList(catRes.value.data) : [];
+          setLevels(lData.length > 0 ? lData : DEFAULT_LEVELS);
+          setCourseCategories(catData.length > 0 ? catData : DEFAULT_COURSE_CATEGORIES);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
-        setLevels(DEFAULT_LEVELS);
-        setCourseCategories(DEFAULT_COURSE_CATEGORIES);
       }
     };
     fetchData();
@@ -104,7 +243,124 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
     if (typeof window !== "undefined") {
       setFormData((prev) => ({ ...prev, source_path: window.location.href }));
     }
-  }, []);
+  }, [courseData, courseId]);
+
+  // Pre-select course & filter levels/courses dynamically when courseData is available
+  useEffect(() => {
+    if (!courseData) return;
+
+    const rawTargetLevel = extractLevel(courseData);
+    const targetCourse = extractCourseCategory(courseData);
+
+    // 1. Initial immediate populate from courseData if available
+    if (Array.isArray(courseData.allUniversityCourses) && courseData.allUniversityCourses.length > 0) {
+      const uniCourses = courseData.allUniversityCourses;
+      
+      const extractedLevels = Array.from(
+        new Set(
+          uniCourses
+            .map((c: any) => String(c.level || c.study_level || c.qualification || '').trim())
+            .filter(Boolean)
+        )
+      ).map(lvl => ({ level: lvl }));
+
+      const allProgs = uniCourses.map((c: any) => ({
+        id: c.id,
+        name: String(c.course_name || c.name || c.title || c.category?.name || c.category || '').trim(),
+        level: String(c.level || c.study_level || c.qualification || '').trim(),
+      })).filter((p: any) => p.name);
+
+      setUniAllPrograms(allProgs);
+
+      const matchedImmediateLevel = matchLevelToAvailable(rawTargetLevel, extractedLevels);
+      setLevels(extractedLevels);
+
+      setFormData((prev) => ({
+        ...prev,
+        highest_qualification: matchedImmediateLevel || prev.highest_qualification,
+        interested_course_category: "",
+      }));
+
+      const filtered = filterProgramsByLevel(allProgs, matchedImmediateLevel, targetCourse);
+      if (filtered.length > 0) {
+        setCourseCategories(filtered);
+      }
+    } else {
+      if (rawTargetLevel) {
+        setLevels([{ level: rawTargetLevel }]);
+        setFormData((prev) => ({
+          ...prev,
+          highest_qualification: rawTargetLevel,
+          interested_course_category: "",
+        }));
+      }
+      if (targetCourse) {
+        setCourseCategories([{ name: targetCourse }]);
+      }
+    }
+
+    // 2. Fetch full university courses, levels and programs from backend API
+    const uniSlug =
+      courseData.university?.uname ||
+      courseData.university?.slug ||
+      courseData.universitySlug ||
+      (typeof courseData.university?.name === 'string' && courseData.university.name.trim()
+        ? courseData.university.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        : typeof courseData.university === 'string' && courseData.university.trim()
+        ? courseData.university.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        : courseData.university?.id
+        ? String(courseData.university.id)
+        : courseData.university_id
+        ? String(courseData.university_id)
+        : courseData.u_id
+        ? String(courseData.u_id)
+        : '');
+
+    if (uniSlug) {
+      fetch(`/api/university/${uniSlug}/courses`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && !data.error) {
+            // Update levels with university levels ONLY
+            if (Array.isArray(data.levels) && data.levels.length > 0) {
+              const uniLevels = data.levels;
+              const matchedLevel = matchLevelToAvailable(rawTargetLevel, uniLevels);
+
+              setLevels(uniLevels);
+              setFormData((prev) => ({
+                ...prev,
+                highest_qualification: matchedLevel || prev.highest_qualification,
+                interested_course_category: "",
+              }));
+
+              // Gather all university programs
+              let fullProgs: any[] = [];
+              if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
+                fullProgs = data.all_programs;
+              } else if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
+                fullProgs = data.programs.data.map((p: any) => ({
+                  id: p.id,
+                  name: p.course_name || p.name || p.title,
+                  level: p.level,
+                })).filter((p: any) => p.name);
+              } else if (Array.isArray(data.categories) && data.categories.length > 0) {
+                fullProgs = data.categories.map((c: any) => ({
+                  name: c.name || c.title || c,
+                  level: '',
+                })).filter((p: any) => p.name);
+              }
+
+              if (fullProgs.length > 0) {
+                setUniAllPrograms(fullProgs);
+                const filtered = filterProgramsByLevel(fullProgs, matchedLevel, targetCourse);
+                setCourseCategories(filtered);
+              }
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [courseData, courseId]);
 
   const generateCaptcha = () => {
     const operators = ["+", "-", "×"];
@@ -116,7 +372,22 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    
+    if (name === "highest_qualification" && uniAllPrograms.length > 0) {
+      const filtered = filterProgramsByLevel(uniAllPrograms, value);
+      if (filtered.length > 0) {
+        setCourseCategories(filtered);
+        setFormData(prev => ({
+          ...prev,
+          highest_qualification: value,
+          interested_course_category: "",
+        }));
+      } else {
+        setFormData(prev => ({ ...prev, [name]: value, interested_course_category: "" }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
 
     if (name === "password") {
       setPasswordStrength(getPasswordStrength(value));
@@ -436,7 +707,11 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
 
   return (
     <div className="w-full max-w-xl mx-auto px-4 sm:px-6 py-2.5 sm:py-3">
-      <form className="space-y-2 sm:space-y-2.5" onSubmit={handleSubmit}>
+      <form className="space-y-2 sm:space-y-2.5" onSubmit={handleSubmit} autoComplete="off">
+        {/* Prevent aggressive browser password managers from auto-filling */}
+        <input type="text" name="prevent_autofill_user" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+        <input type="password" name="prevent_autofill_pass" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
+
         {/* Row 1: Full Name & Email Address */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
           <ModernInput
@@ -449,6 +724,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             onBlur={handleBlur}
             required
             error={errors.name}
+            autoComplete="off"
             compact
           />
 
@@ -463,6 +739,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             onBlur={handleBlur}
             required
             error={errors.email}
+            autoComplete="off"
             compact
           />
         </div>
@@ -553,7 +830,10 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             value={formData.highest_qualification}
             onChange={handleChange}
             onBlur={handleBlur}
-            options={levels.map((level) => level.level || level.name)}
+            options={Array.from(new Set([
+              ...(levels.length === 0 && formData.highest_qualification ? [formData.highest_qualification] : []),
+              ...levels.map((level) => level?.level || level?.name || (typeof level === "string" ? level : "")).filter(Boolean),
+            ]))}
             required
             error={errors.highest_qualification}
             compact
@@ -566,7 +846,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             value={formData.interested_course_category}
             onChange={handleChange}
             onBlur={handleBlur}
-            options={courseCategories.map((cat) => cat.name)}
+            options={Array.from(new Set(courseCategories.map((cat) => cat.name || cat.title || String(cat)).filter(Boolean)))}
             required
             error={errors.interested_course_category}
             compact
@@ -588,6 +868,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             required
             error={errors.password}
             showStrength={false}
+            autoComplete="new-password"
             compact
           />
           <PasswordInput
@@ -602,6 +883,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
             setShowPassword={setShowConfirmPassword}
             required
             error={errors.confirm_password}
+            autoComplete="new-password"
             compact
           />
         </div>

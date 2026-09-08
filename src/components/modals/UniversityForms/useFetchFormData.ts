@@ -39,7 +39,7 @@ async function firstNonEmpty(urls: string[], headers?: Record<string, string>) {
   return []
 }
 
-export function useFetchFormData() {
+export function useFetchFormData(universitySlugOrName?: string | null) {
   const [phonecode, setPhonecode] = useState<FormOption[]>([])
   const [countries, setCountries] = useState<FormOption[]>([])
   const [levels, setLevels] = useState<FormOption[]>([])
@@ -70,29 +70,58 @@ export function useFetchFormData() {
 
       setPhonecode(fetchedPhonecodes)
       setCountries(fetchedCountries)
-      setLevels(
-        fetchedLevels.length > 0
-          ? fetchedLevels
-          : [
-              { level: 'Secondary School' },
-              { level: 'Foundation / Diploma' },
-              { level: "Bachelor's Degree" },
-              { level: "Master's Degree" },
-              { level: 'PhD / Doctorate' },
-            ],
+
+      let resolvedLevels = fetchedLevels.length > 0
+        ? fetchedLevels
+        : [
+            { level: 'Secondary School' },
+            { level: 'Foundation / Diploma' },
+            { level: "Bachelor's Degree" },
+            { level: "Master's Degree" },
+            { level: 'PhD / Doctorate' },
+          ]
+
+      let resolvedCategories = uniqByName(
+        fetchedCategories.map((c: any) => ({
+          ...c,
+          name: c?.name || c?.title || c?.course_name || '',
+        })),
       )
-      setCourseCategories(
-        uniqByName(
-          fetchedCategories.map((c: any) => ({
-            ...c,
-            name: c?.name || c?.title || c?.course_name || '',
-          })),
-        ),
-      )
+
+      const uniSlug = universitySlugOrName
+        ? String(universitySlugOrName).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        : ''
+
+      if (uniSlug) {
+        try {
+          const uniRes = await axios.get(`/api/university/${uniSlug}/courses`)
+          const data = uniRes.data as any
+          if (data && !data.error) {
+            if (Array.isArray(data.levels) && data.levels.length > 0) {
+              resolvedLevels = data.levels
+            }
+            if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
+              const allProgCats = data.all_programs.map((p: any) => ({ name: p.name || p.course_name || '' })).filter((p: any) => p.name)
+              resolvedCategories = uniqByName(allProgCats)
+            } else if (Array.isArray(data.categories) && data.categories.length > 0) {
+              const uniCats = data.categories.map((c: any) => ({ name: c.name || c.title || '' })).filter((c: any) => c.name)
+              if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
+                const progCats = data.programs.data.map((p: any) => ({ name: p.course_name || p.name || p.title || '' })).filter((p: any) => p.name)
+                resolvedCategories = uniqByName([...uniCats, ...progCats])
+              } else {
+                resolvedCategories = uniqByName(uniCats)
+              }
+            }
+          }
+        } catch {}
+      }
+
+      setLevels(resolvedLevels)
+      setCourseCategories(resolvedCategories)
     }
 
     fetchData().catch(() => {})
-  }, [])
+  }, [universitySlugOrName])
 
   return { phonecode, levels, courseCategories, countriesData: countries }
 }

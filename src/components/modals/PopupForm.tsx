@@ -47,7 +47,7 @@ const PopupForm: React.FC<PopupFormProps> = ({
     handleChange,
     handleCountryCodeChange,
     handleNationalityChange,
-  } = usePopupFormState(isOpen, formType);
+  } = usePopupFormState(isOpen, formType, universityData);
 
   const formTitle =
     formType === "counselling"

@@ -56,7 +56,7 @@ type Props = {
 }
 
 export function FeeStructureForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
-  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData()
+  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData(universityName)
   const form = useFormState(isOpen, countriesData as any[], phonecode as any[])
   const [logoCandidates, setLogoCandidates] = React.useState<string[]>([])
   const [logoIndex, setLogoIndex] = React.useState(0)

@@ -96,6 +96,7 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
   const [isBrochureOpen, setIsBrochureOpen] = useState(false)
   const [isFeeOpen, setIsFeeOpen] = useState(false)
   const [selectedCourseId, setSelectedCourseId] = useState<number | string | null>(null)
+  const [selectedCourse, setSelectedCourse] = useState<any>(null)
   const [popupUniversityData, setPopupUniversityData] = useState<{ id?: number | null; name?: string; logo_path?: string | null } | null>(null)
   const [showFormSuccess, setShowFormSuccess] = useState(false)
   const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
@@ -260,6 +261,7 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
   const handleApplyNow = (course: any) => {
     const courseId = course.id
     setSelectedCourseId(courseId)
+    setSelectedCourse(course)
     const token = localStorage.getItem('token')
     if (!token) {
       setIsAuthModalOpen(true)
@@ -411,9 +413,12 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
       {/* Modals */}
       <AuthModal 
         isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+        onClose={() => {
+          setIsAuthModalOpen(false)
+          setSelectedCourse(null)
+        }} 
         courseId={selectedCourseId}
-        courseData={{ university }}
+        courseData={selectedCourse ? { ...selectedCourse, university, allUniversityCourses: data?.programs?.data || [] } : { university, allUniversityCourses: data?.programs?.data || [] }}
         onSuccess={() => {
           if (selectedCourseId) {
             setAppliedPrograms(prev => [...prev, Number(selectedCourseId)]);

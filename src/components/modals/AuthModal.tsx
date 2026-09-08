@@ -198,6 +198,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
                 <ModalSignUp
                   onSuccess={handleSignUpSuccess}
                   onSwitchToLogin={() => setAuthStep("login")}
+                  courseData={courseData}
+                  courseId={courseId}
                 />
               )}
 
