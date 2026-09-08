@@ -41,8 +41,16 @@ export default function HeroSwiper({ banners }: Props) {
     return () => mediaQuery.removeEventListener("change", handleChange)
   }, [])
 
-  const src = (path: string) =>
-    path.startsWith('/') || path.startsWith('http') ? path : `${IMAGE_DELIVERY_BASE_URL}/storage/${path}`
+  const src = (path: string) => {
+    if (path.startsWith('http')) return path
+
+    const normalizedPath = path.replace(/^\/+/, '')
+    const storagePath = normalizedPath.startsWith('storage/')
+      ? normalizedPath
+      : `storage/${normalizedPath}`
+
+    return `${IMAGE_DELIVERY_BASE_URL.replace(/\/+$/, '')}/${storagePath}`
+  }
 
   return (
     <>
@@ -59,8 +67,12 @@ export default function HeroSwiper({ banners }: Props) {
         >
           {banners.map((banner, i) => (
             <SwiperSlide key={banner.id || i}>
+              {(() => {
+                const imageSrc = src(banner.banner_path)
+
+                return (
               <Image
-                src={src(banner.banner_path)}
+                src={imageSrc}
                 alt={banner.alt_text || `Banner ${i + 1}`}
                 fill
                 className="object-cover"
@@ -69,12 +81,15 @@ export default function HeroSwiper({ banners }: Props) {
                 loading={i === 0 ? 'eager' : 'lazy'}
                 sizes="100vw"
                 quality={60}
+                unoptimized={imageSrc.startsWith('http://127.0.0.1:8000/')}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement
                   target.style.display = "none"
                   target.parentElement!.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                 }}
               />
+                )
+              })()}
             </SwiperSlide>
           ))}
         </Swiper>
