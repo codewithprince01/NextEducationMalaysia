@@ -27,6 +27,8 @@ export function useFormState(isOpen: boolean, countriesData: AnyOption[] = [], p
   const [loading, setLoading] = useState(false)
   const [nationality, setNationality] = useState('')
   const [countryCode, setCountryCode] = useState('')
+  const [course, setCourse] = useState('')
+  const [level, setLevel] = useState('')
 
   const generateCaptcha = useCallback(() => {
     const n1 = Math.floor(Math.random() * 10) + 1
@@ -41,6 +43,8 @@ export function useFormState(isOpen: boolean, countriesData: AnyOption[] = [], p
       generateCaptcha()
       setNationality('')
       setCountryCode('')
+      setCourse('')
+      setLevel('')
     }
   }, [isOpen, generateCaptcha])
 
@@ -99,6 +103,14 @@ export function useFormState(isOpen: boolean, countriesData: AnyOption[] = [], p
     [findNationalityByCode],
   )
 
+  const handleCourseChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCourse(e.target.value)
+  }, [])
+
+  const handleLevelChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLevel(e.target.value)
+  }, [])
+
   return {
     captchaQuestion,
     captchaInput,
@@ -110,12 +122,18 @@ export function useFormState(isOpen: boolean, countriesData: AnyOption[] = [], p
     setLoading,
     nationality,
     countryCode,
+    course,
+    level,
     handleNationalityChange,
     handleCountryCodeChange,
+    handleCourseChange,
+    handleLevelChange,
     validateCaptcha,
     reset() {
       setCaptchaInput('')
       setCaptchaError(false)
+      setCourse('')
+      setLevel('')
       generateCaptcha()
     },
   }

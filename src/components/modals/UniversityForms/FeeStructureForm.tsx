@@ -159,12 +159,16 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
           <CommonFields
             nationality={form.nationality}
             countryCode={form.countryCode}
+            course={form.course}
+            level={form.level}
             countriesData={countriesData}
             phonecode={phonecode}
             levels={levels}
             courseCategories={courseCategories}
             onNationalityChange={form.handleNationalityChange}
             onCountryCodeChange={form.handleCountryCodeChange}
+            onCourseChange={form.handleCourseChange}
+            onLevelChange={form.handleLevelChange}
             accentColor="blue"
           />
           <CaptchaWidget
