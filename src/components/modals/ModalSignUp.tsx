@@ -435,10 +435,10 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-6 sm:px-8 py-4 sm:py-5">
-      <form className="space-y-3 sm:space-y-3.5" onSubmit={handleSubmit}>
+    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 py-2.5 sm:py-3">
+      <form className="space-y-2 sm:space-y-2.5" onSubmit={handleSubmit}>
         {/* Row 1: Full Name & Email Address */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
           <ModernInput
             label="Full Name"
             icon={<FaUser />}
@@ -468,22 +468,22 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         </div>
 
         {/* Row 2: Phone Number & Nationality */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
           {/* Phone Number */}
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-700 ml-0.5">
+          <div className="space-y-0.5">
+            <label className="text-[11px] sm:text-xs font-semibold text-slate-700 ml-0.5">
               Phone Number <span className="text-rose-500">*</span>
             </label>
-            <div className="flex gap-2">
-              <div className="relative w-28 sm:w-32 shrink-0">
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none z-10">
+            <div className="flex gap-1.5 sm:gap-2">
+              <div className="relative w-24 sm:w-28 shrink-0">
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 text-xs pointer-events-none z-10">
                   {formData.country_code && getCountryFlag(formData.country_code)}
                 </div>
                 <select
                   name="country_code"
                   value={formData.country_code}
                   onChange={handleCountryCodeChange}
-                  className="appearance-none w-full pl-8 pr-6 py-2 sm:py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 font-medium focus:bg-white focus:border-[#003893] focus:ring-1 focus:ring-blue-500/10 transition-all text-xs sm:text-sm outline-none cursor-pointer"
+                  className="appearance-none w-full pl-6 pr-5 py-1.5 sm:py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 font-medium focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-500/20 transition-all text-xs sm:text-[13px] outline-none cursor-pointer"
                   required
                 >
                   <option value="">Code</option>
@@ -496,35 +496,35 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
                     );
                   })}
                 </select>
-                <FiChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
+                <FiChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs" />
               </div>
               <div className="relative flex-1 group">
-                <FaPhoneAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#003893] transition-colors text-xs" />
+                <FaPhoneAlt className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors text-[10px]" />
                 <input
                   type="tel"
                   placeholder="Phone number"
                   name="mobile"
                   value={formData.mobile}
                   onChange={handlePhoneChange}
-                  className={`w-full pl-8 pr-8 py-2 sm:py-2.5 bg-gray-50 border rounded-xl text-gray-900 font-medium focus:bg-white focus:ring-1 transition-all text-xs sm:text-sm outline-none ${
+                  className={`w-full pl-7 pr-7 py-1.5 sm:py-2 bg-gray-50 border rounded-lg text-gray-900 font-medium focus:bg-white focus:ring-1 transition-all text-xs sm:text-[13px] outline-none ${
                     phoneError
                       ? "border-red-300 focus:border-red-500"
                       : phoneValid
                       ? "border-green-300 focus:border-green-500"
-                      : "border-gray-200 focus:border-[#003893]"
+                      : "border-gray-200 focus:border-blue-600"
                   }`}
                   required
                 />
                 {phoneValid && (
-                  <MdCheckCircle className="absolute right-2.5 top-1/2 -translate-y-1/2 text-green-500 text-sm" />
+                  <MdCheckCircle className="absolute right-2 top-1/2 -translate-y-1/2 text-green-500 text-xs" />
                 )}
                 {phoneError && (
-                  <MdError className="absolute right-2.5 top-1/2 -translate-y-1/2 text-red-500 text-sm" />
+                  <MdError className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500 text-xs" />
                 )}
               </div>
             </div>
             {phoneError && (
-              <p className="text-red-500 text-[11px] ml-1 font-medium">
+              <p className="text-red-500 text-[10px] ml-1 font-medium">
                 {phoneError}
               </p>
             )}
@@ -545,7 +545,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         </div>
 
         {/* Row 3: Qualification Level & Interested Course */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
           <ModernSelect
             label="Qualification Level"
             icon={<FaGraduationCap />}
@@ -574,7 +574,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         </div>
 
         {/* Row 4: Password & Confirm Password */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
           <PasswordInput
             label="Password"
             icon={<FaLock />}
@@ -607,25 +607,25 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         </div>
 
         {/* Row 5: Captcha */}
-        <div className="flex items-center gap-2.5 p-2 sm:p-2.5 bg-slate-50/90 rounded-xl border border-slate-200/90">
-          <span className="text-xs font-bold text-slate-700 shrink-0">Security:</span>
-          <div className="bg-white px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-slate-800 tracking-wider shadow-2xs select-none text-xs sm:text-sm min-w-[70px] text-center">
+        <div className="flex items-center gap-2 p-1.5 sm:p-2 bg-slate-50/90 rounded-lg border border-slate-200/90">
+          <span className="text-[11px] sm:text-xs font-bold text-slate-700 shrink-0">Security:</span>
+          <div className="bg-white px-2.5 py-1 rounded-md border border-slate-200 font-bold text-slate-800 tracking-wider shadow-2xs select-none text-xs min-w-[65px] text-center">
             {captcha}
           </div>
           <button
             type="button"
             onClick={generateCaptcha}
-            className="p-1.5 text-slate-400 hover:text-[#003893] hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-200 cursor-pointer text-xs outline-none focus:outline-none"
+            className="p-1 text-slate-400 hover:text-blue-600 hover:bg-white rounded-md transition-all border border-transparent hover:border-slate-200 cursor-pointer text-xs outline-none focus:outline-none"
             title="New captcha"
           >
-            <LuRefreshCw size={13} />
+            <LuRefreshCw size={12} />
           </button>
           <input
             type="text"
             placeholder="Answer"
             value={userCaptcha}
             onChange={(e) => setUserCaptcha(e.target.value)}
-            className="flex-1 px-3 py-1.5 sm:py-2 bg-white border border-slate-200 rounded-lg text-xs sm:text-sm focus:border-[#003893] focus:ring-1 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 font-medium"
+            className="flex-1 px-2.5 py-1 sm:py-1.5 bg-white border border-slate-200 rounded-md text-xs focus:border-blue-600 focus:ring-1 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 font-medium"
             required
           />
         </div>
@@ -634,13 +634,13 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin })
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#003893] via-[#0047ba] to-blue-600 hover:from-[#002f7a] hover:to-blue-700 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-900/15 hover:shadow-lg transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-sm outline-none focus:outline-none tracking-wide"
+          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 sm:py-3 rounded-xl shadow-md shadow-blue-500/20 hover:shadow-lg transition-all transform active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer text-xs sm:text-[13px] outline-none focus:outline-none tracking-wide"
         >
           {loading ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
             <>
-              Create Account & Apply <FaArrowRight className="text-xs" />
+              Create Account & Apply <FaArrowRight className="text-[10px]" />
             </>
           )}
         </button>
