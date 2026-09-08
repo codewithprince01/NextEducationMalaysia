@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo, type SyntheticEvent } from 'react'
+import { useState, useEffect, useCallback, useMemo, type SyntheticEvent } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -133,6 +133,32 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const totalStudents = Math.max(localStudents + internationalStudents, 1)
   const localWidth = `${Math.round((localStudents / totalStudents) * 100)}%`
   const internationalWidth = `${Math.round((internationalStudents / totalStudents) * 100)}%`
+
+  const [fetchedCategories, setFetchedCategories] = useState<Array<{ id: number; name: string }>>([])
+
+  useEffect(() => {
+    if (university?.course_categories && university.course_categories.length > 0) return
+    if (!university?.uname) return
+
+    fetch(`/api/university/${university.uname}/courses`)
+      .then(res => res.json())
+      .then(d => {
+        if (Array.isArray(d?.categories) && d.categories.length > 0) {
+          setFetchedCategories(d.categories)
+        }
+      })
+      .catch(() => {})
+  }, [university?.uname, university?.course_categories])
+
+  const categoriesList = useMemo(() => {
+    if (Array.isArray(university?.course_categories) && university.course_categories.length > 0) {
+      return university.course_categories
+    }
+    if (Array.isArray(university?.faculties) && university.faculties.length > 0) {
+      return university.faculties
+    }
+    return fetchedCategories
+  }, [university?.course_categories, university?.faculties, fetchedCategories])
 
   const handleDirections = useCallback(() => {
     if (university.google_map_link) {
@@ -364,20 +390,28 @@ export default function UniversityHeroClient({ university, photos }: { universit
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mt-3">
-              <h3 className="text-base font-semibold text-gray-900 mb-3">Study Options</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {STUDY_OPTIONS.map(opt => (
-                  <div key={opt.label} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
-                    <Check size={14} className={opt.icon} />
-                    <span className={`text-sm font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
-                  </div>
-                ))}
+            {/* Course Categories */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-3">
+              <h3 className="text-base font-bold text-gray-900 mb-4">Course Categories:</h3>
+              <div className="flex flex-wrap gap-2.5">
+                {categoriesList.length > 0 ? (
+                  categoriesList.map((cat: any) => (
+                    <Link
+                      key={cat.id || cat.name}
+                      href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
+                      className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-medium transition cursor-pointer"
+                    >
+                      {cat.name}
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No course categories available</p>
+                )}
               </div>
             </div>
 
           </div>
-          <div className="col-span-1 space-y-3">
+          <div className="col-span-1 space-y-4">
              <UniversityActionButtons
                variant="desktop"
                onBrochure={() => openPopup('brochure')}
@@ -386,6 +420,19 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onReview={() => openPopup('review')}
              />
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
+
+             {/* Study Options on Right Column */}
+             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+               <h3 className="text-base font-semibold text-gray-900 mb-3">Study Options</h3>
+               <div className="grid grid-cols-3 gap-2">
+                 {STUDY_OPTIONS.map(opt => (
+                   <div key={opt.label} className={`flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
+                     <Check size={14} className={opt.icon} />
+                     <span className={`text-xs font-semibold whitespace-nowrap ${opt.text}`}>{opt.label}</span>
+                   </div>
+                 ))}
+               </div>
+             </div>
           </div>
         </div>
       </div>
@@ -478,7 +525,41 @@ export default function UniversityHeroClient({ university, photos }: { universit
                 </div>
              </div>
 
+             {/* Mobile Course Categories */}
+             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+                <h3 className="text-sm font-bold text-gray-900 mb-2">Course Categories:</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {categoriesList.length > 0 ? (
+                    categoriesList.map((cat: any) => (
+                      <Link
+                        key={cat.id || cat.name}
+                        href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
+                        className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-xs">No course categories available</p>
+                  )}
+                </div>
+             </div>
+
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} compact={true} />
+
+             {/* Mobile Study Options */}
+             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+               <h3 className="text-xs font-semibold text-gray-900 mb-2">Study Options</h3>
+               <div className="grid grid-cols-3 gap-1.5">
+                 {STUDY_OPTIONS.map(opt => (
+                   <div key={opt.label} className={`flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md border ${opt.bg} ${opt.border}`}>
+                     <Check size={12} className={opt.icon} />
+                     <span className={`text-[11px] font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
+                   </div>
+                 ))}
+               </div>
+             </div>
+
              <UniversityActionButtons
                variant="mobile"
                onBrochure={() => openPopup('brochure')}

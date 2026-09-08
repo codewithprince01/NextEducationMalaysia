@@ -190,7 +190,7 @@ async function fetchUniversityFull(slug: string) {
   // 2. Fetch relations via raw SQL to bypass zero-date validation issues.
   // Avoid selecting created_at/updated_at columns because legacy rows may contain
   // invalid values like 0000-00-00 00:00:00.
-  const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews] = await Promise.all([
+  const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews, courseCategories] = await Promise.all([
     prisma.$queryRawUnsafe(
       `SELECT id, university_id, photo_path, is_featured FROM university_photos WHERE university_id = ? ORDER BY is_featured DESC, id ASC`,
       universityId
@@ -230,7 +230,15 @@ async function fetchUniversityFull(slug: string) {
        ORDER BY id DESC
        LIMIT 5`,
       universityId
-    ) as Promise<any[]>
+    ) as Promise<any[]>,
+    prisma.$queryRawUnsafe(
+      `SELECT DISTINCT cc.id, cc.name, cc.slug
+       FROM course_categories cc
+       JOIN university_programs up ON up.course_category_id = cc.id
+       WHERE up.university_id = ? AND up.status = 1
+       ORDER BY cc.name ASC`,
+      universityId
+    ) as Promise<any[]>,
   ])
 
   const typeData = instituteType[0]
@@ -246,12 +254,15 @@ async function fetchUniversityFull(slug: string) {
     scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
     active_programs_count: programs.length,
     instituteType: typeData,
-    review_count: parsedReviewCount,
-    average_rating: parsedAverageRating,
     reviews: (recentReviews || []).map((row: any) => ({
       name: row?.name || '',
       description: row?.description || '',
       rating: Number(row?.rating || 0),
+    })),
+    course_categories: (courseCategories || []).map((row: any) => ({
+      id: Number(row.id),
+      name: row.name || '',
+      slug: row.slug || '',
     })),
   })
 }

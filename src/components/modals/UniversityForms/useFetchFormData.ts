@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import axios from 'axios'
 
 export type FormOption = { id?: number; name?: string; level?: string; phonecode?: string | number; phone_code?: string | number }
@@ -18,7 +18,7 @@ function uniqByName(list: any[]) {
   const out: any[] = []
   const seen = new Set<string>()
   for (const item of list || []) {
-    const name = String(item?.name || item?.level || '').trim()
+    const name = String(item?.name || item?.course_name || item?.level || '').trim()
     if (!name) continue
     const key = name.toLowerCase()
     if (seen.has(key)) continue
@@ -26,6 +26,55 @@ function uniqByName(list: any[]) {
     out.push(item)
   }
   return out
+}
+
+export function isLevelMatch(progLevel: string, selectedLevel: string): boolean {
+  if (!selectedLevel) return true
+  if (!progLevel) return false
+
+  const normalize = (s: string) =>
+    String(s || '')
+      .toLowerCase()
+      .replace(/['’]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+
+  const nProg = normalize(progLevel)
+  const nSel = normalize(selectedLevel)
+
+  if (nProg === nSel) return true
+  if (nProg.includes(nSel) || nSel.includes(nProg)) return true
+
+  // Diploma match
+  if (nSel.includes('diploma') && nProg.includes('diploma')) return true
+
+  // Bachelor / Under-Graduate match
+  if (
+    (nSel.includes('under') || nSel.includes('bachelor') || nSel.includes('ug') || nSel.includes('degree')) &&
+    (nProg.includes('under') || nProg.includes('bachelor') || nProg.includes('ug') || nProg.includes('degree'))
+  ) return true
+
+  // Master / Post-Graduate match
+  if (
+    (nSel.includes('post') || nSel.includes('master') || nSel.includes('pg')) &&
+    (nProg.includes('post') || nProg.includes('master') || nProg.includes('pg'))
+  ) return true
+
+  // Doctorate / PhD match
+  if (
+    (nSel.includes('phd') || nSel.includes('doctor')) &&
+    (nProg.includes('phd') || nProg.includes('doctor'))
+  ) return true
+
+  // Certificate match
+  if (nSel.includes('cert') && nProg.includes('cert')) return true
+
+  // Pre-University / Foundation match
+  if (
+    (nSel.includes('pre') || nSel.includes('foundation')) &&
+    (nProg.includes('pre') || nProg.includes('foundation'))
+  ) return true
+
+  return false
 }
 
 async function firstNonEmpty(urls: string[], headers?: Record<string, string>) {
@@ -39,11 +88,12 @@ async function firstNonEmpty(urls: string[], headers?: Record<string, string>) {
   return []
 }
 
-export function useFetchFormData(universitySlugOrName?: string | null) {
+export function useFetchFormData(universitySlugOrName?: string | null, selectedLevel?: string | null) {
   const [phonecode, setPhonecode] = useState<FormOption[]>([])
   const [countries, setCountries] = useState<FormOption[]>([])
   const [levels, setLevels] = useState<FormOption[]>([])
-  const [courseCategories, setCourseCategories] = useState<FormOption[]>([])
+  const [allUniversityPrograms, setAllUniversityPrograms] = useState<Array<{ name: string; level: string }>>([])
+  const [genericCategories, setGenericCategories] = useState<FormOption[]>([])
 
   useEffect(() => {
     const headers = API_KEY ? { 'x-api-key': API_KEY } : undefined
@@ -81,10 +131,12 @@ export function useFetchFormData(universitySlugOrName?: string | null) {
             { level: 'PhD / Doctorate' },
           ]
 
+      let resolvedAllProgs: Array<{ name: string; level: string }> = []
       let resolvedCategories = uniqByName(
         fetchedCategories.map((c: any) => ({
           ...c,
           name: c?.name || c?.title || c?.course_name || '',
+          level: c?.level || '',
         })),
       )
 
@@ -101,27 +153,49 @@ export function useFetchFormData(universitySlugOrName?: string | null) {
               resolvedLevels = data.levels
             }
             if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
-              const allProgCats = data.all_programs.map((p: any) => ({ name: p.name || p.course_name || '' })).filter((p: any) => p.name)
-              resolvedCategories = uniqByName(allProgCats)
-            } else if (Array.isArray(data.categories) && data.categories.length > 0) {
-              const uniCats = data.categories.map((c: any) => ({ name: c.name || c.title || '' })).filter((c: any) => c.name)
-              if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
-                const progCats = data.programs.data.map((p: any) => ({ name: p.course_name || p.name || p.title || '' })).filter((p: any) => p.name)
-                resolvedCategories = uniqByName([...uniCats, ...progCats])
-              } else {
-                resolvedCategories = uniqByName(uniCats)
-              }
+              resolvedAllProgs = data.all_programs
+                .map((p: any) => ({
+                  name: String(p.name || p.course_name || '').trim(),
+                  level: String(p.level || '').trim(),
+                }))
+                .filter((p: any) => p.name)
+            } else if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
+              resolvedAllProgs = data.programs.data
+                .map((p: any) => ({
+                  name: String(p.course_name || p.name || p.title || '').trim(),
+                  level: String(p.level || '').trim(),
+                }))
+                .filter((p: any) => p.name)
             }
           }
         } catch {}
       }
 
       setLevels(resolvedLevels)
-      setCourseCategories(resolvedCategories)
+      setAllUniversityPrograms(resolvedAllProgs)
+      setGenericCategories(resolvedCategories)
     }
 
     fetchData().catch(() => {})
   }, [universitySlugOrName])
 
-  return { phonecode, levels, courseCategories, countriesData: countries }
+  const filteredCourseCategories = useMemo(() => {
+    if (allUniversityPrograms.length > 0) {
+      if (selectedLevel) {
+        const matching = allUniversityPrograms.filter((p) => isLevelMatch(p.level, selectedLevel))
+        if (matching.length > 0) {
+          return uniqByName(matching.map((p) => ({ name: p.name })))
+        }
+      }
+      return uniqByName(allUniversityPrograms.map((p) => ({ name: p.name })))
+    }
+    return genericCategories
+  }, [allUniversityPrograms, selectedLevel, genericCategories])
+
+  return {
+    phonecode,
+    levels,
+    courseCategories: filteredCourseCategories,
+    countriesData: countries,
+  }
 }

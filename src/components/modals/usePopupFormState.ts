@@ -1,8 +1,23 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
+import { isLevelMatch } from "./UniversityForms/useFetchFormData";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
+
+function uniqByName(list: any[]) {
+  const out: any[] = [];
+  const seen = new Set<string>();
+  for (const item of list || []) {
+    const name = String(item?.name || item?.course_name || '').trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
 
 export const usePopupFormState = (isOpen: boolean, formType: string, universityData?: any) => {
   const [captcha, setCaptcha] = useState("");
@@ -10,7 +25,8 @@ export const usePopupFormState = (isOpen: boolean, formType: string, universityD
   const [countriesData, setCountriesData] = useState<any[]>([]);
   const [phonecode, setPhonecode] = useState<any[]>([]);
   const [levels, setLevels] = useState<any[]>([]);
-  const [courseCategories, setCourseCategories] = useState<any[]>([]);
+  const [allPrograms, setAllPrograms] = useState<Array<{ name: string; level: string }>>([]);
+  const [genericCategories, setGenericCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -89,6 +105,7 @@ export const usePopupFormState = (isOpen: boolean, formType: string, universityD
       const cData = cRes.status === 'fulfilled' ? parseList(cRes.value) : [];
       let lData = lRes.status === 'fulfilled' ? parseList(lRes.value) : [];
       let catData = catRes.status === 'fulfilled' ? parseList(catRes.value) : [];
+      let progsData: Array<{ name: string; level: string }> = [];
 
       const uniSlug = universityData?.uname || universityData?.slug ||
         (typeof universityData?.name === 'string'
@@ -104,30 +121,19 @@ export const usePopupFormState = (isOpen: boolean, formType: string, universityD
               lData = data.levels;
             }
             if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
-              const seen = new Set();
-              catData = data.all_programs
-                .map((p: any) => ({ name: p.name || p.course_name || '' }))
-                .filter((c: any) => {
-                  if (!c.name) return false;
-                  const key = String(c.name).toLowerCase();
-                  if (seen.has(key)) return false;
-                  seen.add(key);
-                  return true;
-                });
-            } else if (Array.isArray(data.categories) && data.categories.length > 0) {
-              const uniCats = data.categories.map((c: any) => ({ name: c.name || c.title || '' })).filter((c: any) => c.name);
-              if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
-                const progCats = data.programs.data.map((p: any) => ({ name: p.course_name || p.name || p.title || '' })).filter((p: any) => p.name);
-                const seen = new Set();
-                catData = [...uniCats, ...progCats].filter((c: any) => {
-                  const key = String(c.name).toLowerCase();
-                  if (seen.has(key)) return false;
-                  seen.add(key);
-                  return true;
-                });
-              } else {
-                catData = uniCats;
-              }
+              progsData = data.all_programs
+                .map((p: any) => ({
+                  name: String(p.name || p.course_name || '').trim(),
+                  level: String(p.level || '').trim(),
+                }))
+                .filter((p: any) => p.name);
+            } else if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
+              progsData = data.programs.data
+                .map((p: any) => ({
+                  name: String(p.course_name || p.name || p.title || '').trim(),
+                  level: String(p.level || '').trim(),
+                }))
+                .filter((p: any) => p.name);
             }
           }
         } catch {}
@@ -136,13 +142,37 @@ export const usePopupFormState = (isOpen: boolean, formType: string, universityD
       setPhonecode(pcData);
       setCountriesData(cData);
       setLevels(lData);
-      setCourseCategories(catData);
+      setAllPrograms(progsData);
+      setGenericCategories(uniqByName(catData.map((c: any) => ({ name: c.name || c.title || '' }))));
     };
     fetchData();
   }, [universityData]);
 
+  // Dynamically filter course categories by highest_qualification
+  const courseCategories = useMemo(() => {
+    if (allPrograms.length > 0) {
+      if (formData.highest_qualification) {
+        const matching = allPrograms.filter((p) => isLevelMatch(p.level, formData.highest_qualification));
+        if (matching.length > 0) {
+          return uniqByName(matching.map((p) => ({ name: p.name })));
+        }
+      }
+      return uniqByName(allPrograms.map((p) => ({ name: p.name })));
+    }
+    return genericCategories;
+  }, [allPrograms, formData.highest_qualification, genericCategories]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "highest_qualification") {
+      setFormData((prev) => ({
+        ...prev,
+        highest_qualification: value,
+        interested_course_category: "", // Reset course so user picks matching course for new level
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleCountryCodeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

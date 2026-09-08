@@ -19,22 +19,17 @@ const CoursesSidebar: React.FC<CoursesSidebarProps> = ({
   onClearAll,
 }) => {
   const [openFilters, setOpenFilters] = useState<{ [key: string]: boolean }>(() => {
-    if (typeof window === 'undefined') return {}
-    try {
-      const saved = localStorage.getItem('openFilters_courses2')
-      if (saved) return JSON.parse(saved)
-    } catch {}
-    return Object.keys(filterOptions).reduce((acc: any, key) => {
-      acc[key] = true
-      return acc
-    }, {})
+    const initial: { [key: string]: boolean } = {}
+    if (filterOptions) {
+      for (const key of Object.keys(filterOptions)) {
+        initial[key] = true
+      }
+    }
+    return initial
   })
 
   useEffect(() => {
-    localStorage.setItem('openFilters_courses2', JSON.stringify(openFilters))
-  }, [openFilters])
-
-  useEffect(() => {
+    if (!filterOptions) return
     setOpenFilters((prev) => {
       const next = { ...prev }
       for (const key of Object.keys(filterOptions)) {
