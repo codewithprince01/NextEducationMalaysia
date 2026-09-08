@@ -1,7 +1,8 @@
-﻿'use client'
+'use client'
 
 import { useState, useCallback, useMemo, type SyntheticEvent } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import {
   MapPin, Navigation, Star, Building, BedDouble,
   Phone, Mail, Image as ImageIcon,
@@ -80,7 +81,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const [showFormSuccess, setShowFormSuccess] = useState(false)
   const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
-  // â”€â”€ Breadcrumb Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Breadcrumb Logic ──────────────────────────────────────────────────────
   const breadcrumbItems = useMemo<BreadcrumbItem[]>(() => {
     const items: BreadcrumbItem[] = [
       { label: 'Home', href: '/' },
@@ -102,7 +103,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
     return items
   }, [pathname, university])
 
-  // â”€â”€ Data Prep â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Data Prep ────────────────────────────────────────────────────────────
   const { mainPhoto, otherPhotos, allPhotos } = useMemo(() => {
     const seen = new Set<string>()
     const unique: Photo[] = []
@@ -132,6 +133,12 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const totalStudents = Math.max(localStudents + internationalStudents, 1)
   const localWidth = `${Math.round((localStudents / totalStudents) * 100)}%`
   const internationalWidth = `${Math.round((internationalStudents / totalStudents) * 100)}%`
+
+  const facultiesList = useMemo(() => {
+    return (university.faculties && university.faculties.length > 0)
+      ? university.faculties
+      : (university.offeredCourses && university.offeredCourses.length > 0 ? university.offeredCourses : [])
+  }, [university.faculties, university.offeredCourses])
 
   const handleDirections = useCallback(() => {
     if (university.google_map_link) {
@@ -167,7 +174,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         <Breadcrumb items={breadcrumbItems} />
       </div>
 
-      {/* â”€â”€ DESKTOP HERO â”€â”€ */}
+      {/* ── DESKTOP HERO ── */}
       <div className="hidden sm:block max-w-[1400px] mx-auto px-2 md:px-4 py-4 bg-white">
         {/* Logo + Info Row */}
         <div className="flex flex-row items-center justify-between gap-4 mb-4">
@@ -182,20 +189,20 @@ export default function UniversityHeroClient({ university, photos }: { universit
               />
             </div>
             <div className="flex-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">{university.name}</h1>
-            <div className="flex flex-row items-center gap-2 text-sm text-gray-600 flex-wrap">
-              <div className="flex items-center gap-1 min-w-0">
-                <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
-                <span className="text-blue-600 font-bold truncate">Location: {university.city}</span>
+              <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">{university.name}</h1>
+              <div className="flex flex-row items-center gap-2 text-sm text-gray-600 flex-wrap">
+                <div className="flex items-center gap-1 min-w-0">
+                  <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
+                  <span className="text-blue-600 font-bold truncate">Location: {university.city}</span>
+                </div>
+                <button
+                  onClick={handleDirections}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
+                >
+                  <Navigation size={14} className="rotate-45" />
+                  Get Directions
+                </button>
               </div>
-              <button
-                onClick={handleDirections}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
-              >
-                <Navigation size={14} className="rotate-45" />
-                Get Directions
-              </button>
-            </div>
             </div>
           </div>
 
@@ -363,18 +370,27 @@ export default function UniversityHeroClient({ university, photos }: { universit
               </div>
             </div>
 
-            {university.offeredCourses && university.offeredCourses.length > 0 && (
+            {facultiesList && facultiesList.length > 0 && (
               <div className="mt-6 bg-white rounded-2xl shadow-md border border-gray-100 p-4 w-full">
                 <h3 className="text-md font-bold text-gray-900 mb-4">Faculties:</h3>
                 <div className="flex flex-wrap gap-2">
-                  {university.offeredCourses.map((course: string, i: number) => (
-                    <div
-                      key={i}
-                      className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl text-sm font-medium transition cursor-default"
-                    >
-                      {course}
-                    </div>
-                  ))}
+                  {facultiesList.map((fac: any, i: number) => {
+                    const facName = typeof fac === 'string' ? fac : fac?.name
+                    const facId = typeof fac === 'object' ? fac?.id : null
+                    const href = facId
+                      ? `/university/${university.uname}/courses?course_category_id=${facId}`
+                      : `/university/${university.uname}/courses`
+                    return (
+                      <Link
+                        key={i}
+                        href={href}
+                        scroll={false}
+                        className="bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-all border border-blue-100/80 shadow-2xs cursor-pointer"
+                      >
+                        {facName}
+                      </Link>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -403,7 +419,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
         </div>
       </div>
 
-      {/* â”€â”€ MOBILE HERO â”€â”€ */}
+      {/* ── MOBILE HERO ── */}
       <div className="sm:hidden bg-gray-50 pb-8">
         <div className="bg-white p-3">
           <div className="flex items-center gap-4 mb-5">
@@ -491,6 +507,32 @@ export default function UniversityHeroClient({ university, photos }: { universit
                 </div>
              </div>
 
+             {/* Mobile Faculties */}
+             {facultiesList && facultiesList.length > 0 && (
+               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+                 <h3 className="text-sm font-semibold text-gray-900 mb-2.5">Faculties</h3>
+                 <div className="flex flex-wrap gap-1.5">
+                   {facultiesList.map((fac: any, i: number) => {
+                     const facName = typeof fac === 'string' ? fac : fac?.name
+                     const facId = typeof fac === 'object' ? fac?.id : null
+                     const href = facId
+                       ? `/university/${university.uname}/courses?course_category_id=${facId}`
+                       : `/university/${university.uname}/courses`
+                     return (
+                       <Link
+                         key={i}
+                         href={href}
+                         scroll={false}
+                         className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-semibold border border-blue-100 transition-colors"
+                       >
+                         {facName}
+                       </Link>
+                     )
+                   })}
+                 </div>
+               </div>
+             )}
+
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} compact={true} />
              <UniversityActionButtons
                variant="mobile"
@@ -562,7 +604,3 @@ export default function UniversityHeroClient({ university, photos }: { universit
     </div>
   )
 }
-
-
-
-

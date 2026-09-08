@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || '';
 
 export const usePopupFormState = (isOpen: boolean, formType: string, universityData?: any) => {

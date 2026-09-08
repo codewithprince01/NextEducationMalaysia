@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import { FaUser, FaEnvelope, FaMobileAlt, FaBriefcase, FaPen, FaStar } from "react-icons/fa"
 import { toast } from "react-toastify"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 
 export default function WriteReviewClient() {
   const [rating, setRating] = useState(0)

@@ -34,7 +34,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://admin.educationmalaysia.in/api";
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '');
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || "";
 
 import { evaluateStudentChecklist, ChecklistItem } from "@/utils/studentChecklist";

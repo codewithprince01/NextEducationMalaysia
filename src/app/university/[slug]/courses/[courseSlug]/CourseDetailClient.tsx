@@ -21,7 +21,7 @@ import AuthModal from '@/components/modals/AuthModal'
 import { toast } from 'react-toastify'
 import axios from 'axios'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://admin.educationmalaysia.in/api'
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 interface CourseDetailClientProps {

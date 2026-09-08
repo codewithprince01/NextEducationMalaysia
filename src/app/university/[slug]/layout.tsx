@@ -21,7 +21,7 @@ export default async function UniversityLayout({ children, params }: Props) {
   
   const university = serializeBigInt(universityData) as any
   const photos = university.photos || []
-  const offeredCourses = Array.from(new Set((university.programs || []).map((p: any) => p.course_name))).filter(Boolean).slice(0, 10)
+  const faculties = university.faculties || []
 
   return (
     <div className="min-h-screen bg-white">
@@ -30,7 +30,7 @@ export default async function UniversityLayout({ children, params }: Props) {
       </Suspense>
       {/* Shared Hero */}
       <UniversityHeroClient
-        university={{ ...university, offeredCourses }}
+        university={{ ...university, faculties }}
         photos={photos}
       />
 
