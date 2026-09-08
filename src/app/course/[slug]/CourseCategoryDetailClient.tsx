@@ -14,6 +14,7 @@ import {
 import TrendingCourses from '@/components/common/TrendingCourses'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
+import { formatRichText } from '@/lib/richText'
 
 const API_BASE = '/api/v1'
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -187,9 +188,9 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
                               <ChevronDown className={`w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-all ${openFaq === idx ? 'rotate-180' : ''}`} />
                             </button>
                             {openFaq === idx && (
-                              <div 
-                                className="mt-4 text-gray-600 leading-relaxed text-[15px] prose max-w-none"
-                                dangerouslySetInnerHTML={{ __html: faq.answer }}
+                              <div
+                                className="mt-4 cms-content"
+                                dangerouslySetInnerHTML={{ __html: formatRichText(faq.answer) }}
                               />
                             )}
                           </div>
@@ -210,9 +211,15 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
                         {tabName}
                       </span>
                     </h3>
+                    {/* `.cms-content` carries the editor styling (paragraph gaps,
+                        blank lines, bold, lists, links). The `prose` classes that
+                        used to be here did nothing — @tailwindcss/typography is
+                        not installed — so Tailwind's preflight left every
+                        paragraph with zero margin and the spacing authors added
+                        in the admin panel never showed up. */}
                     <div
-                      className="prose prose-blue max-w-none text-gray-800 text-[15px] leading-relaxed [&_a]:text-blue-600 [&_a]:font-bold [&_a:hover]:underline"
-                      dangerouslySetInnerHTML={{ __html: contentMap[tabName] || "" }}
+                      className="cms-content [&_a]:font-bold"
+                      dangerouslySetInnerHTML={{ __html: formatRichText(contentMap[tabName]) }}
                     />
                   </div>
                 )
