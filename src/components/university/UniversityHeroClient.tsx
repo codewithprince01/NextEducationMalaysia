@@ -364,6 +364,18 @@ export default function UniversityHeroClient({ university, photos }: { universit
               </div>
             </div>
 
+            <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mt-3">
+              <h3 className="text-base font-semibold text-gray-900 mb-3">Study Options</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {STUDY_OPTIONS.map(opt => (
+                  <div key={opt.label} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
+                    <Check size={14} className={opt.icon} />
+                    <span className={`text-sm font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
           <div className="col-span-1 space-y-3">
              <UniversityActionButtons
@@ -374,17 +386,6 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onReview={() => openPopup('review')}
              />
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
-             <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
-               <h3 className="text-lg font-semibold text-gray-900 mb-4">Study Options</h3>
-               <div className="grid grid-cols-3 gap-2">
-                 {STUDY_OPTIONS.map(opt => (
-                   <div key={opt.label} className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
-                     <Check size={14} className={opt.icon} />
-                     <span className={`text-sm font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
-                   </div>
-                 ))}
-               </div>
-             </div>
           </div>
         </div>
       </div>
