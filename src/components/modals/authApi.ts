@@ -49,14 +49,14 @@ export async function apiGetWithFallback(endpoint: string, token?: string) {
   const headers = getHeaders(token);
 
   try {
-    const res = await axios.get(`${REMOTE_API_BASE}${cleanEndpoint}`, { headers, timeout: 8000 });
+    const res = await axios.get(`${LOCAL_API_BASE}${cleanEndpoint}`, { headers, timeout: 5000 });
     return res;
-  } catch (remoteErr: any) {
+  } catch (localErr: any) {
     try {
-      const res = await axios.get(`${LOCAL_API_BASE}${cleanEndpoint}`, { headers, timeout: 5000 });
+      const res = await axios.get(`${REMOTE_API_BASE}${cleanEndpoint}`, { headers, timeout: 8000 });
       return res;
-    } catch (localErr) {
-      throw remoteErr;
+    } catch (remoteErr) {
+      throw localErr;
     }
   }
 }
@@ -66,17 +66,17 @@ export async function apiPostWithFallback(endpoint: string, data: any, token?: s
   const headers = getHeaders(token);
 
   try {
-    const res = await axios.post(`${REMOTE_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 12000 });
+    const res = await axios.post(`${LOCAL_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 8000 });
     return res;
-  } catch (remoteErr: any) {
-    if (!remoteErr.response || remoteErr.response.status === 404 || remoteErr.response.status >= 500) {
+  } catch (localErr: any) {
+    if (!localErr.response || localErr.response.status === 404 || localErr.response.status >= 500) {
       try {
-        const res = await axios.post(`${LOCAL_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 8000 });
+        const res = await axios.post(`${REMOTE_API_BASE}${cleanEndpoint}`, data, { headers, timeout: 12000 });
         return res;
-      } catch (localErr) {
-        throw remoteErr;
+      } catch (remoteErr) {
+        throw localErr;
       }
     }
-    throw remoteErr;
+    throw localErr;
   }
 }
