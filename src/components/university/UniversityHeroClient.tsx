@@ -134,12 +134,6 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const localWidth = `${Math.round((localStudents / totalStudents) * 100)}%`
   const internationalWidth = `${Math.round((internationalStudents / totalStudents) * 100)}%`
 
-  const facultiesList = useMemo(() => {
-    return (university.faculties && university.faculties.length > 0)
-      ? university.faculties
-      : (university.offeredCourses && university.offeredCourses.length > 0 ? university.offeredCourses : [])
-  }, [university.faculties, university.offeredCourses])
-
   const handleDirections = useCallback(() => {
     if (university.google_map_link) {
       window.open(university.google_map_link, '_blank', 'noopener,noreferrer')
@@ -370,30 +364,6 @@ export default function UniversityHeroClient({ university, photos }: { universit
               </div>
             </div>
 
-            {facultiesList && facultiesList.length > 0 && (
-              <div className="mt-6 bg-white rounded-2xl shadow-md border border-gray-100 p-4 w-full">
-                <h3 className="text-md font-bold text-gray-900 mb-4">Faculties:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {facultiesList.map((fac: any, i: number) => {
-                    const facName = typeof fac === 'string' ? fac : fac?.name
-                    const facId = typeof fac === 'object' ? fac?.id : null
-                    const href = facId
-                      ? `/university/${university.uname}/courses?course_category_id=${facId}`
-                      : `/university/${university.uname}/courses`
-                    return (
-                      <Link
-                        key={i}
-                        href={href}
-                        scroll={false}
-                        className="bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 px-3.5 py-1.5 rounded-xl text-sm font-semibold transition-all border border-blue-100/80 shadow-2xs cursor-pointer"
-                      >
-                        {facName}
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
           </div>
           <div className="col-span-1 space-y-3">
              <UniversityActionButtons
@@ -506,32 +476,6 @@ export default function UniversityHeroClient({ university, photos }: { universit
                    <div className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /><span>{email}</span></div>
                 </div>
              </div>
-
-             {/* Mobile Faculties */}
-             {facultiesList && facultiesList.length > 0 && (
-               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                 <h3 className="text-sm font-semibold text-gray-900 mb-2.5">Faculties</h3>
-                 <div className="flex flex-wrap gap-1.5">
-                   {facultiesList.map((fac: any, i: number) => {
-                     const facName = typeof fac === 'string' ? fac : fac?.name
-                     const facId = typeof fac === 'object' ? fac?.id : null
-                     const href = facId
-                       ? `/university/${university.uname}/courses?course_category_id=${facId}`
-                       : `/university/${university.uname}/courses`
-                     return (
-                       <Link
-                         key={i}
-                         href={href}
-                         scroll={false}
-                         className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-semibold border border-blue-100 transition-colors"
-                       >
-                         {facName}
-                       </Link>
-                     )
-                   })}
-                 </div>
-               </div>
-             )}
 
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} compact={true} />
              <UniversityActionButtons

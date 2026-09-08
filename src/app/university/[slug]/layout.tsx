@@ -21,7 +21,6 @@ export default async function UniversityLayout({ children, params }: Props) {
   
   const university = serializeBigInt(universityData) as any
   const photos = university.photos || []
-  const faculties = university.faculties || []
 
   return (
     <div className="min-h-screen bg-white">
@@ -30,7 +29,7 @@ export default async function UniversityLayout({ children, params }: Props) {
       </Suspense>
       {/* Shared Hero */}
       <UniversityHeroClient
-        university={{ ...university, faculties }}
+        university={university}
         photos={photos}
       />
 

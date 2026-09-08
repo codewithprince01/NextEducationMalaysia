@@ -190,7 +190,7 @@ async function fetchUniversityFull(slug: string) {
   // 2. Fetch relations via raw SQL to bypass zero-date validation issues.
   // Avoid selecting created_at/updated_at columns because legacy rows may contain
   // invalid values like 0000-00-00 00:00:00.
-  const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews, categoryFaculties, specializationFaculties] = await Promise.all([
+  const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews] = await Promise.all([
     prisma.$queryRawUnsafe(
       `SELECT id, university_id, photo_path, is_featured FROM university_photos WHERE university_id = ? ORDER BY is_featured DESC, id ASC`,
       universityId
@@ -230,22 +230,6 @@ async function fetchUniversityFull(slug: string) {
        ORDER BY id DESC
        LIMIT 5`,
       universityId
-    ) as Promise<any[]>,
-    prisma.$queryRawUnsafe(
-      `SELECT DISTINCT cc.id, cc.name, cc.slug
-       FROM university_programs up
-       JOIN course_categories cc ON up.course_category_id = cc.id
-       WHERE up.university_id = ? AND up.status = 1
-       ORDER BY cc.name ASC`,
-      universityId
-    ) as Promise<any[]>,
-    prisma.$queryRawUnsafe(
-      `SELECT DISTINCT cs.id, cs.name, cs.slug
-       FROM university_programs up
-       JOIN course_specializations cs ON up.specialization_id = cs.id
-       WHERE up.university_id = ? AND up.status = 1
-       ORDER BY cs.name ASC`,
-      universityId
     ) as Promise<any[]>
   ])
 
@@ -254,22 +238,11 @@ async function fetchUniversityFull(slug: string) {
   const parsedReviewCount = Number(stats.review_count || 0)
   const parsedAverageRating = Number(stats.average_rating || 0)
 
-  // Use course categories as faculties; if empty, fallback to specializations
-  const rawFaculties = (categoryFaculties && categoryFaculties.length > 0)
-    ? categoryFaculties
-    : (specializationFaculties || [])
-  const faculties = rawFaculties.map((f: any) => ({
-    id: Number(f.id),
-    name: String(f.name || '').trim(),
-    slug: String(f.slug || '').trim(),
-  })).filter((f: any) => Boolean(f.name))
-
   return serializeBigInt({
     ...university,
     photos,
     programs,
     overviews,
-    faculties,
     scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
     active_programs_count: programs.length,
     instituteType: typeData,
