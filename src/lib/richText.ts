@@ -18,6 +18,48 @@
  * All visual styling lives in the `.cms-content` block in globals.css, so the
  * output must be rendered inside an element carrying that class.
  */
+const ADMIN_ORIGIN = (
+  process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
+).replace(/\/+$/, '')
+
+// Hosts that never serve uploaded files. The editor sometimes writes image URLs
+// against the public site instead of the admin host, and those 404.
+const PUBLIC_HOSTS = /^https?:\/\/(?:www\.)?educationmalaysia\.in\//i
+
+/**
+ * Point a CMS image at the host that actually stores it.
+ *
+ * Uploads live on the admin domain under `/storage/…`. Editor content carries a
+ * mix of shapes — the public host, a bare `/uploads/…` path, sometimes a
+ * scrambled `assets/storage/…` prefix — and all of them 404 as written. External
+ * images and data: URIs are left completely alone.
+ */
+function resolveCmsImageSrc(src: string): string {
+  const value = src.trim()
+  if (!value || /^(?:data:|blob:|#)/i.test(value)) return src
+
+  let path: string | null = null
+
+  if (PUBLIC_HOSTS.test(value)) {
+    path = value.replace(/^https?:\/\/[^/]+\//i, '')
+  } else if (/^\/(?:uploads|assets|storage)\//i.test(value)) {
+    path = value.slice(1)
+  } else {
+    // Already on the admin host, or a third-party image: leave it as it is.
+    return src
+  }
+
+  // Fold the scrambled prefixes some rows carry back into the canonical one,
+  // then apply exactly one `storage/`.
+  path = path
+    .replace(/^storage\/assets\/storage\//i, 'assets/')
+    .replace(/^assets\/storage\/uploadFiles\//i, 'assets/uploadFiles/')
+    .replace(/^storage\/assets\/uploadFiles\//i, 'assets/uploadFiles/')
+    .replace(/^storage\//i, '')
+
+  return `${ADMIN_ORIGIN}/storage/${path}`
+}
+
 export function formatRichText(html?: string | null): string {
   if (!html) return ''
 
@@ -66,6 +108,12 @@ export function formatRichText(html?: string | null): string {
       const spacer = '<div class="cms-blank-line" aria-hidden="true"></div>\n'
       return `${close}\n${spacer.repeat(extraBlankLines)}${open}`
     }
+  )
+
+  // --- image hosts ----------------------------------------------------------
+  out = out.replace(
+    /(<img\b[^>]*?\bsrc\s*=\s*")([^"]+)(")/gi,
+    (_m, pre: string, src: string, post: string) => `${pre}${resolveCmsImageSrc(src)}${post}`
   )
 
   // --- tables -------------------------------------------------------------

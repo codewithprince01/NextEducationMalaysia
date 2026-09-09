@@ -477,9 +477,16 @@ h3.text-white, .text-white h3 { color: white !important; }
   border: 0;
   border-top: 1px solid #e5e7eb;
 }
+/* The editor writes the image's original pixel size into a style attribute, e.g.
+   style="width: 2560px; height: 1459px". `max-width` then shrinks the width to
+   fit the column while that inline height stays fixed, and the picture is
+   stretched to a tall smear. `!important` is needed because a normal style
+   attribute otherwise outranks this rule; with the height released the browser
+   derives it from the image's real aspect ratio. Inline widths are left alone —
+   they are how an author deliberately keeps an icon or a thumbnail small. */
 .cms-content img {
   max-width: 100%;
-  height: auto;
+  height: auto !important;
   margin: 1rem 0;
   border-radius: 0.5rem;
 }
