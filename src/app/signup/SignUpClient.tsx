@@ -44,8 +44,23 @@ import {
 } from "@/components/modals/authApi";
 
 export default function SignUpClient() {
-  const { login } = useAuth();
+  const { isAuthenticated, isLoading, login } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/student/profile');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="w-full min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   const searchParams = useSearchParams();
   const params = typeof window !== 'undefined' ? window.location.pathname.split('/') : [];
   const applyIndex = params.indexOf('apply');

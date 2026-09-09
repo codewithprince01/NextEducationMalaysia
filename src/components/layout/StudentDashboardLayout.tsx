@@ -1,12 +1,13 @@
 'use client'
 
 import React, { Suspense, useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import StudentSidebar from '../student/StudentSidebar'
 import RequireAuth from '../auth/RequireAuth'
 import AuthSplash from '../auth/AuthSplash'
 import { Menu, PanelLeftClose, PanelLeftOpen, Compass, ChevronRight, LayoutDashboard, ArrowUpRight } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 export default function StudentDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,8 +21,16 @@ export default function StudentDashboardLayout({ children }: { children: React.R
 
 function StudentDashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   // Read saved collapsed state from localStorage
   useEffect(() => {
@@ -34,6 +43,18 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
       // ignore storage access errors
     }
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   const handleToggleCollapse = () => {
     setIsCollapsed((prev) => {
