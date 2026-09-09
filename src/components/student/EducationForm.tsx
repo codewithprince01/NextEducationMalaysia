@@ -204,30 +204,61 @@ export default function EducationForm() {
     return !Object.values(nextErrors).some(Boolean);
   };
 
+  const QUAL_FIELD_LABELS: Record<string, string> = {
+    gre_exam_date: "Exam date",
+    gre_v_score: "Verbal Reasoning score",
+    gre_v_rank: "Verbal Reasoning percentile",
+    gre_q_score: "Quantitative Reasoning score",
+    gre_q_rank: "Quantitative Reasoning percentile",
+    gre_w_score: "Analytical Writing score",
+    gre_w_rank: "Analytical Writing percentile",
+    gmat_exam_date: "Exam date",
+    gmat_v_score: "Verbal score",
+    gmat_v_rank: "Verbal percentile",
+    gmat_q_score: "Quantitative score",
+    gmat_q_rank: "Quantitative percentile",
+    gmat_w_score: "Writing score",
+    gmat_w_rank: "Writing percentile",
+    gmat_ir_score: "Integrated Reasoning score",
+    gmat_ir_rank: "Integrated Reasoning percentile",
+    gmat_total_score: "GMAT Total score",
+    gmat_total_rank: "GMAT Total percentile",
+    sat_exam_date: "Exam date",
+    sat_reasoning_point: "Reasoning points",
+    sat_subject_point: "Subject points",
+  };
+
+  const getQualLabel = (field: string) => QUAL_FIELD_LABELS[field] || field.replace(/_/g, " ");
+
   const validateQualificationField = (section: "gre" | "gmat" | "sat", field: string) => {
     let error = "";
     const data = section === "gre" ? greData : section === "gmat" ? gmatData : satData;
     const value = data[field];
+    const label = getQualLabel(field);
 
     if ((section === "gre" || section === "gmat") && field.endsWith("_exam_date")) {
-      error = validateRequired(value, "exam date");
+      error = validateRequired(value, label);
     } else if (field === "gmat_total_score" && value) {
       const n = parseFloat(value);
-      if (Number.isNaN(n)) error = "Total score must be a number";
-      else if (n > 800 || n < 200) error = "The gmat total score must be between 200 and 800";
+      if (Number.isNaN(n)) error = `${label} must be a number`;
+      else if (n > 800 || n < 200) error = `${label} must be between 200 and 800`;
     } else if (field.includes("score") || field.includes("rank") || field.includes("point")) {
       if (value) {
         error = validateScore(value);
         const maxByField: Record<string, number> = {
+          gre_v_score: 170,
+          gre_q_score: 170,
           gre_w_score: 6,
           gmat_v_score: 60,
           gmat_q_score: 60,
           gmat_w_score: 6,
           gmat_ir_score: 8,
+          sat_reasoning_point: 1600,
+          sat_subject_point: 800,
         };
         const max = maxByField[field] ?? (field.includes("rank") ? 100 : null);
         if (!error && max && parseFloat(value) > max) {
-          error = `The ${field.replace(/_/g, " ")} field must not be greater than ${max}`;
+          error = `${label} cannot be greater than ${max}`;
         }
       }
     }
@@ -245,9 +276,15 @@ export default function EducationForm() {
     ["gre_v_score", "gre_q_score", "gre_v_rank", "gre_q_rank", "gre_w_score", "gre_w_rank"].forEach((f) => {
       if (greData[f]) {
         errs[f] = validateScore(greData[f]);
-        const max = f === "gre_w_score" ? 6 : f.includes("rank") ? 100 : null;
+        const label = getQualLabel(f);
+        const maxByField: Record<string, number> = {
+          gre_v_score: 170,
+          gre_q_score: 170,
+          gre_w_score: 6,
+        };
+        const max = maxByField[f] ?? (f.includes("rank") ? 100 : null);
         if (!errs[f] && max && parseFloat(greData[f]) > max) {
-          errs[f] = `The ${f.replace(/_/g, " ")} field must not be greater than ${max}`;
+          errs[f] = `${label} cannot be greater than ${max}`;
         }
       }
     });
@@ -263,6 +300,7 @@ export default function EducationForm() {
     ["gmat_v_score", "gmat_q_score", "gmat_w_score", "gmat_ir_score"].forEach((f) => {
       if (gmatData[f]) {
         errs[f] = validateScore(gmatData[f]);
+        const label = getQualLabel(f);
         const maxByField: Record<string, number> = {
           gmat_v_score: 60,
           gmat_q_score: 60,
@@ -270,7 +308,7 @@ export default function EducationForm() {
           gmat_ir_score: 8,
         };
         if (!errs[f] && parseFloat(gmatData[f]) > maxByField[f]) {
-          errs[f] = `The ${f.replace(/_/g, " ")} must not be greater than ${maxByField[f]}`;
+          errs[f] = `${label} cannot be greater than ${maxByField[f]}`;
         }
       }
     });
@@ -278,14 +316,15 @@ export default function EducationForm() {
     if (gmatData.gmat_total_score) {
       const n = parseFloat(gmatData.gmat_total_score);
       if (Number.isNaN(n)) errs.gmat_total_score = "Total score must be a number";
-      else if (n > 800 || n < 200) errs.gmat_total_score = "The gmat total score must be between 200 and 800";
+      else if (n > 800 || n < 200) errs.gmat_total_score = "GMAT total score must be between 200 and 800";
     }
 
     ["gmat_v_rank", "gmat_q_rank", "gmat_w_rank", "gmat_ir_rank", "gmat_total_rank"].forEach((f) => {
       if (gmatData[f]) {
         errs[f] = validateScore(gmatData[f]);
+        const label = getQualLabel(f);
         if (!errs[f] && parseFloat(gmatData[f]) > 100) {
-          errs[f] = `The ${f.replace(/_/g, " ")} must not be greater than 100`;
+          errs[f] = `${label} cannot be greater than 100`;
         }
       }
     });
@@ -296,8 +335,18 @@ export default function EducationForm() {
 
   const validateSatForm = () => {
     const errs: any = {};
-    if (satData.sat_reasoning_point) errs.sat_reasoning_point = validateScore(satData.sat_reasoning_point);
-    if (satData.sat_subject_point) errs.sat_subject_point = validateScore(satData.sat_subject_point);
+    if (satData.sat_reasoning_point) {
+      errs.sat_reasoning_point = validateScore(satData.sat_reasoning_point);
+      if (!errs.sat_reasoning_point && parseFloat(satData.sat_reasoning_point) > 1600) {
+        errs.sat_reasoning_point = "Reasoning points cannot be greater than 1600";
+      }
+    }
+    if (satData.sat_subject_point) {
+      errs.sat_subject_point = validateScore(satData.sat_subject_point);
+      if (!errs.sat_subject_point && parseFloat(satData.sat_subject_point) > 800) {
+        errs.sat_subject_point = "Subject points cannot be greater than 800";
+      }
+    }
     setSatErrors(errs);
     return !Object.values(errs).some(Boolean);
   };
