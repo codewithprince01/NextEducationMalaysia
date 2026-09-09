@@ -5,7 +5,11 @@ import ScholarshipsListingClient from './ScholarshipsListingClient'
 import { resolveStaticMetaAny } from '@/lib/seo/metadata'
 import { serializeBigInt } from '@/lib/utils'
 
-export const revalidate = 86400
+// Rendered per request so an edit saved in the admin panel is live immediately.
+// The expensive queries behind this page stay cached and are keyed on a cheap
+// database freshness probe, so they only re-run when the content actually
+// changed. See src/lib/queries/contentVersion.ts.
+export const revalidate = 0
 
 export async function generateMetadata() {
   return resolveStaticMetaAny(

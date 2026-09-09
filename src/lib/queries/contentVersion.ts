@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/db'
 
 /**
@@ -48,10 +49,19 @@ const DOMAIN_TABLES = {
     'university_program_contents',
     'university_overviews',
     'university_photos',
+    'university_scholarships',
+    'institute_types',
+    'reviews',
   ],
   scholarship: ['scholarships'],
   blog: ['blogs', 'blog_categories', 'blog_contents', 'blog_faqs'],
   'page-contents': ['page_contents', 'page_banners'],
+  home: ['page_banners', 'page_contents', 'faqs', 'universities', 'university_programs'],
+  // `exam_tabs` is deliberately absent: it has no `updated_at`, and one column
+  // short makes the whole probe throw and fall back to a constant, which would
+  // quietly leave exam pages on the 24h timer again.
+  exam: ['exams', 'exam_faqs', 'exam_page_contents', 'exam_page_tabs', 'static_page_seos'],
+  service: ['services', 'site_pages', 'site_page_tabs', 'page_contents'],
 } as const
 
 export type ContentDomain = keyof typeof DOMAIN_TABLES
@@ -87,3 +97,31 @@ async function probe(domain: ContentDomain): Promise<string> {
 export const getContentVersion = cache(
   async (domain: ContentDomain): Promise<string> => probe(domain)
 )
+
+/**
+ * Wrap a query so its cached result is tied to the freshness of one content
+ * domain.
+ *
+ * The expensive work still goes through `unstable_cache`; the probe above just
+ * becomes the first part of the cache key. Nothing changed in the database means
+ * the same key and a straight cache hit, so this costs one ~1ms aggregate per
+ * request. A save in the admin panel moves the key and the next request rebuilds
+ * — no waiting out `revalidate`, and no cache purge to remember.
+ *
+ * `revalidate` is kept as a backstop: if the probe itself ever fails it returns
+ * a constant, and the entry then expires on the timer as it used to.
+ */
+export function cachedByContent<A extends unknown[], R>(
+  domain: ContentDomain,
+  keyParts: string[],
+  fn: (...args: A) => Promise<R>,
+  options: { revalidate?: number; tags?: string[] } = {}
+): (...args: A) => Promise<R> {
+  const inner = unstable_cache(
+    async (_version: string, ...args: unknown[]) => fn(...(args as A)),
+    keyParts,
+    { revalidate: options.revalidate ?? 86400, tags: options.tags }
+  )
+
+  return async (...args: A) => inner(await getContentVersion(domain), ...args) as Promise<R>
+}

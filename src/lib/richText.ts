@@ -71,6 +71,19 @@ export function formatRichText(html?: string | null): string {
   out = out.replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
   out = out.replace(/((?:href|src)\s*=\s*)(["'])\s*javascript:[^"']*\2/gi, '$1$2#$2')
 
+  // --- whole-page markup that leaked into a content fragment ----------------
+  // Pasting a complete HTML document into the editor stores its <style>, <meta>
+  // and <title> along with the text. The <style> is the damaging one: its rules
+  // are unscoped, so `body { margin: 40px }` or `h2 { margin-top: 30px }` from
+  // one article restyles every page it appears on — spacing nobody asked for and
+  // nobody can find in the editor. A content fragment has no business carrying
+  // document-level markup, so it all goes.
+  out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+  out = out.replace(/<style\b[^>]*\/?>/gi, '')
+  out = out.replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '')
+  out = out.replace(/<\/?(?:html|head|body)\b[^>]*>/gi, '')
+  out = out.replace(/<(?:meta|link|base)\b[^>]*\/?>/gi, '')
+
   // --- paste artefacts ------------------------------------------------------
   // Pasting from Word or Google Docs leaves <!--StartFragment--> / <!--EndFragment-->
   // markers, usually alone inside their own paragraph. They show nothing but

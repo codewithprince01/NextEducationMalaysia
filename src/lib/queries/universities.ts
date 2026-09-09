@@ -1,9 +1,11 @@
 import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
-import { getContentVersion } from './contentVersion'
+import { getContentVersion, cachedByContent } from './contentVersion'
 
-export const getFeaturedUniversities = unstable_cache(
+export const getFeaturedUniversities = cachedByContent(
+  'university',
+  ['featured-universities'],
   () =>
     prisma.university.findMany({
       where: { featured: 1, status: 1 },
@@ -21,11 +23,11 @@ export const getFeaturedUniversities = unstable_cache(
       orderBy: { name: 'asc' },
       take: 12,
     }).then(serializeBigInt),
-  ['featured-universities'],
-  { revalidate: 86400, tags: ['universities'] },
+  { revalidate: 86400, tags: ['universities'] }
 )
 
 export async function getUniversitiesByType(typeSlug: string) {
+  const version = await getContentVersion('university')
   return unstable_cache(
     async () => {
       const base = typeSlug.replace(/-in-malaysia$/, '');
@@ -53,7 +55,9 @@ export async function getUniversitiesByType(typeSlug: string) {
 
       return serializeBigInt(universities);
     },
-    ['universities-by-type', typeSlug],
+    // `version` is part of the cache key, not the query: when an admin edit moves
+    // it the entry is rebuilt on the next request instead of waiting out the day.
+    ['universities-by-type', typeSlug, version],
     { revalidate: 86400, tags: ['universities'] }
   )();
 }
@@ -86,7 +90,9 @@ export const getUniversityPrograms = (universityId: number) => {
   `, universityId).then(serializeBigInt);
 }
 
-export const getAllUniversities = unstable_cache(
+export const getAllUniversities = cachedByContent(
+  'university',
+  ['all-universities'],
   () =>
     prisma.university.findMany({
       where: { status: 1 },
@@ -102,20 +108,22 @@ export const getAllUniversities = unstable_cache(
       } as any,
       orderBy: { name: 'asc' },
     }).then(serializeBigInt),
-  ['all-universities'],
-  { revalidate: 86400, tags: ['universities'] },
+  { revalidate: 86400, tags: ['universities'] }
 )
 
-export const getInstituteTypes = unstable_cache(
+export const getInstituteTypes = cachedByContent(
+  'university',
+  ['institute-types'],
   () =>
     prisma.instituteType.findMany({
       select: { id: true, type: true, slug: true, seo_title_slug: true },
     }).then(serializeBigInt),
-  ['institute-types'],
-  { revalidate: 86400, tags: ['institute-types'] },
+  { revalidate: 86400, tags: ['institute-types'] }
 )
 
-export const getPageContent = unstable_cache(
+export const getPageContent = cachedByContent(
+  'university',
+  ['page-content'],
   async (pageName: string) => {
     const results = await prisma.$queryRawUnsafe(`
       SELECT heading, description FROM page_contents 
@@ -124,11 +132,12 @@ export const getPageContent = unstable_cache(
     `, pageName) as any[]
     return results[0] || null
   },
-  ['page-content'],
-  { revalidate: 86400, tags: ['page-contents'] },
+  { revalidate: 86400, tags: ['page-contents'] }
 )
 
-export const getAllUniversitySlugs = unstable_cache(
+export const getAllUniversitySlugs = cachedByContent(
+  'university',
+  ['all-university-slugs'],
   async () => {
     const rows = await prisma.$queryRawUnsafe<Array<{ uname: string | null }>>(
       `
@@ -143,11 +152,12 @@ export const getAllUniversitySlugs = unstable_cache(
 
     return rows.map((row) => row.uname).filter(Boolean) as string[]
   },
-  ['all-university-slugs'],
-  { revalidate: 86400, tags: ['universities'] },
+  { revalidate: 86400, tags: ['universities'] }
 )
 
-export const getUniversityBySlug = unstable_cache(
+export const getUniversityBySlug = cachedByContent(
+  'university',
+  ['university-by-slug-meta'],
   async (slug: string) => {
     const rows = await prisma.$queryRawUnsafe<Array<{
       id: number
@@ -172,8 +182,7 @@ export const getUniversityBySlug = unstable_cache(
 
     return rows[0] ? serializeBigInt(rows[0]) : null
   },
-  ['university-by-slug-meta'],
-  { revalidate: 86400, tags: ['universities', 'seo'] },
+  { revalidate: 86400, tags: ['universities', 'seo'] }
 )
 
 async function fetchUniversityFull(slug: string) {

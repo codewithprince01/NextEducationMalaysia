@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
+import { getContentVersion, cachedByContent } from './contentVersion'
 
 function slugify(value: string) {
   return String(value || '')
@@ -11,7 +12,9 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
-export const getAllCourseCategorySlugs = unstable_cache(
+export const getAllCourseCategorySlugs = cachedByContent(
+  'course',
+  ['course-category-slugs-v2'],
   async () => {
     const rows = await prisma.$queryRawUnsafe<Array<{ slug: string | null }>>(
       `
@@ -24,11 +27,12 @@ export const getAllCourseCategorySlugs = unstable_cache(
     )
     return rows.map((r) => r.slug).filter(Boolean) as string[]
   },
-  ['course-category-slugs-v2'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getCourseCategory = unstable_cache(
+export const getCourseCategory = cachedByContent(
+  'course',
+  ['course-category-detail-v2'],
   async (slug: string) => {
     const requestedSlug = slugify(slug)
 
@@ -80,11 +84,12 @@ export const getCourseCategory = unstable_cache(
 
     return matched ? serializeBigInt(matched) : null
   },
-  ['course-category-detail-v2'],
   { revalidate: 86400, tags: ['course'] },
 )
 
-export const getAllCourseCategories = unstable_cache(
+export const getAllCourseCategories = cachedByContent(
+  'course',
+  ['all-course-categories'],
   () =>
     prisma.courseCategory.findMany({
       where: { status: 1 as any },
@@ -97,22 +102,21 @@ export const getAllCourseCategories = unstable_cache(
       },
       orderBy: { name: 'asc' },
     }).then(serializeBigInt),
-  ['all-course-categories'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getLevels = unstable_cache(
+export const getLevels = cachedByContent(
+  'course',
+  ['levels'],
   () =>
     prisma.level.findMany({
       select: { id: true, level: true, slug: true },
       orderBy: { id: 'asc' },
     }).then(serializeBigInt),
-  ['levels'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getProgramBySlug = unstable_cache(
-  async (slug: string, universitySlug?: string) => {
+async function fetchProgramBySlug(slug: string, universitySlug?: string) {
     const cleanCourseSlug = decodeURIComponent(slug).toLowerCase().trim();
     const isCourseNum = !isNaN(Number(slug)) ? Number(slug) : 0;
     const cleanUniSlug = universitySlug ? decodeURIComponent(universitySlug).toLowerCase().trim() : null;
@@ -205,8 +209,25 @@ export const getProgramBySlug = unstable_cache(
       contents: contentRows || [],
     }
 
-    return serializeBigInt(program)
-  },
+  return serializeBigInt(program)
+}
+
+/**
+ * The heavy query stays cached; the cheap content-version probe decides whether
+ * that cache entry is still current. Without it an edit made in the admin panel
+ * sat behind the 24h `revalidate` and only appeared the next day. The long
+ * revalidate remains as a backstop for the case where the probe itself fails.
+ */
+const cachedProgramBySlug = unstable_cache(
+  async (_version: string, slug: string, universitySlug?: string) =>
+    fetchProgramBySlug(slug, universitySlug),
   ['program-detail'],
-  { revalidate: 86400 },
+  { revalidate: 86400, tags: ['course'] },
 )
+
+export async function getProgramBySlug(slug: string, universitySlug?: string) {
+  if (process.env.NODE_ENV === 'development') {
+    return fetchProgramBySlug(slug, universitySlug)
+  }
+  return cachedProgramBySlug(await getContentVersion('university'), slug, universitySlug)
+}
