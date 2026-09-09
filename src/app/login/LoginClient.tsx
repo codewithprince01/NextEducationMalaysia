@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -18,8 +18,22 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 export default function LoginClient() {
-  const { login } = useAuth()
+  const { isAuthenticated, isLoading, login } = useAuth()
   const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/student/profile')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  if (isLoading || isAuthenticated) {
+    return (
+      <div className="w-full min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
   const [formData, setFormData] = useState({
     email: '',
     password: '',
