@@ -174,62 +174,15 @@ export default function OverviewClient() {
     );
   }
 
-  // Stepper milestones configuration
+  // Milestone status
   const isProfileComplete = stats.progress === 100;
-  const hasApplications = stats.total > 0;
-  const hasAcceptedOffers = stats.accepted > 0;
-
-  const STEPS = [
-    {
-      step: 1,
-      title: "Complete profile",
-      status: isProfileComplete ? "completed" : "in_progress",
-      icon: <Laptop className="w-4 h-4" />,
-      tag: isProfileComplete ? "Done" : `${stats.progress}%`,
-    },
-    {
-      step: 2,
-      title: "Start applying",
-      status: hasApplications ? "completed" : isProfileComplete ? "in_progress" : "upcoming",
-      icon: <ClipboardList className="w-4 h-4" />,
-      tag: hasApplications ? "Done" : isProfileComplete ? "Next" : "Locked",
-    },
-    {
-      step: 3,
-      title: "Review & submit",
-      status: hasApplications && stats.review > 0 ? "in_progress" : hasAcceptedOffers ? "completed" : "upcoming",
-      icon: <Send className="w-4 h-4" />,
-      tag: hasApplications ? (stats.review > 0 ? "Under Review" : "Submitted") : "Upcoming",
-    },
-    {
-      step: 4,
-      title: "Get your results",
-      status: hasAcceptedOffers ? "completed" : "upcoming",
-      icon: <Award className="w-4 h-4" />,
-      tag: hasAcceptedOffers ? "Accepted!" : "Upcoming",
-    },
-    {
-      step: 5,
-      title: "Apply for visa",
-      status: hasAcceptedOffers ? "in_progress" : "upcoming",
-      icon: <Plane className="w-4 h-4" />,
-      tag: "EMGS Visa",
-    },
-    {
-      step: 6,
-      title: "Enrol & settle",
-      status: "upcoming",
-      icon: <GraduationCap className="w-4 h-4" />,
-      tag: "Fly to Malaysia",
-    },
-  ];
 
   return (
     <div className="w-full space-y-6 sm:space-y-8">
-      {/* 🌟 My Progress Roadmap Card (Matching Reference Design) */}
+      {/* 🌟 My Progress Summary Card */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-7 shadow-xs">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
               <Compass className="w-6 h-6 text-amber-600" />
@@ -260,75 +213,6 @@ export default function OverviewClient() {
               )}
               <span>Profile: {stats.progress}% Ready</span>
             </span>
-          </div>
-        </div>
-
-        {/* 6-Step Stepper Roadmap */}
-        <div className="pt-6 pb-2 overflow-x-auto scrollbar-none">
-          <div className="min-w-[680px]">
-            {/* Steps Container */}
-            <div className="grid grid-cols-6 gap-2 sm:gap-3 relative">
-              {/* Connecting Background Line */}
-              <div className="absolute top-[88px] left-8 right-8 h-0.5 bg-slate-200 -z-0" />
-
-              {STEPS.map((s) => {
-                const isCompleted = s.status === "completed";
-                const isInProgress = s.status === "in_progress";
-
-                return (
-                  <div key={s.step} className="flex flex-col items-center text-center relative z-10">
-                    {/* Icon Card on Top */}
-                    <div
-                      className={`w-full py-3.5 px-2 rounded-xl border flex flex-col items-center justify-center transition-all ${
-                        isCompleted
-                          ? "bg-emerald-50/60 border-emerald-200 shadow-2xs"
-                          : isInProgress
-                          ? "bg-blue-50/70 border-blue-300 shadow-xs ring-2 ring-blue-500/10"
-                          : "bg-slate-50/70 border-slate-200 text-slate-400"
-                      }`}
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center mb-1.5 ${
-                          isCompleted
-                            ? "bg-emerald-100 text-emerald-700"
-                            : isInProgress
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-slate-200/70 text-slate-500"
-                        }`}
-                      >
-                        {s.icon}
-                      </div>
-                      <p
-                        className={`text-xs font-bold leading-tight line-clamp-1 ${
-                          isCompleted
-                            ? "text-slate-900"
-                            : isInProgress
-                            ? "text-blue-900"
-                            : "text-slate-600"
-                        }`}
-                      >
-                        {s.title}
-                      </p>
-                    </div>
-
-                    {/* Step Number Circle on the Line */}
-                    <div className="mt-3 mb-1">
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
-                          isCompleted
-                            ? "bg-emerald-600 text-white shadow-2xs"
-                            : isInProgress
-                            ? "bg-blue-600 text-white shadow-xs ring-4 ring-blue-100"
-                            : "bg-slate-200 text-slate-600"
-                        }`}
-                      >
-                        {isCompleted ? <Check className="w-3.5 h-3.5" /> : s.step}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
 
