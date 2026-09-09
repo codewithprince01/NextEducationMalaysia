@@ -361,14 +361,21 @@ h3.text-white, .text-white h3 { color: white !important; }
 .cms-content > *:last-child { margin-bottom: 0 !important; }
 
 /* --- Block spacing ---
-   Vertical rhythm comes ONLY from the blank lines the author typed in the
-   editor, which formatRichText() turns into .cms-blank-line spacers. No block
-   adds a margin of its own, so the page reproduces the editor exactly: three
-   blank lines give three lines of gap, and deleting them closes the gap
-   completely. Anything re-introducing a default margin here would show spacing
-   the author never asked for. */
+   Two separate things produce vertical space, and mixing them up is what made
+   earlier versions of this file wrong:
+
+   1. The ordinary gap between blocks — the margins below. The editor shows this
+      gap too, so it is not spacing "invented" by the site. CKEditor's one blank
+      line between blocks in the stored HTML is just how it serialises; it is
+      invisible in the WYSIWYG view and must NOT produce a spacer as well.
+
+   2. Blank lines the author deliberately added — a <p>&nbsp;</p>, or extra
+      Enters in the source view, which formatRichText() converts into
+      .cms-blank-line spacers. Those stack on top of the ordinary gap, so more
+      blank lines in the editor mean more space here, and removing them takes
+      the extra space away. */
 .cms-content p {
-  margin: 0 !important;
+  margin: 0 0 1rem !important;
   line-height: 1.75;
 }
 
@@ -398,9 +405,7 @@ h3.text-white, .text-white h3 { color: white !important; }
   color: #111827 !important;
   font-weight: 700 !important;
   line-height: 1.35 !important;
-  /* No automatic margin — the blank lines around the heading in the editor
-     decide how much room it gets. */
-  margin: 0 !important;
+  margin: 1.75rem 0 0.75rem !important;
 }
 .cms-content h1 { font-size: 1.5rem !important; }
 .cms-content h2 { font-size: 1.375rem !important; }
@@ -439,7 +444,7 @@ h3.text-white, .text-white h3 { color: white !important; }
 /* --- Lists --- */
 .cms-content ul,
 .cms-content ol {
-  margin: 0 !important;
+  margin: 0 0 1rem !important;
   padding-left: 1.5rem !important;
 }
 .cms-content ul { list-style: disc outside !important; }
@@ -461,7 +466,7 @@ h3.text-white, .text-white h3 { color: white !important; }
 
 /* --- Quotes, rules, media --- */
 .cms-content blockquote {
-  margin: 0;
+  margin: 1.25rem 0;
   padding: 0.25rem 0 0.25rem 1rem;
   border-left: 4px solid #bfdbfe;
   color: #4b5563;
@@ -478,7 +483,7 @@ h3.text-white, .text-white h3 { color: white !important; }
   margin: 1rem 0;
   border-radius: 0.5rem;
 }
-.cms-content figure { margin: 0; }
+.cms-content figure { margin: 1.25rem 0; }
 .cms-content figcaption {
   margin-top: 0.5rem;
   font-size: 0.8125rem;
@@ -505,12 +510,12 @@ h3.text-white, .text-white h3 { color: white !important; }
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
-  margin: 0;
+  margin: 1.25rem 0;
 }
 .cms-content pre code { background: transparent; color: inherit; padding: 0; }
 
 /* --- Tables (visual rules live in the TABLE STYLING block above) --- */
-.cms-content .responsive-table-wrapper { margin: 0; }
+.cms-content .responsive-table-wrapper { margin: 1.5rem 0; }
 @media (max-width: 768px) {
   /* A wrapped table must stay a real table — the wrapper is the scroller.
      Without this the global "main table { display: block }" rule above turns

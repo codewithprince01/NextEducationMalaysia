@@ -6,8 +6,9 @@
  *
  * This function intentionally PRESERVES all of that formatting — it only:
  *   1. strips unsafe markup (scripts, inline event handlers, javascript: URLs),
- *   2. turns blank lines the author typed in the source view into real spacers,
- *   3. wraps <table> in a horizontally scrollable container for mobile.
+ *   2. removes paste artefacts that render as blank space nobody asked for,
+ *   3. turns EXTRA blank lines the author typed in the source view into spacers,
+ *   4. wraps <table> in a horizontally scrollable container for mobile.
  *
  * Blank paragraphs are deliberately KEPT. An editor writes deliberate vertical
  * spacing as <p>&nbsp;</p> / <p><br></p>, so dropping them silently deletes
@@ -28,16 +29,29 @@ export function formatRichText(html?: string | null): string {
   out = out.replace(/\son[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
   out = out.replace(/((?:href|src)\s*=\s*)(["'])\s*javascript:[^"']*\2/gi, '$1$2#$2')
 
-  // --- blank lines typed in the editor ------------------------------------
-  // Whitespace between two tags collapses to nothing in HTML, so pressing Enter
-  // a few times in the source view produced no visible gap on the page even
-  // though the newlines were stored faithfully.
+  // --- paste artefacts ------------------------------------------------------
+  // Pasting from Word or Google Docs leaves <!--StartFragment--> / <!--EndFragment-->
+  // markers, usually alone inside their own paragraph. They show nothing but
+  // still occupy a line, so the page gains blank space the author never typed.
+  // A paragraph holding only comments is dropped; a paragraph holding &nbsp; is
+  // NOT — that one is a blank line the author deliberately added.
   //
-  // The mapping is deliberately one-to-one: every blank line between two blocks
-  // becomes exactly one spacer, and none is invented. Nothing in `.cms-content`
-  // adds vertical margin on its own, so the page shows precisely the spacing the
-  // editor shows — and deleting the blank lines in the editor removes the gap
-  // here too.
+  // The surrounding newlines go with it, replaced by the single separator the
+  // editor would have written. Leaving them behind would merge the blank line
+  // before the paragraph with the one after it, and the blank-line pass below
+  // would then read that doubled gap as spacing the author asked for.
+  out = out.replace(/\s*<p\b[^>]*>(?:\s|<!--[\s\S]*?-->)*<\/p>\s*/gi, '\n\n')
+  out = out.replace(/<!--\s*(?:Start|End)Fragment\s*-->/gi, '')
+
+  // --- blank lines typed in the editor ------------------------------------
+  // Whitespace between two tags collapses to nothing in HTML, so extra Enters in
+  // the source view produced no visible gap even though the newlines were stored.
+  //
+  // CKEditor writes ONE blank line between every block on its own — that is how
+  // it serialises, not something the author typed, and the WYSIWYG view never
+  // shows it. Treating that baseline as spacing would push every page apart, so
+  // only the newlines BEYOND it become spacers. Ordinary spacing between blocks
+  // comes from the margins in `.cms-content`, exactly as the editor renders it.
   //
   // Restricted to the boundary between two block-level tags: a stray newline
   // inside a sentence or between inline tags is ordinary word wrapping and must
@@ -46,12 +60,11 @@ export function formatRichText(html?: string | null): string {
   out = out.replace(
     new RegExp(`(</(?:${BLOCK})>)([^\\S\\n]*(?:\\n[^\\S\\n]*)+)(<(?:${BLOCK})\\b)`, 'gi'),
     (_match, close: string, gap: string, open: string) => {
-      // n line breaks between two blocks render as n-1 blank lines in the
-      // editor, so that is exactly how many spacers the page gets.
-      const blankLines = Math.min((gap.match(/\n/g) || []).length - 1, 30)
-      if (blankLines <= 0) return `${close}\n${open}`
+      // 2 line breaks == 1 blank line == the editor's own separator == no spacer.
+      const extraBlankLines = Math.min((gap.match(/\n/g) || []).length - 2, 30)
+      if (extraBlankLines <= 0) return `${close}\n${open}`
       const spacer = '<div class="cms-blank-line" aria-hidden="true"></div>\n'
-      return `${close}\n${spacer.repeat(blankLines)}${open}`
+      return `${close}\n${spacer.repeat(extraBlankLines)}${open}`
     }
   )
 
