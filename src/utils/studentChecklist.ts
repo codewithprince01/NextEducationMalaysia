@@ -31,9 +31,63 @@ export interface StudentChecklistResult {
 export function evaluateStudentChecklist(
   student: any,
   documents: any[] = [],
-  customHasAvatar?: boolean
+  customHasAvatar?: boolean,
+  serverRequirements?: any[]
 ): StudentChecklistResult {
   const docList = Array.isArray(documents) ? documents : []
+
+  // If server-configured requirements exist from CRM, evaluate dynamically
+  if (Array.isArray(serverRequirements) && serverRequirements.length > 0) {
+    const dynamicChecklist: ChecklistItem[] = serverRequirements.map((r: any) => {
+      const titleClean = String(r.title || '').trim()
+      const uploadedDoc = docList.find(d => {
+        const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
+        const reqName = titleClean.toLowerCase()
+        if (!name || !reqName) return false
+        return name === reqName || name.includes(reqName) || reqName.includes(name)
+      })
+
+      const isCompleted = Boolean(uploadedDoc || r.doc_status === 'Approved' || r.doc_status === 'Completed')
+      const isProfile =
+        r.action_type === 'profile' ||
+        titleClean.toLowerCase().includes('parent') ||
+        titleClean.toLowerCase().includes('date of birth') ||
+        titleClean.toLowerCase().includes('address')
+
+      return {
+        id: `dyn_${r.id || titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+        title: titleClean,
+        name: titleClean,
+        missingTitle: `${titleClean} Missing`,
+        description: r.description || `Required document for application processing.`,
+        category: isProfile ? 'Profile Details' : 'Required Documents',
+        priority: (r.tag === 'Required' ? 'high' : 'recommended') as any,
+        isCompleted,
+        actionType: isProfile ? 'profile' : 'upload',
+        actionLabel: isCompleted ? 'View Document' : isProfile ? 'Update Profile' : `Upload ${titleClean}`,
+        documentName: titleClean,
+        targetTab: isProfile ? 'general' : 'Upload Documents',
+        completedInfo: isCompleted ? `Uploaded: ${uploadedDoc?.document_name || uploadedDoc?.doc_name || uploadedDoc?.imgname || titleClean}` : undefined,
+      }
+    })
+
+    const completedItems = dynamicChecklist.filter(item => item.isCompleted)
+    const missingItems = dynamicChecklist.filter(item => !item.isCompleted)
+    const totalCount = dynamicChecklist.length
+    const completedCount = completedItems.length
+    const missingCount = missingItems.length
+    const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+
+    return {
+      checklist: dynamicChecklist,
+      completedCount,
+      missingCount,
+      totalCount,
+      progressPercent,
+      completedItems,
+      missingItems,
+    }
+  }
 
   // Check avatar in local storage or student object
   const hasAvatar =
