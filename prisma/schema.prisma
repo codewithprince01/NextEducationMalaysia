@@ -879,3 +879,33 @@ model Month {
 
   @@map("months")
 }
+
+model ApplicationStage {
+  id          BigInt    @id @default(autoincrement())
+  name        String    @db.VarChar(191)
+  position    Int       @default(0)
+  description String?   @db.Text
+  status      Int?      @default(1)
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @updatedAt
+
+  @@map("application_stages")
+}
+
+model ApplicationRequirement {
+  id             BigInt    @id @default(autoincrement())
+  app_id         BigInt
+  std_id         BigInt
+  title          String    @db.VarChar(255)
+  tag            String?   @default("Required") @db.VarChar(50)
+  stage_tag      String?   @default("Before payment") @db.VarChar(50)
+  action_type    String?   @default("upload") @db.VarChar(50)
+  doc_status     String?   @default("Pending") @db.VarChar(50)
+  rejection_note String?   @db.Text
+  created_at     DateTime? @default(now())
+  updated_at     DateTime? @updatedAt
+
+  @@map("application_requirements")
+}
+
+

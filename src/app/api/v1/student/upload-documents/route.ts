@@ -12,25 +12,25 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
   try {
     const formData = await request.formData();
     const docName = ((formData.get('doc_name') || formData.get('document_name')) as string)?.trim();
-    const docFile = (formData.get('doc') || formData.get('document')) as File;
+    const docFile = (formData.get('doc') || formData.get('document') || formData.get('document_file')) as File;
 
     if (!docName || !docFile) {
       return apiError('Document name and file are required', 422);
     }
 
-    if (!/^[a-zA-Z0-9\s.\-]+$/.test(docName)) {
+    if (!/^[a-zA-Z0-9\s.\-\/&(),_':;]+$/.test(docName)) {
       return apiError('Document name contains invalid characters', 422);
     }
 
     const allowedExtensions = ['png', 'jpg', 'jpeg', 'pdf'];
-    const extension = docFile.name.split('.').pop()?.toLowerCase() || '';
+    const extension = docFile.name?.split('.').pop()?.toLowerCase() || '';
     if (!allowedExtensions.includes(extension)) {
       return apiError('Only .PNG, .JPG, .JPEG, .PDF files are allowed', 422);
     }
 
-    // 2MB like old backend max:2048 (KB)
-    if (docFile.size > 2 * 1024 * 1024) {
-      return apiError('File size must be less than 2MB', 422);
+    // Up to 10MB
+    if (docFile.size > 10 * 1024 * 1024) {
+      return apiError('File size must be less than 10MB', 422);
     }
 
     const safeOriginalName = docFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');

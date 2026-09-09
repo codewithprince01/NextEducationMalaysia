@@ -43,7 +43,18 @@ import { evaluateStudentChecklist, ChecklistItem } from '@/utils/studentChecklis
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
-interface RequirementItem extends ChecklistItem {
+interface RequirementItem {
+  id: string
+  title: string
+  name?: string
+  missingTitle?: string
+  description: string
+  category?: string
+  priority?: string
+  isCompleted: boolean
+  actionType?: 'upload' | 'profile' | 'photo'
+  actionLabel?: string
+  documentName?: string
   statusType?: 'pending' | 'approved' | 'rejected' | 'in_review'
   tag?: string
   timing?: string
@@ -98,6 +109,8 @@ export default function ApplicationDetailClient({ applicationId }: { application
   ])
   const [newNote, setNewNote] = useState('')
 
+  const [serverRequirements, setServerRequirements] = useState<any[]>([]);
+
   const loadData = async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     if (!token) {
@@ -105,16 +118,17 @@ export default function ApplicationDetailClient({ applicationId }: { application
       return
     }
 
-    const headers = {
+    const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
       ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
     }
 
     try {
-      const [appRes, profileRes, docRes] = await Promise.all([
+      const [appRes, profileRes, docRes, reqRes] = await Promise.all([
         fetch(`${API_BASE}/student/applied-college`, { headers }).catch(() => null),
         fetch(`${API_BASE}/student/profile`, { headers }).catch(() => null),
         fetch(`${API_BASE}/student/documents`, { headers }).catch(() => null),
+        fetch(`${API_BASE}/student/applications/${applicationId}/requirements`, { headers }).catch(() => null),
       ])
 
       const appJson = appRes ? await appRes.json().catch(() => null) : null
@@ -145,6 +159,16 @@ export default function ApplicationDetailClient({ applicationId }: { application
       } else if (Array.isArray(docJson?.student_documents)) {
         setDocuments(docJson.student_documents)
       }
+
+      const reqJson = reqRes ? await reqRes.json().catch(() => null) : null
+      const reqList = Array.isArray(reqJson?.data?.requirements)
+        ? reqJson.data.requirements
+        : Array.isArray(reqJson?.requirements)
+        ? reqJson.requirements
+        : []
+      if (reqList.length > 0) {
+        setServerRequirements(reqList)
+      }
     } catch (err) {
       console.error('Failed loading application detail:', err)
     } finally {
@@ -161,8 +185,60 @@ export default function ApplicationDetailClient({ applicationId }: { application
     return evaluateStudentChecklist(student, documents)
   }, [student, documents])
 
-  // Map checklist into ApplyBoard-style requirements
+  // Map checklist or dynamic server requirements into ApplyBoard-style requirements
   const requirementsList: RequirementItem[] = useMemo(() => {
+    if (serverRequirements.length > 0) {
+      return serverRequirements.map((r: any) => {
+        const uploadedDoc = documents.find(
+          (d: any) => String(d.doc_name || '').toLowerCase().trim() === String(r.title || '').toLowerCase().trim()
+        )
+
+        let statusType: 'pending' | 'approved' | 'rejected' | 'in_review' = 'pending'
+        let isCompleted = false
+
+        if (r.doc_status === 'Not Approved' || r.doc_status === 'Rejected') {
+          statusType = 'rejected'
+          isCompleted = false // Re-upload required!
+        } else if (r.doc_status === 'Approved' || r.doc_status === 'Completed') {
+          statusType = 'approved'
+          isCompleted = true
+        } else if (r.doc_status === 'Reviewing') {
+          statusType = 'in_review'
+          isCompleted = false
+        } else {
+          // r.doc_status is 'Pending'
+          if (uploadedDoc) {
+            statusType = 'in_review'
+            isCompleted = false
+          } else {
+            statusType = 'pending'
+            isCompleted = false
+          }
+        }
+
+        const actionType = (r.action_type || (r.title.includes('Parent') ? 'profile' : 'upload')) as 'upload' | 'profile'
+
+        let actionText = 'Upload'
+        if (statusType === 'rejected') actionText = 'Upload Again'
+        else if (statusType === 'approved') actionText = 'Approved'
+        else if (statusType === 'in_review') actionText = 'Under Review'
+        else if (actionType === 'profile') actionText = 'Go to profile'
+
+        return {
+          id: String(r.id),
+          title: r.title,
+          description: `Requirement for ${r.stage_tag || 'application processing'}.`,
+          tag: r.tag || 'Required',
+          timing: r.stage_tag || 'Before payment',
+          isCompleted,
+          statusType,
+          documentName: r.title,
+          actionType,
+          actionText,
+        }
+      })
+    }
+
     return evaluatedChecklist.checklist.map((item) => {
       let statusType: 'pending' | 'approved' | 'rejected' | 'in_review' = item.isCompleted ? 'approved' : 'pending'
       let timing = 'Before payment'
@@ -191,7 +267,7 @@ export default function ApplicationDetailClient({ applicationId }: { application
         actionText: item.isCompleted ? 'View' : actionText,
       }
     })
-  }, [evaluatedChecklist])
+  }, [serverRequirements, documents, evaluatedChecklist])
 
   // Filtered requirements
   const filteredRequirements = useMemo(() => {
@@ -244,42 +320,93 @@ export default function ApplicationDetailClient({ applicationId }: { application
     return docRequirements.length > 0 && docRequirements.every((r) => r.isCompleted)
   }, [docRequirements])
 
-  const currentStageIndex = useMemo(() => {
-    const s = String(application?.app_status || '').toLowerCase().trim()
-    if (s === 'accepted' || s === 'approved') return 5 // Admission processing
-    if (s === 'paid' && allRequiredDocsUploaded) return 3 // Submitting to school
+  // Dynamic Pipeline Stages State
+  const [dynamicStages, setDynamicStages] = useState<any[]>([]);
 
-    // CRITICAL RULE:
-    // Only proceed to "Application Started" (stage 1) AFTER all required documents are uploaded!
-    // If documents are pending, remain strictly at stage 0 ("Application created").
-    if (!allRequiredDocsUploaded) {
-      return 0 // Application created
-    }
-
-    if (s === 'paid') return 3 // Submitting to school
-    if (allDocumentsUploaded || evaluatedChecklist.progressPercent >= 85) {
-      return 2 // Application review (By NextEducation)
-    }
-    return 1 // Application Started
-  }, [application, allRequiredDocsUploaded, allDocumentsUploaded, evaluatedChecklist])
+  useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/student/pipeline-stages`, {
+          headers: { ...(API_KEY ? { 'x-api-key': API_KEY } : {}) },
+        });
+        const json = await res.json();
+        const list = Array.isArray(json?.data?.stages)
+          ? json.data.stages
+          : Array.isArray(json?.stages)
+          ? json.stages
+          : [];
+        if (list.length > 0) setDynamicStages(list);
+      } catch (err) {
+        console.error('Failed to fetch dynamic pipeline stages:', err);
+      }
+    };
+    fetchStages();
+  }, []);
 
   const STAGES = useMemo(() => {
+    if (dynamicStages.length > 0) {
+      return dynamicStages.map((s, i) => ({
+        title: s.name,
+        subtitle: s.description || `Step ${i + 1}`,
+        position: s.position ?? i + 1,
+      }));
+    }
     return [
-      {
-        title: 'Application created',
-      },
-      {
-        title: 'Application Started',
-        subtitle: `Deadline is ${deadlineStr}`,
-      },
-      { title: 'Application Review (By Education Malaysia)', subtitle: 'By Education Malaysia' },
-      { title: 'Submitting to School', subtitle: 'University portal' },
-      { title: 'Awaiting School Decision', subtitle: 'Admissions committee' },
-      { title: 'Admission Processing', subtitle: 'Offer letter' },
-      { title: 'Pre-Arrival', subtitle: 'EMGS Visa approval' },
-      { title: 'Arrival', subtitle: 'Fly to Malaysia' },
-    ]
-  }, [deadlineStr])
+      { title: 'Application created', subtitle: 'Record created', position: 1 },
+      { title: 'Application Started', subtitle: `Deadline is ${deadlineStr}`, position: 2 },
+      { title: 'Application Review (By Education Malaysia)', subtitle: 'By Education Malaysia', position: 3 },
+      { title: 'Submitting to School', subtitle: 'University portal', position: 4 },
+      { title: 'Awaiting School Decision', subtitle: 'Admissions committee', position: 5 },
+      { title: 'Admission Processing', subtitle: 'Offer letter', position: 6 },
+      { title: 'Pre-Arrival', subtitle: 'EMGS Visa approval', position: 7 },
+      { title: 'Arrival', subtitle: 'Fly to Malaysia', position: 8 },
+    ];
+  }, [dynamicStages, deadlineStr]);
+
+  const currentStageIndex = useMemo(() => {
+    const rawStage = String(application?.stage || '').trim();
+    const appStage = rawStage.toLowerCase();
+
+    if (appStage) {
+      // 1. Exact match by title
+      const foundIdx = STAGES.findIndex(
+        (st) => st.title.toLowerCase().trim() === appStage
+      );
+      if (foundIdx !== -1) return foundIdx;
+
+      // 2. Match by position if stage is numeric (e.g. "3")
+      const numPos = parseInt(rawStage, 10);
+      if (!isNaN(numPos) && numPos > 0 && numPos <= STAGES.length) {
+        return numPos - 1;
+      }
+
+      // 3. Partial / slug matching
+      const cleanAppStage = appStage.replace(/[^a-z0-9]/g, '');
+      const partialIdx = STAGES.findIndex((st) => {
+        const cleanTitle = st.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return cleanTitle.includes(cleanAppStage) || cleanAppStage.includes(cleanTitle);
+      });
+      if (partialIdx !== -1) return partialIdx;
+
+      // 4. Common legacy mapping
+      if (appStage === 'pre-payment' || appStage === 'prepayment') return 0;
+      if (appStage === 'post-payment' || appStage === 'postpayment') return 3;
+    }
+
+    const s = String(application?.app_status || '').toLowerCase().trim();
+    if (s === 'accepted' || s === 'approved') return Math.min(5, STAGES.length - 1);
+    if (s === 'paid' && allRequiredDocsUploaded) return Math.min(3, STAGES.length - 1);
+
+    if (!allRequiredDocsUploaded) {
+      return 0; // Application created
+    }
+
+    if (s === 'paid') return Math.min(3, STAGES.length - 1);
+    if (allDocumentsUploaded || evaluatedChecklist.progressPercent >= 85) {
+      return Math.min(2, STAGES.length - 1);
+    }
+    return 1;
+  }, [application, STAGES, allRequiredDocsUploaded, allDocumentsUploaded, evaluatedChecklist]);
 
   // Handle Document Upload
   const handleOpenUpload = (req: RequirementItem) => {
@@ -303,12 +430,16 @@ export default function ApplicationDetailClient({ applicationId }: { application
 
     setUploading(true)
     setUploadError('')
+    const targetDocName = uploadDocName || selectedReq?.documentName || selectedReq?.title || 'Document'
     const formData = new FormData()
-    formData.append('document_name', uploadDocName || selectedReq?.documentName || 'Other')
+    formData.append('document_name', targetDocName)
+    formData.append('doc_name', targetDocName)
+    formData.append('document', uploadFile)
+    formData.append('doc', uploadFile)
     formData.append('document_file', uploadFile)
 
     try {
-      const res = await fetch(`${API_BASE}/student/document/upload`, {
+      const res = await fetch(`${API_BASE}/student/upload-documents`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -319,6 +450,18 @@ export default function ApplicationDetailClient({ applicationId }: { application
 
       const data = await res.json()
       if (res.ok) {
+        if (selectedReq?.id && !isNaN(Number(selectedReq.id))) {
+          fetch(`${API_BASE}/student/applications/requirements/${selectedReq.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+              ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+            },
+            body: JSON.stringify({ doc_status: 'Reviewing' }),
+          }).catch(() => null)
+        }
+
         toast.success(`${uploadDocName || 'Document'} uploaded successfully!`)
         setUploadModalOpen(false)
         setUploadFile(null)
@@ -845,22 +988,48 @@ export default function ApplicationDetailClient({ applicationId }: { application
                                 {req.timing}
                               </span>
                             )}
-                            {req.isCompleted && (
+                            {req.statusType === 'approved' ? (
                               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
                                 <Check className="w-3 h-3" /> Approved
                               </span>
-                            )}
+                            ) : req.statusType === 'rejected' ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 flex items-center gap-1">
+                                <AlertCircle className="w-3 h-3 text-rose-600" /> Not Approved
+                              </span>
+                            ) : req.statusType === 'in_review' ? (
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-amber-600" /> In Review
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                       </div>
 
                       {/* Right Action Button & Menu */}
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                        {req.isCompleted ? (
+                        {req.statusType === 'approved' ? (
                           <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Completed
+                            Approved
                           </span>
+                        ) : req.statusType === 'rejected' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenUpload(req)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-2xs transition cursor-pointer"
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Upload Again</span>
+                          </button>
+                        ) : req.statusType === 'in_review' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenUpload(req)}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition cursor-pointer"
+                          >
+                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                            <span>In Review (Re-upload)</span>
+                          </button>
                         ) : req.actionText === 'Go to profile' ? (
                           <Link
                             href="/student/profile"
