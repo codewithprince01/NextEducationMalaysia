@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Breadcrumb from '@/components/Breadcrumb'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import { CalendarDays, ArrowRight, User, Clock } from 'lucide-react'
+import { dedupeBlogContent } from '@/lib/blogContent'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = '/api/v1'
@@ -120,7 +121,7 @@ function normalizeDetailPayload(payload: any) {
   }
 
   return {
-    blog: blogData,
+    blog: dedupeBlogContent(blogData),
     relatedBlogs: dataRoot?.related_blogs || root?.related_blogs || [],
     categories: dataRoot?.categories || root?.categories || [],
     courses: dataRoot?.specializations || root?.specializations || [],
