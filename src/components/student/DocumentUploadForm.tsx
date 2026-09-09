@@ -210,36 +210,38 @@ export default function DocumentUploadForm() {
     fetchDocuments()
   }, [])
 
-  // Combine standard official requirements & dynamic server requirements
+  // Use dynamic server requirements from CRM when available, otherwise fallback to official defaults
   const allRequiredDocuments = useMemo(() => {
-    const list: RequiredDocConfig[] = [...OFFICIAL_REQUIRED_DOCUMENTS]
-
-    if (Array.isArray(serverRequirements)) {
-      serverRequirements.forEach((sr) => {
+    if (Array.isArray(serverRequirements) && serverRequirements.length > 0) {
+      return serverRequirements.map((sr) => {
         const titleClean = String(sr.title || '').trim()
-        if (!titleClean) return
-
-        const isStandard = list.some((std) => std.match(titleClean) || std.title.toLowerCase() === titleClean.toLowerCase())
-        if (!isStandard) {
-          const key = `custom_${titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
-          list.push({
-            key,
-            dbName: titleClean,
-            title: titleClean,
-            description: `Required credential or profile verification: ${titleClean}`,
-            category: sr.tag || 'Admission Requirement',
-            priority: (sr.tag as any) || 'Required',
-            match: (name: string) => {
-              const lower = name.toLowerCase().trim()
-              const reqLower = titleClean.toLowerCase()
-              return lower === reqLower || lower.includes(reqLower) || reqLower.includes(lower)
-            },
-          })
+        const officialMatch = OFFICIAL_REQUIRED_DOCUMENTS.find(
+          (std) => std.match(titleClean) || std.title.toLowerCase() === titleClean.toLowerCase()
+        )
+        if (officialMatch) {
+          return {
+            ...officialMatch,
+            priority: (sr.tag as any) || officialMatch.priority,
+          }
+        }
+        const key = `custom_${titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
+        return {
+          key,
+          dbName: titleClean,
+          title: titleClean,
+          description: sr.description || `Required document for university admission verification: ${titleClean}`,
+          category: sr.tag || 'Admission Requirement',
+          priority: (sr.tag as any) || 'Required',
+          match: (name: string) => {
+            const lower = name.toLowerCase().trim()
+            const reqLower = titleClean.toLowerCase()
+            return lower === reqLower || lower.includes(reqLower) || reqLower.includes(lower)
+          },
         }
       })
     }
 
-    return list
+    return OFFICIAL_REQUIRED_DOCUMENTS
   }, [serverRequirements])
 
   // Helper to find if a required document is uploaded in student_documents

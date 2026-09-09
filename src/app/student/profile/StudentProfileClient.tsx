@@ -100,11 +100,36 @@ export default function StudentProfileClient() {
     "Upload Documents": useRef<HTMLDivElement | null>(null),
   };
 
+  const [serverRequirements, setServerRequirements] = useState<any[]>([]);
+
+  const activeRequirementsList = useMemo(() => {
+    if (Array.isArray(serverRequirements) && serverRequirements.length > 0) {
+      return serverRequirements.map((sr) => {
+        const titleClean = String(sr.title || '').trim();
+        const stdMatch = OFFICIAL_REQUIRED_DOCUMENTS.find(
+          (std) => std.match(titleClean) || std.title.toLowerCase() === titleClean.toLowerCase()
+        );
+        if (stdMatch) return stdMatch;
+        return {
+          key: `custom_${titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+          dbName: titleClean,
+          title: titleClean,
+          match: (name: string) => {
+            const lower = name.toLowerCase().trim();
+            const reqLower = titleClean.toLowerCase();
+            return lower === reqLower || lower.includes(reqLower) || reqLower.includes(lower);
+          },
+        };
+      });
+    }
+    return OFFICIAL_REQUIRED_DOCUMENTS;
+  }, [serverRequirements]);
+
   const missingDocs = useMemo(() => {
-    return OFFICIAL_REQUIRED_DOCUMENTS.filter((req) => {
+    return activeRequirementsList.filter((req) => {
       return !documents.some((d) => req.match(String(d?.document_name || d?.doc_name || d?.imgname || '')));
     });
-  }, [documents]);
+  }, [activeRequirementsList, documents]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -146,6 +171,12 @@ export default function StudentProfileClient() {
           setDocuments(docRes.data.student_documents);
         } else if (Array.isArray(docRes?.student_documents)) {
           setDocuments(docRes.student_documents);
+        }
+
+        if (Array.isArray(docRes?.data?.student_requirements)) {
+          setServerRequirements(docRes.data.student_requirements);
+        } else if (Array.isArray(docRes?.student_requirements)) {
+          setServerRequirements(docRes.student_requirements);
         }
       } catch (err) {
         toast.error("Failed to load profile detail");
@@ -437,7 +468,7 @@ export default function StudentProfileClient() {
               <p className="text-xs text-amber-800 mt-1">
                 You have not uploaded these required documents yet:{" "}
                 <span className="font-semibold text-slate-900">
-                  {missingDocs.slice(0, 3).map((d) => d.dbName).join(", ")}
+                  {missingDocs.slice(0, 3).map((d: any) => d.dbName || d.title).join(", ")}
                   {missingDocs.length > 3 ? ` + ${missingDocs.length - 3} more` : ""}
                 </span>
                 . Please upload them to complete your university application.

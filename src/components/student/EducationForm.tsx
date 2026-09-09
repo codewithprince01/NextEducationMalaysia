@@ -205,30 +205,61 @@ export default function EducationForm() {
     return !Object.values(nextErrors).some(Boolean);
   };
 
+  const QUAL_FIELD_LABELS: Record<string, string> = {
+    gre_exam_date: "Exam date",
+    gre_v_score: "Verbal Reasoning score",
+    gre_v_rank: "Verbal Reasoning percentile",
+    gre_q_score: "Quantitative Reasoning score",
+    gre_q_rank: "Quantitative Reasoning percentile",
+    gre_w_score: "Analytical Writing score",
+    gre_w_rank: "Analytical Writing percentile",
+    gmat_exam_date: "Exam date",
+    gmat_v_score: "Verbal score",
+    gmat_v_rank: "Verbal percentile",
+    gmat_q_score: "Quantitative score",
+    gmat_q_rank: "Quantitative percentile",
+    gmat_w_score: "Writing score",
+    gmat_w_rank: "Writing percentile",
+    gmat_ir_score: "Integrated Reasoning score",
+    gmat_ir_rank: "Integrated Reasoning percentile",
+    gmat_total_score: "GMAT Total score",
+    gmat_total_rank: "GMAT Total percentile",
+    sat_exam_date: "Exam date",
+    sat_reasoning_point: "Reasoning points",
+    sat_subject_point: "Subject points",
+  };
+
+  const getQualLabel = (field: string) => QUAL_FIELD_LABELS[field] || field.replace(/_/g, " ");
+
   const validateQualificationField = (section: "gre" | "gmat" | "sat", field: string) => {
     let error = "";
     const data = section === "gre" ? greData : section === "gmat" ? gmatData : satData;
     const value = data[field];
+    const label = getQualLabel(field);
 
     if ((section === "gre" || section === "gmat") && field.endsWith("_exam_date")) {
-      error = validateRequired(value, "exam date");
+      error = validateRequired(value, label);
     } else if (field === "gmat_total_score" && value) {
       const n = parseFloat(value);
-      if (Number.isNaN(n)) error = "Total score must be a number";
-      else if (n > 800 || n < 200) error = "The gmat total score must be between 200 and 800";
+      if (Number.isNaN(n)) error = `${label} must be a number`;
+      else if (n > 800 || n < 200) error = `${label} must be between 200 and 800`;
     } else if (field.includes("score") || field.includes("rank") || field.includes("point")) {
       if (value) {
         error = validateScore(value);
         const maxByField: Record<string, number> = {
+          gre_v_score: 170,
+          gre_q_score: 170,
           gre_w_score: 6,
           gmat_v_score: 60,
           gmat_q_score: 60,
           gmat_w_score: 6,
           gmat_ir_score: 8,
+          sat_reasoning_point: 1600,
+          sat_subject_point: 800,
         };
         const max = maxByField[field] ?? (field.includes("rank") ? 100 : null);
         if (!error && max && parseFloat(value) > max) {
-          error = `The ${field.replace(/_/g, " ")} field must not be greater than ${max}`;
+          error = `${label} cannot be greater than ${max}`;
         }
       }
     }
@@ -246,9 +277,15 @@ export default function EducationForm() {
     ["gre_v_score", "gre_q_score", "gre_v_rank", "gre_q_rank", "gre_w_score", "gre_w_rank"].forEach((f) => {
       if (greData[f]) {
         errs[f] = validateScore(greData[f]);
-        const max = f === "gre_w_score" ? 6 : f.includes("rank") ? 100 : null;
+        const label = getQualLabel(f);
+        const maxByField: Record<string, number> = {
+          gre_v_score: 170,
+          gre_q_score: 170,
+          gre_w_score: 6,
+        };
+        const max = maxByField[f] ?? (f.includes("rank") ? 100 : null);
         if (!errs[f] && max && parseFloat(greData[f]) > max) {
-          errs[f] = `The ${f.replace(/_/g, " ")} field must not be greater than ${max}`;
+          errs[f] = `${label} cannot be greater than ${max}`;
         }
       }
     });
@@ -264,6 +301,7 @@ export default function EducationForm() {
     ["gmat_v_score", "gmat_q_score", "gmat_w_score", "gmat_ir_score"].forEach((f) => {
       if (gmatData[f]) {
         errs[f] = validateScore(gmatData[f]);
+        const label = getQualLabel(f);
         const maxByField: Record<string, number> = {
           gmat_v_score: 60,
           gmat_q_score: 60,
@@ -271,7 +309,7 @@ export default function EducationForm() {
           gmat_ir_score: 8,
         };
         if (!errs[f] && parseFloat(gmatData[f]) > maxByField[f]) {
-          errs[f] = `The ${f.replace(/_/g, " ")} must not be greater than ${maxByField[f]}`;
+          errs[f] = `${label} cannot be greater than ${maxByField[f]}`;
         }
       }
     });
@@ -279,14 +317,15 @@ export default function EducationForm() {
     if (gmatData.gmat_total_score) {
       const n = parseFloat(gmatData.gmat_total_score);
       if (Number.isNaN(n)) errs.gmat_total_score = "Total score must be a number";
-      else if (n > 800 || n < 200) errs.gmat_total_score = "The gmat total score must be between 200 and 800";
+      else if (n > 800 || n < 200) errs.gmat_total_score = "GMAT total score must be between 200 and 800";
     }
 
     ["gmat_v_rank", "gmat_q_rank", "gmat_w_rank", "gmat_ir_rank", "gmat_total_rank"].forEach((f) => {
       if (gmatData[f]) {
         errs[f] = validateScore(gmatData[f]);
+        const label = getQualLabel(f);
         if (!errs[f] && parseFloat(gmatData[f]) > 100) {
-          errs[f] = `The ${f.replace(/_/g, " ")} must not be greater than 100`;
+          errs[f] = `${label} cannot be greater than 100`;
         }
       }
     });
@@ -297,8 +336,18 @@ export default function EducationForm() {
 
   const validateSatForm = () => {
     const errs: any = {};
-    if (satData.sat_reasoning_point) errs.sat_reasoning_point = validateScore(satData.sat_reasoning_point);
-    if (satData.sat_subject_point) errs.sat_subject_point = validateScore(satData.sat_subject_point);
+    if (satData.sat_reasoning_point) {
+      errs.sat_reasoning_point = validateScore(satData.sat_reasoning_point);
+      if (!errs.sat_reasoning_point && parseFloat(satData.sat_reasoning_point) > 1600) {
+        errs.sat_reasoning_point = "Reasoning points cannot be greater than 1600";
+      }
+    }
+    if (satData.sat_subject_point) {
+      errs.sat_subject_point = validateScore(satData.sat_subject_point);
+      if (!errs.sat_subject_point && parseFloat(satData.sat_subject_point) > 800) {
+        errs.sat_subject_point = "Subject points cannot be greater than 800";
+      }
+    }
     setSatErrors(errs);
     return !Object.values(errs).some(Boolean);
   };
@@ -362,8 +411,11 @@ export default function EducationForm() {
         },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        toast.error("Failed to save school details");
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || (data && data.status === false)) {
+        toast.error(data?.message || "Failed to save school details");
         return;
       }
 
@@ -413,7 +465,23 @@ export default function EducationForm() {
     }).then((r) => r.json());
 
     if (res?.data?.school) {
-      setSchoolFormData(res.data.school);
+      const sch = res.data.school;
+      setSchoolFormData({
+        ...sch,
+        country_of_institution: sch.country_of_institution || "",
+        name_of_institution: sch.name_of_institution || "",
+        level_of_education: sch.level_of_education || "",
+        primary_language_of_instruction: sch.primary_language_of_instruction || "",
+        attended_institution_from: sch.attended_institution_from ? String(sch.attended_institution_from).substring(0, 10) : "",
+        attended_institution_to: sch.attended_institution_to ? String(sch.attended_institution_to).substring(0, 10) : "",
+        graduation_date: sch.graduation_date ? String(sch.graduation_date).substring(0, 10) : "",
+        degree_name: sch.degree_name || "",
+        graduated_from_this: Boolean(sch.graduated_from_this),
+        address: sch.address || "",
+        city: sch.city || "",
+        state: sch.state || "",
+        zipcode: sch.zipcode || "",
+      });
       setEditingSchoolId(id);
       setShowSchoolForm(true);
       setSchoolErrors({});
@@ -618,60 +686,40 @@ export default function EducationForm() {
               <p className="text-xs text-slate-500">Record all secondary and higher education institutions you attended</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingSchoolId(null);
-              setSchoolFormData({
-                country_of_institution: "",
-                name_of_institution: "",
-                level_of_education: "",
-                primary_language_of_instruction: "",
-                attended_institution_from: "",
-                attended_institution_to: "",
-                graduation_date: "",
-                degree_name: "",
-                graduated: "YES",
-                graduated_from_this: false,
-                address: "",
-                city: "",
-                state: "",
-                zipcode: "",
-              });
-              setShowSchoolForm(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow transition active:scale-95 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            Add Attended School
-          </button>
-        </div>
-
-        {/* School list */}
-        <div className="space-y-3.5">
-          {schools.length > 0 ? (
-            schools.map((school: any) => (
-              <SchoolListItem
-                key={school.id}
-                school={school}
-                onExpand={handleSchoolExpand}
-                onDelete={handleSchoolDelete}
-              />
-            ))
-          ) : (
-            <div className="text-center py-10 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-              <School className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="font-semibold text-slate-700 text-sm">No schools added yet</p>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                Click "+ Add Attended School" to list your high school, diploma, or university degree.
-              </p>
-            </div>
+          {!showSchoolForm && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingSchoolId(null);
+                setSchoolFormData({
+                  country_of_institution: "",
+                  name_of_institution: "",
+                  level_of_education: "",
+                  primary_language_of_instruction: "",
+                  attended_institution_from: "",
+                  attended_institution_to: "",
+                  graduation_date: "",
+                  degree_name: "",
+                  graduated: "YES",
+                  graduated_from_this: false,
+                  address: "",
+                  city: "",
+                  state: "",
+                  zipcode: "",
+                });
+                setShowSchoolForm(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow transition active:scale-95 shrink-0 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Add Attended School
+            </button>
           )}
         </div>
 
-        {/* Form Drawer / Expandable Form */}
-        {showSchoolForm && (
-          <div className="mt-6 rounded-2xl p-5 sm:p-7 bg-slate-50/70 border border-slate-200/80 shadow-xs">
+        {/* Form Drawer / Expandable Form (replaces school list when open) */}
+        {showSchoolForm ? (
+          <div className="rounded-2xl p-5 sm:p-7 bg-slate-50/70 border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/70">
               <div>
                 <h4 className="font-bold text-slate-900 text-sm sm:text-base">
@@ -682,7 +730,7 @@ export default function EducationForm() {
               <button
                 type="button"
                 onClick={() => setShowSchoolForm(false)}
-                className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition"
+                className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -705,19 +753,41 @@ export default function EducationForm() {
               <button
                 type="button"
                 onClick={() => setShowSchoolForm(false)}
-                className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition"
+                className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSchoolAddOrEdit}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition active:scale-95 flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
               >
                 <Check className="w-4 h-4" />
                 {editingSchoolId ? "Update School" : "Save School"}
               </button>
             </div>
+          </div>
+        ) : (
+          /* School list or empty state when form is hidden */
+          <div className="space-y-3.5">
+            {schools.length > 0 ? (
+              schools.map((school: any) => (
+                <SchoolListItem
+                  key={school.id}
+                  school={school}
+                  onExpand={handleSchoolExpand}
+                  onDelete={handleSchoolDelete}
+                />
+              ))
+            ) : (
+              <div className="text-center py-10 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                <School className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="font-semibold text-slate-700 text-sm">No schools added yet</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                  Click "+ Add Attended School" to list your high school, diploma, or university degree.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
