@@ -361,8 +361,11 @@ export default function EducationForm() {
         },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        toast.error("Failed to save school details");
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || (data && data.status === false)) {
+        toast.error(data?.message || "Failed to save school details");
         return;
       }
 
@@ -412,7 +415,23 @@ export default function EducationForm() {
     }).then((r) => r.json());
 
     if (res?.data?.school) {
-      setSchoolFormData(res.data.school);
+      const sch = res.data.school;
+      setSchoolFormData({
+        ...sch,
+        country_of_institution: sch.country_of_institution || "",
+        name_of_institution: sch.name_of_institution || "",
+        level_of_education: sch.level_of_education || "",
+        primary_language_of_instruction: sch.primary_language_of_instruction || "",
+        attended_institution_from: sch.attended_institution_from ? String(sch.attended_institution_from).substring(0, 10) : "",
+        attended_institution_to: sch.attended_institution_to ? String(sch.attended_institution_to).substring(0, 10) : "",
+        graduation_date: sch.graduation_date ? String(sch.graduation_date).substring(0, 10) : "",
+        degree_name: sch.degree_name || "",
+        graduated_from_this: Boolean(sch.graduated_from_this),
+        address: sch.address || "",
+        city: sch.city || "",
+        state: sch.state || "",
+        zipcode: sch.zipcode || "",
+      });
       setEditingSchoolId(id);
       setShowSchoolForm(true);
       setSchoolErrors({});
