@@ -7,6 +7,7 @@ import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import OtherFeatures from '@/components/common/OtherFeatures'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import { ADMIN_URL } from '@/lib/constants'
+import { formatRichText } from '@/lib/richText'
 
 type ServiceContent = {
   id?: number | string
@@ -60,20 +61,16 @@ export default function ServiceDetailClient({ service, slug }: { service: Servic
 
   return (
     <>
+      {/* Structure (spacing, bold, italic, links, lists, tables) comes from
+          `.cms-content` in globals.css so editor formatting survives verbatim.
+          Only this page's blue heading palette is kept as an override. */}
       <style>{`
-        .content-wrapper h1 { font-size: 2rem; font-weight: 700; color: #1e40af; margin-top: 2rem; margin-bottom: 1rem; line-height: 1.2; }
-        .content-wrapper h2 { font-size: 1.75rem; font-weight: 600; color: #1e3a8a; margin-top: 1.75rem; margin-bottom: 0.875rem; }
-        .content-wrapper h3 { font-size: 1.5rem; font-weight: 600; color: #2563eb; margin-top: 1.5rem; margin-bottom: 0.75rem; }
-        .content-wrapper h4 { font-size: 1.25rem; font-weight: 600; color: #3b82f6; margin-top: 1.25rem; margin-bottom: 0.625rem; }
-        .content-wrapper p { margin-bottom: 1rem; line-height: 1.75; color: #334155; font-size: 1rem; }
-        .content-wrapper ul, .content-wrapper ol { margin-left: 1.5rem; margin-bottom: 1.25rem; margin-top: 0.75rem; }
-        .content-wrapper ul li, .content-wrapper ol li { margin-bottom: 0.625rem; line-height: 1.6; color: #475569; }
-        .content-wrapper ul { list-style-type: disc; }
-        .content-wrapper ol { list-style-type: decimal; }
-        .content-wrapper table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .content-wrapper table th { background-color: #3b82f6; color: white; padding: 0.75rem; text-align: left; font-weight: 600; }
-        .content-wrapper table td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
-        .content-wrapper table tr:hover { background-color: #f1f5f9; }
+        .content-wrapper.cms-content h1 { color: #1e40af !important; font-size: 2rem !important; }
+        .content-wrapper.cms-content h2 { color: #1e3a8a !important; font-size: 1.75rem !important; }
+        .content-wrapper.cms-content h3 { color: #2563eb !important; font-size: 1.5rem !important; }
+        .content-wrapper.cms-content h4 { color: #3b82f6 !important; font-size: 1.25rem !important; }
+        .content-wrapper.cms-content p { color: #334155; }
+        .content-wrapper.cms-content li { color: #475569; }
       `}</style>
 
       <section className={heroClass}>
@@ -194,7 +191,7 @@ export default function ServiceDetailClient({ service, slug }: { service: Servic
                   </div>
                 )}
 
-                <div className="content-wrapper" dangerouslySetInnerHTML={{ __html: activeContentHtml }} />
+                <div className="content-wrapper cms-content" dangerouslySetInnerHTML={{ __html: formatRichText(activeContentHtml) }} />
               </div>
             </main>
           </div>
