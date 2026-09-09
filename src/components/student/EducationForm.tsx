@@ -617,60 +617,40 @@ export default function EducationForm() {
               <p className="text-xs text-slate-500">Record all secondary and higher education institutions you attended</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingSchoolId(null);
-              setSchoolFormData({
-                country_of_institution: "",
-                name_of_institution: "",
-                level_of_education: "",
-                primary_language_of_instruction: "",
-                attended_institution_from: "",
-                attended_institution_to: "",
-                graduation_date: "",
-                degree_name: "",
-                graduated: "YES",
-                graduated_from_this: false,
-                address: "",
-                city: "",
-                state: "",
-                zipcode: "",
-              });
-              setShowSchoolForm(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow transition active:scale-95 shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            Add Attended School
-          </button>
-        </div>
-
-        {/* School list */}
-        <div className="space-y-3.5">
-          {schools.length > 0 ? (
-            schools.map((school: any) => (
-              <SchoolListItem
-                key={school.id}
-                school={school}
-                onExpand={handleSchoolExpand}
-                onDelete={handleSchoolDelete}
-              />
-            ))
-          ) : (
-            <div className="text-center py-10 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
-              <School className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-              <p className="font-semibold text-slate-700 text-sm">No schools added yet</p>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                Click "+ Add Attended School" to list your high school, diploma, or university degree.
-              </p>
-            </div>
+          {!showSchoolForm && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingSchoolId(null);
+                setSchoolFormData({
+                  country_of_institution: "",
+                  name_of_institution: "",
+                  level_of_education: "",
+                  primary_language_of_instruction: "",
+                  attended_institution_from: "",
+                  attended_institution_to: "",
+                  graduation_date: "",
+                  degree_name: "",
+                  graduated: "YES",
+                  graduated_from_this: false,
+                  address: "",
+                  city: "",
+                  state: "",
+                  zipcode: "",
+                });
+                setShowSchoolForm(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow transition active:scale-95 shrink-0 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Add Attended School
+            </button>
           )}
         </div>
 
-        {/* Form Drawer / Expandable Form */}
-        {showSchoolForm && (
-          <div className="mt-6 rounded-2xl p-5 sm:p-7 bg-slate-50/70 border border-slate-200/80 shadow-xs">
+        {/* Form Drawer / Expandable Form (replaces school list when open) */}
+        {showSchoolForm ? (
+          <div className="rounded-2xl p-5 sm:p-7 bg-slate-50/70 border border-slate-200/80 shadow-xs">
             <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-200/70">
               <div>
                 <h4 className="font-bold text-slate-900 text-sm sm:text-base">
@@ -681,7 +661,7 @@ export default function EducationForm() {
               <button
                 type="button"
                 onClick={() => setShowSchoolForm(false)}
-                className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition"
+                className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -704,19 +684,41 @@ export default function EducationForm() {
               <button
                 type="button"
                 onClick={() => setShowSchoolForm(false)}
-                className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition"
+                className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSchoolAddOrEdit}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition active:scale-95 flex items-center gap-2"
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
               >
                 <Check className="w-4 h-4" />
                 {editingSchoolId ? "Update School" : "Save School"}
               </button>
             </div>
+          </div>
+        ) : (
+          /* School list or empty state when form is hidden */
+          <div className="space-y-3.5">
+            {schools.length > 0 ? (
+              schools.map((school: any) => (
+                <SchoolListItem
+                  key={school.id}
+                  school={school}
+                  onExpand={handleSchoolExpand}
+                  onDelete={handleSchoolDelete}
+                />
+              ))
+            ) : (
+              <div className="text-center py-10 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50">
+                <School className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="font-semibold text-slate-700 text-sm">No schools added yet</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                  Click "+ Add Attended School" to list your high school, diploma, or university degree.
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>
