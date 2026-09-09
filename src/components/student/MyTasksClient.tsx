@@ -150,71 +150,12 @@ export default function MyTasksClient() {
 
   // Required Checklist Definition & Evaluation
   const evaluated = useMemo(() => {
-    return evaluateStudentChecklist(student, documents, hasAvatar)
-  }, [student, documents, hasAvatar])
+    return evaluateStudentChecklist(student, documents, hasAvatar, serverRequirements)
+  }, [student, documents, hasAvatar, serverRequirements])
 
   const checklist: RequiredItem[] = useMemo(() => {
-    const defaultItems = evaluated.checklist
-    if (!serverRequirements || serverRequirements.length === 0) {
-      return defaultItems
-    }
-
-    const dynamicItems: RequiredItem[] = serverRequirements.map((r: any) => {
-      const uploadedDoc = documents.find((d: any) => {
-        const docName = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-        const reqName = String(r.title || '').toLowerCase().trim()
-        if (!docName || !reqName) return false
-        return docName === reqName || docName.includes(reqName) || reqName.includes(docName)
-      })
-
-      const isCompleted = !!uploadedDoc || r.doc_status === 'Approved' || r.doc_status === 'Completed'
-      const isProfile =
-        r.action_type === 'profile' ||
-        String(r.title || '').toLowerCase().includes('parent') ||
-        String(r.title || '').toLowerCase().includes('date of birth')
-
-      return {
-        id: `dynamic_req_${r.id}`,
-        title: r.title,
-        name: r.title,
-        missingTitle: `${r.title} Missing`,
-        description: r.description || `Required document for ${r.stage_tag || 'application processing'}.`,
-        category: isProfile ? 'Profile Details' : 'Required Documents',
-        priority: r.tag === 'Required' ? 'high' : 'recommended',
-        isCompleted,
-        actionType: isProfile ? 'profile' : 'upload',
-        actionLabel: isCompleted ? 'View Document' : isProfile ? 'Update Profile' : `Upload ${r.title}`,
-        documentName: r.title,
-        targetTab: isProfile ? 'personal' : undefined,
-      }
-    })
-
-    const mergedMap = new Map<string, RequiredItem>()
-    defaultItems.forEach((item) => {
-      mergedMap.set(item.title.toLowerCase().trim(), item)
-    })
-
-    dynamicItems.forEach((dItem) => {
-      const key = dItem.title.toLowerCase().trim()
-      let matchedKey: string | null = null
-      for (const k of mergedMap.keys()) {
-        if (k === key || k.includes(key) || key.includes(k)) {
-          matchedKey = k
-          break
-        }
-      }
-      if (matchedKey) {
-        mergedMap.set(matchedKey, {
-          ...mergedMap.get(matchedKey)!,
-          ...dItem,
-        })
-      } else {
-        mergedMap.set(key, dItem)
-      }
-    })
-
-    return Array.from(mergedMap.values())
-  }, [evaluated.checklist, serverRequirements, documents])
+    return evaluated.checklist as RequiredItem[]
+  }, [evaluated.checklist])
 
   const totalCount = checklist.length
   const completedItems = useMemo(() => checklist.filter(i => i.isCompleted), [checklist])

@@ -153,42 +153,54 @@ export class StudentProfileService {
    * Add new school.
    */
   async addSchool(studentId: number, input: SchoolInput): Promise<ApiResponse> {
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO student_schools (
-          std_id,
-          country_of_institution,
-          name_of_institution,
-          level_of_education,
-          primary_language_of_instruction,
-          attended_institution_from,
-          attended_institution_to,
-          graduation_date,
-          degree_name,
-          graduated_from_this,
-          address,
-          city,
-          state,
-          zipcode,
-          created_at,
-          updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      Number(studentId),
-      input.country_of_institution,
-      input.name_of_institution,
-      input.level_of_education,
-      input.primary_language_of_instruction,
-      input.attended_institution_from ? new Date(input.attended_institution_from as any) : null,
-      input.attended_institution_to ? new Date(input.attended_institution_to as any) : null,
-      (input as any).graduation_date ? new Date((input as any).graduation_date) : null,
-      input.degree_name,
-      input.graduated_from_this ? 1 : 0,
-      input.address,
-      input.city,
-      input.state ?? '',
-      String(input.zipcode ?? ''),
-    );
+    try {
+      const maxRes = (await prisma.$queryRawUnsafe(
+        `SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM student_schools`
+      )) as Array<{ next_id: bigint | number }>;
+      const nextId = Number(maxRes[0]?.next_id ?? 1);
 
-    return { status: true, message: 'School added successfully' };
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO student_schools (
+            id,
+            std_id,
+            country_of_institution,
+            name_of_institution,
+            level_of_education,
+            primary_language_of_instruction,
+            attended_institution_from,
+            attended_institution_to,
+            graduation_date,
+            degree_name,
+            graduated_from_this,
+            address,
+            city,
+            state,
+            zipcode,
+            created_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+        nextId,
+        Number(studentId),
+        input.country_of_institution || '',
+        input.name_of_institution || '',
+        input.level_of_education || '',
+        input.primary_language_of_instruction || '',
+        input.attended_institution_from ? new Date(input.attended_institution_from as any) : null,
+        input.attended_institution_to ? new Date(input.attended_institution_to as any) : null,
+        (input as any).graduation_date ? new Date((input as any).graduation_date) : null,
+        input.degree_name || '',
+        input.graduated_from_this ? 1 : 0,
+        input.address || '',
+        input.city || '',
+        input.state ?? '',
+        String(input.zipcode ?? ''),
+      );
+
+      return { status: true, message: 'School added successfully' };
+    } catch (error: any) {
+      console.error('Error adding school:', error);
+      return { status: false, message: error?.message || 'Failed to add school' };
+    }
   }
 
   /**
@@ -197,41 +209,46 @@ export class StudentProfileService {
   async updateSchool(studentId: number, input: SchoolInput): Promise<ApiResponse> {
     if (!input.id) return { status: false, message: 'School ID is required for update.' };
 
-    await prisma.$executeRawUnsafe(
-      `UPDATE student_schools
-       SET country_of_institution = ?,
-           name_of_institution = ?,
-           level_of_education = ?,
-           primary_language_of_instruction = ?,
-           attended_institution_from = ?,
-           attended_institution_to = ?,
-           graduation_date = ?,
-           degree_name = ?,
-           graduated_from_this = ?,
-           address = ?,
-           city = ?,
-           state = ?,
-           zipcode = ?,
-           updated_at = NOW()
-       WHERE id = ? AND std_id = ?`,
-      input.country_of_institution,
-      input.name_of_institution,
-      input.level_of_education,
-      input.primary_language_of_instruction,
-      input.attended_institution_from ? new Date(input.attended_institution_from as any) : null,
-      input.attended_institution_to ? new Date(input.attended_institution_to as any) : null,
-      (input as any).graduation_date ? new Date((input as any).graduation_date) : null,
-      input.degree_name,
-      input.graduated_from_this ? 1 : 0,
-      input.address,
-      input.city,
-      input.state ?? '',
-      String(input.zipcode ?? ''),
-      Number(input.id),
-      Number(studentId),
-    );
+    try {
+      await prisma.$executeRawUnsafe(
+        `UPDATE student_schools
+         SET country_of_institution = ?,
+             name_of_institution = ?,
+             level_of_education = ?,
+             primary_language_of_instruction = ?,
+             attended_institution_from = ?,
+             attended_institution_to = ?,
+             graduation_date = ?,
+             degree_name = ?,
+             graduated_from_this = ?,
+             address = ?,
+             city = ?,
+             state = ?,
+             zipcode = ?,
+             updated_at = NOW()
+         WHERE id = ? AND std_id = ?`,
+        input.country_of_institution || '',
+        input.name_of_institution || '',
+        input.level_of_education || '',
+        input.primary_language_of_instruction || '',
+        input.attended_institution_from ? new Date(input.attended_institution_from as any) : null,
+        input.attended_institution_to ? new Date(input.attended_institution_to as any) : null,
+        (input as any).graduation_date ? new Date((input as any).graduation_date) : null,
+        input.degree_name || '',
+        input.graduated_from_this ? 1 : 0,
+        input.address || '',
+        input.city || '',
+        input.state ?? '',
+        String(input.zipcode ?? ''),
+        Number(input.id),
+        Number(studentId),
+      );
 
-    return { status: true, message: 'School updated successfully' };
+      return { status: true, message: 'School updated successfully' };
+    } catch (error: any) {
+      console.error('Error updating school:', error);
+      return { status: false, message: error?.message || 'Failed to update school' };
+    }
   }
 
   /**

@@ -35,19 +35,21 @@ export const eduSummarySchema = z.object({
 });
 
 export const schoolSchema = z.object({
-  id: z.number().or(z.bigint()).optional(),
-  country_of_institution: z.string(),
-  name_of_institution: z.string(),
-  level_of_education: z.string(),
-  primary_language_of_instruction: z.string(),
-  attended_institution_from: z.string().or(z.date()),
-  attended_institution_to: z.string().or(z.date()),
-  degree_name: z.string(),
-  graduated_from_this: z.boolean().or(z.number()),
-  address: z.string(),
-  city: z.string(),
-  state: z.string(),
-  zipcode: z.string().or(z.number()),
+  id: z.union([z.number(), z.string(), z.bigint()]).optional().nullable(),
+  country_of_institution: z.string().optional().nullable().default(''),
+  name_of_institution: z.string().min(1, 'Institution name is required'),
+  level_of_education: z.string().optional().nullable().default(''),
+  primary_language_of_instruction: z.string().optional().nullable().default(''),
+  attended_institution_from: z.string().or(z.date()).optional().nullable(),
+  attended_institution_to: z.string().or(z.date()).optional().nullable(),
+  graduation_date: z.string().or(z.date()).optional().nullable(),
+  degree_name: z.string().optional().nullable().default(''),
+  graduated: z.string().optional().nullable(),
+  graduated_from_this: z.union([z.boolean(), z.number(), z.string()]).optional().nullable(),
+  address: z.string().optional().nullable().default(''),
+  city: z.string().optional().nullable().default(''),
+  state: z.string().optional().nullable().default(''),
+  zipcode: z.union([z.string(), z.number()]).optional().nullable().default(''),
 });
 
 export const testScoreSchema = z.object({
