@@ -2,47 +2,12 @@
 
 import { CheckCircle } from 'lucide-react'
 import Breadcrumb from '@/components/Breadcrumb'
+import { formatRichText } from '@/lib/richText'
 
 type TeamContent = {
   heading?: string | null
   description?: string | null
   updated_at?: string | null
-}
-
-const formatHTML = (html: string) => {
-  if (!html) return ''
-
-  let decoded = html
-  if (typeof document !== 'undefined') {
-    const textarea = document.createElement('textarea')
-    textarea.innerHTML = html
-    decoded = textarea.value
-  }
-
-  decoded = decoded.replace(/<span[^>]*>/gi, '')
-  decoded = decoded.replace(/<\/span>/gi, '')
-  decoded = decoded.replace(/style="[^"]*"/gi, '')
-  decoded = decoded.replace(/&nbsp;/gi, ' ')
-  decoded = decoded.replace(/<h([1-6])[^>]*>([^<]*?)\s*:\s*<\/h\1>/gi, (_m, level, title) => `<h${level}>${String(title).trim()}</h${level}>`)
-  decoded = decoded.replace(/<p>\s*:\s*/gi, '<p>')
-  decoded = decoded.replace(/<strong>(.*?)<\/strong>/gi, '<h4 class="text-lg font-semibold mb-2 mt-4">$1</h4>')
-  decoded = decoded.replace(/<b>(.*?)<\/b>/gi, '<h4 class="text-lg font-semibold mb-2 mt-4">$1</h4>')
-  decoded = decoded.replace(/(?:\r\n|\r|\n)/g, '</p><p>')
-  decoded = `<p>${decoded}</p>`
-  decoded = decoded.replace(/<p><\/p>/g, '')
-  decoded = decoded.replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi, '<span class="inline-block w-4 h-4 rounded border border-gray-400 mr-2 bg-white"></span>')
-
-  decoded = decoded.replace(/<table(.*?)>/g, '<div class="responsive-table-wrapper"><table class="w-full border-collapse" $1>')
-  decoded = decoded.replace(/<\/table>/g, '</table></div>')
-  decoded = decoded.replace(/<thead>/g, '<thead class="bg-linear-to-r from-blue-500 to-blue-600 text-white text-left text-sm">')
-  decoded = decoded.replace(/<th>/g, '<th class="px-4 py-3 font-medium whitespace-nowrap border-b border-blue-200 text-white text-sm">')
-  decoded = decoded.replace(/<tr>/g, '<tr class="even:bg-blue-50">')
-  decoded = decoded.replace(/<td>(.*?)<\/td>/g, '<td class="px-4 py-3 text-sm text-gray-800">$1</td>')
-  decoded = decoded.replace(/<ul>/g, '<ul class="list-disc pl-6 space-y-2 text-gray-800">')
-  decoded = decoded.replace(/<ol>/g, '<ol class="list-decimal pl-6 space-y-2 text-gray-800">')
-  decoded = decoded.replace(/<li>/g, '<li class="mb-1">')
-
-  return decoded
 }
 
 function formatUpdatedAt(updatedAt?: string | null) {
@@ -89,9 +54,10 @@ export default function TeamEducationMalaysiaClient({ initialContent }: { initia
 
           <div className="animate-fadeIn">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">{heading}</h1>
-            <div className="text-[15px] leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-gray-900 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-900 [&_h3]:mb-2 [&_p]:text-gray-800 [&_p]:mb-3 [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:text-blue-700">
-              <div className="custom-html" dangerouslySetInnerHTML={{ __html: formatHTML(description) }} />
-            </div>
+            <div
+              className="custom-html cms-content"
+              dangerouslySetInnerHTML={{ __html: formatRichText(description) }}
+            />
           </div>
         </div>
       </div>
