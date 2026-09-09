@@ -52,7 +52,9 @@ export default function MyTasksClient() {
   // Local storage profile avatar detection
   const [hasAvatar, setHasAvatar] = useState(false)
 
-  // Load student profile & documents
+  const [serverRequirements, setServerRequirements] = useState<any[]>([])
+
+  // Load student profile, documents & application requirements
   const loadData = async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
     if (!token) {
@@ -66,9 +68,10 @@ export default function MyTasksClient() {
     }
 
     try {
-      const [profileRes, docRes] = await Promise.all([
+      const [profileRes, docRes, appRes] = await Promise.all([
         fetch(`${API_BASE}/student/profile`, { headers }).then(r => r.json()).catch(() => null),
         fetch(`${API_BASE}/student/documents`, { headers }).then(r => r.json()).catch(() => null),
+        fetch(`${API_BASE}/student/applied-college`, { headers }).then(r => r.json()).catch(() => null),
       ])
 
       if (profileRes?.data?.student) {
@@ -82,6 +85,48 @@ export default function MyTasksClient() {
       } else if (Array.isArray(docRes?.student_documents)) {
         setDocuments(docRes.student_documents)
       }
+
+      const allServerReqs: any[] = []
+      if (Array.isArray(docRes?.data?.student_requirements)) {
+        allServerReqs.push(...docRes.data.student_requirements)
+      } else if (Array.isArray(docRes?.student_requirements)) {
+        allServerReqs.push(...docRes.student_requirements)
+      }
+
+      const courses = Array.isArray(appRes?.data?.applied_programs)
+        ? appRes.data.applied_programs
+        : Array.isArray(appRes?.applied_programs)
+        ? appRes.applied_programs
+        : []
+
+      if (courses.length > 0) {
+        const reqPromises = courses.map((app: any) =>
+          fetch(`${API_BASE}/student/applications/${app.id}/requirements`, { headers })
+            .then(r => r.json())
+            .catch(() => null)
+        )
+        const reqResults = await Promise.all(reqPromises)
+        reqResults.forEach((reqJson: any) => {
+          const list = Array.isArray(reqJson?.data?.requirements)
+            ? reqJson.data.requirements
+            : Array.isArray(reqJson?.requirements)
+            ? reqJson.requirements
+            : []
+          allServerReqs.push(...list)
+        })
+      }
+
+      // Deduplicate server requirements by clean lowercased title
+      const uniqueServerReqs: any[] = []
+      allServerReqs.forEach((sr) => {
+        const titleClean = String(sr.title || '').trim().toLowerCase()
+        if (!titleClean) return
+        if (!uniqueServerReqs.some((item) => String(item.title || '').trim().toLowerCase() === titleClean)) {
+          uniqueServerReqs.push(sr)
+        }
+      })
+
+      setServerRequirements(uniqueServerReqs)
     } catch (err) {
       console.error('Error loading tasks data:', err)
     } finally {
@@ -108,13 +153,75 @@ export default function MyTasksClient() {
     return evaluateStudentChecklist(student, documents, hasAvatar)
   }, [student, documents, hasAvatar])
 
-  const checklist = evaluated.checklist
-  const totalCount = evaluated.totalCount
-  const completedItems = evaluated.completedItems
-  const missingItems = evaluated.missingItems
-  const completedCount = evaluated.completedCount
-  const missingCount = evaluated.missingCount
-  const progressPercent = evaluated.progressPercent
+  const checklist: RequiredItem[] = useMemo(() => {
+    const defaultItems = evaluated.checklist
+    if (!serverRequirements || serverRequirements.length === 0) {
+      return defaultItems
+    }
+
+    const dynamicItems: RequiredItem[] = serverRequirements.map((r: any) => {
+      const uploadedDoc = documents.find((d: any) => {
+        const docName = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
+        const reqName = String(r.title || '').toLowerCase().trim()
+        if (!docName || !reqName) return false
+        return docName === reqName || docName.includes(reqName) || reqName.includes(docName)
+      })
+
+      const isCompleted = !!uploadedDoc || r.doc_status === 'Approved' || r.doc_status === 'Completed'
+      const isProfile =
+        r.action_type === 'profile' ||
+        String(r.title || '').toLowerCase().includes('parent') ||
+        String(r.title || '').toLowerCase().includes('date of birth')
+
+      return {
+        id: `dynamic_req_${r.id}`,
+        title: r.title,
+        name: r.title,
+        missingTitle: `${r.title} Missing`,
+        description: r.description || `Required document for ${r.stage_tag || 'application processing'}.`,
+        category: isProfile ? 'Profile Details' : 'Required Documents',
+        priority: r.tag === 'Required' ? 'high' : 'recommended',
+        isCompleted,
+        actionType: isProfile ? 'profile' : 'upload',
+        actionLabel: isCompleted ? 'View Document' : isProfile ? 'Update Profile' : `Upload ${r.title}`,
+        documentName: r.title,
+        targetTab: isProfile ? 'personal' : undefined,
+      }
+    })
+
+    const mergedMap = new Map<string, RequiredItem>()
+    defaultItems.forEach((item) => {
+      mergedMap.set(item.title.toLowerCase().trim(), item)
+    })
+
+    dynamicItems.forEach((dItem) => {
+      const key = dItem.title.toLowerCase().trim()
+      let matchedKey: string | null = null
+      for (const k of mergedMap.keys()) {
+        if (k === key || k.includes(key) || key.includes(k)) {
+          matchedKey = k
+          break
+        }
+      }
+      if (matchedKey) {
+        mergedMap.set(matchedKey, {
+          ...mergedMap.get(matchedKey)!,
+          ...dItem,
+        })
+      } else {
+        mergedMap.set(key, dItem)
+      }
+    })
+
+    return Array.from(mergedMap.values())
+  }, [evaluated.checklist, serverRequirements, documents])
+
+  const totalCount = checklist.length
+  const completedItems = useMemo(() => checklist.filter(i => i.isCompleted), [checklist])
+  const missingItems = useMemo(() => checklist.filter(i => !i.isCompleted), [checklist])
+  const completedCount = completedItems.length
+  const missingCount = missingItems.length
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
 
   // Items to display based on view
   const displayedItems = useMemo(() => {
