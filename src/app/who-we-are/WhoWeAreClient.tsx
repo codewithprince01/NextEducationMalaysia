@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Breadcrumb from '@/components/Breadcrumb'
 import {
-  GraduationCap, FileText, Shield, DollarSign, Globe, Plane, ArrowRight
+  GraduationCap, FileText, Shield, DollarSign, Globe, Plane, ArrowRight,
+  Sparkles, CheckCircle2, Headphones, Building2, Handshake
 } from 'lucide-react'
 
 const services = [
@@ -109,30 +110,90 @@ export default function WhoWeAreClient() {
         </div>
       </div>
 
-      {/* TABS */}
-      <div className="flex flex-wrap justify-center gap-4 mb-4">
-        {['universities', 'students', 'partners'].map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
-            className={`px-6 py-2 rounded-full text-sm font-semibold transition duration-300 flex items-center gap-2 ${activeTab === tab ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-blue-100'}`}>
-            {tab === 'universities' && '🏛️'}{tab === 'students' && '🎓'}{tab === 'partners' && '🤝'}
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
+      {/* TABS & ECOSYSTEM SECTION */}
+      <div className="mb-12">
+        {/* TAB BUTTONS */}
+        <div className="flex justify-center mb-5">
+          <div className="p-1 bg-gray-100 rounded-full inline-flex flex-wrap justify-center gap-1.5 border border-gray-200/80 shadow-inner">
+            {[
+              { id: 'universities', label: 'Universities', emoji: '🏛️' },
+              { id: 'students', label: 'Students', emoji: '🎓' },
+              { id: 'partners', label: 'Partners', emoji: '🤝' },
+            ].map((item) => {
+              const isActive = activeTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`px-5 py-2 rounded-full text-xs md:text-sm font-bold transition-all duration-200 flex items-center gap-2 ${
+                    isActive
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-white'
+                  }`}
+                >
+                  <span className="text-sm">{item.emoji}</span>
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-      {/* TAB CONTENT */}
-      <motion.div key={activeTab} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-        className="bg-white rounded-lg shadow-md p-6 md:p-10 border">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">{tab.heading}</h3>
-        <ul className="list-disc list-inside text-gray-700 space-y-2">
-          {tab.items.map((item, i) => <li key={i}>{item}</li>)}
-        </ul>
-      </motion.div>
+        {/* TAB CONTENT CARD */}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="bg-white rounded-2xl p-5 md:p-7 border border-blue-100 shadow-lg shadow-blue-900/5 relative overflow-hidden mb-4"
+        >
+          {/* Subtle background glow */}
+          <div className="absolute top-0 right-0 w-60 h-60 bg-gradient-to-br from-blue-50 to-transparent rounded-full blur-2xl pointer-events-none -mr-16 -mt-16" />
 
-      {/* SUPPORT */}
-      <div className="mt-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">Support</h3>
-        <p className="text-gray-700">Our expert team assists students and partners through admission, visa, and post-enrollment processes. We are committed to excellence in global education services.</p>
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100 relative">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 text-lg shrink-0">
+              {activeTab === 'universities' && '🏛️'}
+              {activeTab === 'students' && '🎓'}
+              {activeTab === 'partners' && '🤝'}
+            </div>
+            <h3 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight">
+              {tab.heading}
+            </h3>
+          </div>
+
+          {/* Items Grid */}
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-2.5 relative">
+            {tab.items.map((item, i) => (
+              <div
+                key={i}
+                className="group flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 hover:bg-blue-50/50 border border-slate-100/80 hover:border-blue-200 transition-all duration-200"
+              >
+                <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                </div>
+                <p className="text-gray-700 text-sm font-medium leading-snug group-hover:text-gray-900 transition-colors">
+                  {item}
+                </p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* SUPPORT HIGHLIGHT BANNER */}
+        <div className="bg-gradient-to-r from-blue-50 via-indigo-50/40 to-blue-50 border border-blue-100 rounded-2xl p-4 md:p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/20">
+              <Headphones className="w-4.5 h-4.5" />
+            </div>
+            <div className="flex-1">
+              <span className="font-bold text-gray-900 text-sm mr-2">Support:</span>
+              <span className="text-gray-600 text-sm leading-relaxed">
+                Our expert team assists students and partners through admission, visa, and post-enrollment processes. We are committed to excellence in global education services.
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* WHY CHOOSE US */}

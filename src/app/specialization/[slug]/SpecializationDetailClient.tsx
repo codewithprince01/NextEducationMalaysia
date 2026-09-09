@@ -152,28 +152,33 @@ function getLevelConfig(levelSlug: string, level: SpecializationLevel) {
   const normalized = (levelSlug || '').toLowerCase().trim()
 
   if (normalized.includes('pre-university') || normalized.includes('pre-u')) {
-    return { key: 'pre-university', label: level.level || 'Pre-University', icon: 'FileText', order: 1 }
+    return { key: 'pre-university', label: 'Pre-University', icon: 'FileText', order: 1 }
   }
   if (normalized.includes('certificates') || normalized.includes('certificate')) {
-    return { key: 'certificates', label: level.level || 'Certificates', icon: 'BookOpen', order: 2 }
+    return { key: 'certificates', label: 'Certificates', icon: 'BookOpen', order: 2 }
   }
   if (normalized.includes('diploma') && !normalized.includes('post-graduate') && !normalized.includes('postgraduate')) {
-    return { key: 'diploma', label: level.level || 'Diploma', icon: 'FileText', order: 3 }
+    return { key: 'diploma', label: 'Diploma', icon: 'FileText', order: 3 }
   }
   if (normalized.includes('under-graduate') || normalized.includes('undergraduate')) {
-    return { key: 'undergraduate', label: level.level || 'UNDER-GRADUATE', icon: 'GraduationCap', order: 4 }
+    return { key: 'undergraduate', label: 'Undergraduate', icon: 'GraduationCap', order: 4 }
   }
   if (normalized.includes('post-graduate-diploma') || normalized.includes('postgraduate-diploma')) {
-    return { key: 'postgraduate-diploma', label: level.level || 'POST-GRADUATE-DIPLOMA', icon: 'Award', order: 5 }
+    return { key: 'postgraduate-diploma', label: 'Postgraduate Diploma', icon: 'Award', order: 5 }
   }
   if (normalized.includes('post-graduate') || normalized.includes('postgraduate')) {
-    return { key: 'postgraduate', label: level.level || 'Postgraduate', icon: 'Award', order: 6 }
+    return { key: 'postgraduate', label: 'Postgraduate', icon: 'Award', order: 6 }
   }
   if (normalized.includes('phd')) {
-    return { key: 'phd', label: level.level || 'PhD', icon: 'Target', order: 7 }
+    return { key: 'phd', label: 'PhD', icon: 'Target', order: 7 }
   }
 
-  return null
+  return {
+    key: toLevelSlug(levelSlug || level.level || ''),
+    label: toTitleCase(level.level || level.level_name || levelSlug || ''),
+    icon: 'GraduationCap',
+    order: 8,
+  }
 }
 
 function sectionId(name: string) {
@@ -390,143 +395,136 @@ export default function SpecializationDetailClient({
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50">
       <Breadcrumb items={breadcrumbItems} />
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-4 pb-12 sm:pb-16">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-linear-to-br from-blue-900 via-indigo-800 to-purple-900">
+      <div className="max-w-[1400px] mx-auto px-2 sm:px-4 md:px-5 pt-3 pb-5">
+        {/* HERO BANNER CARD */}
+        <div className="bg-white rounded-2xl shadow-md border border-slate-200/80 overflow-hidden mb-4">
+          <div className="relative h-52 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900">
             <Image
               src="/study-in-malaysia.webp"
               alt={specialization.name || 'Specialization'}
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 1280px"
-              className="object-cover object-center"
+              className="object-cover object-top sm:object-center"
             />
-            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 lg:p-12">
-              <div className="max-w-4xl mx-auto">
-                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7 md:p-10">
+              <div className="max-w-4xl">
+                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-extrabold text-white mb-2 leading-tight">
                   {pageHeading}
                 </h1>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 md:gap-6 text-white/90">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
-                    <span className="text-xs sm:text-sm md:text-base font-medium">Study in Malaysia</span>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-white/90 text-xs sm:text-sm">
+                  <div className="flex items-center gap-1.5">
+                    <GraduationCap className="w-4 h-4 text-blue-300" />
+                    <span className="font-medium">Study in Malaysia</span>
                   </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
-                    <span className="text-xs sm:text-sm md:text-base">Top Universities</span>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-blue-300" />
+                    <span>Top Universities</span>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <div id="course-information" className="bg-linear-to-br from-blue-50 to-cyan-50 border-b border-blue-100 scroll-mt-24">
-            <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 lg:py-6">
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-                {currentLevel.title || 'Course Information'}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                {[
-                  {
-                    icon: Clock,
-                    color: 'blue' as const,
-                    label: 'Duration',
-                    value: currentLevel.duration || specialization.duration || 'Varies',
-                  },
-                  {
-                    icon: DollarSign,
-                    color: 'green' as const,
-                    label: 'Tuition Fees',
-                    value: currentLevel.fees || specialization.avrg_fees || 'Contact Us',
-                  },
-                  {
-                    icon: Calendar,
-                    color: 'purple' as const,
-                    label: 'Intake',
-                    value: currentLevel.intake || 'Multiple',
-                  },
-                  {
-                    icon: Award,
-                    color: 'orange' as const,
-                    label: 'Accreditation',
-                    value: currentLevel.accreditation || 'MQA',
-                  },
-                ].map(({ icon: Icon, color, label, value }) => (
-                  <div key={label} className="flex items-center gap-2 sm:gap-3">
-                    <div className={`${statStyles[color].wrapper} p-1.5 sm:p-2 rounded-lg shrink-0`}>
-                      <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${statStyles[color].icon}`} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-xs sm:text-sm text-gray-600">{label}</div>
-                      <div className="font-semibold text-gray-900 text-xs sm:text-sm break-words">{value}</div>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 -mt-6 sm:-mt-8 mb-6 sm:mb-8">
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="bg-slate-50/50 border-b border-gray-100">
-            <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 sm:mb-6">
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                  <h3 className="text-sm sm:text-base font-bold text-gray-900">Select Your Study Level</h3>
+        {/* STANDALONE COURSE STATS & STUDY LEVEL CARD */}
+        <div id="course-information" className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 scroll-mt-24 space-y-4">
+          {/* STATS TILES */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {[
+              {
+                icon: Clock,
+                label: 'Duration',
+                value: currentLevel.duration || specialization.duration || 'Varies',
+                iconBg: 'bg-blue-50 text-blue-600 border-blue-100',
+              },
+              {
+                icon: DollarSign,
+                label: 'Tuition Fees',
+                value: currentLevel.fees || specialization.avrg_fees || 'Contact Us',
+                iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+              },
+              {
+                icon: Calendar,
+                label: 'Intake',
+                value: currentLevel.intake || 'Multiple',
+                iconBg: 'bg-purple-50 text-purple-600 border-purple-100',
+              },
+              {
+                icon: Award,
+                label: 'Accreditation',
+                value: currentLevel.accreditation || 'MQA',
+                iconBg: 'bg-amber-50 text-amber-600 border-amber-100',
+              },
+            ].map(({ icon: Icon, label, value, iconBg }) => (
+              <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/70 border border-slate-100 hover:bg-white hover:shadow-xs transition-all duration-200">
+                <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center shrink-0 border shadow-2xs`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[11px] font-bold tracking-wider text-slate-400 uppercase block">{label}</span>
+                  <span className="font-extrabold text-slate-800 text-xs sm:text-sm md:text-base truncate block">{value}</span>
                 </div>
               </div>
+            ))}
+          </div>
 
-              {levelConfigs.buttons.length > 0 ? (
-                <div className="flex flex-wrap gap-2.5 sm:gap-4">
-                  {levelConfigs.buttons.map((levelItem) => {
-                    const iconMap = { FileText, GraduationCap, Award, Target, BookOpen }
-                    const Icon = iconMap[levelItem.icon as keyof typeof iconMap] || FileText
-                    const isActive = levelSlug === levelItem.actualSlug
-                    const levelPath = isActive
-                      ? `/specialization/${slug}`
-                      : `/specialization/${slug}/${levelItem.actualSlug}`
-                    const href = levelPath
+          {/* SELECT STUDY LEVEL BAR */}
+          {levelConfigs.buttons.length > 0 && (
+            <div className="pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center text-xs shadow-xs">
+                  <GraduationCap className="w-3.5 h-3.5" />
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-wide">
+                  Select Your Study Level
+                </h3>
+              </div>
 
-                    return (
-                      <Link
-                        key={levelItem.actualSlug}
-                        href={href}
-                        scroll={false}
-                        className={`group inline-flex items-center gap-2.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-300 border-2 ${
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-2.5 w-full">
+                {levelConfigs.buttons.map((levelItem) => {
+                  const iconMap = { FileText, GraduationCap, Award, Target, BookOpen }
+                  const Icon = iconMap[levelItem.icon as keyof typeof iconMap] || FileText
+                  const isActive = levelSlug === levelItem.actualSlug
+                  const levelPath = isActive
+                    ? `/specialization/${slug}`
+                    : `/specialization/${slug}/${levelItem.actualSlug}`
+
+                  return (
+                    <Link
+                      key={levelItem.actualSlug}
+                      href={levelPath}
+                      scroll={false}
+                      className={`group flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 text-center w-full ${
+                        isActive
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 ring-2 ring-blue-600/20'
+                          : 'bg-slate-50 hover:bg-white text-slate-700 hover:text-blue-600 border border-slate-200/80 hover:border-blue-300 hover:shadow-xs'
+                      }`}
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors shrink-0 ${
                           isActive
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200 ring-2 ring-blue-100 ring-offset-1'
-                            : 'bg-white text-gray-600 border-gray-100 hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-700 shadow-sm'
+                            ? 'bg-white/20 text-white'
+                            : 'bg-white text-slate-500 border border-slate-200/60 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-200'
                         }`}
                       >
-                        <Icon
-                          className={`w-4 h-4 shrink-0 ${
-                            isActive ? 'text-white' : 'text-gray-400 group-hover:text-blue-500'
-                          }`}
-                        />
-                        <span className="whitespace-nowrap">{levelItem.label}</span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-white/50 rounded-2xl border border-dashed border-gray-200">
-                  <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm text-gray-500">No education levels available for this specialization.</p>
-                </div>
-              )}
+                        <Icon className="w-3 h-3" />
+                      </div>
+                      <span className="truncate">{levelItem.label}</span>
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
       {tabs.length > 0 && (
         <div
           className={`hidden lg:block new-scoll-links scroll-sticky ${
-            tabsScrolled ? 'shadow-[0_4px_12px_rgba(0,0,0,0.15)]' : 'shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
+            tabsScrolled ? 'shadow-[0_4px_12px_rgba(0,0,0,0.12)]' : 'shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
           }`}
           style={{
             position: 'sticky',
@@ -537,13 +535,13 @@ export default function SpecializationDetailClient({
             paddingTop: 0,
           }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1400px] mx-auto px-2 sm:px-4 md:px-5">
             <ul className="links scrollTo vertically-scrollbar flex gap-0 m-0 p-0 list-none overflow-x-auto overflow-y-hidden">
               {tabs.map(({ name, icon }) => (
                 <li
                   key={name}
-                  className={`flex-shrink-0 border-b-[3px] transition-all duration-300 ${
-                    activeTab === name ? 'border-blue-600' : 'border-transparent'
+                  className={`flex-shrink-0 border-b-2 transition-all duration-200 ${
+                    activeTab === name ? 'border-blue-600 text-blue-600 font-bold' : 'border-transparent text-gray-600 font-medium'
                   }`}
                 >
                   <a
@@ -552,11 +550,7 @@ export default function SpecializationDetailClient({
                       event.preventDefault()
                       handleTabClick(name)
                     }}
-                    className={`flex items-center gap-2 px-6 py-4 font-medium text-sm whitespace-nowrap transition-all duration-300 ${
-                      activeTab === name
-                        ? 'text-blue-600'
-                        : 'text-gray-500 hover:text-blue-800 hover:bg-blue-600/5'
-                    }`}
+                    className={`flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm whitespace-nowrap transition-all duration-200 hover:text-blue-700 hover:bg-blue-50/50`}
                   >
                     {icon}
                     <span>{name}</span>
@@ -568,29 +562,28 @@ export default function SpecializationDetailClient({
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pb-8 sm:pb-12 lg:pb-16">
-        <div className="space-y-8 sm:space-y-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 p-3 sm:p-4 md:p-6 lg:p-8">
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6 lg:space-y-8">
-              {tabs.length > 0 ? (
-                tabs.map(({ name }) => (
-                  <section key={name} id={sectionId(name)} className="scroll-mt-24">
-                    <div className="bg-linear-to-br from-white to-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-5 md:p-6 border border-blue-100 shadow-md hover:shadow-lg transition-shadow">
-                      <div
-                        className="cms-content max-w-none"
-                        dangerouslySetInnerHTML={{ __html: formatRichText(contentMap[name]) }}
-                      />
-                    </div>
-                  </section>
-                ))
-              ) : (
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-200 text-center">
-                  <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Course details coming soon.</p>
-                </div>
-              )}
+      <div className="max-w-[1400px] mx-auto px-2 sm:px-4 md:px-5 pb-8 sm:pb-12 pt-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
+          <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+            {tabs.length > 0 ? (
+              tabs.map(({ name }) => (
+                <section key={name} id={sectionId(name)} className="scroll-mt-24">
+                  <div className="bg-white rounded-xl p-4 sm:p-5 md:p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div
+                      className="cms-content max-w-none"
+                      dangerouslySetInnerHTML={{ __html: formatRichText(contentMap[name]) }}
+                    />
+                  </div>
+                </section>
+              ))
+            ) : (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 text-center">
+                <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">Course details coming soon.</p>
+              </div>
+            )}
 
-              <section className="space-y-5 px-4 py-6 bg-gray-50 rounded-xl border border-gray-200">
+              <section className="space-y-4 px-4 py-5 bg-white rounded-xl border border-slate-100 shadow-sm">
                 <h2 className="text-2xl font-bold text-gray-900">Related Universities</h2>
 
                 {relatedUniversities.length === 0 ? (
@@ -718,7 +711,7 @@ export default function SpecializationDetailClient({
               )}
             </div>
 
-            <div className="lg:col-span-1 space-y-6 lg:space-y-8">
+            <div className="lg:col-span-4 space-y-6 lg:space-y-8">
               <div className="min-h-[400px]">
                 <TrendingCourses variant="sidebar" />
               </div>
@@ -732,6 +725,5 @@ export default function SpecializationDetailClient({
           </div>
         </div>
       </div>
-    </div>
   )
 }
