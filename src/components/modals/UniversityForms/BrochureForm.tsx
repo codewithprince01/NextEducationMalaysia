@@ -56,8 +56,8 @@ type Props = {
 }
 
 export function BrochureForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
-  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData(universityName)
-  const form = useFormState(isOpen, countriesData as any[], phonecode as any[])
+  const form = useFormState(isOpen)
+  const { phonecode, levels, courseCategories, countriesData } = useFetchFormData(universityName, form.level)
   const [logoCandidates, setLogoCandidates] = React.useState<string[]>([])
   const [logoIndex, setLogoIndex] = React.useState(0)
 

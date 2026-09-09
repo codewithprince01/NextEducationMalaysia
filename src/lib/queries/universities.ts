@@ -1,9 +1,11 @@
 import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
-import { getContentVersion } from './contentVersion'
+import { getContentVersion, cachedByContent } from './contentVersion'
 
-export const getFeaturedUniversities = unstable_cache(
+export const getFeaturedUniversities = cachedByContent(
+  'university',
+  ['featured-universities'],
   () =>
     prisma.university.findMany({
       where: { featured: 1, status: 1 },
@@ -21,11 +23,11 @@ export const getFeaturedUniversities = unstable_cache(
       orderBy: { name: 'asc' },
       take: 12,
     }).then(serializeBigInt),
-  ['featured-universities'],
-  { revalidate: 86400, tags: ['universities'] },
+  { revalidate: 86400, tags: ['universities'] }
 )
 
 export async function getUniversitiesByType(typeSlug: string) {
+  const version = await getContentVersion('university')
   return unstable_cache(
     async () => {
       const base = typeSlug.replace(/-in-malaysia$/, '');
@@ -53,7 +55,9 @@ export async function getUniversitiesByType(typeSlug: string) {
 
       return serializeBigInt(universities);
     },
-    ['universities-by-type', typeSlug],
+    // `version` is part of the cache key, not the query: when an admin edit moves
+    // it the entry is rebuilt on the next request instead of waiting out the day.
+    ['universities-by-type', typeSlug, version],
     { revalidate: 86400, tags: ['universities'] }
   )();
 }
@@ -86,7 +90,9 @@ export const getUniversityPrograms = (universityId: number) => {
   `, universityId).then(serializeBigInt);
 }
 
-export const getAllUniversities = unstable_cache(
+export const getAllUniversities = cachedByContent(
+  'university',
+  ['all-universities'],
   () =>
     prisma.university.findMany({
       where: { status: 1 },
@@ -102,20 +108,22 @@ export const getAllUniversities = unstable_cache(
       } as any,
       orderBy: { name: 'asc' },
     }).then(serializeBigInt),
-  ['all-universities'],
-  { revalidate: 86400, tags: ['universities'] },
+  { revalidate: 86400, tags: ['universities'] }
 )
 
-export const getInstituteTypes = unstable_cache(
+export const getInstituteTypes = cachedByContent(
+  'university',
+  ['institute-types'],
   () =>
     prisma.instituteType.findMany({
       select: { id: true, type: true, slug: true, seo_title_slug: true },
     }).then(serializeBigInt),
-  ['institute-types'],
-  { revalidate: 86400, tags: ['institute-types'] },
+  { revalidate: 86400, tags: ['institute-types'] }
 )
 
-export const getPageContent = unstable_cache(
+export const getPageContent = cachedByContent(
+  'university',
+  ['page-content'],
   async (pageName: string) => {
     const results = await prisma.$queryRawUnsafe(`
       SELECT heading, description FROM page_contents 
@@ -124,11 +132,12 @@ export const getPageContent = unstable_cache(
     `, pageName) as any[]
     return results[0] || null
   },
-  ['page-content'],
-  { revalidate: 86400, tags: ['page-contents'] },
+  { revalidate: 86400, tags: ['page-contents'] }
 )
 
-export const getAllUniversitySlugs = unstable_cache(
+export const getAllUniversitySlugs = cachedByContent(
+  'university',
+  ['all-university-slugs'],
   async () => {
     const rows = await prisma.$queryRawUnsafe<Array<{ uname: string | null }>>(
       `
@@ -143,11 +152,12 @@ export const getAllUniversitySlugs = unstable_cache(
 
     return rows.map((row) => row.uname).filter(Boolean) as string[]
   },
-  ['all-university-slugs'],
-  { revalidate: 86400, tags: ['universities'] },
+  { revalidate: 86400, tags: ['universities'] }
 )
 
-export const getUniversityBySlug = unstable_cache(
+export const getUniversityBySlug = cachedByContent(
+  'university',
+  ['university-by-slug-meta'],
   async (slug: string) => {
     const rows = await prisma.$queryRawUnsafe<Array<{
       id: number
@@ -172,8 +182,7 @@ export const getUniversityBySlug = unstable_cache(
 
     return rows[0] ? serializeBigInt(rows[0]) : null
   },
-  ['university-by-slug-meta'],
-  { revalidate: 86400, tags: ['universities', 'seo'] },
+  { revalidate: 86400, tags: ['universities', 'seo'] }
 )
 
 async function fetchUniversityFull(slug: string) {
@@ -190,7 +199,7 @@ async function fetchUniversityFull(slug: string) {
   // 2. Fetch relations via raw SQL to bypass zero-date validation issues.
   // Avoid selecting created_at/updated_at columns because legacy rows may contain
   // invalid values like 0000-00-00 00:00:00.
-  const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews] = await Promise.all([
+  const [photos, programs, instituteType, overviews, scholarshipCount, reviewStats, recentReviews, courseCategories] = await Promise.all([
     prisma.$queryRawUnsafe(
       `SELECT id, university_id, photo_path, is_featured FROM university_photos WHERE university_id = ? ORDER BY is_featured DESC, id ASC`,
       universityId
@@ -230,7 +239,15 @@ async function fetchUniversityFull(slug: string) {
        ORDER BY id DESC
        LIMIT 5`,
       universityId
-    ) as Promise<any[]>
+    ) as Promise<any[]>,
+    prisma.$queryRawUnsafe(
+      `SELECT DISTINCT cc.id, cc.name, cc.slug
+       FROM course_categories cc
+       JOIN university_programs up ON up.course_category_id = cc.id
+       WHERE up.university_id = ? AND up.status = 1
+       ORDER BY cc.name ASC`,
+      universityId
+    ) as Promise<any[]>,
   ])
 
   const typeData = instituteType[0]
@@ -246,12 +263,15 @@ async function fetchUniversityFull(slug: string) {
     scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
     active_programs_count: programs.length,
     instituteType: typeData,
-    review_count: parsedReviewCount,
-    average_rating: parsedAverageRating,
     reviews: (recentReviews || []).map((row: any) => ({
       name: row?.name || '',
       description: row?.description || '',
       rating: Number(row?.rating || 0),
+    })),
+    course_categories: (courseCategories || []).map((row: any) => ({
+      id: Number(row.id),
+      name: row.name || '',
+      slug: row.slug || '',
     })),
   })
 }

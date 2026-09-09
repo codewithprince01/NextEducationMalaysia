@@ -60,11 +60,7 @@ export default function EducationForm() {
     zipcode: "",
   });
 
-  const [qualifications, setQualifications] = useState(() => {
-    if (typeof window === 'undefined') return { gre1: false, gre2: false, sat: false };
-    const saved = localStorage.getItem("qualificationsToggle");
-    return saved ? JSON.parse(saved) : { gre1: false, gre2: false, sat: false };
-  });
+  const [qualifications, setQualifications] = useState({ gre1: false, gre2: false, sat: false });
 
   const [greData, setGreData] = useState<any>({
     gre_exam_date: "", gre_v_score: "", gre_v_rank: "", gre_q_score: "", gre_q_rank: "", gre_w_score: "", gre_w_rank: "",
@@ -81,6 +77,11 @@ export default function EducationForm() {
   const [schoolErrors, setSchoolErrors] = useState<any>({});
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("qualificationsToggle");
+      if (saved) setQualifications(JSON.parse(saved));
+    } catch {}
+
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");

@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { unstable_cache } from 'next/cache'
 import { getBlogBySlugAndId } from '@/lib/queries/blogs'
 import { getContentVersion } from '@/lib/queries/contentVersion'
+import { dedupeBlogPayload } from '@/lib/blogContent'
 import { resolveBlogMeta } from '@/lib/seo/metadata'
 import FaqSection from '@/components/seo/FaqSection'
 import { SITE_URL } from '@/lib/constants'
@@ -143,7 +144,11 @@ export default async function BlogDetailPage({ params }: Props) {
 
     return (
       <>
-        <BlogDetailClient category={category} slugWithId={slugWithId} initialData={fallbackData} />
+        <BlogDetailClient
+          category={category}
+          slugWithId={slugWithId}
+          initialData={dedupeBlogPayload(fallbackData)}
+        />
         <FaqSection title="Blog FAQs" faqs={fallbackFaqItems} />
       </>
     )
@@ -152,7 +157,11 @@ export default async function BlogDetailPage({ params }: Props) {
 
   return (
     <>
-      <BlogDetailClient category={category} slugWithId={slugWithId} initialData={result} />
+      <BlogDetailClient
+        category={category}
+        slugWithId={slugWithId}
+        initialData={dedupeBlogPayload(result)}
+      />
       <FaqSection title="Blog FAQs" faqs={faqItems} />
     </>
   )

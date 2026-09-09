@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Breadcrumb from '@/components/Breadcrumb'
+import { formatRichText } from '@/lib/richText'
 import { 
   CheckCircle, 
   ChevronDown, 
@@ -11,38 +12,6 @@ import {
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || 'https://admin.educationmalaysia.in'
 const COURSE_PLACEHOLDER = '/course-placeholder.svg'
-
-function formatHTML(html?: string | null) {
-  if (!html) return ''
-  let decoded = String(html)
-    .replace(/<span[^>]*>/gi, '')
-    .replace(/<\/span>/gi, '')
-    .replace(/style="[^"]*"/gi, '')
-    .replace(/&nbsp;/gi, ' ')
-  decoded = decoded.replace(
-    /<h([1-6])[^>]*>([^<]*?)\s*:\s*<\/h\1>/gi,
-    (_m, level, title) => `<h${level} class="text-xl font-bold mb-3 mt-6 text-gray-900">${String(title).trim()}</h${level}>`
-  )
-  decoded = decoded.replace(/<p>\s*:\s*/gi, '<p>')
-  decoded = decoded.replace(
-    /<strong>(.*?)<\/strong>/gi,
-    '<h4 class="text-lg font-semibold mb-2 mt-4 text-gray-800">$1</h4>'
-  )
-  decoded = decoded.replace(
-    /<b>(.*?)<\/b>/gi,
-    '<h4 class="text-lg font-semibold mb-2 mt-4 text-gray-800">$1</h4>'
-  )
-  decoded = decoded.replace(/<h2>/gi, '<h2 class="text-xl font-bold mb-3 mt-6 text-gray-900">')
-  decoded = decoded.replace(/<h3>/gi, '<h3 class="text-lg font-semibold mb-2 mt-4 text-gray-800">')
-  decoded = decoded.replace(
-    /<a\s+href="([^"]*)"/gi,
-    '<a href="$1" class="text-blue-600 hover:text-blue-800 underline font-medium"'
-  )
-  decoded = decoded.replace(/(?:\r\n|\r|\n)/g, '</p><p>')
-  decoded = `<p>${decoded}</p>`
-  decoded = decoded.replace(/<p><\/p>/g, '')
-  return decoded
-}
 
 function resolveCategoryImage(path?: string | null) {
   const raw = String(path || '').trim()
@@ -179,9 +148,15 @@ export default function QualificationLevelClient({ slug, initialData }: Qualific
               isExpanded ? "max-h-full" : "max-h-[300px] overflow-hidden"
             }`}
           >
+            {/* `.cms-content` + formatRichText is the shared pipeline every other
+                CMS page uses, so spacing here now matches what the admin editor
+                shows. The local formatHTML() this replaced turned every newline
+                in the stored HTML into a paragraph break — 26 authored
+                paragraphs became 982 — and it also stripped &nbsp;, <span> and
+                inline styles the author had set. */}
             <div
-              className="prose prose-blue max-w-none text-gray-800 [&_table]:w-full [&_table]:border-collapse [&_th]:bg-blue-800 [&_th]:text-white [&_th]:p-3 [&_th]:text-left [&_td]:p-3 [&_td]:border-b [&_tr:nth-child(even)]:bg-gray-50"
-              dangerouslySetInnerHTML={{ __html: formatHTML(pageContent?.description || "") }}
+              className="cms-content max-w-none"
+              dangerouslySetInnerHTML={{ __html: formatRichText(pageContent?.description) }}
             />
             {!isExpanded && (
               <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-white to-transparent pointer-events-none"></div>

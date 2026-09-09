@@ -63,10 +63,35 @@ function formatKey(key: string): string {
 
 function buildUserSubject(data: LeadEmailData): string {
   const uni = String(data.university || '').trim();
-  if (uni) {
-    return `We have Received Your Request for brochure/fees of ${uni} - Expect a Response Soon`;
+  const formType = String(data.formType || '').toLowerCase();
+
+  if (formType.includes('contact') || formType.includes('get in touch')) {
+    return uni 
+      ? `Thank You for Contacting Education Malaysia regarding ${uni}`
+      : 'Thank You for Contacting Education Malaysia - We Have Received Your Message';
   }
-  return 'We have Received Your Request for brochure/fees - Expect a Response Soon';
+  if (formType.includes('counselling') || formType.includes('book session')) {
+    return uni
+      ? `Counselling Request for ${uni} - Education Malaysia`
+      : 'Thank You for Your Counselling Request - Education Malaysia';
+  }
+  if (formType.includes('fee')) {
+    return uni
+      ? `Fee Structure Enquiry for ${uni} - Education Malaysia`
+      : 'Thank You for Your Fee Enquiry - Education Malaysia';
+  }
+  if (formType.includes('brochure')) {
+    return uni
+      ? `Brochure Request for ${uni} - Education Malaysia`
+      : 'Thank You for Your Brochure Request - Education Malaysia';
+  }
+  if (formType.includes('partner')) {
+    return 'Thank You for Your Partner Application - Education Malaysia';
+  }
+  if (uni) {
+    return `Thank You for Contacting Education Malaysia regarding ${uni}`;
+  }
+  return 'Thank You for Contacting Education Malaysia - We Have Received Your Request';
 }
 
 function adminTemplate(data: LeadEmailData): string {
@@ -197,6 +222,8 @@ function adminTemplate(data: LeadEmailData): string {
 }
 
 function userTemplate(data: LeadEmailData): string {
+  const uni = String(data.university || '').trim();
+
   return `
   <!DOCTYPE html>
   <html>
@@ -204,43 +231,68 @@ function userTemplate(data: LeadEmailData): string {
     <meta charset="UTF-8" />
     <title>Thank You for Contacting Education Malaysia</title>
   </head>
-  <body style="margin:0;padding:0;background:#f1f1f1;font-family:Arial,sans-serif;color:#333;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f1f1f1;padding:24px 0;">
+  <body style="margin:0;padding:0;background:#f8fafc;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:32px 0;">
       <tr>
         <td align="center">
-          <table role="presentation" width="700" cellspacing="0" cellpadding="0" style="max-width:700px;width:100%;background:#ffffff;border:1px solid #e5e7eb;">
+          <table role="presentation" width="650" cellspacing="0" cellpadding="0" style="max-width:650px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.06);border:1px solid #e2e8f0;">
+            <!-- Header -->
             <tr>
-              <td align="center" style="background:#3d3f84;padding:22px 20px;">
-                <h1 style="margin:0;color:#ffffff;font-size:40px;line-height:1.1;font-weight:700;">Education Malaysia</h1>
+              <td align="center" style="background:linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);padding:28px 24px;">
+                <h1 style="margin:0;color:#ffffff;font-size:32px;letter-spacing:-0.5px;font-weight:800;">Education Malaysia</h1>
+                <p style="margin:6px 0 0 0;color:#bfdbfe;font-size:14px;font-weight:500;">Your Gateway to Premier Higher Education in Malaysia</p>
               </td>
             </tr>
+            <!-- Content -->
             <tr>
-              <td style="padding:30px 34px 24px 34px;font-size:16px;line-height:1.7;color:#333333;">
-                <p style="margin:0 0 18px 0;">Dear ${escapeHtml(printable(data.name))},</p>
+              <td style="padding:36px 36px 28px 36px;font-size:15px;line-height:1.7;color:#334155;">
+                <p style="margin:0 0 16px 0;font-size:17px;font-weight:700;color:#0f172a;">Dear ${escapeHtml(printable(data.name))},</p>
                 <p style="margin:0 0 16px 0;">
-                  Thank you for reaching out to us! We’ve received your enquiry and our team is currently reviewing it.
-                  We will get back to you as soon as possible with the information or assistance you requested.
+                  Thank you for reaching out to <strong>Education Malaysia</strong>! We have received your inquiry${uni ? ` regarding <strong>${escapeHtml(uni)}</strong>` : ''} and our academic counseling team is currently reviewing your details.
                 </p>
+                
+                <div style="background:#f1f5f9;border-left:4px solid #2563eb;border-radius:6px;padding:16px 20px;margin:24px 0;">
+                  <p style="margin:0 0 8px 0;font-size:14px;font-weight:700;color:#1e293b;">What Happens Next?</p>
+                  <p style="margin:0;font-size:14px;color:#475569;line-height:1.6;">
+                    One of our dedicated educational advisors will contact you shortly to provide detailed information about courses, tuition fees, eligibility requirements, and scholarship opportunities.
+                  </p>
+                </div>
+
                 <p style="margin:0 0 16px 0;">
-                  If you have any urgent questions or need further assistance, feel free to reply to this email
-                  or contact us at +91-98185-60331.
+                  If you have any urgent questions or wish to speak with our admission advisors right away, please feel free to reply to this email or connect with us:
                 </p>
-                <p style="margin:0 0 20px 0;">
-                  We appreciate your interest and look forward to assisting you soon!
-                </p>
-                <p style="margin:0;">
-                  Best regards,<br/><br/>
-                  Education Malaysia<br/><br/>
-                  info@educationmalaysia.in<br/>
-                  educationmalaysia.in<br/><br/>
-                  Our mailing address is:<br/>
-                  B-16 ground floor Gurugram, Mayfield Garden,<br/>
-                  Sector 50, Gurugram
+                
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:16px 0 24px 0;">
+                  <tr>
+                    <td style="padding:8px 0;font-size:14px;color:#334155;">
+                      <strong>📞 Phone / WhatsApp:</strong> +60 11-2137 6171 / +91 98185 60331
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0;font-size:14px;color:#334155;">
+                      <strong>✉️ Email:</strong> <a href="mailto:info@educationmalaysia.in" style="color:#2563eb;text-decoration:none;font-weight:600;">info@educationmalaysia.in</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0;font-size:14px;color:#334155;">
+                      <strong>🌐 Website:</strong> <a href="https://www.educationmalaysia.in" style="color:#2563eb;text-decoration:none;font-weight:600;">www.educationmalaysia.in</a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:24px 0 0 0;font-size:14px;color:#64748b;">
+                  Warm regards,<br/>
+                  <strong style="color:#0f172a;font-size:15px;">Admissions & Student Advisory Team</strong><br/>
+                  <span style="color:#2563eb;font-weight:600;">Education Malaysia</span>
                 </p>
               </td>
             </tr>
+            <!-- Footer -->
             <tr>
-              <td style="height:26px;background:#e24886;"></td>
+              <td style="background:#0f172a;padding:20px 36px;text-align:center;font-size:12px;color:#94a3b8;line-height:1.5;">
+                <p style="margin:0 0 4px 0;">&copy; ${new Date().getFullYear()} Education Malaysia. All rights reserved.</p>
+                <p style="margin:0;">B-16 Ground Floor, Mayfield Garden, Sector 50, Gurugram, India</p>
+              </td>
             </tr>
           </table>
         </td>

@@ -1,17 +1,21 @@
 import { prisma } from '@/lib/db'
+import { cachedByContent } from './contentVersion'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
 
-export const getAllScholarshipSlugs = unstable_cache(
+export const getAllScholarshipSlugs = cachedByContent(
+  'scholarship',
+  ['scholarship-slugs'],
   () =>
     prisma.scholarship.findMany({
       select: { slug: true },
     }).then(rows => rows.map(r => r.slug).filter(Boolean) as string[]),
-  ['scholarship-slugs'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getScholarshipBySlug = unstable_cache(
+export const getScholarshipBySlug = cachedByContent(
+  'scholarship',
+  ['scholarship-detail'],
   (slug: string) =>
     prisma.scholarship.findFirst({
       where: { slug },
@@ -19,11 +23,12 @@ export const getScholarshipBySlug = unstable_cache(
         contents: { orderBy: { id: 'asc' } },
       },
     }).then(serializeBigInt),
-  ['scholarship-detail'],
-  { revalidate: 86400, tags: ['scholarship'] },
+  { revalidate: 86400, tags: ['scholarship'] }
 )
 
-export const getAllScholarships = unstable_cache(
+export const getAllScholarships = cachedByContent(
+  'scholarship',
+  ['all-scholarships'],
   () =>
     prisma.scholarship.findMany({
       select: {
@@ -34,6 +39,5 @@ export const getAllScholarships = unstable_cache(
         thumbnail_path: true,
       },
     }).then(serializeBigInt),
-  ['all-scholarships'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )

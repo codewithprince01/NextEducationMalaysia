@@ -9,7 +9,11 @@ import type { Metadata } from 'next'
 
 type Props = { params: Promise<{ slug: string; courseSlug: string }> }
 
-export const revalidate = 86400
+// Rendered per request so an edit saved in the admin panel is live immediately.
+// The cost is one ~1ms freshness probe: the expensive program query behind this
+// page stays cached and only re-runs when that probe shows the content actually
+// changed. See src/lib/queries/contentVersion.ts.
+export const revalidate = 0
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, courseSlug } = await params

@@ -1,8 +1,11 @@
 import { prisma } from '@/lib/db'
+import { cachedByContent } from './contentVersion'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
 
-export const getHomePageData = unstable_cache(
+export const getHomePageData = cachedByContent(
+  'home',
+  ['home-page-data'],
   async () => {
     const website = process.env.SITE_VAR || 'MYS'
     const [
@@ -104,11 +107,12 @@ export const getHomePageData = unstable_cache(
       pageContent,
     })
   },
-  ['home-page-data'],
-  { revalidate: 43200 },
+  { revalidate: 43200 }
 )
 
-export const getPageBanner = unstable_cache(
+export const getPageBanner = cachedByContent(
+  'home',
+  ['page-banner'],
   async (uri: string) => {
     const rows = await prisma.$queryRawUnsafe(
       `
@@ -122,11 +126,12 @@ export const getPageBanner = unstable_cache(
     ) as any[]
     return rows?.[0] || null
   },
-  ['page-banner'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getPageContent = unstable_cache(
+export const getPageContent = cachedByContent(
+  'home',
+  ['page-content'],
   (pageName: string) =>
     prisma.$queryRawUnsafe(
       `
@@ -137,11 +142,12 @@ export const getPageContent = unstable_cache(
       `,
       pageName,
     ),
-  ['page-content'],
-  { revalidate: 43200 },
+  { revalidate: 43200 }
 )
 
-export const getFaqs = unstable_cache(
+export const getFaqs = cachedByContent(
+  'home',
+  ['faqs'],
   async (categorySlug?: string) => {
     const rows = categorySlug
       ? await prisma.$queryRawUnsafe(
@@ -189,11 +195,12 @@ export const getFaqs = unstable_cache(
       },
     }))
   },
-  ['faqs'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getHeroBanners = unstable_cache(
+export const getHeroBanners = cachedByContent(
+  'home',
+  ['hero-banners'],
   async () => {
     const website = process.env.SITE_VAR || 'MYS'
     const rows = await prisma.$queryRawUnsafe(
@@ -217,6 +224,5 @@ export const getHeroBanners = unstable_cache(
       alt_text: string | null
     }>
   },
-  ['hero-banners'],
-  { revalidate: 21600 },
+  { revalidate: 21600 }
 )

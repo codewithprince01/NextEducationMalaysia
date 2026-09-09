@@ -348,12 +348,32 @@ h3.text-white, .text-white h3 { color: white !important; }
   line-height: 1.75;
   overflow-wrap: break-word;
   word-break: break-word;
+
+  /* How much room one blank line from the editor takes up. This is the single
+     knob for CMS spacing: raise it for airier pages, lower it for tighter ones.
+     1rem matches the paragraph margin the site used before spacing became
+     editor-driven, so the common case — one blank line between two paragraphs —
+     looks exactly as it always did. */
+  --cms-blank-line: 1rem;
 }
 
 .cms-content > *:first-child { margin-top: 0 !important; }
 .cms-content > *:last-child { margin-bottom: 0 !important; }
 
-/* --- Block spacing --- */
+/* --- Block spacing ---
+   Two separate things produce vertical space, and mixing them up is what made
+   earlier versions of this file wrong:
+
+   1. The ordinary gap between blocks — the margins below. The editor shows this
+      gap too, so it is not spacing "invented" by the site. CKEditor's one blank
+      line between blocks in the stored HTML is just how it serialises; it is
+      invisible in the WYSIWYG view and must NOT produce a spacer as well.
+
+   2. Blank lines the author deliberately added — a <p>&nbsp;</p>, or extra
+      Enters in the source view, which formatRichText() converts into
+      .cms-blank-line spacers. Those stack on top of the ordinary gap, so more
+      blank lines in the editor mean more space here, and removing them takes
+      the extra space away. */
 .cms-content p {
   margin: 0 0 1rem !important;
   line-height: 1.75;
@@ -363,9 +383,17 @@ h3.text-white, .text-white h3 { color: white !important; }
    has a line box, but a truly empty <p></p> collapses to zero height — give it
    one line so the page shows the same spacing the author saw in the editor. */
 .cms-content p:empty {
-  min-height: 1.75em;
+  min-height: var(--cms-blank-line);
 }
 .cms-content > *:last-child:empty { margin-bottom: 0 !important; }
+
+/* One blank line the author typed in the editor. formatRichText() emits one of
+   these per blank line, so the gap on the page tracks the gap in the editor. */
+.cms-content .cms-blank-line {
+  height: var(--cms-blank-line);
+  margin: 0 !important;
+}
+.cms-content > .cms-blank-line:last-child { display: none; }
 
 /* --- Headings --- */
 .cms-content h1,
@@ -449,9 +477,16 @@ h3.text-white, .text-white h3 { color: white !important; }
   border: 0;
   border-top: 1px solid #e5e7eb;
 }
+/* The editor writes the image's original pixel size into a style attribute, e.g.
+   style="width: 2560px; height: 1459px". `max-width` then shrinks the width to
+   fit the column while that inline height stays fixed, and the picture is
+   stretched to a tall smear. `!important` is needed because a normal style
+   attribute otherwise outranks this rule; with the height released the browser
+   derives it from the image's real aspect ratio. Inline widths are left alone —
+   they are how an author deliberately keeps an icon or a thumbnail small. */
 .cms-content img {
   max-width: 100%;
-  height: auto;
+  height: auto !important;
   margin: 1rem 0;
   border-radius: 0.5rem;
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   FaUser,
   FaEnvelope,
@@ -35,6 +35,7 @@ import {
   DEFAULT_LEVELS,
   DEFAULT_COURSE_CATEGORIES,
 } from "./authApi";
+import { isLevelMatch } from "./UniversityForms/useFetchFormData";
 
 interface ModalSignUpProps {
   onSuccess: (studentId: any) => void;
@@ -51,7 +52,8 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
   const [countriesData, setCountriesData] = useState<any[]>([]);
   const [phonecode, setPhonecode] = useState<any[]>([]);
   const [levels, setLevels] = useState<any[]>([]);
-  const [courseCategories, setCourseCategories] = useState<any[]>([]);
+  const [allPrograms, setAllPrograms] = useState<Array<{ name: string; level: string }>>([]);
+  const [genericCategories, setGenericCategories] = useState<any[]>([]);
   const [phoneError, setPhoneError] = useState("");
   const [phoneValid, setPhoneValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,139 +78,41 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
     source_path: "",
   });
 
-  const [uniAllPrograms, setUniAllPrograms] = useState<any[]>([]);
-
   // Extract selected course level & name/category
   const extractLevel = (cd: any): string => {
     if (!cd) return "";
-    return String(cd.level || cd.qualification || cd.study_level || cd.level_name || cd.degree || "").trim();
+    return String(
+      cd.level ||
+      cd.qualification ||
+      cd.study_level ||
+      cd.level_name ||
+      cd.degree ||
+      cd.highest_qualification ||
+      cd.qualification_level ||
+      ""
+    ).trim();
   };
 
   const extractCourseCategory = (cd: any): string => {
     if (!cd) return "";
     return String(
       cd.course_name ||
-      cd.program_name ||
       cd.name ||
+      cd.program_name ||
       cd.title ||
       cd.course_category ||
       cd.category_name ||
       cd.category?.name ||
       cd.category ||
+      cd.interested_course_category ||
       ""
     ).trim();
   };
 
-  const normalizeLevelStr = (lvl: string): string => {
-    return String(lvl || '')
-      .toLowerCase()
-      .replace(/['’]/g, '')
-      .replace(/[^a-z0-9]/g, '');
-  };
-
-  const matchLevelToAvailable = (target: string, availableList: any[]): string => {
-    if (!target || !availableList || availableList.length === 0) return target || "";
-    const targetNorm = normalizeLevelStr(target);
-
-    // 1. Exact match
-    const exact = availableList.find((l: any) => {
-      const val = typeof l === 'string' ? l : (l.level || l.name || '');
-      return val === target;
-    });
-    if (exact) return typeof exact === 'string' ? exact : (exact.level || exact.name || '');
-
-    // 2. Normalized string match
-    const normMatch = availableList.find((l: any) => {
-      const val = typeof l === 'string' ? l : (l.level || l.name || '');
-      return normalizeLevelStr(val) === targetNorm;
-    });
-    if (normMatch) return typeof normMatch === 'string' ? normMatch : (normMatch.level || normMatch.name || '');
-
-    // 3. Substring & semantic mapping
-    if (targetNorm.includes('under') || targetNorm.includes('bachelor') || targetNorm.includes('ug') || targetNorm.includes('degree')) {
-      const ug = availableList.find((l: any) => {
-        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
-        return n.includes('under') || n.includes('bachelor') || n.includes('ug') || n.includes('degree');
-      });
-      if (ug) return typeof ug === 'string' ? ug : (ug.level || ug.name || '');
-    }
-
-    if (targetNorm.includes('post') || targetNorm.includes('master') || targetNorm.includes('pg')) {
-      const pg = availableList.find((l: any) => {
-        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
-        return n.includes('post') || n.includes('master') || n.includes('pg');
-      });
-      if (pg) return typeof pg === 'string' ? pg : (pg.level || pg.name || '');
-    }
-
-    if (targetNorm.includes('phd') || targetNorm.includes('doctor')) {
-      const doc = availableList.find((l: any) => {
-        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
-        return n.includes('phd') || n.includes('doctor');
-      });
-      if (doc) return typeof doc === 'string' ? doc : (doc.level || doc.name || '');
-    }
-
-    if (targetNorm.includes('diploma')) {
-      const dip = availableList.find((l: any) => {
-        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
-        return n.includes('diploma');
-      });
-      if (dip) return typeof dip === 'string' ? dip : (dip.level || dip.name || '');
-    }
-
-    if (targetNorm.includes('pre') || targetNorm.includes('foundation')) {
-      const pre = availableList.find((l: any) => {
-        const n = normalizeLevelStr(typeof l === 'string' ? l : (l.level || l.name || ''));
-        return n.includes('pre') || n.includes('foundation');
-      });
-      if (pre) return typeof pre === 'string' ? pre : (pre.level || pre.name || '');
-    }
-
-    // Default to first available or target
-    const first = availableList[0];
-    return typeof first === 'string' ? first : (first?.level || first?.name || target);
-  };
-
-  const filterProgramsByLevel = (progs: any[], selectedLevel: string, targetCourse?: string) => {
-    if (!progs || progs.length === 0) return [];
-    
-    let filtered = progs;
-    if (selectedLevel) {
-      const normSel = normalizeLevelStr(selectedLevel);
-      const levelMatches = progs.filter(p => {
-        const normP = normalizeLevelStr(p.level || '');
-        return normP === normSel || normP.includes(normSel) || normSel.includes(normP);
-      });
-      if (levelMatches.length > 0) {
-        filtered = levelMatches;
-      }
-    }
-
-    const uniqueMap = new Map<string, any>();
-    filtered.forEach(p => {
-      const name = String(p.name || p.course_name || p.title || '').trim();
-      if (name && !uniqueMap.has(name.toLowerCase())) {
-        uniqueMap.set(name.toLowerCase(), { name });
-      }
-    });
-
-    let result = Array.from(uniqueMap.values());
-    if (targetCourse && !uniqueMap.has(targetCourse.toLowerCase())) {
-      result = [{ name: targetCourse }, ...result];
-    }
-    return result;
-  };
-
   useEffect(() => {
-    const isUniContext = Boolean(
-      courseData?.university ||
-      courseData?.allUniversityCourses ||
-      courseData?.level ||
-      courseData?.course_name ||
-      courseData?.program_name ||
-      courseId
-    );
+    const rawTargetLevel = extractLevel(courseData);
+    const targetCourse = extractCourseCategory(courseData);
+    const hasCourseContext = Boolean(rawTargetLevel || targetCourse || courseId);
 
     const fetchData = async () => {
       try {
@@ -223,8 +127,79 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
         setPhonecode(pcData);
         setCountriesData(cData);
 
-        // Only fetch global dropdowns if there is NO university or course context
-        if (!isUniContext) {
+        let resolvedAllProgs: Array<{ name: string; level: string }> = [];
+        let resolvedLevels: any[] = [];
+
+        // 1. If allUniversityCourses is passed in courseData, use it directly
+        if (Array.isArray(courseData?.allUniversityCourses) && courseData.allUniversityCourses.length > 0) {
+          resolvedAllProgs = courseData.allUniversityCourses
+            .map((p: any) => ({
+              name: String(p.name || p.course_name || p.title || "").trim(),
+              level: String(p.level || p.study_level || p.qualification || "").trim(),
+            }))
+            .filter((p: any) => p.name);
+
+          const uniqueLvls = Array.from(new Set(resolvedAllProgs.map((p) => p.level).filter(Boolean))).map((l) => ({ level: l }));
+          if (uniqueLvls.length > 0) resolvedLevels = uniqueLvls;
+        }
+
+        // 2. Fetch full university programs if university slug exists
+        const uniSlug =
+          courseData?.university?.uname ||
+          courseData?.university?.slug ||
+          courseData?.universitySlug ||
+          (typeof courseData?.university?.name === "string" && courseData.university.name.trim()
+            ? courseData.university.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+            : typeof courseData?.university === "string" && courseData.university.trim()
+            ? courseData.university.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+            : "");
+
+        if (uniSlug) {
+          try {
+            const uniRes = await fetch(`/api/university/${uniSlug}/courses`);
+            const data = await uniRes.json();
+            if (data && !data.error) {
+              if (Array.isArray(data.levels) && data.levels.length > 0) {
+                resolvedLevels = data.levels;
+              }
+              if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
+                resolvedAllProgs = data.all_programs
+                  .map((p: any) => ({
+                    name: String(p.name || p.course_name || "").trim(),
+                    level: String(p.level || "").trim(),
+                  }))
+                  .filter((p: any) => p.name);
+              } else if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
+                resolvedAllProgs = data.programs.data
+                  .map((p: any) => ({
+                    name: String(p.course_name || p.name || p.title || "").trim(),
+                    level: String(p.level || "").trim(),
+                  }))
+                  .filter((p: any) => p.name);
+              }
+            }
+          } catch {}
+        }
+
+        if (hasCourseContext) {
+          if (resolvedAllProgs.length === 0 && targetCourse) {
+            resolvedAllProgs = [{ name: targetCourse, level: rawTargetLevel }];
+          }
+
+          if (resolvedLevels.length === 0 && rawTargetLevel) {
+            resolvedLevels = [{ level: rawTargetLevel }];
+          }
+
+          setLevels(resolvedLevels);
+          setAllPrograms(resolvedAllProgs);
+
+          setFormData((prev) => ({
+            ...prev,
+            highest_qualification: rawTargetLevel || (resolvedLevels[0]?.level || prev.highest_qualification),
+            interested_course_category: targetCourse || prev.interested_course_category,
+          }));
+        } else {
+          // Generic modal without course context: fetch global dropdowns
           const [lRes, catRes] = await Promise.allSettled([
             apiGetWithFallback("/levels"),
             apiGetWithFallback("/course-categories"),
@@ -232,12 +207,13 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
           const lData = lRes.status === "fulfilled" ? parseApiList(lRes.value.data) : [];
           const catData = catRes.status === "fulfilled" ? parseApiList(catRes.value.data) : [];
           setLevels(lData.length > 0 ? lData : DEFAULT_LEVELS);
-          setCourseCategories(catData.length > 0 ? catData : DEFAULT_COURSE_CATEGORIES);
+          setGenericCategories(catData.length > 0 ? catData : DEFAULT_COURSE_CATEGORIES);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
+
     fetchData();
     generateCaptcha();
     if (typeof window !== "undefined") {
@@ -245,122 +221,31 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
     }
   }, [courseData, courseId]);
 
-  // Pre-select course & filter levels/courses dynamically when courseData is available
-  useEffect(() => {
-    if (!courseData) return;
-
-    const rawTargetLevel = extractLevel(courseData);
-    const targetCourse = extractCourseCategory(courseData);
-
-    // 1. Initial immediate populate from courseData if available
-    if (Array.isArray(courseData.allUniversityCourses) && courseData.allUniversityCourses.length > 0) {
-      const uniCourses = courseData.allUniversityCourses;
-      
-      const extractedLevels = Array.from(
-        new Set(
-          uniCourses
-            .map((c: any) => String(c.level || c.study_level || c.qualification || '').trim())
-            .filter(Boolean)
-        )
-      ).map(lvl => ({ level: lvl }));
-
-      const allProgs = uniCourses.map((c: any) => ({
-        id: c.id,
-        name: String(c.course_name || c.name || c.title || c.category?.name || c.category || '').trim(),
-        level: String(c.level || c.study_level || c.qualification || '').trim(),
-      })).filter((p: any) => p.name);
-
-      setUniAllPrograms(allProgs);
-
-      const matchedImmediateLevel = matchLevelToAvailable(rawTargetLevel, extractedLevels);
-      setLevels(extractedLevels);
-
-      setFormData((prev) => ({
-        ...prev,
-        highest_qualification: matchedImmediateLevel || prev.highest_qualification,
-        interested_course_category: "",
-      }));
-
-      const filtered = filterProgramsByLevel(allProgs, matchedImmediateLevel, targetCourse);
-      if (filtered.length > 0) {
-        setCourseCategories(filtered);
+  // Dynamically filter available course categories by highest_qualification
+  const availableCourses = useMemo(() => {
+    if (allPrograms.length > 0) {
+      if (formData.highest_qualification) {
+        const matching = allPrograms.filter((p) => isLevelMatch(p.level, formData.highest_qualification));
+        if (matching.length > 0) {
+          const seen = new Set<string>();
+          return matching.filter((p) => {
+            const k = p.name.toLowerCase();
+            if (seen.has(k)) return false;
+            seen.add(k);
+            return true;
+          });
+        }
       }
-    } else {
-      if (rawTargetLevel) {
-        setLevels([{ level: rawTargetLevel }]);
-        setFormData((prev) => ({
-          ...prev,
-          highest_qualification: rawTargetLevel,
-          interested_course_category: "",
-        }));
-      }
-      if (targetCourse) {
-        setCourseCategories([{ name: targetCourse }]);
-      }
+      const seen = new Set<string>();
+      return allPrograms.filter((p) => {
+        const k = p.name.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
     }
-
-    // 2. Fetch full university courses, levels and programs from backend API
-    const uniSlug =
-      courseData.university?.uname ||
-      courseData.university?.slug ||
-      courseData.universitySlug ||
-      (typeof courseData.university?.name === 'string' && courseData.university.name.trim()
-        ? courseData.university.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-        : typeof courseData.university === 'string' && courseData.university.trim()
-        ? courseData.university.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-        : courseData.university?.id
-        ? String(courseData.university.id)
-        : courseData.university_id
-        ? String(courseData.university_id)
-        : courseData.u_id
-        ? String(courseData.u_id)
-        : '');
-
-    if (uniSlug) {
-      fetch(`/api/university/${uniSlug}/courses`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data && !data.error) {
-            // Update levels with university levels ONLY
-            if (Array.isArray(data.levels) && data.levels.length > 0) {
-              const uniLevels = data.levels;
-              const matchedLevel = matchLevelToAvailable(rawTargetLevel, uniLevels);
-
-              setLevels(uniLevels);
-              setFormData((prev) => ({
-                ...prev,
-                highest_qualification: matchedLevel || prev.highest_qualification,
-                interested_course_category: "",
-              }));
-
-              // Gather all university programs
-              let fullProgs: any[] = [];
-              if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
-                fullProgs = data.all_programs;
-              } else if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
-                fullProgs = data.programs.data.map((p: any) => ({
-                  id: p.id,
-                  name: p.course_name || p.name || p.title,
-                  level: p.level,
-                })).filter((p: any) => p.name);
-              } else if (Array.isArray(data.categories) && data.categories.length > 0) {
-                fullProgs = data.categories.map((c: any) => ({
-                  name: c.name || c.title || c,
-                  level: '',
-                })).filter((p: any) => p.name);
-              }
-
-              if (fullProgs.length > 0) {
-                setUniAllPrograms(fullProgs);
-                const filtered = filterProgramsByLevel(fullProgs, matchedLevel, targetCourse);
-                setCourseCategories(filtered);
-              }
-            }
-          }
-        })
-        .catch(() => {});
-    }
-  }, [courseData, courseId]);
+    return genericCategories;
+  }, [allPrograms, formData.highest_qualification, genericCategories]);
 
   const generateCaptcha = () => {
     const operators = ["+", "-", "×"];
@@ -372,21 +257,14 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
-    if (name === "highest_qualification" && uniAllPrograms.length > 0) {
-      const filtered = filterProgramsByLevel(uniAllPrograms, value);
-      if (filtered.length > 0) {
-        setCourseCategories(filtered);
-        setFormData(prev => ({
-          ...prev,
-          highest_qualification: value,
-          interested_course_category: "",
-        }));
-      } else {
-        setFormData(prev => ({ ...prev, [name]: value, interested_course_category: "" }));
-      }
+    if (name === "highest_qualification") {
+      setFormData((prev) => ({
+        ...prev,
+        highest_qualification: value,
+        interested_course_category: "", // Reset course so user selects a matching course for the new qualification level
+      }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
 
     if (name === "password") {
@@ -846,7 +724,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
             value={formData.interested_course_category}
             onChange={handleChange}
             onBlur={handleBlur}
-            options={Array.from(new Set(courseCategories.map((cat) => cat.name || cat.title || String(cat)).filter(Boolean)))}
+            options={Array.from(new Set(availableCourses.map((cat) => cat.name || cat.title || String(cat)).filter(Boolean)))}
             required
             error={errors.interested_course_category}
             compact

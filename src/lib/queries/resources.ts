@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { cachedByContent } from './contentVersion'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
 
@@ -49,7 +50,9 @@ async function firstSuccessfulListQuery<T = any>(queries: Array<{ sql: string; p
   return []
 }
 
-export const getExamBySlug = unstable_cache(
+export const getExamBySlug = cachedByContent(
+  'exam',
+  ['exam-detail'],
   async (slug: string) => {
     const exam = await firstSuccessfulQuery<any>([
       { sql: 'SELECT * FROM exams WHERE uri = ? AND website = ? LIMIT 1', params: [slug, SITE_VAR] },
@@ -95,11 +98,12 @@ export const getExamBySlug = unstable_cache(
 
     return serializeBigInt(normalizeExam({ ...exam, exam_page_contents: contents, faqs }))
   },
-  ['exam-detail'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getAllExams = unstable_cache(
+export const getAllExams = cachedByContent(
+  'exam',
+  ['all-exams'],
   async () => {
     const exams = await firstSuccessfulListQuery<any>([
       { sql: 'SELECT * FROM exams WHERE status = 1 AND website = ? ORDER BY position ASC, id ASC', params: [SITE_VAR] },
@@ -114,11 +118,12 @@ export const getAllExams = unstable_cache(
 
     return serializeBigInt(exams.map(normalizeExam))
   },
-  ['all-exams'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getServiceBySlug = unstable_cache(
+export const getServiceBySlug = cachedByContent(
+  'service',
+  ['service-detail'],
   async (slug: string) => {
     const serviceRows = await firstSuccessfulListQuery<any>([
       { sql: 'SELECT * FROM site_pages WHERE uri = ? AND website = ? AND status = 1 LIMIT 1', params: [slug, SITE_VAR] },
@@ -153,11 +158,12 @@ export const getServiceBySlug = unstable_cache(
       })),
     })
   },
-  ['service-detail'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getAllServices = unstable_cache(
+export const getAllServices = cachedByContent(
+  'service',
+  ['all-services'],
   async () => {
     const rows = await firstSuccessfulListQuery<any>([
       { sql: 'SELECT * FROM site_pages WHERE website = ? AND status = 1 ORDER BY position ASC, id ASC', params: [SITE_VAR] },
@@ -181,11 +187,12 @@ export const getAllServices = unstable_cache(
       })),
     )
   },
-  ['all-services'],
-  { revalidate: 86400 },
+  { revalidate: 86400 }
 )
 
-export const getTeamEducationMalaysiaContent = unstable_cache(
+export const getTeamEducationMalaysiaContent = cachedByContent(
+  'service',
+  ['team-education-malaysia-content-v2'],
   async () => {
     const row = await firstSuccessfulQuery<any>([
       {
@@ -246,6 +253,5 @@ export const getTeamEducationMalaysiaContent = unstable_cache(
       },
     )
   },
-  ['team-education-malaysia-content-v2'],
-  { revalidate: 43200 },
+  { revalidate: 43200 }
 )
