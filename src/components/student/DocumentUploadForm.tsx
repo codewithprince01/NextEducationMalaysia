@@ -152,6 +152,7 @@ export const OFFICIAL_REQUIRED_DOCUMENTS: RequiredDocConfig[] = [
 
 export default function DocumentUploadForm() {
   const [documents, setDocuments] = useState<any[]>([])
+  const [serverRequirements, setServerRequirements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   // Filter view: 'missing' | 'uploaded'
@@ -188,9 +189,18 @@ export default function DocumentUploadForm() {
       } else {
         setDocuments([])
       }
+
+      if (Array.isArray(json?.data?.student_requirements)) {
+        setServerRequirements(json.data.student_requirements)
+      } else if (Array.isArray(json?.student_requirements)) {
+        setServerRequirements(json.student_requirements)
+      } else {
+        setServerRequirements([])
+      }
     } catch (error) {
       console.error('Error fetching documents:', error)
       setDocuments([])
+      setServerRequirements([])
     } finally {
       setLoading(false)
     }
@@ -199,6 +209,38 @@ export default function DocumentUploadForm() {
   useEffect(() => {
     fetchDocuments()
   }, [])
+
+  // Combine standard official requirements & dynamic server requirements
+  const allRequiredDocuments = useMemo(() => {
+    const list: RequiredDocConfig[] = [...OFFICIAL_REQUIRED_DOCUMENTS]
+
+    if (Array.isArray(serverRequirements)) {
+      serverRequirements.forEach((sr) => {
+        const titleClean = String(sr.title || '').trim()
+        if (!titleClean) return
+
+        const isStandard = list.some((std) => std.match(titleClean) || std.title.toLowerCase() === titleClean.toLowerCase())
+        if (!isStandard) {
+          const key = `custom_${titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
+          list.push({
+            key,
+            dbName: titleClean,
+            title: titleClean,
+            description: `Required credential or profile verification: ${titleClean}`,
+            category: sr.tag || 'Admission Requirement',
+            priority: (sr.tag as any) || 'Required',
+            match: (name: string) => {
+              const lower = name.toLowerCase().trim()
+              const reqLower = titleClean.toLowerCase()
+              return lower === reqLower || lower.includes(reqLower) || reqLower.includes(lower)
+            },
+          })
+        }
+      })
+    }
+
+    return list
+  }, [serverRequirements])
 
   // Helper to find if a required document is uploaded in student_documents
   const findMatchingUploadedDoc = (req: RequiredDocConfig) => {
@@ -210,15 +252,15 @@ export default function DocumentUploadForm() {
 
   // Missing documents list: ONLY those that are NOT uploaded
   const missingDocuments = useMemo(() => {
-    return OFFICIAL_REQUIRED_DOCUMENTS.filter(req => {
+    return allRequiredDocuments.filter(req => {
       const match = findMatchingUploadedDoc(req)
       return !match
     })
-  }, [documents])
+  }, [documents, allRequiredDocuments])
 
   // Completed / Uploaded required documents mapping
   const completedRequiredDocuments = useMemo(() => {
-    return OFFICIAL_REQUIRED_DOCUMENTS.filter(req => {
+    return allRequiredDocuments.filter(req => {
       const match = findMatchingUploadedDoc(req)
       return Boolean(match)
     }).map(req => {
@@ -228,10 +270,10 @@ export default function DocumentUploadForm() {
         uploadedItem,
       }
     })
-  }, [documents])
+  }, [documents, allRequiredDocuments])
 
   // Calculate progress
-  const totalRequired = OFFICIAL_REQUIRED_DOCUMENTS.length
+  const totalRequired = allRequiredDocuments.length
   const completedCount = completedRequiredDocuments.length
   const progressPercent = Math.round((completedCount / totalRequired) * 100)
 
