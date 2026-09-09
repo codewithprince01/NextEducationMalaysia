@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   FaCheckCircle,
   FaBolt,
@@ -12,6 +12,8 @@ import {
 import { KeyRound, Mail, Clock, RefreshCw, ArrowLeft, ShieldCheck } from 'lucide-react'
 import { ModernInput } from '@/components/auth/AuthFormInputs'
 import { toast } from 'react-toastify'
+import { useAuth } from '@/context/AuthContext'
+import { DEFAULT_AUTHENTICATED_ROUTE, sanitizeRedirect } from '@/lib/auth/session'
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -26,6 +28,9 @@ export default function ConfirmedEmailClient() {
   const [studentName, setStudentName] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { login } = useAuth()
+  const redirectTo = sanitizeRedirect(searchParams.get('next')) || DEFAULT_AUTHENTICATED_ROUTE
 
   useEffect(() => {
     const studentId = typeof window !== 'undefined' ? localStorage.getItem('student_id') : null
@@ -87,17 +92,19 @@ export default function ConfirmedEmailClient() {
         ''
 
       if (response.ok && resData?.data?.token) {
-        localStorage.setItem('token', resData.data.token)
-        if (resData?.data?.id) localStorage.setItem('student_id', String(resData.data.id))
-        if (resData?.data?.email) localStorage.setItem('student_email', resData.data.email)
-        if (responseName) localStorage.setItem('student_name', String(responseName).trim())
+        login(
+          resData.data.token,
+          String(resData?.data?.id || localStorage.getItem('student_id') || ''),
+          resData?.data?.email || '',
+          responseName
+        )
         
         toast.success(resData.message || 'OTP Verified Successfully!')
         setMessage(resData.message || 'OTP Verified Successfully! Redirecting...')
         setErrorVisible(false)
 
         setTimeout(() => {
-          router.push('/student/profile')
+          router.replace(redirectTo)
           router.refresh()
         }, 1200)
       } else {

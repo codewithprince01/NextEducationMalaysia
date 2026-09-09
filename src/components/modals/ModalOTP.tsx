@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { KeyRound } from "lucide-react";
 import { apiPostWithFallback } from "./authApi";
+import { saveSession } from "@/lib/auth/session";
 import { toast } from "react-toastify";
 
 interface ModalOTPProps {
@@ -41,10 +42,12 @@ const ModalOTP: React.FC<ModalOTPProps> = ({ studentId, onSuccess }) => {
         "";
 
       if (responseData.token) {
-        localStorage.setItem("token", responseData.token);
-        if (responseData.id) localStorage.setItem("student_id", String(responseData.id));
-        if (responseData.email) localStorage.setItem("student_email", responseData.email);
-        if (responseName) localStorage.setItem("student_name", String(responseName).trim());
+        saveSession({
+          token: responseData.token,
+          id: responseData.id || localStorage.getItem("student_id") || "",
+          email: responseData.email,
+          name: responseName,
+        });
 
         toast.success(resData.message || "OTP Verified Successfully!");
 

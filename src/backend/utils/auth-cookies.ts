@@ -2,6 +2,13 @@ import type { NextResponse } from 'next/server';
 
 export const REFRESH_COOKIE_NAME = process.env.JWT_REFRESH_COOKIE_NAME || 'em_refresh_token';
 
+/**
+ * Client-readable companion to the httpOnly refresh cookie. Middleware and the
+ * browser both read it to decide *routing* only (guest pages vs dashboard);
+ * it never grants access on its own — every API route still verifies the JWT.
+ */
+export const SESSION_HINT_COOKIE_NAME = 'em_session';
+
 export function refreshCookieMaxAgeSeconds(): number {
   const days = Number.parseInt(String(process.env.JWT_REFRESH_COOKIE_DAYS || '30'), 10);
   const safeDays = Number.isFinite(days) ? Math.min(Math.max(days, 1), 60) : 30;
@@ -16,11 +23,27 @@ export function setRefreshCookie(response: NextResponse, token: string): void {
     path: '/',
     maxAge: refreshCookieMaxAgeSeconds(),
   });
+
+  response.cookies.set(SESSION_HINT_COOKIE_NAME, '1', {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: refreshCookieMaxAgeSeconds(),
+  });
 }
 
 export function clearRefreshCookie(response: NextResponse): void {
   response.cookies.set(REFRESH_COOKIE_NAME, '', {
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    expires: new Date(0),
+  });
+
+  response.cookies.set(SESSION_HINT_COOKIE_NAME, '', {
+    httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',

@@ -1,4 +1,6 @@
 import { Metadata } from 'next'
+import { Suspense } from 'react'
+import GuestOnly from '@/components/auth/GuestOnly'
 import LoginClient from './LoginClient'
 
 export const metadata: Metadata = {
@@ -7,5 +9,11 @@ export const metadata: Metadata = {
 }
 
 export default function LoginPage() {
-  return <LoginClient />
+  return (
+    <Suspense fallback={null}>
+      <GuestOnly>
+        <LoginClient />
+      </GuestOnly>
+    </Suspense>
+  )
 }

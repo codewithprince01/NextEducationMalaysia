@@ -37,7 +37,7 @@ export default function StudentSidebar({
   mobileOpen = false,
   onCloseMobile,
 }: StudentSidebarProps) {
-  const { logout, user } = useAuth();
+  const { logout, refreshSession, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [studentData, setStudentData] = useState<any>(null);
@@ -58,9 +58,12 @@ export default function StudentSidebar({
         if (res.ok && data?.data?.student) {
           setStudentData(data.data.student);
         } else if (res.status === 401) {
-          console.warn("Profile fetch unauthorized, clearing session.");
-          logout();
-          router.push("/login");
+          // Access token expired — try the refresh cookie before signing out.
+          const refreshed = await refreshSession();
+          if (!refreshed) {
+            // Not a deliberate sign-out, so RequireAuth keeps the return path.
+            await logout("expired");
+          }
         }
       } catch (err) {
         console.error("Profile fetch error:", err);
@@ -71,21 +74,8 @@ export default function StudentSidebar({
   }, []);
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      await fetch(`${API_BASE}/student/logout`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
-        },
-      });
-    } catch (error) {
-      console.error("Logout failed:", error);
-    } finally {
-      logout();
-      router.push("/login");
-    }
+    await logout();
+    router.replace("/login");
   };
 
   const [mounted, setMounted] = useState(false);

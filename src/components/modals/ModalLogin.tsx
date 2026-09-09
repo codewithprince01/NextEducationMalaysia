@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { FaEnvelope, FaLock, FaArrowRight } from 'react-icons/fa'
 import { ModernInput, PasswordInput } from '@/components/auth/AuthFormInputs'
 import { apiPostWithFallback } from './authApi'
+import { saveSession } from '@/lib/auth/session'
 import { toast } from 'react-toastify'
 
 interface ModalLoginProps {
@@ -88,10 +89,12 @@ const ModalLogin: React.FC<ModalLoginProps> = ({ onSuccess, onSwitchToSignUp }) 
         "";
 
       if (responseData.token) {
-        localStorage.setItem("token", responseData.token);
-        localStorage.setItem("student_id", String(responseData.id));
-        if (responseData.email) localStorage.setItem("student_email", String(responseData.email));
-        if (responseName) localStorage.setItem("student_name", String(responseName).trim());
+        saveSession({
+          token: responseData.token,
+          id: responseData.id,
+          email: responseData.email,
+          name: responseName,
+        });
         
         toast.success("Login successful!");
         onSuccess({ token: responseData.token, studentId: responseData.id });

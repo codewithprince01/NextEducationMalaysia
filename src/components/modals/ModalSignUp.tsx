@@ -12,6 +12,7 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 import { FiChevronDown } from "react-icons/fi";
+import { saveSession } from "@/lib/auth/session";
 import { LuRefreshCw } from "react-icons/lu";
 import { MdError, MdCheckCircle } from "react-icons/md";
 import { parsePhoneNumber, isValidPhoneNumber } from "libphonenumber-js";
@@ -551,7 +552,9 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
         localStorage.setItem("student_email", formData.email);
         if (formData.name) localStorage.setItem("student_name", String(formData.name).trim());
         const token = resData?.token || resData?.data?.token;
-        if (token) localStorage.setItem("token", token);
+        if (token) {
+          saveSession({ token, id: studentId, email: formData.email, name: formData.name });
+        }
 
         toast.success("Registration successful!");
 

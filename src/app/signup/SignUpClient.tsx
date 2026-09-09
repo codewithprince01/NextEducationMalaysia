@@ -21,6 +21,7 @@ import { LuRefreshCw } from "react-icons/lu";
 import { MdError, MdCheckCircle } from "react-icons/md";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useAuth } from "@/context/AuthContext";
+import { sanitizeRedirect } from "@/lib/auth/session";
 import {
   validateEmail,
   validatePassword,
@@ -403,7 +404,6 @@ export default function SignUpClient() {
         if (formData.name) localStorage.setItem("student_name", String(formData.name).trim());
         const token = resData?.token || resData?.data?.token;
         if (token) {
-          localStorage.setItem("token", token);
           login(token, String(studentId), formData.email, formData.name);
         }
 
@@ -415,7 +415,8 @@ export default function SignUpClient() {
         if (programId && redirect === "courses") {
           router.push(`/courses-in-malaysia?program_id=${programId}&redirect=courses`);
         } else {
-          router.push("/confirmed-email");
+          const next = sanitizeRedirect(searchParams.get("next"));
+          router.push(next ? `/confirmed-email?next=${encodeURIComponent(next)}` : "/confirmed-email");
         }
       } else {
         toast.error(resData?.message || "Registration failed. Please check your details.");

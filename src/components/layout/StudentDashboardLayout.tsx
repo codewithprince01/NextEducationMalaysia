@@ -1,12 +1,24 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import StudentSidebar from '../student/StudentSidebar'
+import RequireAuth from '../auth/RequireAuth'
+import AuthSplash from '../auth/AuthSplash'
 import { Menu, PanelLeftClose, PanelLeftOpen, Compass, ChevronRight, LayoutDashboard, ArrowUpRight } from 'lucide-react'
 
 export default function StudentDashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<AuthSplash label="Checking your session…" />}>
+      <RequireAuth>
+        <StudentDashboardShell>{children}</StudentDashboardShell>
+      </RequireAuth>
+    </Suspense>
+  );
+}
+
+function StudentDashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

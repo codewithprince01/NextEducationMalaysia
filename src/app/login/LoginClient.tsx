@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   FaEnvelope,
   FaLock,
@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fa'
 import { useAuth } from '@/context/AuthContext'
 import { ModernInput, PasswordInput } from '@/components/auth/AuthFormInputs'
+import { DEFAULT_AUTHENTICATED_ROUTE, sanitizeRedirect } from '@/lib/auth/session'
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -20,6 +21,9 @@ const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 export default function LoginClient() {
   const { login } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  // Set by the guards when an unauthenticated visitor was bounced off a protected page.
+  const redirectTo = sanitizeRedirect(searchParams.get('next')) || DEFAULT_AUTHENTICATED_ROUTE
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -106,7 +110,7 @@ export default function LoginClient() {
       if (response.ok && responseData.token) {
         if (responseName) localStorage.setItem('student_name', String(responseName).trim())
         login(responseData.token, String(responseData.id), responseData.email, responseName)
-        router.push('/student/profile')
+        router.replace(redirectTo)
       } else if (
         response.ok &&
         (responseData.needs_otp || responseData.otp_required || responseData.id)
@@ -114,7 +118,7 @@ export default function LoginClient() {
         if (responseData.id) localStorage.setItem('student_id', String(responseData.id))
         if (responseData.email) localStorage.setItem('student_email', String(responseData.email))
         if (responseName) localStorage.setItem('student_name', String(responseName).trim())
-        router.push('/confirmed-email')
+        router.push(`/confirmed-email?next=${encodeURIComponent(redirectTo)}`)
       } else {
         setErrors({ form: resData.message || 'Login failed. Please try again.' })
       }

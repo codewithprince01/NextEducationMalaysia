@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import ConfirmedEmailClient from './ConfirmedEmailClient'
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function ConfirmedEmailPage() {
-  return <ConfirmedEmailClient />
+  return (
+    <Suspense fallback={null}>
+      <ConfirmedEmailClient />
+    </Suspense>
+  )
 }

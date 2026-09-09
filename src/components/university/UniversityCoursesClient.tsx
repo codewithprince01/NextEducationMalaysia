@@ -12,6 +12,7 @@ import { BrochureForm } from '@/components/modals/UniversityForms/BrochureForm'
 import { FeeStructureForm } from '@/components/modals/UniversityForms/FeeStructureForm'
 import FormSuccessPopup from '@/components/common/FormSuccessPopup'
 import { toast } from 'react-toastify'
+import { clearSession } from '@/lib/auth/session'
 import axios from 'axios'
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
@@ -250,7 +251,7 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
         toast.warn("Already applied!");
         setAppliedPrograms(prev => (prev.includes(Number(courseId)) ? prev : [...prev, Number(courseId)]));
       } else if (err.response?.status === 401) {
-        localStorage.removeItem('token')
+        clearSession()
         setIsAuthModalOpen(true)
       } else {
         toast.error("Application failed. Try again.");

@@ -74,7 +74,7 @@ export default function NavbarClient() {
   const [mounted, setMounted] = useState(false)
   const [displayName, setDisplayName] = useState<string>('Profile')
   const [avatarImage, setAvatarImage] = useState<string | null>(null)
-  const { isAuthenticated: isLoggedIn, user } = useAuth()
+  const { isAuthenticated: isLoggedIn, isLoading: isAuthLoading, user } = useAuth()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const pathname = usePathname()
 
@@ -295,7 +295,7 @@ export default function NavbarClient() {
             ))}
 
             {/* CTA — User profile when logged in, or Get Started */}
-            {mounted && isLoggedIn ? (
+            {!mounted || isAuthLoading ? null : isLoggedIn ? (
               <div className="flex items-center gap-3">
                 {/* Vertical separator line matching screenshot */}
                 <div className="h-8 w-[1px] bg-slate-200 shrink-0" aria-hidden="true" />
@@ -402,7 +402,7 @@ export default function NavbarClient() {
             </Link>
           ))}
 
-          {mounted && isLoggedIn ? (
+          {!mounted || isAuthLoading ? null : isLoggedIn ? (
             <Link
               href="/student/profile"
               onClick={() => setMenuOpen(false)}

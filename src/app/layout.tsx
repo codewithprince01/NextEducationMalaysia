@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import Script from 'next/script'
 import dynamic from 'next/dynamic'
 import './globals.css'
@@ -48,6 +49,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const cookieStore = await cookies()
+  // The routing hint tells the server whether this browser probably has a
+  // session, so anonymous visitors get the real page server-rendered instead
+  // of a spinner while the client resolves the session.
+  const hasSessionHint = cookieStore.get('em_session')?.value === '1'
+
   const requestHeaders = await headers()
   const pathname =
     requestHeaders.get('x-pathname') ||
@@ -164,7 +171,7 @@ export default async function RootLayout({
             // This prevents ~2.3s of main-thread blocking during passive page loads.
           })();
         `}</Script>
-        <AuthProvider>
+        <AuthProvider initialHasSession={hasSessionHint}>
           <NavbarClient />
           {children}
           <FloatingActions />
