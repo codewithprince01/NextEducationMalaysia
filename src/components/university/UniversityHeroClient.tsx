@@ -4,11 +4,9 @@ import { useState, useEffect, useCallback, useMemo, type SyntheticEvent } from '
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
-  MapPin, Navigation, Star, Building, BedDouble,
-  Phone, Mail, Image as ImageIcon,
+  MapPin, Navigation, Star, Building, Image as ImageIcon,
   Check
 } from 'lucide-react'
-import { FaBuilding, FaBed, FaUsers, FaPhoneAlt, FaFax, FaEnvelope } from 'react-icons/fa'
 import UniversityInfoCards from './UniversityInfoCards'
 import UniversityActionButtons from './UniversityActionButtons'
 import UniversityRankings from './UniversityRankings'
@@ -22,9 +20,7 @@ import { CounsellingForm } from '@/components/modals/UniversityForms/Counselling
 import { ReviewForm } from '@/components/modals/UniversityForms/ReviewForm'
 import { storageUrl } from '@/lib/constants'
 
-const DEFAULT_PHONE_1 = '+60 1121376171'
-const DEFAULT_PHONE_2 = '+91 9818560331'
-const DEFAULT_EMAIL = 'info@educationmalaysia.in'
+
 
 function imgUrl(path: string | null | undefined) {
   return storageUrl(path)
@@ -122,17 +118,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const logoSrc = imgUrl(university.logo_path)
   const typeLabel = university.inst_type || university.institute_type?.type || 'University'
   const stars = Math.round(Number(university.rating) || 4)
-  const accreditedBy = parseListValue(university.accredited_by)
-  const hostelFacility = parseListValue(university.hostel_facility)
-  const phone1 = university.contact_number1 || DEFAULT_PHONE_1
-  const phone2 = university.contact_number2 || DEFAULT_PHONE_2
-  const email = university.email || DEFAULT_EMAIL
   const approvedBy = university.approved_by || 'MQA'
-  const localStudents = toInt(university.local_students)
-  const internationalStudents = toInt(university.international_students)
-  const totalStudents = Math.max(localStudents + internationalStudents, 1)
-  const localWidth = `${Math.round((localStudents / totalStudents) * 100)}%`
-  const internationalWidth = `${Math.round((internationalStudents / totalStudents) * 100)}%`
 
   const [fetchedCategories, setFetchedCategories] = useState<Array<{ id: number; name: string }>>([])
 
@@ -300,112 +286,41 @@ export default function UniversityHeroClient({ university, photos }: { universit
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-20 pb-8">
+          {/* Left Column: Info Cards, Course Categories & Study Options */}
           <div className="col-span-2 space-y-4">
             <UniversityInfoCards universityData={university} cols={4} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 -mt-2">
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaBuilding className="text-blue-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Accredited By</h3>
-                </div>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {accreditedBy.length > 0 ? (
-                    accreditedBy.map((a: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
-                        <span>{a}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
-                      <span>{approvedBy}</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaBed className="text-green-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Hostel Facility</h3>
-                </div>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {hostelFacility.length > 0 ? (
-                    hostelFacility.map((f: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-green-600 mt-0.5">•</span>
-                        <span>{f}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 mt-0.5">•</span>
-                      <span>Available</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaUsers className="text-purple-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Total Students</h3>
-                </div>
-                <div className="space-y-4">
-                   <div>
-                     <div className="flex justify-between items-center mb-2">
-                       <span>Local Students</span>
-                       <span className="text-sm font-bold text-purple-700">{localStudents}</span>
-                     </div>
-                     <div className="w-full bg-gray-200 rounded-full h-2">
-                       <div className="bg-purple-600 h-2 rounded-full transition-all duration-1000" style={{ width: localStudents > 0 ? localWidth : '0%' }} />
-                     </div>
-                   </div>
-                   <div>
-                     <div className="flex justify-between items-center mb-2">
-                       <span>International Students</span>
-                       <span className="text-sm font-bold text-blue-700">{internationalStudents}</span>
-                     </div>
-                     <div className="w-full bg-gray-200 rounded-full h-2">
-                       <div className="bg-blue-600 h-2 rounded-full transition-all duration-1000" style={{ width: internationalStudents > 0 ? internationalWidth : '0%' }} />
-                     </div>
-                   </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaPhoneAlt className="text-orange-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Contact Info</h3>
-                </div>
-                <div className="space-y-4 text-sm text-gray-700">
-                   <div className="flex items-center gap-3 group">
-                     <FaPhoneAlt className="text-orange-500" />
-                     <span>{phone1}</span>
-                   </div>
-                   <div className="flex items-center gap-3 group">
-                     <FaFax className="text-gray-500" />
-                     <span>{phone2}</span>
-                   </div>
-                   <div className="flex items-center gap-3 group">
-                     <FaEnvelope className="text-blue-500" />
-                     <span>{email}</span>
-                   </div>
-                </div>
+            {/* Study Options */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <h3 className="text-base font-bold text-gray-900 mb-3">Study Options</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {STUDY_OPTIONS.map(opt => (
+                  <div key={opt.label} className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl border ${opt.bg} ${opt.border}`}>
+                    <Check size={16} className={opt.icon} />
+                    <span className={`text-xs font-bold ${opt.text}`}>{opt.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Course Categories */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-3">
-              <h3 className="text-base font-bold text-gray-900 mb-4">Course Categories:</h3>
-              <div className="flex flex-wrap gap-2.5">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-base font-bold text-gray-900">Course Categories</h3>
+                <Link
+                  href={`/university/${university.uname}/courses`}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  View All Courses →
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {categoriesList.length > 0 ? (
                   categoriesList.map((cat: any) => (
                     <Link
                       key={cat.id || cat.name}
                       href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
-                      className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-medium transition cursor-pointer"
+                      className="inline-flex items-center bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 border border-blue-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                     >
                       {cat.name}
                     </Link>
@@ -415,8 +330,9 @@ export default function UniversityHeroClient({ university, photos }: { universit
                 )}
               </div>
             </div>
-
           </div>
+
+          {/* Right Column: Actions & Rankings */}
           <div className="col-span-1 space-y-4">
              <UniversityActionButtons
                variant="desktop"
@@ -426,52 +342,49 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onReview={() => openPopup('review')}
              />
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
-
-             {/* Study Options on Right Column */}
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-               <h3 className="text-base font-semibold text-gray-900 mb-3">Study Options</h3>
-               <div className="grid grid-cols-3 gap-2">
-                 {STUDY_OPTIONS.map(opt => (
-                   <div key={opt.label} className={`flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
-                     <Check size={14} className={opt.icon} />
-                     <span className={`text-xs font-semibold whitespace-nowrap ${opt.text}`}>{opt.label}</span>
-                   </div>
-                 ))}
-               </div>
-             </div>
           </div>
         </div>
       </div>
 
       {/* ── MOBILE HERO ── */}
-      <div className="sm:hidden bg-gray-50 pb-8">
-        <div className="bg-white p-3">
-          <div className="flex items-center gap-4 mb-5">
-            <div className="w-20 h-20 shrink-0 bg-white border border-gray-100 rounded-2xl p-1.5 flex items-center justify-center shadow-sm">
+      <div className="sm:hidden px-3 pt-3 pb-6">
+        <div className="space-y-3">
+          {/* Logo + Name */}
+          <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+            <div className="w-14 h-14 shrink-0 border border-gray-100 rounded-xl overflow-hidden flex items-center justify-center bg-white p-1">
               <img
                 src={logoSrc || '/placeholder-logo.png'}
                 alt="Logo"
-                className="max-w-full max-h-full object-contain"
+                className="w-full h-full object-contain"
                 fetchPriority="high"
                 onError={(e) => setFallbackImage(e, '/placeholder-logo.png')}
               />
             </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-gray-900 leading-tight mb-1">{university.name}</h1>
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <MapPin className="text-blue-500 w-3.5 h-3.5 shrink-0" />
-                <span className="text-gray-600 text-sm font-medium truncate">{university.city}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="font-bold text-[10px] uppercase tracking-wider text-gray-500">SETARA:</span>
-              <div className="flex gap-1 ml-1 items-center bg-yellow-50 px-1.5 py-0.5 rounded-md border border-yellow-100">
-                  {[...Array(5)].map((_, i) => <Star key={i} className={`w-3 h-3 ${i < stars ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />)}
-                </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-bold text-gray-900 leading-tight line-clamp-2">{university.name}</h1>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                  <MapPin size={11} className="text-blue-600" />
+                  {university.city || 'Malaysia'}
+                </span>
+                <span className="text-[11px] bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded-full border border-blue-100">
+                  {typeLabel}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="relative mb-6 rounded-2xl overflow-hidden shadow-lg border border-gray-100 aspect-16/10 bg-gray-200">
+          {/* Quick Actions Grid (2x2) */}
+          <UniversityActionButtons
+            variant="mobile"
+            onBrochure={() => openPopup('brochure')}
+            onFeeStructure={() => openPopup('fee')}
+            onCounselling={() => openPopup('counselling')}
+            onReview={() => openPopup('review')}
+          />
+
+          {/* Banner Photo */}
+          <div className="relative rounded-xl overflow-hidden shadow-sm aspect-16/9 bg-gray-100">
              <img
                src={bannerSrc || '/placeholder-university.jpg'}
                alt="Banner"
@@ -488,48 +401,6 @@ export default function UniversityHeroClient({ university, photos }: { universit
 
           <div className="space-y-3">
              <UniversityInfoCards universityData={university} cols={2} />
-             
-             {/* Mobile Info Cards (Accredited, Hostel, Contact) */}
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Building className="text-blue-600" size={16} />
-                  <h3 className="text-sm font-semibold text-gray-900">Accredited By</h3>
-                </div>
-                <ul className="space-y-1 text-xs text-gray-700">
-                  {accreditedBy.length > 0 ? (
-                    accreditedBy.slice(0, 3).map((a: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
-                        <span>{a}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
-                      <span>{approvedBy}</span>
-                    </li>
-                  )}
-                </ul>
-             </div>
-
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <BedDouble className="text-green-600" size={16} />
-                  <h3 className="text-sm font-semibold text-gray-900">Hostel Facility</h3>
-                </div>
-                <p className="text-xs text-gray-700">{hostelFacility[0] || 'Available'}</p>
-             </div>
-
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Phone className="text-orange-600" size={16} />
-                  <h3 className="text-sm font-semibold text-gray-900">Contact Info</h3>
-                </div>
-                <div className="space-y-1.5 text-xs text-gray-700">
-                   <div className="flex items-center gap-2"><Phone size={12} className="text-orange-500" /><span>{phone1}</span></div>
-                   <div className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /><span>{email}</span></div>
-                </div>
-             </div>
 
              {/* Mobile Course Categories */}
              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
