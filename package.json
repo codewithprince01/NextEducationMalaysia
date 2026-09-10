@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
+    "admin:dev": "npm --prefix admin-app run dev",
     "dev:legacy": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev --webpack",
     "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "next start",
@@ -32,6 +33,7 @@
     "react-toastify": "^11.0.5",
     "swiper": "^12.1.2",
     "tailwindcss": "^4.2.1",
+    "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {

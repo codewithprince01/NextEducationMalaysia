@@ -124,6 +124,9 @@ model CourseCategory {
   meta_description String?   @db.Text
   meta_keyword     String?   @db.Text
   og_image_path    String?
+  seo_rating       String?   @db.Text
+  best_rating      String?   @db.Text
+  review_number    String?   @db.Text
   status           Int?      @default(1)
   website          String?   @default("MYS")
   author_id        Int?
@@ -151,6 +154,9 @@ model CourseSpecialization {
   meta_description  String?   @db.Text
   meta_keyword      String?   @db.Text
   og_image_path     String?
+  seo_rating        String?   @db.Text
+  best_rating       String?   @db.Text
+  review_number     String?   @db.Text
   banner_path       String?
   status            Int?      @default(1)
   website           String?   @default("MYS")
@@ -908,5 +914,31 @@ model ApplicationRequirement {
 
   @@map("application_requirements")
 }
+
+model User {
+  id              Int       @id @default(autoincrement())
+  name            String?
+  email           String?   @unique
+  password        String?
+  role            String?
+  status          Int?      @default(1)
+  permissions     Json?
+  remember_token  String?
+  otp_expire_at   String?
+  login_count     Int?      @default(0)
+  last_login      DateTime?
+  profile_picture String?
+  working_status  Int?
+  department      String?
+  priority        Int?      @default(0)
+  created_at      DateTime? @default(now())
+  updated_at      DateTime? @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([role])
+  @@map("users")
+}
+
 
 
