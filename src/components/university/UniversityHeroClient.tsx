@@ -177,7 +177,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
       </div>
 
       {/* ── DESKTOP HERO ── */}
-      <div className="hidden sm:block max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-4 bg-white">
+      <div className="hidden sm:block max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] py-4 bg-white">
         {/* Logo + Info Row */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
           {/* Left: Logo + Title + Location & Action */}
@@ -343,7 +343,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
       </div>
 
       {/* ── MOBILE HERO ── */}
-      <div className="sm:hidden px-3 pt-3 pb-6">
+      <div className="sm:hidden px-4 pt-3 pb-6">
         <div className="space-y-3">
           {/* Logo + Name */}
           <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">

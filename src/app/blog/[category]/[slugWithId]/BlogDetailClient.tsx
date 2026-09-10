@@ -82,8 +82,8 @@ function formatBlogHTML(html?: string | null, sectionIndex: number | string | nu
 function BlogDetailSkeleton() {
   return (
     <div className="bg-gray-50 py-4 md:py-8 animate-pulse">
-      <div className="max-w-7xl mx-auto px-3 md:px-4 flex flex-col lg:flex-row gap-6 md:gap-8">
-        <div className="w-full lg:w-2/3 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
+      <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] flex flex-col lg:flex-row gap-6 md:gap-8">
+        <div className="w-full lg:w-3/4 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
           <div className="h-8 bg-gray-200 rounded w-3/4" />
           <div className="h-4 bg-gray-200 rounded w-1/3" />
           <div className="aspect-video w-full bg-gray-200 rounded-xl" />
@@ -93,7 +93,7 @@ function BlogDetailSkeleton() {
             <div className="h-4 bg-gray-200 rounded w-4/6" />
           </div>
         </div>
-        <div className="w-full lg:w-1/3 space-y-4">
+        <div className="w-full lg:w-1/4 space-y-4">
           <div className="bg-white rounded-xl shadow-md p-4 h-64" />
           <div className="bg-white rounded-xl shadow-md p-4 h-48" />
         </div>
@@ -257,10 +257,10 @@ export default function BlogDetailClient({
       `}</style>
 
       <div className="bg-gray-50 py-4 md:py-8">
-        <div className="max-w-7xl mx-auto px-3 md:px-4 flex flex-col lg:flex-row gap-6 md:gap-8">
+        <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] flex flex-col lg:flex-row gap-6 md:gap-8">
 
           {/* ── Main Article Column ── */}
-          <div className="w-full lg:w-2/3 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
+          <div className="w-full lg:w-3/4 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
               {blog.headline}
             </h1>
@@ -418,7 +418,7 @@ export default function BlogDetailClient({
           </div>
 
           {/* ── Sidebar ── */}
-          <aside className="w-full lg:w-1/3 space-y-4 md:space-y-6">
+          <aside className="w-full lg:w-1/4 space-y-4 md:space-y-6">
             {/* Categories */}
             {categories.length > 0 && (
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">

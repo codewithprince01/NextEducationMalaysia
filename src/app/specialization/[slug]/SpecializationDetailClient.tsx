@@ -395,7 +395,7 @@ export default function SpecializationDetailClient({
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50">
       <Breadcrumb items={breadcrumbItems} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pt-3 pb-5">
+      <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] pt-3 pb-5">
         {/* HERO BANNER CARD */}
         <div className="bg-white rounded-2xl shadow-md border border-slate-200/80 overflow-hidden mb-4">
           <div className="relative h-52 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900">
@@ -535,7 +535,7 @@ export default function SpecializationDetailClient({
             paddingTop: 0,
           }}
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+          <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)]">
             <ul className="links scrollTo vertically-scrollbar flex gap-0 m-0 p-0 list-none overflow-x-auto overflow-y-hidden">
               {tabs.map(({ name, icon }) => (
                 <li
@@ -562,9 +562,9 @@ export default function SpecializationDetailClient({
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 pb-8 sm:pb-12 pt-2">
+      <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] pb-8 sm:pb-12 pt-2">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
-          <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+          <div className="lg:col-span-9 space-y-4 sm:space-y-6">
             {tabs.length > 0 ? (
               tabs.map(({ name }) => (
                 <section key={name} id={sectionId(name)} className="scroll-mt-24">
@@ -711,7 +711,7 @@ export default function SpecializationDetailClient({
               )}
             </div>
 
-            <div className="lg:col-span-4 space-y-6 lg:space-y-8">
+            <div className="lg:col-span-3 space-y-6 lg:space-y-8">
               <div className="min-h-[400px]">
                 <TrendingCourses variant="sidebar" />
               </div>

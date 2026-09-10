@@ -141,7 +141,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             {/* Main Left Column */}
-            <div className="flex-1 w-full lg:w-[68%] space-y-4">
+            <div className="flex-1 w-full lg:w-[75%] space-y-4">
               {/* Back Button */}
               <div>
                 <button
@@ -315,7 +315,7 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
             </div>
 
             {/* Sidebar — 32% approx */}
-            <div className="w-full lg:w-[32%] space-y-4 sticky top-24">
+            <div className="w-full lg:w-[25%] space-y-4 sticky top-24">
               <SideInquiryForm />
               <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
               <UniversityCoursesCard />
