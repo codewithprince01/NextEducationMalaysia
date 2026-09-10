@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db-fresh';
 import { resolveDetailPageSeo, resolveSeoMeta } from './seo.service';
 import { serializeBigInt } from '@/lib/utils';
+import { hasColumn } from '@/lib/dbSchema';
 import { SITE_VAR } from '../utils/constants';
 
 /**
@@ -214,8 +215,19 @@ export class MalaysiaDiscoveryService {
       selectedIntakes.forEach((month) => baseArgs.push(`%${month}%`));
     }
 
+    // `universities.scholarship_available` is absent from some database dumps.
+    // Naming it unconditionally fails the whole query with MySQL 1054, so fall
+    // back to the scholarship count, which this query already derives anyway.
+    const hasScholarshipFlag = await hasColumn('universities', 'scholarship_available');
+    const scholarshipCountSubquery = '(SELECT COUNT(*) FROM university_scholarships us WHERE us.u_id = u.id)';
+    const scholarshipFlagSelect = hasScholarshipFlag
+      ? 'u.scholarship_available AS u_scholarship_available'
+      : '0 AS u_scholarship_available';
+
     if (scholarship_available === '1' || scholarship_available === 'true' || scholarship_available === true || (Array.isArray(scholarship_available) && scholarship_available.length > 0)) {
-      baseSqlWhere += ' AND (u.scholarship_available = 1 OR (SELECT COUNT(*) FROM university_scholarships us WHERE us.u_id = u.id) > 0)';
+      baseSqlWhere += hasScholarshipFlag
+        ? ` AND (u.scholarship_available = 1 OR ${scholarshipCountSubquery} > 0)`
+        : ` AND (${scholarshipCountSubquery} > 0)`;
     }
 
     const programsSql = `
@@ -226,7 +238,7 @@ export class MalaysiaDiscoveryService {
         u.id AS u_id, u.name AS u_name, u.uname AS u_uname,
         u.logo_path AS u_logo_path, u.banner_path AS u_banner_path,
         u.city AS u_city, u.state AS u_state, u.institute_type AS u_institute_type,
-        u.scholarship_available AS u_scholarship_available,
+        ${scholarshipFlagSelect},
         it.type AS u_inst_type_label,
         (SELECT COUNT(*) FROM university_programs p2 WHERE p2.university_id = u.id AND p2.status = 1) AS u_programs_count,
         (SELECT COUNT(*) FROM university_scholarships us WHERE us.u_id = u.id) AS u_scholarships_count,

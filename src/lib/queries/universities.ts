@@ -2,6 +2,7 @@ import { prisma } from '@/lib/db-fresh'
 import { unstable_cache } from 'next/cache'
 import { serializeBigInt } from '@/lib/utils'
 import { getContentVersion, cachedByContent } from './contentVersion'
+import { columnOr } from '@/lib/dbSchema'
 
 export const getFeaturedUniversities = cachedByContent(
   'university',
@@ -33,10 +34,19 @@ export async function getUniversitiesByType(typeSlug: string) {
       const base = typeSlug.replace(/-in-malaysia$/, '');
       const normalized = base.replace(/-universities$/, '-university').replace(/-institutions$/, '-institution');
 
+      // `scholarship_available` is missing from some database dumps; naming it
+      // unconditionally fails the query with MySQL 1054 and 500s the page.
+      const scholarshipFlagSelect = await columnOr(
+        'universities',
+        'scholarship_available',
+        'u.scholarship_available',
+        '0 AS scholarship_available',
+      )
+
       // Use raw SQL to avoid rating/qs_rank type mismatches
       const universities = await prisma.$queryRawUnsafe(`
         SELECT u.id, u.name, u.uname, u.logo_path, u.banner_path, u.city, u.state, u.qs_rank, u.rating,
-               u.shortnote, u.established_year, u.click, u.scholarship_available,
+               u.shortnote, u.established_year, u.click, ${scholarshipFlagSelect},
                (SELECT COUNT(*) FROM university_programs up WHERE up.university_id = u.id AND up.status = 1) as active_programs_count
         FROM universities u
         JOIN institute_types it ON u.institute_type = it.id
