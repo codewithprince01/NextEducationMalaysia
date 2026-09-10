@@ -43,18 +43,18 @@ export default function UniversityRankings({
   ]
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-3.5 w-full border border-gray-100">
-      <h3 className="text-sm font-bold text-gray-900 mb-2.5">
+    <div className="bg-white rounded-2xl shadow-sm p-3.5 sm:p-4 w-full border border-gray-100">
+      <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-2">
         Global Rankings
       </h3>
-      <div className="grid grid-flow-col auto-cols-fr gap-2">
+      <div className="grid grid-flow-col auto-cols-fr gap-2 sm:gap-2.5">
         {cards.map(({ label, value, from, to }) => (
           <div
             key={label}
-            className={`bg-gradient-to-r ${from} ${to} rounded-xl py-2 px-1.5 text-white shadow-xs text-center transition-all hover:shadow-md min-w-0`}
+            className={`bg-gradient-to-r ${from} ${to} rounded-xl py-2 px-2 text-white shadow-xs text-center transition-all hover:shadow-md min-w-0`}
           >
-            <p className="text-sm sm:text-base font-black tracking-tight leading-tight mb-0.5 truncate">{value}</p>
-            <p className="text-[10px] sm:text-[11px] font-medium text-white/90 truncate">{label}</p>
+            <p className="text-base font-black tracking-tight leading-tight mb-0.5 truncate">{value}</p>
+            <p className="text-[11px] font-medium text-white/90 truncate">{label}</p>
           </div>
         ))}
       </div>

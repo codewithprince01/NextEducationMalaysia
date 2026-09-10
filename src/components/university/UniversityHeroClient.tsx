@@ -63,11 +63,7 @@ function toInt(value: unknown): number {
 
 type Photo = { id?: number; photo_path: string; photo_name?: string | null; title?: string | null }
 
-const STUDY_OPTIONS = [
-  { label: 'Study Online', bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-700', icon: 'text-green-500' },
-  { label: 'Part Time', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', icon: 'text-blue-500' },
-  { label: 'Full Time', bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-700', icon: 'text-purple-500' },
-]
+
 
 export default function UniversityHeroClient({ university, photos }: { university: any; photos: Photo[] }) {
   const pathname = usePathname()
@@ -286,27 +282,17 @@ export default function UniversityHeroClient({ university, photos }: { universit
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-20 pb-8">
-          {/* Left Column: Info Cards, Course Categories & Study Options */}
+          {/* Left Column: Info Cards, Rankings & Course Categories */}
           <div className="col-span-2 space-y-4">
             <UniversityInfoCards universityData={university} cols={4} />
 
-            {/* Study Options */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Study Options</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {STUDY_OPTIONS.map(opt => (
-                  <div key={opt.label} className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl border ${opt.bg} ${opt.border}`}>
-                    <Check size={16} className={opt.icon} />
-                    <span className={`text-xs font-bold ${opt.text}`}>{opt.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Global Rankings */}
+            <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
 
             {/* Course Categories */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-base font-bold text-gray-900">Course Categories</h3>
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3.5 sm:p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900">Course Categories</h3>
                 <Link
                   href={`/university/${university.uname}/courses`}
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
@@ -320,7 +306,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
                     <Link
                       key={cat.id || cat.name}
                       href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
-                      className="inline-flex items-center bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 border border-blue-100 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                      className="inline-flex items-center bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                     >
                       {cat.name}
                     </Link>
@@ -332,8 +318,8 @@ export default function UniversityHeroClient({ university, photos }: { universit
             </div>
           </div>
 
-          {/* Right Column: Actions & Rankings */}
-          <div className="col-span-1 space-y-4">
+          {/* Right Column: Actions & Location Map */}
+          <div className="col-span-1 flex flex-col gap-4 h-full">
              <UniversityActionButtons
                variant="desktop"
                onBrochure={() => openPopup('brochure')}
@@ -341,7 +327,17 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onCounselling={() => openPopup('counselling')}
                onReview={() => openPopup('review')}
              />
-             <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
+
+             {/* Google Maps Card - Clean full-bleed map matching remaining height */}
+             <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex-1 min-h-0 bg-slate-100">
+               <iframe
+                 title={`Map of ${university.name}`}
+                 src={`https://maps.google.com/maps?q=${encodeURIComponent(`${university.name} ${university.city || ''} Malaysia`)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                 className="absolute inset-0 w-full h-full border-0"
+                 loading="lazy"
+                 referrerPolicy="no-referrer-when-downgrade"
+               />
+             </div>
           </div>
         </div>
       </div>
@@ -424,18 +420,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
 
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} compact={true} />
 
-             {/* Mobile Study Options */}
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-               <h3 className="text-xs font-semibold text-gray-900 mb-2">Study Options</h3>
-               <div className="grid grid-cols-3 gap-1.5">
-                 {STUDY_OPTIONS.map(opt => (
-                   <div key={opt.label} className={`flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md border ${opt.bg} ${opt.border}`}>
-                     <Check size={12} className={opt.icon} />
-                     <span className={`text-[11px] font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
-                   </div>
-                 ))}
-               </div>
-             </div>
+
 
              <UniversityActionButtons
                variant="mobile"
@@ -444,6 +429,17 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onCounselling={() => openPopup('counselling')}
                onReview={() => openPopup('review')}
              />
+
+             {/* Mobile Google Maps Card */}
+             <div className="relative rounded-xl overflow-hidden border border-gray-100 shadow-sm h-[160px] bg-slate-100">
+               <iframe
+                 title={`Map of ${university.name}`}
+                 src={`https://maps.google.com/maps?q=${encodeURIComponent(`${university.name} ${university.city || ''} Malaysia`)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                 className="w-full h-full border-0"
+                 loading="lazy"
+                 referrerPolicy="no-referrer-when-downgrade"
+               />
+             </div>
           </div>
         </div>
       </div>

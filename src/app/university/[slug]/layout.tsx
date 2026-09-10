@@ -36,16 +36,12 @@ export default async function UniversityLayout({ children, params }: Props) {
       {/* Shared Tab Bar */}
       <UniversityTabsClient slug={slug} />
 
-      {/* Main Content Area */}
-      {/* 
-         Note: The layout itself doesn't know the 'activeTab' easily 
-         to decide on 'fullWidth' vs 'sidebar'. 
-         We'll handle the sidebar inside the individual page components 
-         to keep the layout simple and maintain the 'Full Width' requirement for Courses.
-      */}
-      <div className="max-w-[1400px] mx-auto px-2 md:px-4 py-8">
-        {children}
-      </div>
+      {/* Main Content Area - Full width background across entire screen */}
+      <main className="w-full bg-slate-100/80 border-t border-gray-200/80 min-h-[600px]">
+        <div className="max-w-[1400px] mx-auto px-2 md:px-4 py-8">
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

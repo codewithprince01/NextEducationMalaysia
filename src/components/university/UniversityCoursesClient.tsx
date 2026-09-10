@@ -311,7 +311,7 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
   }
 
   return (
-    <div id="courses-list-container" className="bg-gray-100 py-6 w-full">
+    <div id="courses-list-container" className="w-full">
       <div className="mx-auto">
         <div className="flex flex-col lg:flex-row gap-6 w-full">
           <CoursesSidebar
