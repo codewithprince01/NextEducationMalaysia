@@ -235,9 +235,10 @@ export class BlogService {
       description: string | null
       parent_id: number | null
       position: number | null
+      updated_at: Date | string | null
     }>>(
       `
-      SELECT id, title, description, parent_id, position
+      SELECT id, title, description, parent_id, position, updated_at
       FROM blog_contents
       WHERE blog_id = ?
       ORDER BY position ASC, id ASC
@@ -253,6 +254,9 @@ export class BlogService {
         tab: parent.title || '',
         description: parent.description || '',
         position: parent.position ?? 0,
+        // Carried so the de-duplicator can tell which copy of a repeated
+        // article was edited most recently — see dedupeBlogContent.
+        updated_at: parent.updated_at ?? null,
         child_contents: allContents
           .filter((child) => child.parent_id === parent.id)
           .map((child) => ({
@@ -261,6 +265,7 @@ export class BlogService {
             tab: child.title || '',
             description: child.description || '',
             position: child.position ?? 0,
+            updated_at: child.updated_at ?? null,
           })),
       }));
 

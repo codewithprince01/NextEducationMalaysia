@@ -213,55 +213,47 @@ export default function UniversityHeroClient({ university, photos }: { universit
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
                 {university.name}
               </h1>
-              <div className="flex items-center gap-3 text-sm text-slate-600 flex-wrap">
-                <div className="flex items-center gap-1.5 text-slate-600 text-xs sm:text-sm font-medium">
-                  <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
-                  <span>Location: <strong className="text-slate-900 font-semibold">{university.city || 'Malaysia'}</strong></span>
+              <div className="flex items-center gap-2 text-sm text-slate-600 flex-wrap">
+                <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 shadow-2xs">
+                  <MapPin className="text-blue-600 shrink-0 w-3.5 h-3.5" />
+                  <span>Location: <strong className="text-slate-900 font-bold">{university.city || 'Malaysia'}</strong></span>
                 </div>
                 <button
                   onClick={handleDirections}
-                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-full font-bold transition-all shadow-sm shadow-blue-500/25 hover:shadow-md hover:shadow-blue-500/30 active:scale-95 text-xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-semibold transition-all shadow-xs hover:shadow-sm active:scale-95 text-xs cursor-pointer border border-blue-600"
                 >
-                  <Navigation size={12} className="rotate-45" />
-                  Get Directions
+                  <Navigation size={13} className="rotate-45" />
+                  <span>Get Directions</span>
                 </button>
+                <div className="inline-flex items-center gap-1.5 bg-emerald-50/90 border border-emerald-200/80 px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-900 shadow-2xs">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 font-bold shrink-0" />
+                  <span>Approved by <strong className="font-extrabold">{approvedBy}</strong></span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right: Status & Accreditation Badges (2 top, 2 bottom) */}
-          <div className="flex flex-col items-start lg:items-end justify-center gap-2 shrink-0">
-            {/* Row 1: Type & Featured */}
-            <div className="flex items-center gap-2">
-              {/* Type */}
-              <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 shadow-2xs">
-                <Building className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                <span>{typeLabel}</span>
-              </div>
-
-              {/* Featured */}
-              <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-                <span>Featured</span>
-              </div>
+          {/* Right: Status & Rating Badges */}
+          <div className="flex flex-wrap items-center lg:justify-end gap-2 shrink-0">
+            {/* Type */}
+            <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 shadow-2xs">
+              <Building className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+              <span>{typeLabel}</span>
             </div>
 
-            {/* Row 2: SETARA & Approved By */}
-            <div className="flex items-center gap-2">
-              {/* SETARA */}
-              <div className="inline-flex items-center gap-1.5 bg-amber-50/90 border border-amber-200/80 px-3 py-1.5 rounded-xl text-xs shadow-2xs">
-                <span className="font-extrabold text-[10px] tracking-wider uppercase text-amber-900">SETARA</span>
-                <div className="flex items-center gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-              </div>
+            {/* Featured */}
+            <div className="inline-flex items-center gap-1.5 bg-blue-50/80 border border-blue-200/90 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+              <span>Featured</span>
+            </div>
 
-              {/* Approved By */}
-              <div className="inline-flex items-center gap-1.5 bg-emerald-50/80 border border-emerald-200/80 px-3 py-1.5 rounded-xl text-xs font-medium text-emerald-900 shadow-2xs">
-                <Check className="w-3.5 h-3.5 text-emerald-600 font-bold shrink-0" />
-                <span>Approved by <strong className="font-extrabold">{approvedBy}</strong></span>
+            {/* SETARA Rating */}
+            <div className="inline-flex items-center gap-1.5 bg-amber-50/80 border border-amber-200/90 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-900 shadow-2xs">
+              <span className="font-extrabold text-[10px] tracking-wider uppercase text-amber-900">SETARA</span>
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                ))}
               </div>
             </div>
           </div>
