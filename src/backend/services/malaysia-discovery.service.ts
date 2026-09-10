@@ -46,10 +46,11 @@ export class MalaysiaDiscoveryService {
     university?: string | string[];
     study_mode?: string | string[];
     intake?: string | string[];
+    scholarship_available?: string | boolean | string[];
     search?: string;
     page?: number;
   }) {
-    const { level, category, specialization, university, study_mode, intake, search, page = 1 } = params;
+    const { level, category, specialization, university, study_mode, intake, scholarship_available, search, page = 1 } = params;
     const perPage = 10;
     const skip = (page - 1) * perPage;
     // Resolve slug/name -> model records for filters (tolerant matching like old project)
@@ -213,6 +214,10 @@ export class MalaysiaDiscoveryService {
       selectedIntakes.forEach((month) => baseArgs.push(`%${month}%`));
     }
 
+    if (scholarship_available === '1' || scholarship_available === 'true' || scholarship_available === true || (Array.isArray(scholarship_available) && scholarship_available.length > 0)) {
+      baseSqlWhere += ' AND (u.scholarship_available = 1 OR (SELECT COUNT(*) FROM university_scholarships us WHERE us.u_id = u.id) > 0)';
+    }
+
     const programsSql = `
       SELECT 
         up.id, up.course_name, up.slug, up.level, up.duration,
@@ -221,8 +226,10 @@ export class MalaysiaDiscoveryService {
         u.id AS u_id, u.name AS u_name, u.uname AS u_uname,
         u.logo_path AS u_logo_path, u.banner_path AS u_banner_path,
         u.city AS u_city, u.state AS u_state, u.institute_type AS u_institute_type,
+        u.scholarship_available AS u_scholarship_available,
         it.type AS u_inst_type_label,
         (SELECT COUNT(*) FROM university_programs p2 WHERE p2.university_id = u.id AND p2.status = 1) AS u_programs_count,
+        (SELECT COUNT(*) FROM university_scholarships us WHERE us.u_id = u.id) AS u_scholarships_count,
         cc.name AS category_name, cc.slug AS category_slug,
         cs.name AS spec_name, cs.slug AS spec_slug
       FROM university_programs up
@@ -367,6 +374,8 @@ export class MalaysiaDiscoveryService {
         institute_type: r.u_institute_type,
         inst_type: r.u_inst_type_label,
         programs_count: Number(r.u_programs_count ?? 0),
+        scholarship_available: Number(r.u_scholarship_available ?? 0),
+        scholarship_count: Number(r.u_scholarships_count ?? 0),
       },
       courseCategory: r.category_name ? { name: r.category_name, slug: r.category_slug } : null,
       courseSpecialization: r.spec_name ? { name: r.spec_name, slug: r.spec_slug } : null,

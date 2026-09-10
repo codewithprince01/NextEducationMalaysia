@@ -39,6 +39,7 @@ model University {
   institute_type         Int?
   is_local               Int?      @default(0)
   is_international       Int?      @default(0)
+  scholarship_available  Int?      @default(0)
   status                 Int?      @default(1)
   homeview               Int?      @default(0)
   email                  String?

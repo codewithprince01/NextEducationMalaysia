@@ -166,8 +166,7 @@ function CourseCard({
     })
     .join(' ')
 
-  // Dynamic scholarship support: checks course.scholarship, scholarship_name, scholarship_amount, scholarship_text, etc.
-  // When admin creates the scholarship field later, it will automatically reflect that dynamic data.
+  // Dynamic scholarship support: checks course and university scholarship availability.
   const scholarshipBadge = (() => {
     if (course.scholarship === false || course.has_scholarship === false || course.is_scholarship === 0) {
       return null
@@ -190,7 +189,15 @@ function CourseCard({
     if (typeof course.scholarship_discount === 'string' && course.scholarship_discount.trim()) {
       return course.scholarship_discount.trim()
     }
-    return 'Scholarship Available'
+    if (
+      Number(course.university?.scholarship_available) === 1 ||
+      Number(course.university?.scholarship_count) > 0 ||
+      Number(course.university?.scholarships_count) > 0 ||
+      course.university?.has_scholarship === true
+    ) {
+      return 'Scholarship Available'
+    }
+    return null
   })()
 
   const specs = [
@@ -941,14 +948,14 @@ interface CoursesListClientProps {
 
 type FilterState = Record<string, string[]>
 
-const EMPTY_FILTERS: FilterState = { levels: [], categories: [], specializations: [], intakes: [], study_modes: [] }
+const EMPTY_FILTERS: FilterState = { levels: [], categories: [], specializations: [], scholarships: [], intakes: [], study_modes: [] }
 
 const SINGLE_SELECT_FILTERS = ['levels', 'categories', 'specializations']
 
 const normalizeFilterValue = (key: string, value: any) => {
   const raw = String(value ?? '').trim()
   if (!raw) return ''
-  if (key === 'intakes' || key === 'study_modes') return raw
+  if (key === 'intakes' || key === 'study_modes' || key === 'scholarships') return raw
   return raw.toLowerCase().replace(/\s+/g, '-')
 }
 
@@ -999,6 +1006,7 @@ export default function CoursesListClient({
     levels: true,
     categories: true,
     specializations: true,
+    scholarships: true,
     intakes: true,
     study_modes: true,
   })
@@ -1099,8 +1107,9 @@ export default function CoursesListClient({
                       key === 'categories' ? 'category' : 
                       key === 'specializations' ? 'specialization' : 
                       key === 'study_modes' ? 'study_mode' : 
-                      key === 'intakes' ? 'intake' : key
-      values.forEach(v => params.append(paramKey, v))
+                      key === 'intakes' ? 'intake' :
+                      key === 'scholarships' ? 'scholarship_available' : key
+      values.forEach(v => params.append(paramKey, v === 'available' ? '1' : v))
     })
     return params.toString()
   }, [])
@@ -1127,8 +1136,9 @@ export default function CoursesListClient({
                         filterKey === 'categories' ? 'category' :
                         filterKey === 'specializations' ? 'specialization' :
                         filterKey === 'study_modes' ? 'study_mode' :
-                        filterKey === 'intakes' ? 'intake' : filterKey
-        vals.forEach((v) => params.append(paramKey, v))
+                        filterKey === 'intakes' ? 'intake' :
+                        filterKey === 'scholarships' ? 'scholarship_available' : filterKey
+        vals.forEach((v) => params.append(paramKey, v === 'available' ? '1' : v))
       }
     })
     const queryString = params.toString()
@@ -1500,14 +1510,34 @@ export default function CoursesListClient({
     setIsPopupFormOpen(true)
   }, [])
 
-  const toggleFilter = () =>
-    setOpenFilters({
-      levels: true,
-      categories: true,
-      specializations: true,
-      intakes: true,
-      study_modes: true,
-    })
+  const availableFilters = useMemo(() => {
+    const base = filterData || {}
+    return {
+      levels: base.levels || [],
+      categories: base.categories || [],
+      specializations: base.specializations || [],
+      scholarships: [
+        { id: 1, name: 'Scholarship Available', slug: 'available', value: 'available' }
+      ],
+      intakes: base.intakes || [],
+      study_modes: base.study_modes || []
+    }
+  }, [filterData])
+
+  const toggleFilter = (key?: string) => {
+    if (typeof key === 'string') {
+      setOpenFilters(prev => ({ ...prev, [key]: !prev[key] }))
+    } else {
+      setOpenFilters({
+        levels: true,
+        categories: true,
+        specializations: true,
+        scholarships: true,
+        intakes: true,
+        study_modes: true,
+      })
+    }
+  }
 
   const breadcrumbCurrent = useMemo(() => {
     const dynamic =
@@ -1623,7 +1653,7 @@ export default function CoursesListClient({
       {/* Mobile filter drawer */}
       {showMobileFilter && (
         <MobileFilterDrawer
-          filters={filterData}
+          filters={availableFilters}
           selectedFilters={selectedFilters}
           openFilters={openFilters}
           activeFilterCount={activeFilterCount}
@@ -1662,7 +1692,7 @@ export default function CoursesListClient({
             {/* Desktop filter panel */}
             <DesktopFilterPanel
               loading={filterLoading}
-              filters={filterData}
+              filters={availableFilters}
               selectedFilters={selectedFilters}
               openFilters={openFilters}
               activeFilterCount={activeFilterCount}
