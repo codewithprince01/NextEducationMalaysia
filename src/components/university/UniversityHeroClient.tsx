@@ -177,7 +177,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
       </div>
 
       {/* ── DESKTOP HERO ── */}
-      <div className="hidden sm:block max-w-[1400px] mx-auto px-2 md:px-4 py-4 bg-white">
+      <div className="hidden sm:block max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-4 bg-white">
         {/* Logo + Info Row */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
           {/* Left: Logo + Title + Location & Action */}

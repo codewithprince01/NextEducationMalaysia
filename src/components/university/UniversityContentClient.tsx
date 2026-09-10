@@ -101,7 +101,7 @@ export default function UniversityContentClient({ slug, overviews, universityNam
   return (
     <>
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-[76px] z-10">
-        <div className="max-w-[1400px] mx-auto px-2 md:px-4 flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           {TABS.map((tab, index) => (
             <button
               key={tab.id}
@@ -114,7 +114,7 @@ export default function UniversityContentClient({ slug, overviews, universityNam
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-2 md:px-4 py-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8">
         {isFullWidth ? (
           <div key={activeTab}>{renderContent()}</div>
         ) : (

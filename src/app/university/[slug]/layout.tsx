@@ -36,9 +36,9 @@ export default async function UniversityLayout({ children, params }: Props) {
       {/* Shared Tab Bar */}
       <UniversityTabsClient slug={slug} />
 
-      {/* Main Content Area - Full width background across entire screen */}
-      <main className="w-full bg-slate-100/80 border-t border-gray-200/80 min-h-[600px]">
-        <div className="max-w-[1400px] mx-auto px-2 md:px-4 py-8">
+      {/* Main Content Area */}
+      <main className="w-full bg-white min-h-[600px]">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 py-8">
           {children}
         </div>
       </main>

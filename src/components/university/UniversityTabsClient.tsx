@@ -41,7 +41,7 @@ export default function UniversityTabsClient({ slug }: Props) {
 
   return (
     <div id="university-tabs" className="bg-white border-b border-gray-200 shadow-sm sticky top-[76px] z-10">
-      <div className="max-w-[1400px] mx-auto px-1 sm:px-2 lg:px-4 flex overflow-x-auto scrollbar-hide">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 flex overflow-x-auto scrollbar-hide">
         {TABS.map((tab, index) => (
           <Link
             key={tab.id}

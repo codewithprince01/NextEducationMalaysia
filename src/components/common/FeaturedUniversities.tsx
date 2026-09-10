@@ -126,12 +126,12 @@ export default function FeaturedUniversities({ variant = 'grid', excludeSlug }: 
         {/* Header */}
         <div className="flex items-center justify-between pb-3.5 mb-2 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <span className="w-1 h-5 bg-blue-600 rounded-full" />
-            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
+            <span className="w-1 h-5 bg-blue-600 rounded-full shrink-0" />
+            <h2 className="!text-base sm:!text-lg !font-semibold text-slate-900 tracking-tight whitespace-nowrap">
               Featured Universities
             </h2>
           </div>
-          <span className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap shrink-0">
             Top Ranked
           </span>
         </div>

@@ -47,26 +47,29 @@ export default function UniversityCoursesCard() {
 
   return (
     <div className="w-full">
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
-        <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">
-          Find Universities Courses
-        </h2>
+      <div className="bg-white rounded-2xl shadow-xs border border-slate-200/80 p-4">
+        <div className="flex items-center gap-2 pb-2.5 mb-3 border-b border-slate-100">
+          <span className="w-1 h-5 bg-blue-600 rounded-full" />
+          <h2 className="!text-base sm:!text-lg !font-semibold text-slate-800 tracking-normal whitespace-nowrap">
+            Find Universities Courses
+          </h2>
+        </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {courses.map((course) => {
             const IconComponent = course.icon
             return (
               <a
                 key={course.id}
                 href={course.link}
-                className="flex items-center gap-4 p-4 rounded-lg border border-gray-100 
-                           hover:bg-gray-50 transition-colors cursor-pointer group"
+                className="flex items-center gap-3 p-2.5 rounded-xl border border-slate-100 
+                           hover:bg-slate-50 hover:border-slate-200/80 transition-all cursor-pointer group"
               >
-                <div className={`${course.bgColor} p-3 rounded-lg group-hover:scale-110 transition-transform`}>
-                  <IconComponent className={`w-5 h-5 ${course.color}`} />
+                <div className={`${course.bgColor} p-2 rounded-lg group-hover:scale-105 transition-transform shrink-0`}>
+                  <IconComponent className={`w-4 h-4 ${course.color}`} />
                 </div>
 
-                <span className="text-sm font-semibold text-gray-700">
+                <span className="text-xs sm:text-[13px] font-medium text-slate-700 group-hover:text-blue-600 transition-colors">
                   {course.title}
                 </span>
               </a>
