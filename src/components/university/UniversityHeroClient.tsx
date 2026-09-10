@@ -213,19 +213,19 @@ export default function UniversityHeroClient({ university, photos }: { universit
               <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
                 {university.name}
               </h1>
-              <div className="flex items-center gap-2 text-sm text-slate-600 flex-wrap">
-                <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-700 shadow-2xs">
-                  <MapPin className="text-blue-600 shrink-0 w-3.5 h-3.5" />
-                  <span>Location: <strong className="text-slate-900 font-bold">{university.city || 'Malaysia'}</strong></span>
+              <div className="flex items-center gap-2.5 text-sm text-slate-600 flex-wrap">
+                <div className="flex items-center gap-1.5 text-slate-600 text-xs sm:text-sm font-medium">
+                  <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
+                  <span>Location: <strong className="text-slate-900 font-semibold">{university.city || 'Malaysia'}</strong></span>
                 </div>
                 <button
                   onClick={handleDirections}
                   className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-semibold transition-all shadow-xs hover:shadow-sm active:scale-95 text-xs cursor-pointer border border-blue-600"
                 >
-                  <Navigation size={13} className="rotate-45" />
-                  <span>Get Directions</span>
+                  <Navigation size={12} className="rotate-45" />
+                  Get Directions
                 </button>
-                <div className="inline-flex items-center gap-1.5 bg-emerald-50/90 border border-emerald-200/80 px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-900 shadow-2xs">
+                <div className="inline-flex items-center gap-1.5 bg-emerald-50/90 border border-emerald-200/80 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-900 shadow-2xs">
                   <Check className="w-3.5 h-3.5 text-emerald-600 font-bold shrink-0" />
                   <span>Approved by <strong className="font-extrabold">{approvedBy}</strong></span>
                 </div>
