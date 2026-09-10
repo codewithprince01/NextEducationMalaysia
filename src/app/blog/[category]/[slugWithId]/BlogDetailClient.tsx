@@ -141,6 +141,17 @@ export default function BlogDetailClient({
   const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
 
+  // The stamp on the article is the last edit, not the first publish, so a post
+  // that gets corrected or refreshed reads as current. Rows saved before the
+  // column was populated fall back to created_at rather than showing nothing.
+  const lastUpdated = blog?.last_updated_at || blog?.updated_at || blog?.created_at || null
+  const lastUpdatedDate = lastUpdated
+    ? new Date(lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    : ""
+  const lastUpdatedTime = lastUpdated
+    ? new Date(lastUpdated).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
+    : ""
+
   useEffect(() => {
     if (initialData) {
       const parsed = normalizeDetailPayload(initialData)
@@ -274,11 +285,11 @@ export default function BlogDetailClient({
               )}
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="w-4 h-4 text-gray-500" />
-                {new Date(blog.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                {lastUpdatedDate}
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-gray-500" />
-                {new Date(blog.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                {lastUpdatedTime}
               </span>
             </div>
 
@@ -404,7 +415,7 @@ export default function BlogDetailClient({
                   </div>
                   <div className="text-center md:text-left">
                     <h2 className="text-xs md:text-sm font-semibold text-gray-900">Team Education Malaysia</h2>
-                    <p className="text-gray-600 md:text-gray-700 text-xs md:text-sm">Content Curator | Updated on – Aug 18, 2023</p>
+                    <p className="text-gray-600 md:text-gray-700 text-xs md:text-sm">Content Curator{lastUpdatedDate ? ` | Updated on – ${lastUpdatedDate}` : ""}</p>
                     <button
                       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                       className="text-blue-600 mt-1 font-medium hover:underline text-xs md:text-sm cursor-pointer"
