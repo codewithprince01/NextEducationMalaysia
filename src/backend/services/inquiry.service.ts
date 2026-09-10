@@ -122,6 +122,16 @@ export class InquiryService {
    * Helper to send both admin + user standardized lead emails.
    */
   private async sendInquiryEmails(data: InquiryPayload, extraFields?: Record<string, unknown> | null) {
+    // `source` records WHERE a lead came from — it resolves to the page label,
+    // so a brochure request and a fee-structure request sent from the same
+    // university page carry an identical source. Using it as the form type made
+    // every such lead arrive as a "General" enquiry with nothing in the subject
+    // to say what was actually asked for. The form states its own type, so that
+    // wins; source stays as the fallback for callers that send no form type.
+    const submittedType = [extraFields?.formType, extraFields?.requestfor]
+      .map((value) => String(value ?? "").trim())
+      .find(Boolean);
+
     await sendLeadEmail({
       name: data.name,
       email: data.email,
@@ -129,10 +139,13 @@ export class InquiryService {
       nationality: data.nationality || null,
       university: data.university || null,
       message: data.interest || data.program || null,
-      formType: data.source || null,
+      formType: submittedType || data.source || null,
       sourceUrl: data.source_path || '/',
       extraFields: {
         ...(extraFields || {}),
+        // Kept as its own row so the page-level tracking the source label carries
+        // is not lost now that Form Type reports the request instead.
+        source: data.source || null,
         interested_program: data.program || null,
         interested_course_category: data.interest || null,
       },

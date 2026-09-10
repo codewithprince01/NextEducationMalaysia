@@ -123,10 +123,10 @@ export function CommonFields({
         </div>
       </div>
 
-      {/* Row 3: Qualification Level & Interested Course */}
+      {/* Row 3: Education Level & Interested Course */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-1">
-          <label className={label}>Highest Qualification</label>
+          <label className={label}>Education Level</label>
           <div className="relative">
             <select
               name="level"
@@ -135,7 +135,7 @@ export function CommonFields({
               onChange={onLevelChange}
               className={`${cls} pr-7 appearance-none cursor-pointer`}
             >
-              <option value="">Select Qualification</option>
+              <option value="">Select Education Level</option>
               {(levels || []).map((l: any, i: number) => (
                 <option key={i} value={l.level || l.name}>{l.level || l.name}</option>
               ))}
@@ -154,7 +154,7 @@ export function CommonFields({
               onChange={onCourseChange}
               className={`${cls} pr-7 appearance-none cursor-pointer`}
             >
-              <option value="">Select a course</option>
+              <option value="">Select Course Category</option>
               {(courseCategories || []).map((c: any, i: number) => (
                 <option key={i} value={c.name}>{c.name}</option>
               ))}

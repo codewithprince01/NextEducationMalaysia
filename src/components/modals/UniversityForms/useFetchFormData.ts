@@ -92,7 +92,8 @@ export function useFetchFormData(universitySlugOrName?: string | null, selectedL
   const [phonecode, setPhonecode] = useState<FormOption[]>([])
   const [countries, setCountries] = useState<FormOption[]>([])
   const [levels, setLevels] = useState<FormOption[]>([])
-  const [allUniversityPrograms, setAllUniversityPrograms] = useState<Array<{ name: string; level: string }>>([])
+  const [allUniversityPrograms, setAllUniversityPrograms] = useState<Array<{ name: string; level: string; category: string }>>([])
+  const [universityCategories, setUniversityCategories] = useState<FormOption[]>([])
   const [genericCategories, setGenericCategories] = useState<FormOption[]>([])
 
   useEffect(() => {
@@ -131,7 +132,8 @@ export function useFetchFormData(universitySlugOrName?: string | null, selectedL
             { level: 'PhD / Doctorate' },
           ]
 
-      let resolvedAllProgs: Array<{ name: string; level: string }> = []
+      let resolvedAllProgs: Array<{ name: string; level: string; category: string }> = []
+      let resolvedUniCategories: FormOption[] = []
       let resolvedCategories = uniqByName(
         fetchedCategories.map((c: any) => ({
           ...c,
@@ -152,11 +154,15 @@ export function useFetchFormData(universitySlugOrName?: string | null, selectedL
             if (Array.isArray(data.levels) && data.levels.length > 0) {
               resolvedLevels = data.levels
             }
+            if (Array.isArray(data.categories) && data.categories.length > 0) {
+              resolvedUniCategories = uniqByName(data.categories)
+            }
             if (Array.isArray(data.all_programs) && data.all_programs.length > 0) {
               resolvedAllProgs = data.all_programs
                 .map((p: any) => ({
                   name: String(p.name || p.course_name || '').trim(),
                   level: String(p.level || '').trim(),
+                  category: String(p.category_name || p.category || '').trim(),
                 }))
                 .filter((p: any) => p.name)
             } else if (Array.isArray(data.programs?.data) && data.programs.data.length > 0) {
@@ -164,6 +170,7 @@ export function useFetchFormData(universitySlugOrName?: string | null, selectedL
                 .map((p: any) => ({
                   name: String(p.course_name || p.name || p.title || '').trim(),
                   level: String(p.level || '').trim(),
+                  category: String(p.category_name || p.category || '').trim(),
                 }))
                 .filter((p: any) => p.name)
             }
@@ -173,24 +180,37 @@ export function useFetchFormData(universitySlugOrName?: string | null, selectedL
 
       setLevels(resolvedLevels)
       setAllUniversityPrograms(resolvedAllProgs)
+      setUniversityCategories(resolvedUniCategories)
       setGenericCategories(resolvedCategories)
     }
 
     fetchData().catch(() => {})
   }, [universitySlugOrName])
 
+  // What the visitor picks is a field of study, not a specific programme, so
+  // the dropdown lists course categories (Engineering, Business, ...) rather
+  // than the hundreds of individual course names a university publishes.
+  //
+  // The categories are still derived from the programmes wherever possible, so
+  // choosing an education level narrows the list to the categories that
+  // university actually teaches at that level. The falls-back chain matters: a
+  // university whose programmes carry no category still gets its own category
+  // list from the API, and a form opened outside a university page gets the
+  // site-wide list.
   const filteredCourseCategories = useMemo(() => {
     if (allUniversityPrograms.length > 0) {
-      if (selectedLevel) {
-        const matching = allUniversityPrograms.filter((p) => isLevelMatch(p.level, selectedLevel))
-        if (matching.length > 0) {
-          return uniqByName(matching.map((p) => ({ name: p.name })))
-        }
-      }
-      return uniqByName(allUniversityPrograms.map((p) => ({ name: p.name })))
+      const matching = selectedLevel
+        ? allUniversityPrograms.filter((p) => isLevelMatch(p.level, selectedLevel))
+        : []
+      const pool = matching.length > 0 ? matching : allUniversityPrograms
+      const categories = uniqByName(
+        pool.map((p) => ({ name: p.category })).filter((c) => c.name),
+      )
+      if (categories.length > 0) return categories
     }
+    if (universityCategories.length > 0) return universityCategories
     return genericCategories
-  }, [allUniversityPrograms, selectedLevel, genericCategories])
+  }, [allUniversityPrograms, selectedLevel, universityCategories, genericCategories])
 
   return {
     phonecode,

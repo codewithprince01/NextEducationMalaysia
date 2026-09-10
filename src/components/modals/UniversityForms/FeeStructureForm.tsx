@@ -53,9 +53,36 @@ type Props = {
   isOpen: boolean
   onClose: () => void
   onSuccess?: (message: string) => void
+  /**
+   * Which request this form stands in for. The fields are identical either
+   * way, so the variant decides only the wording and what the lead is
+   * recorded as — and that is what the admin email subject reports. Left
+   * unset it behaves exactly as the fee-structure form it has always been.
+   */
+  variant?: 'fee' | 'enquiry'
 }
 
-export function FeeStructureForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess }: Props) {
+const VARIANTS = {
+  fee: {
+    badgePrefix: 'Download ',
+    badgeSuffix: ' Fee Structure',
+    submit: 'Request Fee Structure',
+    loading: 'Applying...',
+    requestfor: 'fees',
+    formType: 'Fee Structure',
+  },
+  enquiry: {
+    badgePrefix: 'Enquire about ',
+    badgeSuffix: '',
+    submit: 'Send Enquiry',
+    loading: 'Sending...',
+    requestfor: 'enquiry',
+    formType: 'University Enquiry',
+  },
+} as const
+
+export function FeeStructureForm({ universityId, universityName, universityLogo, isOpen, onClose, onSuccess, variant = 'fee' }: Props) {
+  const copy = VARIANTS[variant]
   const form = useFormState(isOpen)
   const { phonecode, levels, courseCategories, countriesData } = useFetchFormData(universityName, form.level)
   const [logoCandidates, setLogoCandidates] = React.useState<string[]>([])
@@ -88,8 +115,8 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
         university: universityName || '',
         university_id: universityId || null,
         university_name: universityName || '',
-        requestfor: 'fees',
-        formType: 'Fee Structure',
+        requestfor: copy.requestfor,
+        formType: copy.formType,
         sourceUrl: typeof window !== 'undefined' ? window.location.href : '',
         source_path: typeof window !== 'undefined' ? window.location.href : '',
       }, {
@@ -150,7 +177,9 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
             )}
           </div>
           <h3 className="text-xs sm:text-sm font-bold text-gray-900 leading-none">
-            Download <span className="text-[#003893]">{universityName}</span> Fee Structure
+            {copy.badgePrefix}
+            <span className="text-[#003893]">{universityName}</span>
+            {copy.badgeSuffix}
           </h3>
         </div>
 
@@ -191,7 +220,7 @@ export function FeeStructureForm({ universityId, universityName, universityLogo,
                   : 'bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-300'
               }`}
             >
-              {form.loading ? 'Applying...' : 'Request Fee Structure'}
+              {form.loading ? copy.loading : copy.submit}
             </button>
             <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 font-semibold text-xs sm:text-sm">
               Cancel

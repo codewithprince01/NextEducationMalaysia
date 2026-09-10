@@ -38,7 +38,9 @@ function isLikelyEmail(value?: string | null): boolean {
 
 function inferRequestLabel(formType?: string | null): string {
   const t = String(formType || '').toLowerCase();
-  if (t.includes('fee') || t.includes('brochure')) return 'Brochure/Fees';
+  if (t.includes('brochure')) return 'Brochure';
+  if (t.includes('enquiry') || t.includes('inquiry')) return 'Enquiry';
+  if (t.includes('fee')) return 'Fee Structure';
   if (t.includes('counselling') || t.includes('book session')) return 'Counselling Session';
   if (t.includes('modal') || t.includes('popup') || t.includes('malaysia calling')) return 'Malaysia Calling';
   if (t.includes('contact')) return 'Contact';
@@ -110,10 +112,11 @@ function adminTemplate(data: LeadEmailData): string {
     university_id: 'University Id',
     formType: 'Form Type',
     requestfor: 'Requestfor',
-    highest_qualification: 'Highest Qualification',
+    highest_qualification: 'Education Level',
     interested_course_category: 'Interested Course Category',
     interested_program: 'Interested Program',
     message: 'Message',
+    source: 'Lead Source',
     sourceUrl: 'Source Path',
     source_path: 'Source Path',
     dayslot: 'Dayslot',
@@ -150,10 +153,11 @@ function adminTemplate(data: LeadEmailData): string {
     'Nationality',
     'University',
     'Form Type',
+    'Lead Source',
     'Message',
     'Source Path',
     'Country Code',
-    'Highest Qualification',
+    'Education Level',
     'Interested Course Category',
     'Interested Program',
     'Dayslot',

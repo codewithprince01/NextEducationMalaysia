@@ -6,7 +6,7 @@ import PopularCourses from './PopularCourses'
 import { storageUrl } from '@/lib/constants'
 import { formatRichText } from '@/lib/richText'
 import AuthModal from '@/components/modals/AuthModal'
-import { CounsellingForm } from '@/components/modals/UniversityForms/CounsellingForm'
+import { FeeStructureForm } from '@/components/modals/UniversityForms/FeeStructureForm'
 
 type Section = {
   id: number
@@ -56,7 +56,7 @@ export default function UniversityOverview({
   const router = useRouter()
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [isCounsellingOpen, setIsCounsellingOpen] = useState(false)
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false)
 
   const validSections = useMemo(
     () =>
@@ -119,7 +119,7 @@ export default function UniversityOverview({
       if (universitySlug) {
         router.push(`/university/${universitySlug}/courses`)
       } else {
-        setIsCounsellingOpen(true)
+        setIsEnquiryOpen(true)
       }
     } else {
       setIsAuthModalOpen(true)
@@ -127,7 +127,7 @@ export default function UniversityOverview({
   }
 
   const handleEnquireClick = () => {
-    setIsCounsellingOpen(true)
+    setIsEnquiryOpen(true)
   }
 
   if (validSections.length === 0) {
@@ -243,13 +243,16 @@ export default function UniversityOverview({
         }}
       />
 
-      {/* Enquiry / Counselling Form Modal */}
-      <CounsellingForm
+      {/* Enquiry Form Modal — the fee-structure form asks for exactly what an
+          enquiry needs, so it is reused here with enquiry wording and, so the
+          lead email says where it came from, an enquiry request type. */}
+      <FeeStructureForm
+        variant="enquiry"
         universityId={universityId}
         universityName={universityName}
         universityLogo={universityLogo}
-        isOpen={isCounsellingOpen}
-        onClose={() => setIsCounsellingOpen(false)}
+        isOpen={isEnquiryOpen}
+        onClose={() => setIsEnquiryOpen(false)}
       />
     </div>
   )
