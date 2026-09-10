@@ -197,9 +197,10 @@ export default function UniversityHeroClient({ university, photos }: { universit
       {/* ── DESKTOP HERO ── */}
       <div className="hidden sm:block max-w-[1400px] mx-auto px-2 md:px-4 py-4 bg-white">
         {/* Logo + Info Row */}
-        <div className="flex flex-row items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 shrink-0 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          {/* Left: Logo + Title + Location & Action */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-20 h-20 shrink-0 border border-slate-200/90 rounded-2xl overflow-hidden flex items-center justify-center bg-white shadow-xs p-1.5">
               <img
                 src={logoSrc || '/placeholder-logo.png'}
                 alt="Logo"
@@ -209,45 +210,58 @@ export default function UniversityHeroClient({ university, photos }: { universit
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">{university.name}</h1>
-              <div className="flex flex-row items-center gap-2 text-sm text-gray-600 flex-wrap">
-                <div className="flex items-center gap-1 min-w-0">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
+                {university.name}
+              </h1>
+              <div className="flex items-center gap-3 text-sm text-slate-600 flex-wrap">
+                <div className="flex items-center gap-1.5 text-slate-600 text-xs sm:text-sm font-medium">
                   <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
-                  <span className="text-blue-600 font-bold truncate">Location: {university.city}</span>
+                  <span>Location: <strong className="text-slate-900 font-semibold">{university.city || 'Malaysia'}</strong></span>
                 </div>
                 <button
                   onClick={handleDirections}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
+                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-full font-bold transition-all shadow-sm shadow-blue-500/25 hover:shadow-md hover:shadow-blue-500/30 active:scale-95 text-xs cursor-pointer"
                 >
-                  <Navigation size={14} className="rotate-45" />
+                  <Navigation size={12} className="rotate-45" />
                   Get Directions
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 text-sm">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600 text-sm font-medium">Type:</span>
-                <span className="bg-blue-700 text-white px-2.5 py-1 rounded-full font-medium text-sm">{typeLabel}</span>
+          {/* Right: Status & Accreditation Badges (2 top, 2 bottom) */}
+          <div className="flex flex-col items-start lg:items-end justify-center gap-2 shrink-0">
+            {/* Row 1: Type & Featured */}
+            <div className="flex items-center gap-2">
+              {/* Type */}
+              <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 shadow-2xs">
+                <Building className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>{typeLabel}</span>
               </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <span className="font-bold text-xs uppercase tracking-widest">SETARA</span>
-                <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-100">
+
+              {/* Featured */}
+              <div className="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-blue-700 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                <span>Featured</span>
+              </div>
+            </div>
+
+            {/* Row 2: SETARA & Approved By */}
+            <div className="flex items-center gap-2">
+              {/* SETARA */}
+              <div className="inline-flex items-center gap-1.5 bg-amber-50/90 border border-amber-200/80 px-3 py-1.5 rounded-xl text-xs shadow-2xs">
+                <span className="font-extrabold text-[10px] tracking-wider uppercase text-amber-900">SETARA</span>
+                <div className="flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                    <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                   ))}
                 </div>
               </div>
-            </div>
-            <div className="flex flex-col gap-1.5 pt-0.5">
-              <div className="flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium gap-2 text-[13px] border border-blue-100">
-                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
-                <span>Featured</span>
-              </div>
-              <div className="text-gray-500 text-[10px] font-bold uppercase tracking-tighter ml-1">
-                Approved By: <span className="text-gray-900 font-black">{approvedBy}</span>
+
+              {/* Approved By */}
+              <div className="inline-flex items-center gap-1.5 bg-emerald-50/80 border border-emerald-200/80 px-3 py-1.5 rounded-xl text-xs font-medium text-emerald-900 shadow-2xs">
+                <Check className="w-3.5 h-3.5 text-emerald-600 font-bold shrink-0" />
+                <span>Approved by <strong className="font-extrabold">{approvedBy}</strong></span>
               </div>
             </div>
           </div>
