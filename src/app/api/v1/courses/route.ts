@@ -27,6 +27,7 @@ async function getHandler(req: NextRequest) {
       university: searchParams.get('university') || searchParams.get('university_id') || undefined,
       study_mode: searchParams.get('study_modes[]') || searchParams.get('study_mode') || undefined,
       intake: searchParams.get('intakes[]') || searchParams.get('intake') || undefined,
+      scholarship_available: searchParams.get('scholarship_available') || searchParams.get('scholarships[]') || searchParams.get('scholarship') || undefined,
       search: searchParams.get('search') || undefined,
       page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
     });
