@@ -9,6 +9,7 @@ import { BrochureForm, FeeStructureForm } from '@/components/modals/UniversityFo
 import CompareForm from '@/components/modals/CompareForm'
 import Pagination from '@/components/common/Pagination'
 import FormSuccessPopup from '@/components/common/FormSuccessPopup'
+import { formatRichText } from '@/lib/richText'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -514,9 +515,14 @@ export default function UniversityListClient({
                 <div className={showMore ? 'max-h-[50vh] overflow-y-auto pr-2' : 'line-clamp-3 text-gray-600'}>
                   {showMore ? (
                     <div
-                      className="prose prose-sm max-w-none text-gray-600"
+                      className="cms-content max-w-none"
                       dangerouslySetInnerHTML={{
-                        __html: pageContent.replace(/<h[1-3][^>]*>.*?<\/h[1-3]>/gi, ''),
+                        // Only the FIRST heading is dropped — it repeats the
+                        // `staticHeading` rendered just above. Every later
+                        // heading is real content and must stay.
+                        __html: formatRichText(
+                          pageContent.replace(/<h[1-3]\b[^>]*>[\s\S]*?<\/h[1-3]>/i, '')
+                        ),
                       }}
                     />
                   ) : (

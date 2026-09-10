@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Plus, Minus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { formatRichText } from '@/lib/richText'
 
 type FaqCategory = {
   id: number
@@ -20,17 +21,6 @@ interface FaqsClientProps {
   initialCategories?: FaqCategory[]
   initialFaqsByCategory?: Record<string, FaqItem[]>
   initialActiveSlug?: string
-}
-
-const formatHTML = (html?: string | null) => {
-  if (!html) return ''
-  return String(html)
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/<span[^>]*>/gi, '')
-    .replace(/<\/span>/gi, '')
-    .replace(/style="[^"]*"/gi, '')
-    .replace(/<p>\s*<\/p>/gi, '')
-    .trim()
 }
 
 export default function FaqsClient({
@@ -200,8 +190,8 @@ export default function FaqsClient({
 
               {openQuestionIndex === index && (
                 <div
-                  className="px-5 pb-4 text-sm text-gray-700 whitespace-pre-line"
-                  dangerouslySetInnerHTML={{ __html: formatHTML(item.answer) }}
+                  className="cms-content px-5 pb-4"
+                  dangerouslySetInnerHTML={{ __html: formatRichText(item.answer) }}
                 />
               )}
             </div>
