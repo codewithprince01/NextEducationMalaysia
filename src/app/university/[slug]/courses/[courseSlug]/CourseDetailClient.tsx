@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
+import { formatRichText } from '@/lib/richText'
 import FeaturedUniversities from '@/components/common/FeaturedUniversities'
 import UniversityCoursesCard from '@/components/university/UniversityCoursesCard'
 import PopularCourses from '@/components/university/PopularCourses'
@@ -287,8 +288,8 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
                       {/* Content Body */}
                       <div className="overflow-x-auto">
                         <div
-                          className="text-gray-700 text-sm leading-relaxed prose prose-slate max-w-none prose-p:my-2 prose-headings:text-gray-900 prose-headings:font-semibold prose-headings:text-sm prose-ul:my-2 prose-ul:pl-5 prose-li:my-0.5 prose-table:w-full prose-table:border-collapse prose-table:my-3 prose-th:bg-gray-50 prose-th:border prose-th:border-gray-200 prose-th:p-2.5 prose-th:text-xs prose-th:font-semibold prose-th:text-gray-800 prose-td:border prose-td:border-gray-200 prose-td:p-2.5 prose-td:text-xs prose-td:text-gray-600"
-                          dangerouslySetInnerHTML={{ __html: section.description || '' }}
+                          className="cms-content max-w-none"
+                          dangerouslySetInnerHTML={{ __html: formatRichText(section.description) }}
                         />
                       </div>
                     </div>
@@ -300,8 +301,10 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
                       <span>Course Overview</span>
                     </h3>
                     <div
-                      className="text-gray-700 text-sm leading-relaxed prose prose-slate max-w-none"
-                      dangerouslySetInnerHTML={{ __html: courseDetails.description || 'No detailed curriculum available.' }}
+                      className="cms-content max-w-none"
+                      dangerouslySetInnerHTML={{
+                        __html: formatRichText(courseDetails.description) || 'No detailed curriculum available.',
+                      }}
                     />
                   </div>
                 )}

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef, useTransition } from
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import Breadcrumb from '@/components/Breadcrumb'
+import { formatRichText } from '@/lib/richText'
 import {
   Filter, ChevronDown, ChevronUp, X, Search, ArrowUpDown,
   List, LayoutGrid, MapPin, Building, Star, BookOpen, Globe, Home, Layers,
@@ -1729,8 +1730,8 @@ export default function CoursesListClient({
                     <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mt-2 shadow-sm">
                       {showMore ? (
                         <div
-                          className="text-gray-700 text-sm leading-relaxed prose prose-sm max-w-none transition-opacity duration-300"
-                          dangerouslySetInnerHTML={{ __html: pageDescription }}
+                          className="cms-content max-w-none transition-opacity duration-300"
+                          dangerouslySetInnerHTML={{ __html: formatRichText(pageDescription) }}
                         />
                       ) : (
                         <p className="text-gray-700 text-sm leading-relaxed line-clamp-3">

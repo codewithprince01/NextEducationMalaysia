@@ -132,9 +132,19 @@ export function formatRichText(html?: string | null): string {
   // --- tables -------------------------------------------------------------
   // Skip if the content was already wrapped (e.g. by the editor or a re-run).
   if (!/responsive-table-wrapper/i.test(out)) {
-    out = out
-      .replace(/<table\b/gi, '<div class="responsive-table-wrapper"><table')
-      .replace(/<\/table\s*>/gi, '</table></div>')
+    // Some stored rows are malformed and carry more <table> than </table>.
+    // Wrapping those would emit an unclosed <div>, which the browser closes at
+    // the container edge — pulling everything after the table into the scroll
+    // box. Only wrap when the tags balance; an unbalanced row is left alone and
+    // still picks up the plain `table` rules in globals.css.
+    const opens = (out.match(/<table\b/gi) || []).length
+    const closes = (out.match(/<\/table\s*>/gi) || []).length
+
+    if (opens === closes) {
+      out = out
+        .replace(/<table\b/gi, '<div class="responsive-table-wrapper"><table')
+        .replace(/<\/table\s*>/gi, '</table></div>')
+    }
   }
 
   return out.trim()
