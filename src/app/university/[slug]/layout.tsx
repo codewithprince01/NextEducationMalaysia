@@ -38,7 +38,7 @@ export default async function UniversityLayout({ children, params }: Props) {
 
       {/* Main Content Area */}
       <main className="w-full bg-white min-h-[600px]">
-        <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] py-8">
+        <div className="site-container py-8">
           {children}
         </div>
       </main>

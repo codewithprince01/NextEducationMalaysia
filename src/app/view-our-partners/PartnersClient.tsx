@@ -493,7 +493,7 @@ export default function PartnersClient() {
       <section className="relative bg-blue-800 text-white py-20 overflow-hidden">
         <div className="absolute inset-0 bg-blue-900/30" />
         <div className="absolute inset-0 bg-[url('https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=1920')] bg-cover bg-center opacity-10" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative site-container text-center">
           <div className="flex items-center justify-center mb-6">
             <Globe className="w-8 h-8 text-cyan-300 mr-3" />
             <span className="text-cyan-100 text-lg font-medium">Global Network</span>
@@ -542,7 +542,7 @@ export default function PartnersClient() {
       </section>
 
       <section className="py-8 bg-gray-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
               <div className="md:col-span-2">
@@ -597,7 +597,7 @@ export default function PartnersClient() {
       </section>
 
       <section className="py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -646,7 +646,7 @@ export default function PartnersClient() {
       </section>
 
       <section className="bg-white py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center px-4 py-2 bg-cyan-100 text-cyan-800 rounded-full text-sm font-semibold mb-6">
               <Target className="w-4 h-4 mr-2" /> Partner Categories
@@ -683,7 +683,7 @@ export default function PartnersClient() {
       </section>
 
       <section className="py-10 bg-gradient-to-br from-gray-50 via-blue-50 to-cyan-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold mb-6">
               <CheckCircle className="w-4 h-4 mr-2" /> Core Benefits
@@ -708,7 +708,7 @@ export default function PartnersClient() {
       </section>
 
       <section className="py-10 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-16">
             <div className="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 rounded-full text-sm font-semibold mb-6">
               <Target className="w-4 h-4 mr-2" /> Partnership Process
@@ -746,7 +746,7 @@ export default function PartnersClient() {
       </section>
 
       <section className="py-10 bg-gradient-to-r from-blue-800 via-blue-900 to-cyan-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+        <div className="site-container text-center text-white">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Join Our Network?</h2>
           <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
             Become a trusted partner and help students achieve their dreams of studying in Malaysia.

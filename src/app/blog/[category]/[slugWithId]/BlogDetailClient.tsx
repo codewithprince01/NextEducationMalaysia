@@ -82,7 +82,7 @@ function formatBlogHTML(html?: string | null, sectionIndex: number | string | nu
 function BlogDetailSkeleton() {
   return (
     <div className="bg-gray-50 py-4 md:py-8 animate-pulse">
-      <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] flex flex-col lg:flex-row gap-6 md:gap-8">
+      <div className="site-container flex flex-col lg:flex-row gap-6 md:gap-8">
         <div className="w-full lg:w-3/4 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
           <div className="h-8 bg-gray-200 rounded w-3/4" />
           <div className="h-4 bg-gray-200 rounded w-1/3" />
@@ -257,7 +257,7 @@ export default function BlogDetailClient({
       `}</style>
 
       <div className="bg-gray-50 py-4 md:py-8">
-        <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] flex flex-col lg:flex-row gap-6 md:gap-8">
+        <div className="site-container flex flex-col lg:flex-row gap-6 md:gap-8">
 
           {/* ── Main Article Column ── */}
           <div className="w-full lg:w-3/4 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">

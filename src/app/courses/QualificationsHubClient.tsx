@@ -73,7 +73,7 @@ export default function QualificationsHubClient() {
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-10">
           Select Your <span className="text-blue-600">Qualified Level</span>
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 site-container">
           {qualificationLevels.map((item, index) => (
             <Link
               key={index}

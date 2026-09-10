@@ -74,7 +74,7 @@ export default function ServiceDetailClient({ service, slug }: { service: Servic
       `}</style>
 
       <section className={heroClass}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 relative z-10">
+        <div className="site-container py-12 sm:py-16 md:py-20 relative z-10">
           <div className="text-center">
             <div className="flex justify-center mb-4 sm:mb-6">
               <div className="bg-white/15 backdrop-blur-sm p-3 sm:p-4 rounded-2xl border border-white/20">
@@ -102,7 +102,7 @@ export default function ServiceDetailClient({ service, slug }: { service: Servic
 
       {showEnhancedTabs && (
         <div className="bg-white sticky top-[58px] z-[10] shadow-sm border-b border-gray-200 transition-all">
-          <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="site-container py-3">
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => setContentTab('documents')}

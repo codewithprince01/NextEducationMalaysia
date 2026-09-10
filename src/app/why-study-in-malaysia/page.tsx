@@ -31,7 +31,7 @@ const costTable = [
 export default function WhyStudyInMalaysiaPage() {
   return (
     <div className="bg-slate-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="site-container py-12">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left Column: Main Narrative */}
           <div className="lg:w-2/3 space-y-16">

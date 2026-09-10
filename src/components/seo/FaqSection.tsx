@@ -12,7 +12,7 @@ export default function FaqSection({ title = 'Frequently Asked Questions', faqs 
   if (!Array.isArray(faqs) || faqs.length === 0) return null
 
   return (
-    <section className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-10">
+    <section className="site-container py-8 sm:py-10">
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-6 md:p-8">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">{title}</h2>
         <div className="space-y-4">

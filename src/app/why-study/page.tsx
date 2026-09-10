@@ -39,7 +39,7 @@ export default function WhyStudyPage() {
 
       <div className="bg-gradient-to-br from-blue-700 to-blue-800 py-24 relative overflow-hidden border-b border-blue-900/20">
         <div className="absolute inset-0 bg-linear-to-br from-blue-500/15 to-blue-900/20" />
-        <div className="relative max-w-[1400px] mx-auto px-4 text-center">
+        <div className="relative site-container text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/15 border border-white/30 rounded-full text-white text-xs font-bold uppercase tracking-widest mb-6">
             Education Hub
           </div>
@@ -52,7 +52,7 @@ export default function WhyStudyPage() {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 py-20 space-y-24">
+      <div className="site-container py-20 space-y-24">
         <div className="space-y-12">
           <h2 className="text-3xl font-black text-center text-gray-900">Top Reasons to Choose Malaysia</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">

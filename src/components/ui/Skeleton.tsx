@@ -13,7 +13,7 @@ export const FieldStudySkeleton = () => {
   return (
     <div className="min-h-[800px] bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 py-12">
       {/* Header Skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-8 text-center">
+      <div className="site-container py-6 mb-8 text-center">
         <Skeleton className="w-16 h-16 rounded-xl mx-auto mb-4" />
         <Skeleton className="h-8 w-1/2 mx-auto mb-3" />
         <Skeleton className="h-4 w-1/3 mx-auto" />
@@ -25,7 +25,7 @@ export const FieldStudySkeleton = () => {
       </div>
 
       {/* Main Content Skeleton */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div className="site-container space-y-10">
         {/* Year Cards Skeleton */}
         <div className="flex gap-4 overflow-hidden">
           {[1, 2, 3, 4].map((i) => (

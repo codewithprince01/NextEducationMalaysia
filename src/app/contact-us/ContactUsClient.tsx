@@ -88,7 +88,7 @@ export default function ContactUsClient() {
       </section>
 
       {/* ── 2. QUICK CONTACT CARDS BAR ── */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 -mt-8 relative z-20">
+      <section className="site-container -mt-8 relative z-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: WhatsApp */}
           <a
@@ -152,7 +152,7 @@ export default function ContactUsClient() {
       </section>
 
       {/* ── 3. OFFICES (LEFT) & CONTACT FORM (RIGHT) SECTION ── */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 pt-12 relative z-20">
+      <section className="site-container pt-12 relative z-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Global Offices Directory (lg:col-span-7) */}
@@ -250,7 +250,7 @@ export default function ContactUsClient() {
       </section>
 
       {/* ── 4. BOTTOM CTA BAR ── */}
-      <section className="max-w-7xl mx-auto px-4 md:px-6 pt-16">
+      <section className="site-container pt-16">
         <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200/80 shadow-xs relative overflow-hidden text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">

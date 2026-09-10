@@ -35,7 +35,7 @@ export default function TeamEducationMalaysiaClient({ initialContent }: { initia
         ]}
       />
 
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div className="site-container py-6">
         <div className="border border-gray-200 rounded-lg p-6 shadow-sm">
           <div className="flex items-start gap-4 mb-4">
             <div className="relative">

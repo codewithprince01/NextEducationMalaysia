@@ -395,7 +395,7 @@ export default function SpecializationDetailClient({
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50">
       <Breadcrumb items={breadcrumbItems} />
 
-      <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] pt-3 pb-5">
+      <div className="site-container pt-3 pb-5">
         {/* HERO BANNER CARD */}
         <div className="bg-white rounded-2xl shadow-md border border-slate-200/80 overflow-hidden mb-4">
           <div className="relative h-52 sm:h-64 md:h-80 lg:h-96 overflow-hidden bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900">
@@ -535,7 +535,7 @@ export default function SpecializationDetailClient({
             paddingTop: 0,
           }}
         >
-          <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)]">
+          <div className="site-container">
             <ul className="links scrollTo vertically-scrollbar flex gap-0 m-0 p-0 list-none overflow-x-auto overflow-y-hidden">
               {tabs.map(({ name, icon }) => (
                 <li
@@ -562,7 +562,7 @@ export default function SpecializationDetailClient({
         </div>
       )}
 
-      <div className="max-w-[1700px] mx-auto w-full px-[clamp(1.5rem,4vw,4.5rem)] pb-8 sm:pb-12 pt-2">
+      <div className="site-container pb-8 sm:pb-12 pt-2">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
           <div className="lg:col-span-9 space-y-4 sm:space-y-6">
             {tabs.length > 0 ? (

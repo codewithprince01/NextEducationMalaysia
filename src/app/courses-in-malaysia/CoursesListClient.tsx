@@ -1628,7 +1628,7 @@ export default function CoursesListClient({
     <>
       {/* Breadcrumb section */}
       <div className="w-full bg-blue-50 shadow-sm min-h-[40px] sm:min-h-[52px]">
-        <div className="max-w-[1600px] mx-auto px-3 sm:px-6 py-2 sm:py-3">
+        <div className="site-container py-2 sm:py-3">
           <div className="flex items-center flex-nowrap gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto scrollbar-hide">
             <Link href="/" className="flex items-center gap-1 hover:underline hover:text-blue-500 shrink-0">
               <Home size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -1668,7 +1668,7 @@ export default function CoursesListClient({
       )}
 
       <div className="bg-gradient-to-br from-blue-50 to-white p-2 sm:p-4 min-h-screen">
-        <div className="max-w-[1600px] mx-auto px-2 sm:px-4 py-2">
+        <div className="site-container py-2">
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
 
             {/* Mobile filter button */}

@@ -67,7 +67,7 @@ export default function WhatPeopleSayClient() {
         </div>
       </section>
 
-      <div className="max-w-[1400px] mx-auto px-4 py-20">
+      <div className="site-container py-20">
         <div className="flex flex-col gap-24">
           {/* Reviews Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

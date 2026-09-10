@@ -61,7 +61,7 @@ export default function GraduatePassClient() {
       ]} />
       {/* Hero */}
       <section className="relative bg-linear-to-br from-blue-800 to-blue-900 text-white py-12 sm:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Globe className="w-4 h-4" /> Live &amp; Work in Malaysia
@@ -82,7 +82,7 @@ export default function GraduatePassClient() {
 
       {/* About Section */}
       <section id="about" className="py-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-3xl mx-auto mb-8">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">What is the Graduate Pass?</h2>
             <p className="text-lg text-slate-600 leading-relaxed">The Graduate Pass is a Social Visit Pass issued by the Department of Immigration Malaysia, allowing eligible international graduates to remain in Malaysia for an additional 12 months after completing their degree.</p>
@@ -104,7 +104,7 @@ export default function GraduatePassClient() {
 
       {/* Benefits Section */}
       <section id="benefits" className="py-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-3xl mx-auto mb-8">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">The Benefits of the Graduate Pass</h2>
             <p className="text-lg text-slate-600">Everything you gain with the Graduate Pass</p>
@@ -123,7 +123,7 @@ export default function GraduatePassClient() {
 
       {/* Nationalities Section */}
       <section className="py-8 bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-3xl mx-auto mb-6">
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Eligible Nationalities</h2>
             <p className="mt-4 text-blue-100 text-lg">The Graduate Pass is available for applicants from a wide range of countries worldwide.</p>
@@ -141,7 +141,7 @@ export default function GraduatePassClient() {
 
       {/* Eligibility Section */}
       <section id="eligibility" className="py-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-3xl mx-auto mb-4">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">Eligibility Requirements</h2>
             <p className="text-lg text-slate-600">You must meet all of the following criteria</p>
@@ -170,7 +170,7 @@ export default function GraduatePassClient() {
 
       {/* Documents Section */}
       <section id="documents" className="py-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-3xl mx-auto mb-4">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">Required Documents</h2>
             <p className="text-lg text-slate-600">Prepare the following for your application</p>
@@ -208,7 +208,7 @@ export default function GraduatePassClient() {
 
       {/* Process Section */}
       <section className="py-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-3xl mx-auto mb-4">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">Application Process</h2>
             <p className="text-lg text-slate-600">Simple steps to get your Graduate Pass</p>
@@ -234,7 +234,7 @@ export default function GraduatePassClient() {
 
       {/* FAQ Section */}
       <section id="faq" className="py-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center max-w-3xl mx-auto mb-4">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">Frequently Asked Questions</h2>
             <p className="text-lg text-slate-600">Common questions about the Graduate Pass</p>
@@ -255,7 +255,7 @@ export default function GraduatePassClient() {
 
       {/* Apply Section */}
       <section id="apply" className="py-8 bg-linear-to-br from-blue-600 to-blue-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl sm:text-4xl font-bold mb-6">Ready to Apply?</h2>
             <p className="text-xl text-emerald-50 mb-10 leading-relaxed">Your institution can submit the Graduate Pass application via the EMGS portal. For questions or help preparing documents, contact your university&apos;s international office.</p>

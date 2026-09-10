@@ -466,7 +466,7 @@ export default function UniversityListClient({
   return (
     <div className="bg-white">
       <div className="w-full bg-[#f0f7ff] border-b border-blue-100/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="site-container py-3">
           <div className="flex items-center space-x-2 text-sm font-medium text-gray-500 flex-wrap">
             <Link href="/" className="hover:text-blue-500 transition-colors flex items-center whitespace-nowrap">
               <House className="w-4 h-4 mr-1 inline text-gray-400" />
@@ -480,7 +480,7 @@ export default function UniversityListClient({
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-2 md:py-3">
+      <div className="site-container py-2 md:py-3">
 
         <header className="mb-8">
           <h1 className="text-[42px] leading-[1.1] font-black text-[#0f172a] mb-2">

@@ -34,7 +34,7 @@ export function DiscoverMalaysiaPage() {
   return (
     <div className="min-h-screen bg-white">
       <header className="bg-gradient-to-br from-blue-700 via-blue-800 to-blue-700 text-white border-b border-blue-900/20 min-h-[68vh] flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center w-full">
+        <div className="site-container py-20 text-center w-full">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Jobs & Career Opportunities in Malaysia</h1>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
             Your complete guide to working in Malaysia as an international student - during studies, after graduation, and beyond
@@ -42,7 +42,7 @@ export function DiscoverMalaysiaPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="site-container py-12">
         <section className="mb-16">
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -739,7 +739,7 @@ export function VisaGuidancePage() {
       <div className="relative bg-[#1e40af] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxwYXRoIGQ9Ik0zNiAxOGMzLjMxNCAwIDYgMi42ODYgNiA2cy0yLjY4NiA2LTYgNi02LTIuNjg2LTYtNiAyLjY4Ni02IDYtNiIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utb3BhY2l0eT0iLjA1IiBzdHJva2Utd2lkdGg9IjIiLz48L2c+PC9zdmc+')]" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 relative">
+        <div className="site-container py-16 sm:py-24 relative">
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <div className="bg-white/20 backdrop-blur-sm p-4 rounded-2xl shadow-xl">
@@ -767,7 +767,7 @@ export function VisaGuidancePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 space-y-24">
+      <div className="site-container py-16 sm:py-24 space-y-24">
         <div className="space-y-10">
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111827] mb-2">Required Documents</h2>

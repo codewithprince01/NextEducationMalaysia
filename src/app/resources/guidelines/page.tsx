@@ -22,7 +22,7 @@ export default function GuidelinesListingPage() {
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden bg-white border-b border-gray-50">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-linear-to-l from-blue-50/50 to-transparent" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="site-container relative">
           <div className="max-w-3xl">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-600 font-semibold text-sm mb-6 uppercase tracking-wider">
               Student Information
@@ -39,7 +39,7 @@ export default function GuidelinesListingPage() {
 
       {/* Grid Section */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {guidelines.map((item, idx) => (
               <div

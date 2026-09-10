@@ -216,7 +216,7 @@ export default function MQAPage() {
 
       <section id="home" className="relative bg-gradient-to-br bg-blue-800 text-white overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPBlVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIwLjUiIG9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
+        <div className="site-container py-8 sm:py-12 relative">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30 mb-4 shadow-sm">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
@@ -244,7 +244,7 @@ export default function MQAPage() {
       </section>
 
       <section id="about" className="py-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-6">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">What is MQA?</h2>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto mb-3" />
@@ -283,7 +283,7 @@ export default function MQAPage() {
       </section>
 
       <section className="pb-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-6">
             <h3 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">Key Roles</h3>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto" />
@@ -310,7 +310,7 @@ export default function MQAPage() {
           <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full filter blur-3xl" />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="site-container relative z-10">
           <div className="text-center mb-6">
             <h2 className="text-3xl sm:text-4xl font-bold mb-2">Why MQA Accreditation Matters</h2>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-400 to-blue-300 mx-auto mb-3" />
@@ -340,7 +340,7 @@ export default function MQAPage() {
       </section>
 
       <section id="process" className="py-8 bg-gradient-to-br from-blue-50 via-white to-blue-50/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-6">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">Accreditation Process</h2>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto mb-3" />
@@ -403,7 +403,7 @@ export default function MQAPage() {
       </section>
 
       <section id="for-you" className="py-8 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-6">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">What This Means For You</h2>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto mb-3" />
@@ -449,7 +449,7 @@ export default function MQAPage() {
       </section>
 
       <section id="check" className="py-8 bg-gradient-to-br from-blue-50 via-blue-50/30 to-blue-50/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-6">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">How to Verify Accreditation</h2>
             <div className="w-20 h-1 bg-gradient-to-r from-blue-600 to-blue-400 mx-auto mb-3" />

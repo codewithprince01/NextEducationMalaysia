@@ -26,7 +26,7 @@ export default async function ScholarshipsPage() {
   return (
     <>
       <nav className="bg-gray-50 border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="site-container py-3">
           <ol className="flex items-center space-x-2 text-sm">
             <li className="flex items-center">
               <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">Home</Link>

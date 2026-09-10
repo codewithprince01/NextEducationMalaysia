@@ -51,7 +51,7 @@ export default function StudyInMalaysiaPage() {
       {/* Hero */}
       <div className="bg-linear-to-br from-blue-700 via-blue-800 to-indigo-900 py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-        <div className="relative max-w-7xl mx-auto px-4 text-center">
+        <div className="relative site-container text-center">
           <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-full text-blue-200 text-xs font-bold uppercase tracking-widest mb-6">
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -75,7 +75,7 @@ export default function StudyInMalaysiaPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-20 space-y-32">
+      <div className="site-container py-20 space-y-32">
         {/* Highlights */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
           {HIGHLIGHTS.map((h) => (

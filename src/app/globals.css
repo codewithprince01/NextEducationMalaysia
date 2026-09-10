@@ -310,6 +310,26 @@ h3:not(.text-white) { font-size: 1.125rem !important; font-weight: 600 !importan
 h3.text-white, .text-white h3 { color: white !important; }
 
 /* ============================================
+   SITE CONTAINER
+   --------------------------------------------
+   The single horizontal rhythm for every page. One class in place of the
+   half-dozen ad-hoc `max-w-7xl px-4 sm:px-6 lg:px-8` variants that used to be
+   copied around, so a page hero, breadcrumb, tab bar and body all line up on
+   the same edge.
+
+   The gutter is fluid rather than stepped: it tracks the viewport at 4.5vw so
+   it grows smoothly from a small laptop to a desktop instead of jumping at
+   breakpoints, clamped so phones keep a readable 24px margin and very wide
+   screens do not run away with 200px of empty space.
+   ============================================ */
+.site-container {
+  width: 100%;
+  max-width: 1700px;
+  margin-inline: auto;
+  padding-inline: clamp(1.5rem, 4.5vw, 5rem);
+}
+
+/* ============================================
    MISC UTILITIES
    ============================================ */
 .location-container { display: flex !important; align-items: center !important; gap: 0.25rem !important; white-space: nowrap !important; }

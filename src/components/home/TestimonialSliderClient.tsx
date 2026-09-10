@@ -73,7 +73,7 @@ export default function TestimonialSliderClient() {
 
   if (loading) {
     return (
-      <div className="max-w-[1400px] mx-auto px-4 py-20 flex gap-6 overflow-hidden">
+      <div className="site-container py-20 flex gap-6 overflow-hidden">
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex-shrink-0 w-full md:w-[400px] h-[350px] bg-gray-100 rounded-[2.5rem] animate-pulse" />
         ))}
@@ -85,7 +85,7 @@ export default function TestimonialSliderClient() {
 
   return (
     <section className="py-24 bg-white overflow-hidden">
-      <div className="max-w-[1400px] mx-auto px-4">
+      <div className="site-container">
         <div className="flex flex-col items-center text-center mb-16 space-y-4">
            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full text-xs font-bold text-blue-600 uppercase tracking-widest">
               Success Stories
