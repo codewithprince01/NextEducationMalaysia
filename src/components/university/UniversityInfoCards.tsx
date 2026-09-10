@@ -4,7 +4,7 @@ import { FaGraduationCap, FaEye, FaSchool } from 'react-icons/fa'
 export default function UniversityInfoCards({ universityData, cols = 4 }: { universityData: any; cols?: number }) {
   const gridClass = cols === 2 ? 'grid-cols-2' : 'grid grid-cols-2 md:grid-cols-4'
   const scholarshipCount = Number(universityData?.scholarship_count || 0)
-  const hasScholarship = Boolean(universityData?.Scholarship || universityData?.scholarship || scholarshipCount > 0)
+  const hasScholarship = Boolean(universityData?.Scholarship || universityData?.scholarship || scholarshipCount > 0 || Number(universityData?.scholarship_available) === 1)
   const totalCourses =
     Number(universityData?.active_programs_count || 0) ||
     Number(universityData?.courses || 0) ||
