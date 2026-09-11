@@ -273,6 +273,8 @@ async function fetchUniversityFull(slug: string) {
     scholarship_count: Number(scholarshipCount?.[0]?.total || 0),
     active_programs_count: programs.length,
     instituteType: typeData,
+    review_count: parsedReviewCount,
+    average_rating: parsedAverageRating,
     reviews: (recentReviews || []).map((row: any) => ({
       name: row?.name || '',
       description: row?.description || '',

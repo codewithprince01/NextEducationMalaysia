@@ -105,6 +105,19 @@ export function universityJsonLd(uni: {
     }))
     .filter((r) => r.name && r.description && Number.isFinite(r.rating) && r.rating > 0)
     .slice(0, 5)
+  // Google rejects a review list that has no aggregateRating beside it
+  // ("Multiple reviews without aggregateRating object"). When the stored
+  // aggregate is missing, derive one from the reviews we are about to emit so
+  // the two can never drift apart.
+  const clampRating = (value: number) => Math.min(5, Math.max(1, Math.round(value * 10) / 10))
+  const derivedRatingValue = realReviews.length > 0
+    ? clampRating(realReviews.reduce((sum, r) => sum + r.rating, 0) / realReviews.length)
+    : 0
+  const aggregateRatingValue = hasRealAggregate ? clampRating(ratingValue) : derivedRatingValue
+  const aggregateReviewCount = hasRealAggregate
+    ? Math.max(reviewCount, realReviews.length)
+    : realReviews.length
+  const hasAggregate = aggregateRatingValue > 0 && aggregateReviewCount > 0
   const keywords = Array.from(new Set([
     `${uni.name || 'University'} Malaysia`,
     uni.city || '',
@@ -143,16 +156,17 @@ export function universityJsonLd(uni: {
     keywords,
   }
 
-  if (hasRealAggregate) {
+  if (hasAggregate) {
     data.aggregateRating = {
       '@type': 'AggregateRating',
-      ratingValue: String(ratingValue),
-      reviewCount: String(reviewCount),
+      ratingValue: String(aggregateRatingValue),
+      reviewCount: String(aggregateReviewCount),
       bestRating: '5',
+      worstRating: '1',
     }
   }
 
-  if (realReviews.length > 0) {
+  if (realReviews.length > 0 && hasAggregate) {
     data.review = realReviews.map((r) => ({
       '@type': 'Review',
       author: {
@@ -162,8 +176,9 @@ export function universityJsonLd(uni: {
       reviewBody: r.description,
       reviewRating: {
         '@type': 'Rating',
-        ratingValue: String(r.rating),
+        ratingValue: String(clampRating(r.rating)),
         bestRating: '5',
+        worstRating: '1',
       },
     }))
   }
