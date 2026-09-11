@@ -173,13 +173,30 @@ export class SitemapDataService {
         WHERE cs.slug IS NOT NULL
           AND cs.slug <> ''
           AND cs.website = ?
-          AND (
-            sl.id IS NOT NULL
-            OR EXISTS (
-              SELECT 1
-              FROM specialization_contents sc
-              WHERE sc.specialization_id = cs.id
-            )
+          -- Both /specialization/<slug> and /specialization/<slug>/<level> render
+          -- through getSpecializationBySlug(), which returns null (-> notFound())
+          -- unless the specialization has at least one specialization_contents row.
+          -- Having a level row is NOT enough, so listing those URLs would publish
+          -- 404s in the sitemap.
+          AND EXISTS (
+            SELECT 1
+            FROM specialization_contents sc
+            WHERE sc.specialization_id = cs.id
+          )
+          -- Some slugs are duplicated across several course_specializations rows.
+          -- fetchSpecializationDetail() resolves the lowest matching id, so only
+          -- that row's levels are reachable; emitting the other rows' levels would
+          -- publish 404s.
+          AND cs.id = (
+            SELECT MIN(cs2.id)
+            FROM course_specializations cs2
+            WHERE cs2.slug = cs.slug
+              AND cs2.website = cs.website
+              AND EXISTS (
+                SELECT 1
+                FROM specialization_contents sc2
+                WHERE sc2.specialization_id = cs2.id
+              )
           )
         ORDER BY cs.id ASC
       `, SITE_VAR) as any[];

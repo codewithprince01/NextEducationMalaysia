@@ -29,6 +29,10 @@ async function fetchSpecializationDetail(slug: string) {
         FROM specialization_contents sc
         WHERE sc.specialization_id = cs.id
       )
+    -- Some slugs are duplicated across rows. Without an explicit order the row we
+    -- get back is up to the storage engine; pinning it to the lowest id keeps the
+    -- page stable and lets the sitemap builder target the same row.
+    ORDER BY cs.id ASC
     LIMIT 1
   `, slug, SITE_VAR) as any[]
 
