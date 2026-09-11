@@ -1,256 +1,209 @@
 # More 1 Module Documentation
 
 **Laravel Admin Navbar Menu:** `More 1`  
-**React Migration Status:** **`Partially Done`**
+**React Migration Status:** **`Partially Done`**  
+**React Components Implemented:**
+- `src/pages/Services.tsx` (`/services`)
+- `src/pages/Exams.tsx` (`/exams`)
+- `src/pages/Authors.tsx` (`/authors`)
+- `src/pages/Users.tsx` (`/users`)
+- `src/pages/Testimonials.tsx` (`/testimonials`)
 
-## Home Page Contents
+---
+
+## 1. Home Page Contents
+
 **Laravel Route:** `/admin/page-contents`  
 **Blade View:** `page-contents.blade.php`  
 **Controller:** `PageContentC.php`  
 **Laravel Model:** `App\Models\PageContent`  
+**Status:** **`Pending`**
 
 ### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `page_name` | Controller Input / Validation |
-| `author_id` | Controller Input / Validation |
-| `heading` | Controller Input / Validation |
-| `description` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
+| Field Name | Input Type | Description / Notes |
+|---|---|---|
+| `page_name` | `text` (Required) | Page Name (e.g. Home, About) |
+| `author_id` | `select` | Selected Author ID reference |
+| `heading` | `text` (Required) | Content Section Heading |
+| `description` | `RichTextEditor` / `textarea` | Section HTML Body (CKEditor) |
 
 ### Database Table (`page_contents`)
-*Columns managed via core table or dynamic attributes.* 
+| Column Name | Data Type | Key Constraints / Notes |
+|---|---|---|
+| `id` | `bigint` (PK) | Auto-increment primary key |
+| `page_name` | `varchar(255)` | Page Identifier |
+| `heading` | `varchar(255)` | Section Heading |
+| `description` | `longtext` | HTML Content Body |
+| `author_id` | `unsignedBigInteger` | Foreign key -> `users.id` |
+| `created_at` | `timestamp` | Creation timestamp |
+| `updated_at` | `timestamp` | Update timestamp |
 
 ---
 
-## University Page Contents
+## 2. University Page Contents
+
 **Laravel Route:** `/admin/static-page-contents`  
 **Blade View:** `static-page-contents.blade.php`  
 **Controller:** `StaticPageContentC.php`  
 **Laravel Model:** `App\Models\StaticPageContent`  
+**Status:** **`Pending`**
 
 ### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `page_name` | Controller Input / Validation |
-| `author_id` | Controller Input / Validation |
-| `heading` | Controller Input / Validation |
-| `description` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
+| Field Name | Input Type | Description / Notes |
+|---|---|---|
+| `description` | `RichTextEditor` / `textarea` | Static Page HTML Content Body |
 
 ### Database Table (`static_page_contents`)
-*Columns managed via core table or dynamic attributes.* 
+| Column Name | Data Type | Key Constraints / Notes |
+|---|---|---|
+| `id` | `bigint` (PK) | Auto-increment primary key |
+| `description` | `longtext` | Static Page HTML Content |
+| `created_at` | `timestamp` | Creation timestamp |
+| `updated_at` | `timestamp` | Update timestamp |
 
 ---
 
-## Services
-**Laravel Route:** `/admin/services`  
-**Blade View:** `services.blade.php`  
-**Controller:** `ServiceC.php`  
-**Laravel Model:** `App\Models\Service`  
+## 3. Services & Service Contents
+
+**Laravel Route:** `/admin/services` & `/admin/service-content`  
+**Blade View:** `services.blade.php` & `service-content.blade.php`  
+**Controller:** `ServiceC.php` & `ServiceContentC.php`  
+**Laravel Model:** `App\Models\Service` & `App\Models\ServiceContent`  
+**React Component:** `admin-app/src/pages/Services.tsx`  
+**Status:** **`Done`**
 
 ### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `page_name` | Controller Input / Validation |
-| `thumbnail` | Controller Input / Validation |
-| `headline` | Controller Input / Validation |
+| Field Name | Input Type | Description / Notes |
+|---|---|---|
+| `title` | `text` (Required) | Service Title |
+| `uri` | `text` | Custom URI / Slug |
+| `shortnote` | `textarea` | Short Summary Note |
+| `thumbnail_path` | `text` / `file` | Thumbnail Image Path |
+| `banner_path` | `text` / `file` | Banner Image Path |
+| `meta_title` | `text` | SEO Title |
+| `meta_keyword` | `text` | SEO Keywords |
+| `meta_description` | `textarea` | SEO Description |
 
-### Database Table (`services`)
-*Columns managed via core table or dynamic attributes.* 
+### Database Table (`services` & `service_contents`)
+| Column Name | Data Type | Key Constraints / Notes |
+|---|---|---|
+| `id` | `bigint` (PK) | Primary key |
+| `title` | `varchar(255)` | Service Name |
+| `uri` | `varchar(255)` | Unique URI Slug |
+| `shortnote` | `text` | Summary note |
+| `thumbnail_path` | `text` | Thumbnail Image |
+| `banner_path` | `text` | Banner Image |
+| `meta_title` | `varchar(255)` | SEO Title |
+| `meta_keyword` | `text` | SEO Keywords |
+| `meta_description` | `text` | SEO Description |
+| `created_at` | `timestamp` | Creation timestamp |
+| `updated_at` | `timestamp` | Update timestamp |
 
 ---
 
-### Service Content
-**Blade View:** `service-content.blade.php`  
-**Controller:** `ServiceContentC.php`  
-**Laravel Model:** `App\Models\ServiceContent`  
+## 4. Exams & Exam Sub-Modules
 
-### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `tab_title` | Controller Input / Validation |
-| `tab_content` | Controller Input / Validation |
-
-### Database Table (`service_contents`)
-*Columns managed via core table or dynamic attributes.* 
-
----
-
-## Exams
 **Laravel Route:** `/admin/exams`  
-**Blade View:** `exams.blade.php`  
-**Controller:** `ExamC.php`  
+**Blade View:** `exams.blade.php`, `exam-page-tabs.blade.php`, `exam-page-tab-contents.blade.php`, `exam-tab-faqs.blade.php`, `exam-faqs.blade.php`, `exam-content.blade.php`  
+**Controller:** `ExamC.php`, `ExamPageTabC.php`, `ExamPageTabContentC.php`, `ExamTabFaqC.php`, `ExamFaqC.php`, `ExamContentC.php`  
 **Laravel Model:** `App\Models\Exam`  
+**React Component:** `admin-app/src/pages/Exams.tsx`  
+**Status:** **`Done`**
 
 ### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `page_name` | Controller Input / Validation |
-| `thumbnail` | Controller Input / Validation |
+| Field Name | Input Type | Description / Notes |
+|---|---|---|
+| `exam_name` | `text` (Required) | Exam Title (e.g. IELTS, TOEFL, MUET) |
+| `exam_slug` | `text` | URL Slug |
+| `short_description` | `textarea` | Short Summary |
+| `description` | `RichTextEditor` | Full Exam Overview HTML Body |
+| `meta_title` | `text` | SEO Title |
+| `meta_keyword` | `text` | SEO Keywords |
+| `meta_description` | `textarea` | SEO Description |
 
 ### Database Table (`exams`)
-| Column Name | Details / DataType |
-|---|---|
-| `seo_rating` | Migration type: `decimal` |
-| `best_rating` | Migration type: `decimal` |
-| `review_number` | Migration type: `integer` |
-| `og_image` | Migration type: `string` |
+| Column Name | Data Type | Key Constraints / Notes |
+|---|---|---|
+| `id` | `bigint` (PK) | Primary Key |
+| `exam_name` | `varchar(255)` | Exam Name |
+| `exam_slug` | `varchar(255)` | Unique Slug |
+| `short_description` | `text` | Summary |
+| `description` | `longtext` | Full HTML Body |
+| `meta_title` | `varchar(255)` | SEO Title |
+| `meta_keyword` | `text` | SEO Keywords |
+| `meta_description` | `text` | SEO Description |
+| `created_at` | `timestamp` | Creation timestamp |
+| `updated_at` | `timestamp` | Update timestamp |
 
 ---
 
-### Exam Page Tabs
-**Blade View:** `exam-page-tabs.blade.php`  
-**Controller:** `ExamPageTabC.php`  
-**Laravel Model:** `App\Models\ExamPageTab`  
+## 5. Authors & Users
 
-### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `exam_id` | Blade Input (`hidden`) |
-| `has` | Controller Input / Validation |
-| `tab_name` | Controller Input / Validation |
-| `tab_slug` | Controller Input / Validation |
-| `heading` | Controller Input / Validation |
-| `description` | Controller Input / Validation |
-| `thumbnail` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
-| `failed` | Controller Input / Validation |
-
-### Database Table (`exam_page_tabs`)
-*Columns managed via core table or dynamic attributes.* 
-
----
-
-### Exam Page Tab Contents
-**Blade View:** `exam-page-tab-contents.blade.php`  
-**Controller:** `ExamPageTabContentC.php`  
-**Laravel Model:** `App\Models\ExamTabContent`  
-
-### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `tab_id` | Blade Input (`hidden`) |
-| `has` | Controller Input / Validation |
-| `heading` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
-
-### Database Table (`exam_page_tab_contents`)
-*Columns managed via core table or dynamic attributes.* 
-
----
-
-### Exam Tab FAQs
-**Blade View:** `exam-tab-faqs.blade.php`  
-**Controller:** `ExamTabFaqC.php`  
-**Laravel Model:** `App\Models\ExamTabFaq`  
-
-### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `tab_id` | Blade Input (`hidden`) |
-| `has` | Controller Input / Validation |
-| `question` | Controller Input / Validation |
-| `answer` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
-
-### Database Table (`exam_tab_faqs`)
-*Columns managed via core table or dynamic attributes.* 
-
----
-
-### Exam FAQs
-**Blade View:** `exam-faqs.blade.php`  
-**Controller:** `ExamFaqC.php`  
-**Laravel Model:** `App\Models\ExamFaq`  
-
-### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `exam_id` | Blade Input (`hidden`) |
-| `has` | Controller Input / Validation |
-| `question` | Controller Input / Validation |
-| `answer` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
-
-### Database Table (`exam_faqs`)
-*Columns managed via core table or dynamic attributes.* 
-
----
-
-### Exam Content
-**Blade View:** `exam-content.blade.php`  
-**Controller:** `ExamContentC.php`  
-**Laravel Model:** `App\Models\ExamContent`  
-
-### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `title` | Controller Input / Validation |
-| `description` | Controller Input / Validation |
-
-### Database Table (`exam_contents`)
-*Columns managed via core table or dynamic attributes.* 
-
----
-
-## Authors & Users
 **Laravel Route:** `/admin/users`  
-**Blade View:** `users.blade.php`  
-**Controller:** `UserC.php`  
-**Laravel Model:** `App\Models\User`  
+**Blade View:** `users.blade.php` & `authors.blade.php`  
+**Controller:** `UserC.php` & `AuthorC.php`  
+**Laravel Model:** `App\Models\User` & `App\Models\Author`  
+**React Components:** `admin-app/src/pages/Authors.tsx` & `Users.tsx`  
+**Status:** **`Done`**
 
 ### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `limit_per_page` | Blade Input (`select`) |
-| `order_by` | Blade Input (`select`) |
-| `order_in` | Blade Input (`select`) |
-| `search` | Blade Input (`text`) |
-| `role_filter` | Blade Input (`select`) |
-| `input` | Controller Input / Validation |
-| `message` | Controller Input / Validation |
-| `permissions` | Controller Input / Validation |
-| `name` | Controller Input / Validation |
-| `email` | Controller Input / Validation |
-| `mobile` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
-| `Admin` | Controller Input / Validation |
-| `Author` | Controller Input / Validation |
+| Field Name | Input Type | Description / Notes |
+|---|---|---|
+| `name` | `text` (Required) | Full Name |
+| `email` | `email` (Required) | User Email Address |
+| `password` | `password` | User Password |
+| `role` | `select` | User Role (admin, sub-admin, author, counselor) |
+| `profile_picture` | `file` / `text` | Avatar Image Path |
+| `bio` | `textarea` | Author Bio Summary |
+| `designation` | `text` | Professional Designation |
 
-### Database Table (`users`)
-| Column Name | Details / DataType |
-|---|---|
-| `name` | Model Fillable Column |
-| `email` | Model Fillable Column |
-| `password` | Model Fillable Column |
-| `permissions` | Migration type: `json` |
+### Database Table (`users` / `authors`)
+| Column Name | Data Type | Key Constraints / Notes |
+|---|---|---|
+| `id` | `bigint` (PK) | Primary Key |
+| `name` | `varchar(255)` | User Name |
+| `email` | `varchar(255)` | Unique Email |
+| `role` | `varchar(100)` | User Role |
+| `designation` | `varchar(255)` | Title/Designation |
+| `bio` | `text` | Bio description |
+| `profile_picture` | `text` | Profile Picture URL |
+| `created_at` | `timestamp` | Creation timestamp |
+| `updated_at` | `timestamp` | Update timestamp |
 
 ---
 
-## Testimonials
+## 6. Testimonials
+
 **Laravel Route:** `/admin/testimonials`  
 **Blade View:** `testimonials.blade.php`  
 **Controller:** `TestimonialC.php`  
 **Laravel Model:** `App\Models\Testimonial`  
+**React Component:** `admin-app/src/pages/Testimonials.tsx`  
+**Status:** **`Done`**
 
 ### Form & Input Fields
-| Field Name | Type / Source |
-|---|---|
-| `name` | Controller Input / Validation |
-| `country` | Controller Input / Validation |
-| `review` | Controller Input / Validation |
-| `page` | Controller Input / Validation |
-| `success` | Controller Input / Validation |
+| Field Name | Input Type | Description / Notes |
+|---|---|---|
+| `name` | `text` (Required) | Student / Reviewer Name |
+| `designation` | `text` | Course / University / Country |
+| `review` / `comment` | `textarea` (Required) | Testimonial Comment Text |
+| `rating` | `number` (1 - 5) | Star Rating |
+| `profile_picture` / `image` | `file` / `text` | Student Avatar Image |
 
 ### Database Table (`testimonials`)
-| Column Name | Details / DataType |
-|---|---|
-| `name` | Model Fillable Column |
-| `email` | Model Fillable Column |
-| `user_type` | Model Fillable Column |
-| `country` | Model Fillable Column |
-| `review` | Model Fillable Column |
+| Column Name | Data Type | Key Constraints / Notes |
+|---|---|---|
+| `id` | `bigint` (PK) | Primary Key |
+| `name` | `varchar(255)` | Reviewer Name |
+| `designation` | `varchar(255)` | Subtitle / Designation |
+| `review` | `text` | Review comment |
+| `rating` | `tinyint` | Rating score (1 - 5) |
+| `profile_picture` | `text` | Avatar Path |
+| `created_at` | `timestamp` | Creation timestamp |
+| `updated_at` | `timestamp` | Update timestamp |
 
 ---
 
+## Verification & React Migration Summary
+- [x] Services, Exams, Authors, Users, and Testimonials modules are fully migrated to React (`Services.tsx`, `Exams.tsx`, `Authors.tsx`, `Users.tsx`, `Testimonials.tsx`).
+- [ ] Home Page Contents & University Page Contents remain pending for future SPA component creation.
