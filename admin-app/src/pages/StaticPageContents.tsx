@@ -12,31 +12,20 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  HelpCircle,
-  Filter
+  FileCode
 } from 'lucide-react';
 
-interface BlogOption {
+interface StaticPageContentItem {
   id: number;
   title?: string;
-  headline?: string;
-}
-
-interface BlogFaqItem {
-  id: number;
-  blog_id: number;
-  question: string;
-  answer?: string;
-  blog?: { id: number; title: string };
+  description?: string;
   created_at?: string;
 }
 
-export default function BlogFaqs() {
-  const [items, setItems] = useState<BlogFaqItem[]>([]);
-  const [blogs, setBlogs] = useState<BlogOption[]>([]);
+export default function StaticPageContents() {
+  const [items, setItems] = useState<StaticPageContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBlog, setSelectedBlog] = useState<string>('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pagination
@@ -48,9 +37,8 @@ export default function BlogFaqs() {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    blog_id: '',
-    question: '',
-    answer: '',
+    title: '',
+    description: '',
   });
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -58,72 +46,51 @@ export default function BlogFaqs() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchBlogs = async () => {
-    try {
-      const res = await fetch('/api/v1/admin/blogs');
-      const json = await res.json();
-      if (res.ok && (json.status || json.success)) {
-        setBlogs(json.data || []);
-      }
-    } catch {
-      // Ignore background error
-    }
-  };
-
   const fetchData = async () => {
     setLoading(true);
     try {
-      const url = selectedBlog
-        ? `/api/v1/admin/blog-faqs?blog_id=${selectedBlog}`
-        : '/api/v1/admin/blog-faqs';
-      const res = await fetch(url);
+      const res = await fetch('/api/v1/admin/static-page-contents');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setItems(json.data || []);
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch blog FAQs');
+        showToast('error', json.message || json.error || 'Failed to fetch university page contents');
       }
     } catch {
-      showToast('error', 'Network error while fetching blog FAQs');
+      showToast('error', 'Network error while fetching static page contents');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBlogs();
-  }, []);
-
-  useEffect(() => {
     fetchData();
-  }, [selectedBlog]);
+  }, []);
 
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormData({
-      blog_id: selectedBlog || (blogs[0]?.id ? String(blogs[0].id) : ''),
-      question: '',
-      answer: '',
+      title: 'University Page Content',
+      description: '',
     });
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: BlogFaqItem) => {
+  const handleOpenEdit = (item: StaticPageContentItem) => {
     setEditingId(item.id);
     setFormData({
-      blog_id: item.blog_id ? String(item.blog_id) : '',
-      question: item.question || '',
-      answer: item.answer || '',
+      title: item.title || 'University Page Content',
+      description: item.description || '',
     });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this Blog FAQ?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this static page content?');
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/v1/admin/blog-faqs/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/admin/static-page-contents/${id}`, { method: 'DELETE' });
       const json = await res.json();
 
       if (res.ok && (json.status || json.success)) {
@@ -139,16 +106,12 @@ export default function BlogFaqs() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.question.trim()) {
-      showToast('error', 'Question is required');
-      return;
-    }
 
     setSubmitting(true);
     try {
       const url = editingId
-        ? `/api/v1/admin/blog-faqs/${editingId}`
-        : '/api/v1/admin/blog-faqs';
+        ? `/api/v1/admin/static-page-contents/${editingId}`
+        : '/api/v1/admin/static-page-contents';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -173,8 +136,8 @@ export default function BlogFaqs() {
   };
 
   const filtered = items.filter((item) =>
-    (item.question || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.answer || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -187,8 +150,9 @@ export default function BlogFaqs() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+          }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -199,10 +163,10 @@ export default function BlogFaqs() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <HelpCircle className="w-6 h-6 text-indigo-600" /> Blog Article FAQs
+            <FileCode className="w-6 h-6 text-indigo-600" /> University Page Contents
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage frequently asked questions attached directly to blog posts.
+            Manage global static descriptions and overview content blocks for university pages.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -217,42 +181,23 @@ export default function BlogFaqs() {
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Blog FAQ
+            <Plus className="w-4 h-4" /> Add Static Content
           </button>
         </div>
       </div>
 
       {/* Controls */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search question or answer..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <select
-              value={selectedBlog}
-              onChange={(e) => setSelectedBlog(e.target.value)}
-              className="py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 max-w-xs"
-            >
-              <option value="">All Blogs</option>
-              {blogs.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.title || b.headline || `Blog #${b.id}`}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search content text..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+          />
         </div>
-
         <div className="text-xs text-slate-500">
           Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
         </div>
@@ -265,36 +210,32 @@ export default function BlogFaqs() {
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-16">ID</th>
-                <th className="py-3.5 px-4">Blog Post</th>
-                <th className="py-3.5 px-4">Question</th>
-                <th className="py-3.5 px-4">Answer Snippet</th>
+                <th className="py-3.5 px-4">Title / Section</th>
+                <th className="py-3.5 px-4">Description Snippet</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={4} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading blog FAQs...
+                    Loading static page contents...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
-                    No blog FAQs found.
+                  <td colSpan={4} className="py-12 text-center text-slate-400">
+                    No static page content sections found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-medium text-indigo-600 max-w-xs truncate">
-                      {item.blog?.title || `Blog #${item.blog_id}`}
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800 max-w-sm truncate">{item.question}</td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-md truncate">
-                      {item.answer ? item.answer.replace(/<[^>]+>/g, '') : '-'}
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.title || 'University Page Content'}</td>
+                    <td className="py-3.5 px-4 text-slate-500 max-w-lg truncate">
+                      {item.description ? item.description.replace(/<[^>]+>/g, '') : '-'}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -341,7 +282,7 @@ export default function BlogFaqs() {
           <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit Blog FAQ' : 'Add Blog FAQ'}
+                {editingId ? 'Edit Static Content' : 'Add Static Content'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -354,45 +295,25 @@ export default function BlogFaqs() {
             <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Select Blog Post <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  required
-                  value={formData.blog_id}
-                  onChange={(e) => setFormData({ ...formData, blog_id: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                >
-                  <option value="">-- Select Blog --</option>
-                  {blogs.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.title || b.headline || `Blog #${b.id}`}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Question <span className="text-rose-500">*</span>
+                  Content Title / Identifier
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="Enter the question..."
-                  value={formData.question}
-                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                  placeholder="e.g. University Page Overview"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Answer Body
+                  Description (Rich Text)
                 </label>
                 <RichTextEditor
-                  value={formData.answer}
-                  onChange={(content) => setFormData({ ...formData, answer: content })}
-                  placeholder="Write the detailed answer..."
+                  value={formData.description}
+                  onChange={(content) => setFormData({ ...formData, description: content })}
+                  placeholder="Write the static page overview description..."
                 />
               </div>
 
@@ -410,7 +331,7 @@ export default function BlogFaqs() {
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create Blog FAQ'}
+                  {editingId ? 'Save Changes' : 'Create Static Content'}
                 </button>
               </div>
             </form>
@@ -420,4 +341,3 @@ export default function BlogFaqs() {
     </div>
   );
 }
-

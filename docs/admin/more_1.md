@@ -1,8 +1,10 @@
 # More 1 Module Documentation
 
 **Laravel Admin Navbar Menu:** `More 1`  
-**React Migration Status:** **`Partially Done`**  
+**React Migration Status:** **`Done`**  
 **React Components Implemented:**
+- `src/pages/PageContents.tsx` (`/page-contents`)
+- `src/pages/StaticPageContents.tsx` (`/static-page-contents`)
 - `src/pages/Services.tsx` (`/services`)
 - `src/pages/Exams.tsx` (`/exams`)
 - `src/pages/Authors.tsx` (`/authors`)
@@ -17,14 +19,15 @@
 **Blade View:** `page-contents.blade.php`  
 **Controller:** `PageContentC.php`  
 **Laravel Model:** `App\Models\PageContent`  
-**Status:** **`Pending`**
+**React Component:** `admin-app/src/pages/PageContents.tsx`  
+**Status:** **`Done`**
 
 ### Form & Input Fields
 | Field Name | Input Type | Description / Notes |
 |---|---|---|
 | `page_name` | `text` (Required) | Page Name (e.g. Home, About) |
 | `author_id` | `select` | Selected Author ID reference |
-| `heading` | `text` (Required) | Content Section Heading |
+| `heading` | `text` | Content Section Heading |
 | `description` | `RichTextEditor` / `textarea` | Section HTML Body (CKEditor) |
 
 ### Database Table (`page_contents`)
@@ -46,11 +49,13 @@
 **Blade View:** `static-page-contents.blade.php`  
 **Controller:** `StaticPageContentC.php`  
 **Laravel Model:** `App\Models\StaticPageContent`  
-**Status:** **`Pending`**
+**React Component:** `admin-app/src/pages/StaticPageContents.tsx`  
+**Status:** **`Done`**
 
 ### Form & Input Fields
 | Field Name | Input Type | Description / Notes |
 |---|---|---|
+| `title` | `text` | Content Section Title / Identifier |
 | `description` | `RichTextEditor` / `textarea` | Static Page HTML Content Body |
 
 ### Database Table (`static_page_contents`)
@@ -204,6 +209,6 @@
 
 ---
 
-## Verification & React Migration Summary
-- [x] Services, Exams, Authors, Users, and Testimonials modules are fully migrated to React (`Services.tsx`, `Exams.tsx`, `Authors.tsx`, `Users.tsx`, `Testimonials.tsx`).
-- [ ] Home Page Contents & University Page Contents remain pending for future SPA component creation.
+## Verification & React Migration Confirmation
+- [x] All 6 sub-modules of More 1 (Home Page Contents, University Page Contents, Services, Exams, Authors/Users, and Testimonials) are fully implemented in React `admin-app`.
+- [x] Module status set to **`Done`** in `admin_modules_plan.md`.

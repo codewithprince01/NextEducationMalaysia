@@ -12,31 +12,30 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  HelpCircle,
-  Filter
+  Layout,
+  UserCheck
 } from 'lucide-react';
 
-interface BlogOption {
+interface AuthorOption {
   id: number;
-  title?: string;
-  headline?: string;
+  name: string;
 }
 
-interface BlogFaqItem {
+interface PageContentItem {
   id: number;
-  blog_id: number;
-  question: string;
-  answer?: string;
-  blog?: { id: number; title: string };
+  page_name: string;
+  heading?: string;
+  description?: string;
+  author_id?: number;
+  author?: { id: number; name: string };
   created_at?: string;
 }
 
-export default function BlogFaqs() {
-  const [items, setItems] = useState<BlogFaqItem[]>([]);
-  const [blogs, setBlogs] = useState<BlogOption[]>([]);
+export default function PageContents() {
+  const [items, setItems] = useState<PageContentItem[]>([]);
+  const [authors, setAuthors] = useState<AuthorOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedBlog, setSelectedBlog] = useState<string>('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pagination
@@ -48,9 +47,10 @@ export default function BlogFaqs() {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    blog_id: '',
-    question: '',
-    answer: '',
+    page_name: '',
+    author_id: '',
+    heading: '',
+    description: '',
   });
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -58,12 +58,12 @@ export default function BlogFaqs() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchBlogs = async () => {
+  const fetchAuthors = async () => {
     try {
-      const res = await fetch('/api/v1/admin/blogs');
+      const res = await fetch('/api/v1/admin/authors');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
-        setBlogs(json.data || []);
+        setAuthors(json.data || []);
       }
     } catch {
       // Ignore background error
@@ -73,57 +73,53 @@ export default function BlogFaqs() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const url = selectedBlog
-        ? `/api/v1/admin/blog-faqs?blog_id=${selectedBlog}`
-        : '/api/v1/admin/blog-faqs';
-      const res = await fetch(url);
+      const res = await fetch('/api/v1/admin/page-contents');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setItems(json.data || []);
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch blog FAQs');
+        showToast('error', json.message || json.error || 'Failed to fetch page contents');
       }
     } catch {
-      showToast('error', 'Network error while fetching blog FAQs');
+      showToast('error', 'Network error while fetching page contents');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBlogs();
-  }, []);
-
-  useEffect(() => {
+    fetchAuthors();
     fetchData();
-  }, [selectedBlog]);
+  }, []);
 
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormData({
-      blog_id: selectedBlog || (blogs[0]?.id ? String(blogs[0].id) : ''),
-      question: '',
-      answer: '',
+      page_name: 'Home',
+      author_id: authors[0]?.id ? String(authors[0].id) : '',
+      heading: '',
+      description: '',
     });
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: BlogFaqItem) => {
+  const handleOpenEdit = (item: PageContentItem) => {
     setEditingId(item.id);
     setFormData({
-      blog_id: item.blog_id ? String(item.blog_id) : '',
-      question: item.question || '',
-      answer: item.answer || '',
+      page_name: item.page_name || '',
+      author_id: item.author_id ? String(item.author_id) : '',
+      heading: item.heading || '',
+      description: item.description || '',
     });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this Blog FAQ?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this page content section?');
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/v1/admin/blog-faqs/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/admin/page-contents/${id}`, { method: 'DELETE' });
       const json = await res.json();
 
       if (res.ok && (json.status || json.success)) {
@@ -139,16 +135,16 @@ export default function BlogFaqs() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.question.trim()) {
-      showToast('error', 'Question is required');
+    if (!formData.page_name.trim()) {
+      showToast('error', 'Page name is required');
       return;
     }
 
     setSubmitting(true);
     try {
       const url = editingId
-        ? `/api/v1/admin/blog-faqs/${editingId}`
-        : '/api/v1/admin/blog-faqs';
+        ? `/api/v1/admin/page-contents/${editingId}`
+        : '/api/v1/admin/page-contents';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -173,8 +169,8 @@ export default function BlogFaqs() {
   };
 
   const filtered = items.filter((item) =>
-    (item.question || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.answer || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.page_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.heading || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -187,8 +183,9 @@ export default function BlogFaqs() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+          }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -199,10 +196,10 @@ export default function BlogFaqs() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <HelpCircle className="w-6 h-6 text-indigo-600" /> Blog Article FAQs
+            <Layout className="w-6 h-6 text-indigo-600" /> Home Page Contents
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage frequently asked questions attached directly to blog posts.
+            Manage main home page content sections, banners, and featured headlines.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -217,42 +214,23 @@ export default function BlogFaqs() {
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Blog FAQ
+            <Plus className="w-4 h-4" /> Add Page Content
           </button>
         </div>
       </div>
 
       {/* Controls */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search question or answer..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <select
-              value={selectedBlog}
-              onChange={(e) => setSelectedBlog(e.target.value)}
-              className="py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 max-w-xs"
-            >
-              <option value="">All Blogs</option>
-              {blogs.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.title || b.headline || `Blog #${b.id}`}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search page name or heading..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+          />
         </div>
-
         <div className="text-xs text-slate-500">
           Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
         </div>
@@ -265,36 +243,45 @@ export default function BlogFaqs() {
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-16">ID</th>
-                <th className="py-3.5 px-4">Blog Post</th>
-                <th className="py-3.5 px-4">Question</th>
-                <th className="py-3.5 px-4">Answer Snippet</th>
+                <th className="py-3.5 px-4">Page Name</th>
+                <th className="py-3.5 px-4">Heading</th>
+                <th className="py-3.5 px-4">Author</th>
+                <th className="py-3.5 px-4">Description Snippet</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading blog FAQs...
+                    Loading home page contents...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
-                    No blog FAQs found.
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    No home page content sections found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-medium text-indigo-600 max-w-xs truncate">
-                      {item.blog?.title || `Blog #${item.blog_id}`}
+                    <td className="py-3.5 px-4 font-semibold text-indigo-600">{item.page_name}</td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.heading || '-'}</td>
+                    <td className="py-3.5 px-4">
+                      {item.author ? (
+                        <span className="inline-flex items-center gap-1 font-medium text-slate-700 text-xs">
+                          <UserCheck className="w-3.5 h-3.5 text-purple-600" />
+                          {item.author.name}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-xs">Admin</span>
+                      )}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800 max-w-sm truncate">{item.question}</td>
                     <td className="py-3.5 px-4 text-slate-500 max-w-md truncate">
-                      {item.answer ? item.answer.replace(/<[^>]+>/g, '') : '-'}
+                      {item.description ? item.description.replace(/<[^>]+>/g, '') : '-'}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -341,7 +328,7 @@ export default function BlogFaqs() {
           <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit Blog FAQ' : 'Add Blog FAQ'}
+                {editingId ? 'Edit Page Content' : 'Add Page Content'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -352,47 +339,60 @@ export default function BlogFaqs() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Select Blog Post <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  required
-                  value={formData.blog_id}
-                  onChange={(e) => setFormData({ ...formData, blog_id: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                >
-                  <option value="">-- Select Blog --</option>
-                  {blogs.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.title || b.headline || `Blog #${b.id}`}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Page Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Home"
+                    value={formData.page_name}
+                    onChange={(e) => setFormData({ ...formData, page_name: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Author
+                  </label>
+                  <select
+                    value={formData.author_id}
+                    onChange={(e) => setFormData({ ...formData, author_id: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  >
+                    <option value="">-- Select Author --</option>
+                    {authors.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Question <span className="text-rose-500">*</span>
+                  Heading Title
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="Enter the question..."
-                  value={formData.question}
-                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                  placeholder="e.g. Welcome to Education Malaysia"
+                  value={formData.heading}
+                  onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
                   className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Answer Body
+                  Content Body (Rich Text)
                 </label>
                 <RichTextEditor
-                  value={formData.answer}
-                  onChange={(content) => setFormData({ ...formData, answer: content })}
-                  placeholder="Write the detailed answer..."
+                  value={formData.description}
+                  onChange={(content) => setFormData({ ...formData, description: content })}
+                  placeholder="Write the detailed section content..."
                 />
               </div>
 
@@ -410,7 +410,7 @@ export default function BlogFaqs() {
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create Blog FAQ'}
+                  {editingId ? 'Save Changes' : 'Create Section'}
                 </button>
               </div>
             </form>
@@ -420,4 +420,3 @@ export default function BlogFaqs() {
     </div>
   );
 }
-

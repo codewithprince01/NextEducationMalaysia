@@ -95,20 +95,20 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 ## More 1 Module
 
 **Documentation File:** [`docs/admin/more_1.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/more_1.md)
-**Overall Status:** **Partially Done**
+**Overall Status:** **Done**
 
-- **Home Page Contents** (`page-contents.blade.php`) -> Status: **Partially Done**
-- **University Page Contents** (`static-page-contents.blade.php`) -> Status: **Partially Done**
-- **Services** (`services.blade.php`) -> Status: **Partially Done**
-- **Service Content** (`service-content.blade.php`) -> Status: **Partially Done**
-- **Exams** (`exams.blade.php`) -> Status: **Partially Done**
-- **Exam Page Tabs** (`exam-page-tabs.blade.php`) -> Status: **Partially Done**
-- **Exam Page Tab Contents** (`exam-page-tab-contents.blade.php`) -> Status: **Partially Done**
-- **Exam Tab FAQs** (`exam-tab-faqs.blade.php`) -> Status: **Partially Done**
-- **Exam FAQs** (`exam-faqs.blade.php`) -> Status: **Partially Done**
-- **Exam Content** (`exam-content.blade.php`) -> Status: **Partially Done**
-- **Authors & Users** (`users.blade.php`) -> Status: **Partially Done**
-- **Testimonials** (`testimonials.blade.php`) -> Status: **Partially Done**
+- **Home Page Contents** (`page-contents.blade.php`) -> Status: **Done**
+- **University Page Contents** (`static-page-contents.blade.php`) -> Status: **Done**
+- **Services** (`services.blade.php`) -> Status: **Done**
+- **Service Content** (`service-content.blade.php`) -> Status: **Done**
+- **Exams** (`exams.blade.php`) -> Status: **Done**
+- **Exam Page Tabs** (`exam-page-tabs.blade.php`) -> Status: **Done**
+- **Exam Page Tab Contents** (`exam-page-tab-contents.blade.php`) -> Status: **Done**
+- **Exam Tab FAQs** (`exam-tab-faqs.blade.php`) -> Status: **Done**
+- **Exam FAQs** (`exam-faqs.blade.php`) -> Status: **Done**
+- **Exam Content** (`exam-content.blade.php`) -> Status: **Done**
+- **Authors & Users** (`users.blade.php`) -> Status: **Done**
+- **Testimonials** (`testimonials.blade.php`) -> Status: **Done**
 
 ## More 2 Module
 

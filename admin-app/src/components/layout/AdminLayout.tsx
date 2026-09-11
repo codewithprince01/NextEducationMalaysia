@@ -108,8 +108,6 @@ const navigationConfig: NavSection[] = [
           { label: 'All Blogs', href: '/blogs' },
           { label: 'Create Blog', href: '/blogs/create' },
           { label: 'Blog Categories', href: '/blog-category' },
-          { label: 'Blog Content Sections', href: '/blog-contents' },
-          { label: 'Blog FAQs', href: '/blog-faqs' },
         ],
       },
       {
@@ -122,6 +120,8 @@ const navigationConfig: NavSection[] = [
       },
       { label: 'Services', href: '/services', icon: Briefcase },
       { label: 'Exams', href: '/exams', icon: BookOpen },
+      { label: 'Home Page Contents', href: '/page-contents', icon: FileText },
+      { label: 'University Page Contents', href: '/static-page-contents', icon: FileText },
       { label: 'Internships', href: '/internships', icon: Award },
       { label: 'Partners', href: '/our-partners', icon: Handshake },
     ],
@@ -298,8 +298,8 @@ export default function AdminLayout() {
                           to={firstChild.href}
                           title={item.label}
                           className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${isAnyChildActive
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                             }`}
                         >
                           <Icon className={`w-5 h-5 shrink-0 ${isAnyChildActive ? 'text-white' : 'text-slate-500'}`} />
@@ -313,8 +313,8 @@ export default function AdminLayout() {
                         <button
                           onClick={() => toggleGroup(item.label)}
                           className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isAnyChildActive
-                              ? 'text-blue-700 bg-blue-50/90'
-                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            ? 'text-blue-700 bg-blue-50/90'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                             }`}
                         >
                           <div className="flex items-center gap-3">
@@ -337,8 +337,8 @@ export default function AdminLayout() {
                                   to={child.href}
                                   onClick={closeMobile}
                                   className={`block px-2.5 py-1.5 rounded-lg text-xs transition-all ${isActive
-                                      ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-extrabold shadow-md shadow-blue-600/20'
-                                      : 'text-slate-600 hover:text-blue-700 hover:bg-slate-50 font-medium'
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-extrabold shadow-md shadow-blue-600/20'
+                                    : 'text-slate-600 hover:text-blue-700 hover:bg-slate-50 font-medium'
                                     }`}
                                 >
                                   {child.label}
@@ -361,8 +361,8 @@ export default function AdminLayout() {
                         to={item.href}
                         title={item.label}
                         className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${isActive
-                            ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                           }`}
                       >
                         <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
@@ -376,8 +376,8 @@ export default function AdminLayout() {
                       to={item.href}
                       onClick={closeMobile}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         }`}
                     >
                       <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />

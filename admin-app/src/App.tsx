@@ -27,6 +27,8 @@ import Blogs from '@/pages/Blogs';
 import AddEditBlog from '@/pages/AddEditBlog';
 import BlogContents from '@/pages/BlogContents';
 import BlogFaqs from '@/pages/BlogFaqs';
+import PageContents from '@/pages/PageContents';
+import StaticPageContents from '@/pages/StaticPageContents';
 import StaticPageSeos from '@/pages/StaticPageSeos';
 import DynamicPageSeos from '@/pages/DynamicPageSeos';
 import DefaultOgImage from '@/pages/DefaultOgImage';
@@ -127,6 +129,8 @@ export default function App() {
               <Route path="/faqs" element={<Faqs />} />
               <Route path="/services" element={<Services />} />
               <Route path="/exams" element={<Exams />} />
+              <Route path="/page-contents" element={<PageContents />} />
+              <Route path="/static-page-contents" element={<StaticPageContents />} />
               <Route path="/internships" element={<Internships />} />
               <Route path="/our-partners" element={<OurPartners />} />
               <Route path="/malaysia-applications" element={<MalaysiaApplications />} />
