@@ -1,100 +1,120 @@
-# Admin Dashboard Modules Plan - NextEducationMalaysia
+# Admin Modules Migration Plan
 
-This document tracks the step-by-step migration and development of the Admin Dashboard in Next.js (`NextEducationMalaysia`), built as a React application under the `/admin` path based on reference functionality from `laravel-educationmalaysia.in`.
+This plan outlines all active modules in the Laravel Admin Panel (`laravel-educationmalaysia.in`) and their migration status to the React Admin App (`admin-app` under `NextEducationMalaysia`).
 
----
+## Programs Module
+**Documentation File:** [`docs/programs.md`](file:///C:/projects/NextEducationMalaysia/docs/programs.md)
+**Overall Status:** **Done**
 
-## 📋 Module Checklist
+- **Levels** (`level.blade.php`) -> Status: **Done**
+- **Course Category** (`course-category.blade.php`) -> Status: **Done**
+- **Course Category Contents** (`course-category-contents.blade.php`) -> Status: **Done**
+- **Course Category FAQs** (`course-category-faqs.blade.php`) -> Status: **Done**
+- **Course Specializations** (`course-specialization.blade.php`) -> Status: **Done**
+- **Course Specialization Contents** (`course-specialization-contents.blade.php`) -> Status: **Done**
+- **Course Specialization FAQs** (`course-specialization-faqs.blade.php`) -> Status: **Done**
+- **Specialization Levels** (`specialization-levels.blade.php`) -> Status: **Done**
+- **Specialization Level Contents** (`specialization-level-contents.blade.php`) -> Status: **Done**
 
-### 🔐 Phase 1: Authentication & Core Infrastructure (DONE ✅)
-- [x] `User` model mapping in `prisma/schema.prisma`
-- [x] Admin Auth API Routes (`/api/v1/admin/auth/login`, `logout`, `me`, `forgot-password`, `reset-password`)
-- [x] Admin Root Layout (`src/app/admin/layout.tsx`) & `AdminAuthContext`
-- [x] Admin Login Page (`/admin/login`)
-- [x] Forgot Password Page (`/admin/account/password/reset`)
-- [x] Forgot Password Email Sent Page (`/admin/forget-password/email-sent`)
-- [x] Magic Email Login Handler (`/admin/email-login`)
-- [x] Reset Password Page (`/admin/password/reset`)
-- [x] Invalid / Expired Link Page (`/admin/account/invalid-link`)
-- [x] Profile View & Edit (`/admin/profile`)
+## University Module
+**Documentation File:** [`docs/university.md`](file:///C:/projects/NextEducationMalaysia/docs/university.md)
+**Overall Status:** **Done**
 
----
+- **Institute Types** (`institute-types.blade.php`) -> Status: **Done**
+- **Study Modes** (`study-modes.blade.php`) -> Status: **Done**
+- **Universities (Main & Add/Edit)** (`university.blade.php`) -> Status: **Done**
+- **Add/Edit University Form** (`add-university.blade.php`) -> Status: **Done**
+- **University Overview** (`university-overview.blade.php`) -> Status: **Done**
+- **University Programs** (`university-programs.blade.php`) -> Status: **Done**
+- **University Program Contents** (`university-program-contents.blade.php`) -> Status: **Done**
+- **University Photos** (`university-photos.blade.php`) -> Status: **Done**
+- **University Videos** (`university-videos.blade.php`) -> Status: **Done**
+- **University Facilities** (`university-facilities.blade.php`) -> Status: **Done**
+- **Other Content** (`other-content.blade.php`) -> Status: **Done**
+- **University Rankings** (`university-rankings.blade.php`) -> Status: **Done**
+- **University Scholarships** (`university-scholarships.blade.php`) -> Status: **Done**
+- **University Scholarship Contents** (`university-scholarship-contents.blade.php`) -> Status: **Done**
+- **University Reviews** (`university-reviews.blade.php`) -> Status: **Done**
 
-### 📊 Phase 2: Dashboard Overview & Navigation Header
-- [ ] Admin Top Navigation Header & Sidebar Menu
-- [ ] Dashboard Main Page (`/admin/dashboard`)
-- [ ] Key Performance Indicators (Universities count, Programs count, Active Students count, Leads count, Blogs count)
-- [ ] Quick Action Shortcuts & System Quick Stats
+## Blog Module
+**Documentation File:** [`docs/blog.md`](file:///C:/projects/NextEducationMalaysia/docs/blog.md)
+**Overall Status:** **Done**
 
----
+- **Blog Categories** (`blog-category.blade.php`) -> Status: **Done**
+- **Blogs** (`blogs.blade.php`) -> Status: **Done**
+- **Blog Form (Add/Edit)** (`blogs-form.blade.php`) -> Status: **Done**
+- **Blog Contents** (`blog-content.blade.php`) -> Status: **Done**
+- **Blog FAQs** (`blog-faqs.blade.php`) -> Status: **Done**
 
-### 🎓 Phase 3: Programs & Course Structure
-- [ ] Levels Management (`/admin/levels`)
-- [ ] Course Categories (`/admin/course-category`) - CRUD, Import, Export, Bulk Update
-- [ ] Course Category Contents (`/admin/course-category-contents`)
-- [ ] Course Category FAQs (`/admin/course-category-faqs`)
-- [ ] Course Specializations (`/admin/course-specializations`) - CRUD, Category Filter, Import, Export
-- [ ] Course Specialization Contents & FAQs
-- [ ] Course Specialization Levels & Contents
-- [ ] Programs List (`/admin/programs`)
+## SEOS Module
+**Documentation File:** [`docs/seos.md`](file:///C:/projects/NextEducationMalaysia/docs/seos.md)
+**Overall Status:** **Done**
 
----
+- **Static Page SEO** (`static-page-seos.blade.php`) -> Status: **Done**
+- **Dynamic Page SEO** (`dynamic-page-seos.blade.php`) -> Status: **Done**
+- **Default OG Image** (`default-og-image.blade.php`) -> Status: **Done**
 
-### 🏛️ Phase 4: University Management
-- [ ] Institute Types (`/admin/institute-types`)
-- [ ] Study Modes (`/admin/study-modes`)
-- [ ] Universities List (`/admin/university`) - Filtering, Search, Pagination, Export, Import, Bulk Update
-- [ ] Add / Edit University (`/admin/university/add` & `/admin/university/update/[id]`) - Form with logo, banner, rating, ranks, `scholarship_available`, `is_local`, `is_international`
-- [ ] University Overviews (`/admin/university-overview/[id]`)
-- [ ] University Programs (`/admin/university-programs/[id]`) - CRUD, Import, Fee Export
-- [ ] University Program Contents
-- [ ] University Photo Gallery & Video Gallery
-- [ ] University Facilities
-- [ ] University Rankings & University Reviews (`/admin/university-reviews`)
-- [ ] University Scholarships & Other Content
+## Faqs Module
+**Documentation File:** [`docs/faqs.md`](file:///C:/projects/NextEducationMalaysia/docs/faqs.md)
+**Overall Status:** **Done**
 
----
+- **FAQ Categories** (`faq-categories.blade.php`) -> Status: **Done**
+- **FAQs** (`faqs.blade.php`) -> Status: **Done**
 
-### 📝 Phase 5: Blog & Articles Management
-- [ ] Blog Categories (`/admin/blog-category`)
-- [ ] Blogs List & Form (`/admin/blogs`, `/admin/blogs/create`, `/admin/blogs/update/[id]`) - WYSIWYG Editor, Approval workflow
-- [ ] Blog Contents & Blog FAQs
+## Student Data Module
+**Documentation File:** [`docs/student_data.md`](file:///C:/projects/NextEducationMalaysia/docs/student_data.md)
+**Overall Status:** **Done**
 
----
+- **Malaysia Application Categories** (`malaysia-application-categories.blade.php`) -> Status: **Done**
+- **Malaysia Applications (Course)** (`malaysia-applications.blade.php`) -> Status: **Done**
+- **International Student Data Countries** (`international-student-data-countries.blade.php`) -> Status: **Done**
+- **International Student Applications (Country)** (`international-student-datas.blade.php`) -> Status: **Done**
 
-### 🔍 Phase 6: SEO Management
-- [ ] Static Page SEOs (`/admin/static-page-seos`)
-- [ ] Dynamic Page SEOs (`/admin/dynamic-page-seos`)
-- [ ] Default OG Image Manager (`/admin/default-og-image`)
+## Internships Module
+**Documentation File:** [`docs/internships.md`](file:///C:/projects/NextEducationMalaysia/docs/internships.md)
+**Overall Status:** **Pending**
 
----
+- **Internships** (`internships.blade.php`) -> Status: **Pending**
+- **Internship Contents** (`internship-contents.blade.php`) -> Status: **Pending**
+- **Internship FAQs** (`internship-faqs.blade.php`) -> Status: **Pending**
 
-### ❓ Phase 7: FAQs & Content Modules
-- [ ] FAQ Categories (`/admin/faq-categories`)
-- [ ] FAQs List (`/admin/faqs`)
-- [ ] Services & Service Content (`/admin/services`)
-- [ ] Exams, Exam Tabs, Tab Contents, Exam FAQs (`/admin/exams`)
-- [ ] Internships & Internship Contents/FAQs (`/admin/internships`)
-- [ ] Partners Management (`/admin/our-partners`)
+## Partners Module
+**Documentation File:** [`docs/partners.md`](file:///C:/projects/NextEducationMalaysia/docs/partners.md)
+**Overall Status:** **Pending**
 
----
+- **Our Partners** (`our-partners.blade.php`) -> Status: **Pending**
 
-### 👨‍🎓 Phase 8: Student Applications & Lead Management
-- [ ] Malaysia Application Categories (`/admin/malaysia-application-categories`)
-- [ ] Malaysia Course Applications (`/admin/malaysia-applications`) - Search, Filter, Export
-- [ ] International Student Countries (`/admin/international-student-data-countries`)
-- [ ] International Student Applications (`/admin/international-student-data`)
-- [ ] Student Leads & Lead Status Management (`/admin/leads`)
+## More 1 Module
+**Documentation File:** [`docs/more_1.md`](file:///C:/projects/NextEducationMalaysia/docs/more_1.md)
+**Overall Status:** **Partially Done**
 
----
+- **Home Page Contents** (`page-contents.blade.php`) -> Status: **Partially Done**
+- **University Page Contents** (`static-page-contents.blade.php`) -> Status: **Partially Done**
+- **Services** (`services.blade.php`) -> Status: **Partially Done**
+- **Service Content** (`service-content.blade.php`) -> Status: **Partially Done**
+- **Exams** (`exams.blade.php`) -> Status: **Partially Done**
+- **Exam Page Tabs** (`exam-page-tabs.blade.php`) -> Status: **Partially Done**
+- **Exam Page Tab Contents** (`exam-page-tab-contents.blade.php`) -> Status: **Partially Done**
+- **Exam Tab FAQs** (`exam-tab-faqs.blade.php`) -> Status: **Partially Done**
+- **Exam FAQs** (`exam-faqs.blade.php`) -> Status: **Partially Done**
+- **Exam Content** (`exam-content.blade.php`) -> Status: **Partially Done**
+- **Authors & Users** (`users.blade.php`) -> Status: **Partially Done**
+- **Testimonials** (`testimonials.blade.php`) -> Status: **Partially Done**
 
-### ⚙️ Phase 9: System Settings & Sub-Admin Administration
-- [ ] Sub-Admin Users & Staff (`/admin/users`) - Role assignment, Granular module permission checkboxes
-- [ ] Authors Management (`/admin/authors`)
-- [ ] Testimonials Management (`/admin/testimonials`)
-- [ ] Home Page Contents (`/admin/page-contents`)
-- [ ] Page Banners (`/admin/page-banners`)
-- [ ] URL Redirections (`/admin/url-redirections`)
-- [ ] Addresses Management (`/admin/addresses`)
-- [ ] Email SMTP Settings (`/admin/email-settings`)
-- [ ] Uploaded Files / Media Asset Manager (`/admin/upload-files`)
+## More 2 Module
+**Documentation File:** [`docs/more_2.md`](file:///C:/projects/NextEducationMalaysia/docs/more_2.md)
+**Overall Status:** **Pending**
+
+- **Upload Files** (`upload-files.blade.php`) -> Status: **Pending**
+- **URL Redirections** (`url-redirections.blade.php`) -> Status: **Pending**
+- **Addresses** (`addresses.blade.php`) -> Status: **Pending**
+- **Email & System Settings** (`system-settings/index.blade.php`) -> Status: **Pending**
+- **Landing Pages** (`landing-pages.blade.php`) -> Status: **Pending**
+- **Landing Page Banners** (`landing-page-banners.blade.php`) -> Status: **Pending**
+- **Landing Page FAQs** (`landing-page-faqs.blade.php`) -> Status: **Pending**
+- **Landing Page Universities** (`landing-page-universities.blade.php`) -> Status: **Pending**
+- **Scholarships** (`scholarships.blade.php`) -> Status: **Pending**
+- **Scholarship Contents** (`scholarship-contents.blade.php`) -> Status: **Pending**
+- **Scholarship FAQs** (`scholarship-faqs.blade.php`) -> Status: **Pending**
+- **Page Banners** (`page-banners.blade.php`) -> Status: **Pending**
+
