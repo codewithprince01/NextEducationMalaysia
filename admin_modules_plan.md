@@ -3,6 +3,7 @@
 This plan outlines all active modules in the Laravel Admin Panel (`laravel-educationmalaysia.in`) and their migration status to the React Admin App (`admin-app` under `NextEducationMalaysia`).
 
 ## Programs Module
+
 **Documentation File:** [`docs/admin/programs.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/programs.md)
 **Overall Status:** **Done**
 
@@ -17,6 +18,7 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **Specialization Level Contents** (`specialization-level-contents.blade.php`) -> Status: **Done**
 
 ## University Module
+
 **Documentation File:** [`docs/admin/university.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/university.md)
 **Overall Status:** **Done**
 
@@ -37,6 +39,7 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **University Reviews** (`university-reviews.blade.php`) -> Status: **Done**
 
 ## Blog Module
+
 **Documentation File:** [`docs/admin/blog.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/blog.md)
 **Overall Status:** **Done**
 
@@ -47,6 +50,7 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **Blog FAQs** (`blog-faqs.blade.php`) -> Status: **Done**
 
 ## SEOS Module
+
 **Documentation File:** [`docs/admin/seos.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/seos.md)
 **Overall Status:** **Done**
 
@@ -55,6 +59,7 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **Default OG Image** (`default-og-image.blade.php`) -> Status: **Done**
 
 ## Faqs Module
+
 **Documentation File:** [`docs/admin/faqs.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/faqs.md)
 **Overall Status:** **Done**
 
@@ -62,6 +67,7 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **FAQs** (`faqs.blade.php`) -> Status: **Done**
 
 ## Student Data Module
+
 **Documentation File:** [`docs/admin/student_data.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/student_data.md)
 **Overall Status:** **Done**
 
@@ -71,6 +77,7 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **International Student Applications (Country)** (`international-student-datas.blade.php`) -> Status: **Done**
 
 ## Internships Module
+
 **Documentation File:** [`docs/admin/internships.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/internships.md)
 **Overall Status:** **Done**
 
@@ -79,12 +86,14 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **Internship FAQs** (`internship-faqs.blade.php`) -> Status: **Done**
 
 ## Partners Module
+
 **Documentation File:** [`docs/admin/partners.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/partners.md)
 **Overall Status:** **Pending**
 
 - **Our Partners** (`our-partners.blade.php`) -> Status: **Pending**
 
 ## More 1 Module
+
 **Documentation File:** [`docs/admin/more_1.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/more_1.md)
 **Overall Status:** **Partially Done**
 
@@ -102,6 +111,7 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **Testimonials** (`testimonials.blade.php`) -> Status: **Partially Done**
 
 ## More 2 Module
+
 **Documentation File:** [`docs/admin/more_2.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/more_2.md)
 **Overall Status:** **Pending**
 
@@ -117,4 +127,3 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 - **Scholarship Contents** (`scholarship-contents.blade.php`) -> Status: **Pending**
 - **Scholarship FAQs** (`scholarship-faqs.blade.php`) -> Status: **Pending**
 - **Page Banners** (`page-banners.blade.php`) -> Status: **Pending**
-

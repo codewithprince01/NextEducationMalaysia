@@ -22,7 +22,9 @@ import {
   Bell,
   Command,
   Pin,
-  Settings
+  Settings,
+  Handshake,
+  FileCheck
 } from 'lucide-react';
 
 type NavLinkItem = {
@@ -71,9 +73,27 @@ const navigationConfig: NavSection[] = [
         label: 'Programs & Courses',
         icon: GraduationCap,
         children: [
+          { label: 'All Programs', href: '/programs' },
           { label: 'Levels', href: '/levels' },
           { label: 'Course Categories', href: '/course-category' },
+          { label: 'Category Contents', href: '/course-category-contents' },
           { label: 'Specializations', href: '/course-specializations' },
+          { label: 'Specialization Contents', href: '/course-specialization-contents' },
+          { label: 'Specialization Levels', href: '/specialization-levels' },
+          { label: 'Specialization Level Contents', href: '/specialization-level-contents' },
+        ],
+      },
+    ],
+  },
+  {
+    section: 'STUDENT DATA & APPLICATIONS',
+    items: [
+      {
+        label: 'Applications Data',
+        icon: FileCheck,
+        children: [
+          { label: 'Course Applications (Malaysia)', href: '/malaysia-applications' },
+          { label: 'Country Applications (International)', href: '/international-student-data' },
         ],
       },
     ],
@@ -101,6 +121,7 @@ const navigationConfig: NavSection[] = [
       { label: 'Services', href: '/services', icon: Briefcase },
       { label: 'Exams', href: '/exams', icon: BookOpen },
       { label: 'Internships', href: '/internships', icon: Award },
+      { label: 'Partners', href: '/our-partners', icon: Handshake },
     ],
   },
   {

@@ -202,9 +202,8 @@ export default function Internships() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -363,22 +362,20 @@ export default function Internships() {
               <button
                 type="button"
                 onClick={() => setActiveTab('main')}
-                className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${
-                  activeTab === 'main'
+                className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'main'
                     ? 'border-indigo-600 text-indigo-600 font-bold'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
+                  }`}
               >
                 <FileText className="w-4 h-4" /> General Details
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('seo')}
-                className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${
-                  activeTab === 'seo'
+                className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'seo'
                     ? 'border-indigo-600 text-indigo-600 font-bold'
                     : 'border-transparent text-slate-500 hover:text-slate-700'
-                }`}
+                  }`}
               >
                 <Globe className="w-4 h-4" /> SEO &amp; Meta
               </button>
@@ -579,3 +576,4 @@ export default function Internships() {
     </div>
   );
 }
+
