@@ -72,11 +72,11 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 
 ## Internships Module
 **Documentation File:** [`docs/admin/internships.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/internships.md)
-**Overall Status:** **Pending**
+**Overall Status:** **Done**
 
-- **Internships** (`internships.blade.php`) -> Status: **Pending**
-- **Internship Contents** (`internship-contents.blade.php`) -> Status: **Pending**
-- **Internship FAQs** (`internship-faqs.blade.php`) -> Status: **Pending**
+- **Internships** (`internships.blade.php`) -> Status: **Done**
+- **Internship Contents** (`internship-contents.blade.php`) -> Status: **Done**
+- **Internship FAQs** (`internship-faqs.blade.php`) -> Status: **Done**
 
 ## Partners Module
 **Documentation File:** [`docs/admin/partners.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/partners.md)

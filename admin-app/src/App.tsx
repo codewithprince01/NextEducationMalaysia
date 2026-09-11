@@ -32,6 +32,7 @@ import FaqCategories from '@/pages/FaqCategories';
 import Faqs from '@/pages/Faqs';
 import Services from '@/pages/Services';
 import Exams from '@/pages/Exams';
+import Internships from '@/pages/Internships';
 import MalaysiaApplications from '@/pages/MalaysiaApplications';
 import InternationalStudentData from '@/pages/InternationalStudentData';
 import Authors from '@/pages/Authors';
@@ -120,6 +121,7 @@ export default function App() {
               <Route path="/faqs" element={<Faqs />} />
               <Route path="/services" element={<Services />} />
               <Route path="/exams" element={<Exams />} />
+              <Route path="/internships" element={<Internships />} />
               <Route path="/malaysia-applications" element={<MalaysiaApplications />} />
               <Route path="/international-student-data" element={<InternationalStudentData />} />
               <Route path="/authors" element={<Authors />} />
