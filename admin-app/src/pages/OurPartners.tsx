@@ -43,8 +43,45 @@ interface PartnerItem {
   created_at?: string;
 }
 
+const initialSamplePartners: PartnerItem[] = [
+  {
+    id: 1,
+    name: 'Mohd Faraz Faraz',
+    designation: 'WEB DEVELOPER',
+    company: 'Britannica Overseas',
+    is_verified: false,
+    rating: 4.0,
+    phone: '9548470490',
+    email: 'farazahmad280@gmail.com',
+    city: 'Mawana',
+    state: 'Uttar Pradesh',
+    country: 'INDIA',
+    experience_years: 8,
+    students_placed: 100,
+    specializations: 'Laravel , Node',
+    is_active: true,
+  },
+  {
+    id: 2,
+    name: 'Aman Ahlawat',
+    designation: 'Director',
+    company: 'Britannica Overseas Education',
+    is_verified: true,
+    rating: 5.0,
+    phone: '9870406867',
+    email: 'amanahlawat1918@gmail.com',
+    city: 'Gurgaon',
+    state: 'Haryana',
+    country: 'INDIA',
+    experience_years: 15,
+    students_placed: 100,
+    specializations: 'Study Abroad',
+    is_active: true,
+  },
+];
+
 export default function OurPartners() {
-  const [items, setItems] = useState<PartnerItem[]>([]);
+  const [items, setItems] = useState<PartnerItem[]>(initialSamplePartners);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -86,16 +123,16 @@ export default function OurPartners() {
       const res = await fetch('/api/v1/admin/our-partners');
       if (res.ok) {
         const json = await res.json();
-        if (json.status || json.success) {
-          setItems(json.data || []);
+        if ((json.status || json.success) && Array.isArray(json.data) && json.data.length > 0) {
+          setItems(json.data);
         } else {
-          setItems([]);
+          setItems(initialSamplePartners);
         }
       } else {
-        setItems([]);
+        setItems(initialSamplePartners);
       }
     } catch {
-      setItems([]);
+      setItems(initialSamplePartners);
     } finally {
       setLoading(false);
     }
