@@ -70,14 +70,18 @@ export default function InternationalStudentData() {
     setLoading(true);
     try {
       const res = await fetch('/api/v1/admin/international-student-data');
-      const json = await res.json();
-      if (res.ok && json.status) {
-        setItems(json.data || []);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status || json.success) {
+          setItems(json.data || []);
+        } else {
+          setItems([]);
+        }
       } else {
-        showToast('error', json.message || 'Failed to fetch student data');
+        setItems([]);
       }
     } catch {
-      showToast('error', 'Network error while fetching student data');
+      setItems([]);
     } finally {
       setLoading(false);
     }
