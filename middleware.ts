@@ -64,5 +64,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\..*).*)'],
+  // `admin` is excluded: it is a separate SPA served from public/admin, and its
+  // client-side routes must reach the rewrite untouched by the student session
+  // logic above.
+  matcher: ['/((?!api|admin|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\..*).*)'],
 }

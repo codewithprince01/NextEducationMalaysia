@@ -1,32 +1,48 @@
-# React + TypeScript + Vite
+# Admin panel
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A Vite + React 19 single-page app that is **served by the Next site under `/admin`**
+— it is not deployed on its own domain or port.
 
-Currently, two official plugins are available:
+It talks to the Next API with plain relative paths (`/api/v1/admin/...`), so being
+on the same origin is what makes authentication and cookies work.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## How the `/admin` mount works
 
-## React Compiler
+| Piece | Where | What it does |
+| --- | --- | --- |
+| `base: '/admin/'` | `vite.config.ts` | every emitted asset URL is `/admin/assets/...` |
+| `basename={import.meta.env.BASE_URL}` | `src/App.tsx` | react-router routes stay written as `/dashboard`, and resolve under `/admin` |
+| `outDir: '../public/admin'` | `vite.config.ts` | the build lands inside the Next app's `public/`, so Next serves it as static files |
+| `rewrites()` | `../next.config.ts` | `/admin/*` falls through to `index.html` so deep links and refreshes work |
+| `matcher` | `../middleware.ts` | `/admin` is excluded from the student-session middleware |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Development
 
-## Expanding the Oxlint configuration
+Two servers, one URL. From the **repo root**:
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm run dev         # Next  — the site
+npm run admin:dev   # Vite  — the admin panel, with HMR
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Then open **http://localhost:3000/admin**. Next proxies `/admin/*` to the Vite dev
+server on port 5174, so you get hot reload while staying on the site's origin and
+the `/api` calls hit the real backend.
+
+Opening http://127.0.0.1:5174/admin directly also works; in that case Vite proxies
+`/api` to the Next server (override with `NEXT_ORIGIN` if Next is not on port 3000).
+
+## Production
+
+```bash
+npm run build:all   # from the repo root: builds the admin panel, then the Next app
+```
+
+`public/admin/` is generated output and is git-ignored, so **the admin build must run
+before `next build` on the deploy machine** — that is exactly what `build:all` does.
+Running plain `npm run build` leaves `/admin` returning a 404.
+
+## Adding a page
+
+Add the component under `src/pages/`, then register it in `src/App.tsx` with a plain
+path (`/my-page`, not `/admin/my-page`) — the basename adds the prefix.

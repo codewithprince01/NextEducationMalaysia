@@ -5,6 +5,9 @@
   "scripts": {
     "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
     "admin:dev": "npm --prefix admin-app run dev",
+    "admin:install": "npm --prefix admin-app ci --no-audit --no-fund",
+    "admin:build": "npm --prefix admin-app run build",
+    "build:all": "npm run admin:install && npm run admin:build && npm run build",
     "dev:legacy": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev --webpack",
     "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "next start",

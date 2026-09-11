@@ -100,18 +100,42 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // URL Rewrites for legacy filter patterns
+  // URL Rewrites for legacy filter patterns + the /admin single-page app
   async rewrites() {
-    return [
-      {
-        source: "/:slug-courses/page-:page",
-        destination: "/filtered-courses/:slug/page-:page",
-      },
-      {
-        source: "/:slug-courses",
-        destination: "/filtered-courses/:slug",
-      },
-    ];
+    // The admin panel is a separate Vite/React build (admin-app/). In production
+    // it is built into public/admin, so its assets are already served as static
+    // files and only the client-side routes need to fall through to index.html.
+    // In development it is proxied to the Vite dev server so HMR keeps working
+    // while the panel is still reachable at <site>/admin.
+    const adminDevOrigin = process.env.ADMIN_DEV_ORIGIN || "http://127.0.0.1:5174";
+    const adminRewrites =
+      process.env.NODE_ENV === "development"
+        ? [
+            // Vite serves its client, HMR and module graph under `base` too,
+            // so this single pair covers the whole dev server.
+            { source: "/admin", destination: `${adminDevOrigin}/admin/` },
+            { source: "/admin/:path*", destination: `${adminDevOrigin}/admin/:path*` },
+          ]
+        : [
+            { source: "/admin", destination: "/admin/index.html" },
+            { source: "/admin/:path*", destination: "/admin/index.html" },
+          ];
+
+    return {
+      // Real files in public/admin (assets, favicon) are matched by the
+      // filesystem before these run, so only unknown paths reach index.html.
+      afterFiles: [
+        ...adminRewrites,
+        {
+          source: "/:slug-courses/page-:page",
+          destination: "/filtered-courses/:slug/page-:page",
+        },
+        {
+          source: "/:slug-courses",
+          destination: "/filtered-courses/:slug",
+        },
+      ],
+    };
   },
 
   // Permanent redirects — preserve legacy URLs

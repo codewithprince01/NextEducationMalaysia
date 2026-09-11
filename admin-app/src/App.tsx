@@ -44,7 +44,10 @@ export default function App() {
   return (
     <AdminAuthProvider>
       <SidebarProvider>
-        <BrowserRouter>
+        {/* import.meta.env.BASE_URL is vite.config's `base` ("/admin/"), so the
+            routes below stay written as plain paths while the panel lives under
+            /admin on the main site. */}
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <Routes>
             {/* Public Auth Routes */}
             <Route path="/login" element={<Login />} />
