@@ -93,6 +93,9 @@ export default function AddEditBlog() {
           meta_title: b.meta_title || '',
           meta_description: b.meta_description || '',
           meta_keyword: b.meta_keyword || '',
+          seo_rating: b.seo_rating ? b.seo_rating.toString() : '',
+          best_rating: b.best_rating ? b.best_rating.toString() : '',
+          review_number: b.review_number ? b.review_number.toString() : '',
           og_image_path: b.og_image_path || '',
         });
       } else {

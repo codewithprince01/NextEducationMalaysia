@@ -77,14 +77,18 @@ export default function BlogFaqs() {
         ? `/api/v1/admin/blog-faqs?blog_id=${selectedBlog}`
         : '/api/v1/admin/blog-faqs';
       const res = await fetch(url);
-      const json = await res.json();
-      if (res.ok && (json.status || json.success)) {
-        setItems(json.data || []);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status || json.success) {
+          setItems(json.data || []);
+        } else {
+          setItems([]);
+        }
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch blog FAQs');
+        setItems([]);
       }
     } catch {
-      showToast('error', 'Network error while fetching blog FAQs');
+      setItems([]);
     } finally {
       setLoading(false);
     }

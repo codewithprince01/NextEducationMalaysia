@@ -15,7 +15,6 @@ import {
   Award,
   Globe,
   FileText,
-  HelpCircle,
   Eye,
   EyeOff
 } from 'lucide-react';
@@ -76,14 +75,18 @@ export default function Internships() {
     setLoading(true);
     try {
       const res = await fetch('/api/v1/admin/internships');
-      const json = await res.json();
-      if (res.ok && (json.status || json.success)) {
-        setItems(json.data || []);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status || json.success) {
+          setItems(json.data || []);
+        } else {
+          setItems([]);
+        }
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch internships');
+        setItems([]);
       }
     } catch {
-      showToast('error', 'Network error while fetching internships');
+      setItems([]);
     } finally {
       setLoading(false);
     }

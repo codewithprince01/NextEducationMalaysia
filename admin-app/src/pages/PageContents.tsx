@@ -74,14 +74,18 @@ export default function PageContents() {
     setLoading(true);
     try {
       const res = await fetch('/api/v1/admin/page-contents');
-      const json = await res.json();
-      if (res.ok && (json.status || json.success)) {
-        setItems(json.data || []);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status || json.success) {
+          setItems(json.data || []);
+        } else {
+          setItems([]);
+        }
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch page contents');
+        setItems([]);
       }
     } catch {
-      showToast('error', 'Network error while fetching page contents');
+      setItems([]);
     } finally {
       setLoading(false);
     }
