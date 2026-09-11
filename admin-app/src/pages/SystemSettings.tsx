@@ -169,8 +169,8 @@ export default function SystemSettings() {
           <button
             onClick={() => setActiveTab('mode')}
             className={`py-3 px-5 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'mode'
-                ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
           >
             <SlidersHorizontal className="w-4 h-4" /> Email Mode Switcher
@@ -178,8 +178,8 @@ export default function SystemSettings() {
           <button
             onClick={() => setActiveTab('main')}
             className={`py-3 px-5 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'main'
-                ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
           >
             <Mail className="w-4 h-4" /> Main Email Recipients
@@ -187,8 +187,8 @@ export default function SystemSettings() {
           <button
             onClick={() => setActiveTab('testing')}
             className={`py-3 px-5 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'testing'
-                ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
+              ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
           >
             <Send className="w-4 h-4" /> Testing Email Recipients
@@ -208,8 +208,8 @@ export default function SystemSettings() {
                   <label
                     onClick={() => setEmailMode('main')}
                     className={`p-4 rounded-xl border-2 cursor-pointer flex flex-col justify-between transition-all ${emailMode === 'main'
-                        ? 'border-indigo-600 bg-indigo-50/50 shadow-sm'
-                        : 'border-slate-200 hover:border-slate-300 bg-slate-50/30'
+                      ? 'border-indigo-600 bg-indigo-50/50 shadow-sm'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/30'
                       }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -230,8 +230,8 @@ export default function SystemSettings() {
                   <label
                     onClick={() => setEmailMode('testing')}
                     className={`p-4 rounded-xl border-2 cursor-pointer flex flex-col justify-between transition-all ${emailMode === 'testing'
-                        ? 'border-amber-600 bg-amber-50/50 shadow-sm'
-                        : 'border-slate-200 hover:border-slate-300 bg-slate-50/30'
+                      ? 'border-amber-600 bg-amber-50/50 shadow-sm'
+                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/30'
                       }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -468,3 +468,4 @@ export default function SystemSettings() {
     </div>
   );
 }
+

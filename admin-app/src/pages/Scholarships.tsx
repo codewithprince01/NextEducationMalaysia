@@ -386,8 +386,8 @@ export default function Scholarships() {
                 type="button"
                 onClick={() => setActiveTab('main')}
                 className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'main'
-                    ? 'border-indigo-600 text-indigo-600 font-bold'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                  ? 'border-indigo-600 text-indigo-600 font-bold'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <FileText className="w-4 h-4" /> General Details
@@ -396,8 +396,8 @@ export default function Scholarships() {
                 type="button"
                 onClick={() => setActiveTab('seo')}
                 className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'seo'
-                    ? 'border-indigo-600 text-indigo-600 font-bold'
-                    : 'border-transparent text-slate-500 hover:text-slate-700'
+                  ? 'border-indigo-600 text-indigo-600 font-bold'
+                  : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <Globe className="w-4 h-4" /> SEO &amp; Meta
@@ -601,3 +601,4 @@ export default function Scholarships() {
     </div>
   );
 }
+
