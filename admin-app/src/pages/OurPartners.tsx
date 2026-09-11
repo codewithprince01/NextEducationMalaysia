@@ -13,15 +13,33 @@ import {
   RefreshCw,
   Handshake,
   Eye,
-  EyeOff
+  EyeOff,
+  ShieldCheck,
+  Star,
+  Phone,
+  Mail,
+  MapPin,
+  Briefcase,
+  Users
 } from 'lucide-react';
 
 interface PartnerItem {
   id: number;
   name: string;
-  logo_path?: string;
-  website_url?: string;
-  active_status?: number | string;
+  designation: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  experience_years?: number | string;
+  students_placed?: number | string;
+  rating?: number | string;
+  profile_image?: string;
+  specializations?: string;
+  is_verified?: boolean | number;
+  is_active?: boolean | number;
   created_at?: string;
 }
 
@@ -41,9 +59,20 @@ export default function OurPartners() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    logo_path: '',
-    website_url: '',
-    active_status: 1,
+    designation: '',
+    company: '',
+    phone: '',
+    email: '',
+    city: '',
+    state: '',
+    country: '',
+    experience_years: '0',
+    students_placed: '0',
+    rating: '5.0',
+    profile_image: '',
+    specializations: '',
+    is_verified: true,
+    is_active: true,
   });
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -80,9 +109,20 @@ export default function OurPartners() {
     setEditingId(null);
     setFormData({
       name: '',
-      logo_path: '',
-      website_url: '',
-      active_status: 1,
+      designation: '',
+      company: '',
+      phone: '',
+      email: '',
+      city: '',
+      state: '',
+      country: '',
+      experience_years: '0',
+      students_placed: '0',
+      rating: '5.0',
+      profile_image: '',
+      specializations: '',
+      is_verified: true,
+      is_active: true,
     });
     setIsModalOpen(true);
   };
@@ -91,15 +131,26 @@ export default function OurPartners() {
     setEditingId(item.id);
     setFormData({
       name: item.name || '',
-      logo_path: item.logo_path || '',
-      website_url: item.website_url || '',
-      active_status: Number(item.active_status ?? 1),
+      designation: item.designation || '',
+      company: item.company || '',
+      phone: item.phone || '',
+      email: item.email || '',
+      city: item.city || '',
+      state: item.state || '',
+      country: item.country || '',
+      experience_years: (item.experience_years ?? 0).toString(),
+      students_placed: (item.students_placed ?? 0).toString(),
+      rating: (item.rating ?? 5.0).toString(),
+      profile_image: item.profile_image || '',
+      specializations: item.specializations || '',
+      is_verified: Boolean(item.is_verified ?? true),
+      is_active: Boolean(item.is_active ?? true),
     });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this partner?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this partner profile?');
     if (!isConfirmed) return;
 
     try {
@@ -120,7 +171,11 @@ export default function OurPartners() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      showToast('error', 'Partner name is required');
+      showToast('error', 'Partner Name is required');
+      return;
+    }
+    if (!formData.designation.trim()) {
+      showToast('error', 'Designation is required');
       return;
     }
 
@@ -153,7 +208,11 @@ export default function OurPartners() {
   };
 
   const filtered = items.filter((item) =>
-    (item.name || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.designation || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.company || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.country || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.email || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -178,10 +237,10 @@ export default function OurPartners() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Handshake className="w-6 h-6 text-indigo-600" /> Our Partners
+            <Handshake className="w-6 h-6 text-indigo-600" /> Our Partners &amp; Representatives
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage university partners, institutional affiliates, and agency logos.
+            Manage university partner representatives, study counselors, experience metrics, and ratings.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -207,7 +266,7 @@ export default function OurPartners() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search partner name..."
+            placeholder="Search name, designation, company..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -224,25 +283,30 @@ export default function OurPartners() {
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4 w-16">ID</th>
+                <th className="py-3.5 px-4 w-12">ID</th>
                 <th className="py-3.5 px-4">Partner Name</th>
-                <th className="py-3.5 px-4">Logo</th>
-                <th className="py-3.5 px-4">Website URL</th>
-                <th className="py-3.5 px-4 w-28">Status</th>
+                <th className="py-3.5 px-4">Designation &amp; Company</th>
+                <th className="py-3.5 px-4">Verified</th>
+                <th className="py-3.5 px-4">Rating</th>
+                <th className="py-3.5 px-4">Contact</th>
+                <th className="py-3.5 px-4">Location</th>
+                <th className="py-3.5 px-4">Experience / Placed</th>
+                <th className="py-3.5 px-4">Specializations</th>
+                <th className="py-3.5 px-4 w-24">Status</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={11} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
                     Loading partners...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={11} className="py-12 text-center text-slate-400">
                     No partners found.
                   </td>
                 </tr>
@@ -250,25 +314,61 @@ export default function OurPartners() {
                 paginated.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.name}</td>
-                    <td className="py-3.5 px-4">
-                      {item.logo_path ? (
-                        <img src={item.logo_path} alt={item.name} className="h-8 object-contain rounded border p-1" />
+                    <td className="py-3.5 px-4 font-semibold text-slate-800 flex items-center gap-2">
+                      {item.profile_image ? (
+                        <img src={item.profile_image} alt={item.name} className="w-8 h-8 rounded-full object-cover border" />
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                          {item.name ? item.name.charAt(0).toUpperCase() : 'P'}
+                        </div>
                       )}
-                    </td>
-                    <td className="py-3.5 px-4 text-indigo-600 font-mono text-xs truncate max-w-xs">
-                      {item.website_url ? (
-                        <a href={item.website_url} target="_blank" rel="noreferrer" className="hover:underline">
-                          {item.website_url}
-                        </a>
-                      ) : (
-                        '-'
-                      )}
+                      <span>{item.name}</span>
                     </td>
                     <td className="py-3.5 px-4">
-                      {Number(item.active_status) === 1 ? (
+                      <div className="font-semibold text-slate-800 text-xs">{item.designation}</div>
+                      <div className="text-slate-400 text-xs flex items-center gap-1">
+                        <Briefcase className="w-3 h-3" /> {item.company || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {Boolean(item.is_verified) ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
+                          <ShieldCheck className="w-3 h-3" /> Yes
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-xs">No</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-xs">
+                        <Star className="w-3 h-3 fill-amber-400" /> {item.rating ?? '0.0'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs font-mono">
+                      <div className="text-slate-600 flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-slate-400" /> {item.phone || '-'}
+                      </div>
+                      <div className="text-indigo-600 flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-indigo-400" /> {item.email || '-'}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs text-slate-600">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-slate-400" />
+                        {[item.city, item.state, item.country].filter(Boolean).join(', ') || '-'}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs">
+                      <div className="font-medium text-slate-700">{item.experience_years ?? 0} yrs exp</div>
+                      <div className="text-emerald-600 font-semibold flex items-center gap-1">
+                        <Users className="w-3 h-3" /> {item.students_placed ?? 0} placed
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs text-slate-500 max-w-xs truncate">
+                      {item.specializations || '-'}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {Boolean(item.is_active ?? true) ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs">
                           <Eye className="w-3 h-3" /> Active
                         </span>
@@ -317,13 +417,13 @@ export default function OurPartners() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit Partner' : 'Add Partner'}
+                {editingId ? 'Edit Partner Profile' : 'Add Partner Profile'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -333,59 +433,204 @@ export default function OurPartners() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Partner Name <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Asia Pacific University"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
+            <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Partner Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dr. Alex Wong"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Designation <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Senior Representative"
+                    value={formData.designation}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Company / Agency
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. EduGlobal Malaysia"
+                    value={formData.company}
+                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Phone Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+60 12-345 6789"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="alex@eduglobal.my"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Kuala Lumpur"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Selangor"
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Malaysia"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Experience (Years)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 5"
+                    value={formData.experience_years}
+                    onChange={(e) => setFormData({ ...formData, experience_years: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Students Placed
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 250"
+                    value={formData.students_placed}
+                    onChange={(e) => setFormData({ ...formData, students_placed: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Star Rating (0-5)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    placeholder="e.g. 4.9"
+                    value={formData.rating}
+                    onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Logo URL / Image Path
+                  Profile Image URL / Path
                 </label>
                 <input
                   type="text"
-                  placeholder="/uploads/partners/apu-logo.png"
-                  value={formData.logo_path}
-                  onChange={(e) => setFormData({ ...formData, logo_path: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Website URL
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={formData.website_url}
-                  onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                  placeholder="/uploads/our-partners/alex.jpg"
+                  value={formData.profile_image}
+                  onChange={(e) => setFormData({ ...formData, profile_image: e.target.value })}
                   className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Status
+                  Specializations (pipe | or comma separated)
                 </label>
-                <select
-                  value={formData.active_status}
-                  onChange={(e) => setFormData({ ...formData, active_status: parseInt(e.target.value, 10) })}
+                <input
+                  type="text"
+                  placeholder="e.g. MBBS Admissions | Medical Counseling"
+                  value={formData.specializations}
+                  onChange={(e) => setFormData({ ...formData, specializations: e.target.value })}
                   className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                >
-                  <option value={1}>Active</option>
-                  <option value={0}>Inactive</option>
-                </select>
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_verified}
+                    onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
+                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <span className="text-xs font-semibold text-slate-700">Verified Representative Badge</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_active}
+                    onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <span className="text-xs font-semibold text-slate-700">Active Public Status</span>
+                </label>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -412,4 +657,3 @@ export default function OurPartners() {
     </div>
   );
 }
-
