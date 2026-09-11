@@ -44,6 +44,13 @@ import Authors from '@/pages/Authors';
 import Testimonials from '@/pages/Testimonials';
 import Users from '@/pages/Users';
 import Profile from '@/pages/Profile';
+import UploadFiles from '@/pages/UploadFiles';
+import UrlRedirections from '@/pages/UrlRedirections';
+import Addresses from '@/pages/Addresses';
+import SystemSettings from '@/pages/SystemSettings';
+import LandingPages from '@/pages/LandingPages';
+import Scholarships from '@/pages/Scholarships';
+import PageBanners from '@/pages/PageBanners';
 import NotFound from '@/pages/NotFound';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -139,6 +146,13 @@ export default function App() {
               <Route path="/testimonials" element={<Testimonials />} />
               <Route path="/users" element={<Users />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/upload-files" element={<UploadFiles />} />
+              <Route path="/url-redirections" element={<UrlRedirections />} />
+              <Route path="/addresses" element={<Addresses />} />
+              <Route path="/system-settings" element={<SystemSettings />} />
+              <Route path="/landing-pages" element={<LandingPages />} />
+              <Route path="/scholarships" element={<Scholarships />} />
+              <Route path="/page-banners" element={<PageBanners />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

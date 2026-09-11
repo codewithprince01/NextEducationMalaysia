@@ -1,7 +1,8 @@
 # More 2 Module Documentation
 
 **Laravel Admin Navbar Menu:** `More 2`  
-**React Migration Status:** **`Pending`**
+**React Migration Status:** **`Done`**  
+**React Routes:** `/upload-files`, `/url-redirections`, `/addresses`, `/system-settings`, `/landing-pages`, `/scholarships`, `/page-banners`
 
 ## Upload Files
 **Laravel Route:** `/admin/upload-files`  

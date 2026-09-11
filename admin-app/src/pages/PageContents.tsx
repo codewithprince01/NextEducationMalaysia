@@ -74,18 +74,14 @@ export default function PageContents() {
     setLoading(true);
     try {
       const res = await fetch('/api/v1/admin/page-contents');
-      if (res.ok) {
-        const json = await res.json();
-        if (json.status || json.success) {
-          setItems(json.data || []);
-        } else {
-          setItems([]);
-        }
+      const json = await res.json();
+      if (res.ok && (json.status || json.success)) {
+        setItems(json.data || []);
       } else {
-        setItems([]);
+        showToast('error', json.message || json.error || 'Failed to fetch page contents');
       }
     } catch {
-      setItems([]);
+      showToast('error', 'Network error while fetching page contents');
     } finally {
       setLoading(false);
     }
@@ -187,9 +183,8 @@ export default function PageContents() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -424,3 +419,4 @@ export default function PageContents() {
     </div>
   );
 }
+

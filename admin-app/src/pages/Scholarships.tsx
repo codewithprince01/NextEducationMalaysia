@@ -3,7 +3,7 @@ import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import {
-  Plus,
+  GraduationCap,
   Search,
   Edit2,
   Trash2,
@@ -12,17 +12,18 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  Award,
+  Plus,
   Globe,
   FileText,
   Eye,
-  EyeOff
+  EyeOff,
+  HelpCircle
 } from 'lucide-react';
 
-interface InternshipItem {
+interface ScholarshipItem {
   id: number;
   title: string;
-  slug: string;
+  type?: string;
   active_status?: number | string;
   thumbnail_path?: string;
   shortnote?: string;
@@ -33,11 +34,13 @@ interface InternshipItem {
   best_rating?: string;
   review_number?: string;
   og_image_path?: string;
+  contents_count?: number;
+  faqs_count?: number;
   created_at?: string;
 }
 
-export default function Internships() {
-  const [items, setItems] = useState<InternshipItem[]>([]);
+export default function Scholarships() {
+  const [items, setItems] = useState<ScholarshipItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -53,7 +56,7 @@ export default function Internships() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     title: '',
-    slug: '',
+    type: 'university',
     active_status: 1,
     thumbnail_path: '',
     shortnote: '',
@@ -74,7 +77,7 @@ export default function Internships() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/internships');
+      const res = await fetch('/api/v1/admin/scholarships');
       if (res.ok) {
         const json = await res.json();
         if (json.status || json.success) {
@@ -101,7 +104,7 @@ export default function Internships() {
     setActiveTab('main');
     setFormData({
       title: '',
-      slug: '',
+      type: 'university',
       active_status: 1,
       thumbnail_path: '',
       shortnote: '',
@@ -116,12 +119,12 @@ export default function Internships() {
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: InternshipItem) => {
+  const handleOpenEdit = (item: ScholarshipItem) => {
     setEditingId(item.id);
     setActiveTab('main');
     setFormData({
       title: item.title || '',
-      slug: item.slug || '',
+      type: item.type || 'university',
       active_status: Number(item.active_status ?? 1),
       thumbnail_path: item.thumbnail_path || '',
       shortnote: item.shortnote || '',
@@ -137,11 +140,11 @@ export default function Internships() {
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this internship program?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this scholarship program?');
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/v1/admin/internships/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/admin/scholarships/${id}`, { method: 'DELETE' });
       const json = await res.json();
 
       if (res.ok && (json.status || json.success)) {
@@ -165,8 +168,8 @@ export default function Internships() {
     setSubmitting(true);
     try {
       const url = editingId
-        ? `/api/v1/admin/internships/${editingId}`
-        : '/api/v1/admin/internships';
+        ? `/api/v1/admin/scholarships/${editingId}`
+        : '/api/v1/admin/scholarships';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -192,7 +195,7 @@ export default function Internships() {
 
   const filtered = items.filter((item) =>
     (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.slug || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.type || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -217,10 +220,10 @@ export default function Internships() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Award className="w-6 h-6 text-indigo-600" /> Internship Programs
+            <GraduationCap className="w-6 h-6 text-indigo-600" /> Scholarships
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage global student internship programs, placement offers, and content tabs.
+            Manage university grant schemes, government merit awards, financial aid requirements, and SEO metadata.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -235,7 +238,7 @@ export default function Internships() {
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Internship
+            <Plus className="w-4 h-4" /> Add Scholarship
           </button>
         </div>
       </div>
@@ -246,7 +249,7 @@ export default function Internships() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search internship title or slug..."
+            placeholder="Search title or scholarship type..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -265,8 +268,9 @@ export default function Internships() {
               <tr>
                 <th className="py-3.5 px-4 w-16">ID</th>
                 <th className="py-3.5 px-4">Title</th>
-                <th className="py-3.5 px-4">Slug</th>
-                <th className="py-3.5 px-4">Shortnote</th>
+                <th className="py-3.5 px-4">Type</th>
+                <th className="py-3.5 px-4">Thumbnail</th>
+                <th className="py-3.5 px-4">Sub-Sections</th>
                 <th className="py-3.5 px-4 w-28">Status</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
@@ -274,15 +278,15 @@ export default function Internships() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading internship programs...
+                    Loading scholarships...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    No internship programs found.
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                    No scholarships found.
                   </td>
                 </tr>
               ) : (
@@ -290,9 +294,25 @@ export default function Internships() {
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
                     <td className="py-3.5 px-4 font-semibold text-slate-800">{item.title}</td>
-                    <td className="py-3.5 px-4 text-indigo-600 font-mono text-xs">{item.slug || '-'}</td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-sm truncate">
-                      {item.shortnote ? item.shortnote.replace(/<[^>]+>/g, '') : '-'}
+                    <td className="py-3.5 px-4 text-xs font-semibold capitalize text-indigo-600">
+                      {item.type || 'university'}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {item.thumbnail_path ? (
+                        <img src={item.thumbnail_path} alt={item.title} className="h-8 object-contain rounded border p-1" />
+                      ) : (
+                        <span className="text-slate-400 text-xs">N/A</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-xs font-medium">
+                          <FileText className="w-3 h-3" /> Tabs ({item.contents_count ?? 0})
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 text-amber-600 text-xs font-medium">
+                          <HelpCircle className="w-3 h-3" /> FAQs ({item.faqs_count ?? 0})
+                        </span>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       {Number(item.active_status) === 1 ? (
@@ -350,7 +370,7 @@ export default function Internships() {
           <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit Internship Program' : 'Add Internship Program'}
+                {editingId ? 'Edit Scholarship' : 'Add Scholarship'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -366,8 +386,8 @@ export default function Internships() {
                 type="button"
                 onClick={() => setActiveTab('main')}
                 className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'main'
-                  ? 'border-indigo-600 text-indigo-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                    ? 'border-indigo-600 text-indigo-600 font-bold'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <FileText className="w-4 h-4" /> General Details
@@ -376,8 +396,8 @@ export default function Internships() {
                 type="button"
                 onClick={() => setActiveTab('seo')}
                 className={`py-3 px-4 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'seo'
-                  ? 'border-indigo-600 text-indigo-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                    ? 'border-indigo-600 text-indigo-600 font-bold'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
               >
                 <Globe className="w-4 h-4" /> SEO &amp; Meta
@@ -395,7 +415,7 @@ export default function Internships() {
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Medical Internship in Malaysia"
+                        placeholder="e.g. APU Merit Scholarship"
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -403,15 +423,17 @@ export default function Internships() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        URL Slug
+                        Page / Grant Type
                       </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. medical-internship-malaysia"
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
-                      />
+                      <select
+                        value={formData.type}
+                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                      >
+                        <option value="university">University Scholarship</option>
+                        <option value="government">Government Grant</option>
+                        <option value="private">Private Foundation</option>
+                      </select>
                     </div>
                   </div>
 
@@ -435,7 +457,7 @@ export default function Internships() {
                       </label>
                       <input
                         type="text"
-                        placeholder="/uploads/internship/thumb.jpg"
+                        placeholder="/uploads/scholarship/apu-thumb.jpg"
                         value={formData.thumbnail_path}
                         onChange={(e) => setFormData({ ...formData, thumbnail_path: e.target.value })}
                         className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -475,7 +497,7 @@ export default function Internships() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. internship, malaysia, study abroad"
+                      placeholder="e.g. scholarship, malaysia, study grant"
                       value={formData.meta_keyword}
                       onChange={(e) => setFormData({ ...formData, meta_keyword: e.target.value })}
                       className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -505,7 +527,7 @@ export default function Internships() {
                         step="0.1"
                         min="0"
                         max="5"
-                        placeholder="e.g. 4.5"
+                        placeholder="e.g. 4.8"
                         value={formData.seo_rating}
                         onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
                         className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -532,7 +554,7 @@ export default function Internships() {
                       </label>
                       <input
                         type="number"
-                        placeholder="e.g. 100"
+                        placeholder="e.g. 150"
                         value={formData.review_number}
                         onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
                         className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -546,7 +568,7 @@ export default function Internships() {
                     </label>
                     <input
                       type="text"
-                      placeholder="/uploads/internship/og.jpg"
+                      placeholder="/uploads/scholarship/og.jpg"
                       value={formData.og_image_path}
                       onChange={(e) => setFormData({ ...formData, og_image_path: e.target.value })}
                       className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -569,7 +591,7 @@ export default function Internships() {
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create Internship'}
+                  {editingId ? 'Save Changes' : 'Create Scholarship'}
                 </button>
               </div>
             </form>
@@ -579,4 +601,3 @@ export default function Internships() {
     </div>
   );
 }
-

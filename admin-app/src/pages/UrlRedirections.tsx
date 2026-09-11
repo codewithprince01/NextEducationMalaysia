@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
-import RichTextEditor from '@/components/common/RichTextEditor';
 import {
-  Plus,
+  ArrowLeftRight,
   Search,
   Edit2,
   Trash2,
@@ -12,18 +11,19 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  FileCode
+  Plus,
+  Link as LinkIcon
 } from 'lucide-react';
 
-interface StaticPageContentItem {
+interface UrlRedirectionItem {
   id: number;
-  title?: string;
-  description?: string;
+  old_url: string;
+  new_url: string;
   created_at?: string;
 }
 
-export default function StaticPageContents() {
-  const [items, setItems] = useState<StaticPageContentItem[]>([]);
+export default function UrlRedirections() {
+  const [items, setItems] = useState<UrlRedirectionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -37,8 +37,8 @@ export default function StaticPageContents() {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
+    old_url: '',
+    new_url: '',
   });
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -49,15 +49,19 @@ export default function StaticPageContents() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/static-page-contents');
-      const json = await res.json();
-      if (res.ok && (json.status || json.success)) {
-        setItems(json.data || []);
+      const res = await fetch('/api/v1/admin/url-redirections');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status || json.success) {
+          setItems(json.data || []);
+        } else {
+          setItems([]);
+        }
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch university page contents');
+        setItems([]);
       }
     } catch {
-      showToast('error', 'Network error while fetching static page contents');
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -69,32 +73,26 @@ export default function StaticPageContents() {
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    setFormData({
-      title: 'University Page Content',
-      description: '',
-    });
+    setFormData({ old_url: '', new_url: '' });
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: StaticPageContentItem) => {
+  const handleOpenEdit = (item: UrlRedirectionItem) => {
     setEditingId(item.id);
-    setFormData({
-      title: item.title || 'University Page Content',
-      description: item.description || '',
-    });
+    setFormData({ old_url: item.old_url || '', new_url: item.new_url || '' });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this static page content?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this redirection rule?');
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/v1/admin/static-page-contents/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/admin/url-redirections/${id}`, { method: 'DELETE' });
       const json = await res.json();
 
       if (res.ok && (json.status || json.success)) {
-        showToast('success', 'Deleted successfully');
+        showToast('success', 'Redirection rule deleted successfully');
         fetchData();
       } else {
         showToast('error', json.message || json.error || 'Failed to delete');
@@ -106,12 +104,16 @@ export default function StaticPageContents() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.old_url.trim() || !formData.new_url.trim()) {
+      showToast('error', 'Both Old URL and New URL are required');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const url = editingId
-        ? `/api/v1/admin/static-page-contents/${editingId}`
-        : '/api/v1/admin/static-page-contents';
+        ? `/api/v1/admin/url-redirections/${editingId}`
+        : '/api/v1/admin/url-redirections';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -136,8 +138,8 @@ export default function StaticPageContents() {
   };
 
   const filtered = items.filter((item) =>
-    (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.old_url || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.new_url || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -162,10 +164,10 @@ export default function StaticPageContents() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <FileCode className="w-6 h-6 text-indigo-600" /> University Page Contents
+            <ArrowLeftRight className="w-6 h-6 text-indigo-600" /> URL Redirections
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage global static descriptions and overview content blocks for university pages.
+            Manage 301/302 HTTP URL redirects for legacy paths and SEO link juice preservation.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -180,7 +182,7 @@ export default function StaticPageContents() {
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Static Content
+            <Plus className="w-4 h-4" /> Add Redirection
           </button>
         </div>
       </div>
@@ -191,7 +193,7 @@ export default function StaticPageContents() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search content text..."
+            placeholder="Search old or new URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -209,8 +211,8 @@ export default function StaticPageContents() {
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-16">ID</th>
-                <th className="py-3.5 px-4">Title / Section</th>
-                <th className="py-3.5 px-4">Description Snippet</th>
+                <th className="py-3.5 px-4">Old URL (Source)</th>
+                <th className="py-3.5 px-4">New URL (Destination)</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -219,22 +221,30 @@ export default function StaticPageContents() {
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading static page contents...
+                    Loading redirection rules...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">
-                    No static page content sections found.
+                    No redirection rules found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.title || 'University Page Content'}</td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-lg truncate">
-                      {item.description ? item.description.replace(/<[^>]+>/g, '') : '-'}
+                    <td className="py-3.5 px-4 font-mono text-xs text-rose-600 truncate max-w-sm">
+                      <span className="flex items-center gap-1.5">
+                        <LinkIcon className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        {item.old_url}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-xs text-emerald-600 truncate max-w-sm">
+                      <span className="flex items-center gap-1.5">
+                        <LinkIcon className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        {item.new_url}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -278,10 +288,10 @@ export default function StaticPageContents() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit Static Content' : 'Add Static Content'}
+                {editingId ? 'Edit URL Redirection' : 'Add URL Redirection'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -291,28 +301,32 @@ export default function StaticPageContents() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Content Title / Identifier
+                  Old URL Path <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. University Page Overview"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  required
+                  placeholder="/old-course-page"
+                  value={formData.old_url}
+                  onChange={(e) => setFormData({ ...formData, old_url: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Description (Rich Text)
+                  New Redirect Target URL <span className="text-rose-500">*</span>
                 </label>
-                <RichTextEditor
-                  value={formData.description}
-                  onChange={(content) => setFormData({ ...formData, description: content })}
-                  placeholder="Write the static page overview description..."
+                <input
+                  type="text"
+                  required
+                  placeholder="/new-course-page"
+                  value={formData.new_url}
+                  onChange={(e) => setFormData({ ...formData, new_url: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
                 />
               </div>
 
@@ -330,7 +344,7 @@ export default function StaticPageContents() {
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create Static Content'}
+                  {editingId ? 'Save Changes' : 'Create Redirection'}
                 </button>
               </div>
             </form>
@@ -340,4 +354,3 @@ export default function StaticPageContents() {
     </div>
   );
 }
-

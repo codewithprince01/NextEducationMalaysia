@@ -1,29 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
-import RichTextEditor from '@/components/common/RichTextEditor';
 import {
-  Plus,
+  UploadCloud,
   Search,
-  Edit2,
   Trash2,
   Loader2,
   X,
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  FileCode
+  Copy,
+  ExternalLink,
+  Download,
+  File
 } from 'lucide-react';
 
-interface StaticPageContentItem {
+interface UploadFileItem {
   id: number;
-  title?: string;
-  description?: string;
+  title: string;
+  file_name?: string;
+  file_path: string;
   created_at?: string;
 }
 
-export default function StaticPageContents() {
-  const [items, setItems] = useState<StaticPageContentItem[]>([]);
+export default function UploadFiles() {
+  const [items, setItems] = useState<UploadFileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -35,10 +37,9 @@ export default function StaticPageContents() {
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     title: '',
-    description: '',
+    file_path: '',
   });
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -49,15 +50,19 @@ export default function StaticPageContents() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/static-page-contents');
-      const json = await res.json();
-      if (res.ok && (json.status || json.success)) {
-        setItems(json.data || []);
+      const res = await fetch('/api/v1/admin/upload-files');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status || json.success) {
+          setItems(json.data || []);
+        } else {
+          setItems([]);
+        }
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch university page contents');
+        setItems([]);
       }
     } catch {
-      showToast('error', 'Network error while fetching static page contents');
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -68,36 +73,31 @@ export default function StaticPageContents() {
   }, []);
 
   const handleOpenAdd = () => {
-    setEditingId(null);
     setFormData({
-      title: 'University Page Content',
-      description: '',
+      title: '',
+      file_path: '',
     });
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: StaticPageContentItem) => {
-    setEditingId(item.id);
-    setFormData({
-      title: item.title || 'University Page Content',
-      description: item.description || '',
-    });
-    setIsModalOpen(true);
+  const handleCopy = (url: string) => {
+    navigator.clipboard.writeText(url);
+    showToast('success', 'URL copied to clipboard');
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this static page content?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this uploaded file?');
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/v1/admin/static-page-contents/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/admin/upload-files/${id}`, { method: 'DELETE' });
       const json = await res.json();
 
       if (res.ok && (json.status || json.success)) {
-        showToast('success', 'Deleted successfully');
+        showToast('success', 'File deleted successfully');
         fetchData();
       } else {
-        showToast('error', json.message || json.error || 'Failed to delete');
+        showToast('error', json.message || json.error || 'Failed to delete file');
       }
     } catch {
       showToast('error', 'Error deleting record');
@@ -106,27 +106,26 @@ export default function StaticPageContents() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title.trim()) {
+      showToast('error', 'Title is required');
+      return;
+    }
 
     setSubmitting(true);
     try {
-      const url = editingId
-        ? `/api/v1/admin/static-page-contents/${editingId}`
-        : '/api/v1/admin/static-page-contents';
-      const method = editingId ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
+      const res = await fetch('/api/v1/admin/upload-files', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
-        showToast('success', editingId ? 'Updated successfully' : 'Created successfully');
+        showToast('success', 'File uploaded successfully');
         setIsModalOpen(false);
         fetchData();
       } else {
-        showToast('error', json.message || json.error || 'Action failed');
+        showToast('error', json.message || json.error || 'Upload failed');
       }
     } catch {
       showToast('error', 'Network error');
@@ -137,7 +136,8 @@ export default function StaticPageContents() {
 
   const filtered = items.filter((item) =>
     (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.file_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.file_path || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -162,10 +162,10 @@ export default function StaticPageContents() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <FileCode className="w-6 h-6 text-indigo-600" /> University Page Contents
+            <UploadCloud className="w-6 h-6 text-indigo-600" /> Upload Files
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage global static descriptions and overview content blocks for university pages.
+            Manage media documents, PDFs, and assets uploaded for public CDN access.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -180,7 +180,7 @@ export default function StaticPageContents() {
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Static Content
+            <UploadCloud className="w-4 h-4" /> Upload File
           </button>
         </div>
       </div>
@@ -191,7 +191,7 @@ export default function StaticPageContents() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search content text..."
+            placeholder="Search title or file path..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -209,50 +209,80 @@ export default function StaticPageContents() {
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-16">ID</th>
-                <th className="py-3.5 px-4">Title / Section</th>
-                <th className="py-3.5 px-4">Description Snippet</th>
+                <th className="py-3.5 px-4">Title</th>
+                <th className="py-3.5 px-4">Date</th>
+                <th className="py-3.5 px-4">File Link</th>
+                <th className="py-3.5 px-4">URL Copy</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading static page contents...
+                    Loading uploaded files...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    No static page content sections found.
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    No files found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.title || 'University Page Content'}</td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-lg truncate">
-                      {item.description ? item.description.replace(/<[^>]+>/g, '') : '-'}
+                    <td className="py-3.5 px-4 font-semibold text-slate-800 flex items-center gap-2">
+                      <File className="w-4 h-4 text-indigo-500" />
+                      {item.title}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                          title="Edit"
+                    <td className="py-3.5 px-4 text-xs text-slate-500">{item.created_at || '-'}</td>
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={item.file_path}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded text-xs font-semibold transition-colors"
                         >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                          title="Delete"
+                          <ExternalLink className="w-3 h-3" /> View
+                        </a>
+                        <a
+                          href={item.file_path}
+                          download
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded text-xs font-semibold transition-colors"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Download className="w-3 h-3" /> Download
+                        </a>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-xs text-slate-500">
+                      <div className="flex items-center gap-2 max-w-xs">
+                        <input
+                          type="text"
+                          readOnly
+                          value={item.file_path}
+                          className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded text-xs truncate"
+                        />
+                        <button
+                          onClick={() => handleCopy(item.file_path)}
+                          className="p-1.5 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                          title="Copy URL"
+                        >
+                          <Copy className="w-4 h-4" />
                         </button>
                       </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -275,14 +305,12 @@ export default function StaticPageContents() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Upload Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit Static Content' : 'Add Static Content'}
-              </h3>
+              <h3 className="text-base font-semibold text-slate-800">Upload New File</h3>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
@@ -291,14 +319,15 @@ export default function StaticPageContents() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Content Title / Identifier
+                  File Title <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. University Page Overview"
+                  required
+                  placeholder="e.g. Brochure 2026 PDF"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -307,12 +336,14 @@ export default function StaticPageContents() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Description (Rich Text)
+                  File URL / Path
                 </label>
-                <RichTextEditor
-                  value={formData.description}
-                  onChange={(content) => setFormData({ ...formData, description: content })}
-                  placeholder="Write the static page overview description..."
+                <input
+                  type="text"
+                  placeholder="/uploads/files/brochure.pdf"
+                  value={formData.file_path}
+                  onChange={(e) => setFormData({ ...formData, file_path: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
                 />
               </div>
 
@@ -330,7 +361,7 @@ export default function StaticPageContents() {
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create Static Content'}
+                  Save File
                 </button>
               </div>
             </form>
@@ -340,4 +371,3 @@ export default function StaticPageContents() {
     </div>
   );
 }
-

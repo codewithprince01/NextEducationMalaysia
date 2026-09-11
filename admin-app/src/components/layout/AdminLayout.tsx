@@ -24,7 +24,12 @@ import {
   Pin,
   Settings,
   Handshake,
-  FileCheck
+  FileCheck,
+  UploadCloud,
+  ArrowLeftRight,
+  MapPin,
+  Layout,
+  Image as ImageIcon
 } from 'lucide-react';
 
 type NavLinkItem = {
@@ -146,6 +151,18 @@ const navigationConfig: NavSection[] = [
       { label: 'Admin Users', href: '/users', icon: Users },
       { label: 'Authors', href: '/authors', icon: PenTool },
       { label: 'Testimonials', href: '/testimonials', icon: MessageSquare },
+    ],
+  },
+  {
+    section: 'MORE 2 / SYSTEM & UTILITIES',
+    items: [
+      { label: 'Upload Files', href: '/upload-files', icon: UploadCloud },
+      { label: 'URL Redirections', href: '/url-redirections', icon: ArrowLeftRight },
+      { label: 'Addresses', href: '/addresses', icon: MapPin },
+      { label: 'Email & System Settings', href: '/system-settings', icon: Settings },
+      { label: 'Landing Pages', href: '/landing-pages', icon: Layout },
+      { label: 'Scholarships', href: '/scholarships', icon: GraduationCap },
+      { label: 'Page Banners', href: '/page-banners', icon: ImageIcon },
     ],
   },
 ];

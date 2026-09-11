@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
-import RichTextEditor from '@/components/common/RichTextEditor';
 import {
-  Plus,
+  Layout,
   Search,
   Edit2,
   Trash2,
@@ -12,18 +11,26 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  FileCode
+  Plus,
+  Image,
+  HelpCircle,
+  Building2
 } from 'lucide-react';
 
-interface StaticPageContentItem {
+interface LandingPageItem {
   id: number;
-  title?: string;
-  description?: string;
+  page_name: string;
+  page_slug: string;
+  date_and_address?: string;
+  date_and_address_image?: string;
+  banners_count?: number;
+  universities_count?: number;
+  faqs_count?: number;
   created_at?: string;
 }
 
-export default function StaticPageContents() {
-  const [items, setItems] = useState<StaticPageContentItem[]>([]);
+export default function LandingPages() {
+  const [items, setItems] = useState<LandingPageItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -37,8 +44,10 @@ export default function StaticPageContents() {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
+    page_name: '',
+    page_slug: '',
+    date_and_address: '',
+    date_and_address_image: '',
   });
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -49,15 +58,19 @@ export default function StaticPageContents() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/static-page-contents');
-      const json = await res.json();
-      if (res.ok && (json.status || json.success)) {
-        setItems(json.data || []);
+      const res = await fetch('/api/v1/admin/landing-pages');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status || json.success) {
+          setItems(json.data || []);
+        } else {
+          setItems([]);
+        }
       } else {
-        showToast('error', json.message || json.error || 'Failed to fetch university page contents');
+        setItems([]);
       }
     } catch {
-      showToast('error', 'Network error while fetching static page contents');
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -70,31 +83,35 @@ export default function StaticPageContents() {
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormData({
-      title: 'University Page Content',
-      description: '',
+      page_name: '',
+      page_slug: '',
+      date_and_address: '',
+      date_and_address_image: '',
     });
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (item: StaticPageContentItem) => {
+  const handleOpenEdit = (item: LandingPageItem) => {
     setEditingId(item.id);
     setFormData({
-      title: item.title || 'University Page Content',
-      description: item.description || '',
+      page_name: item.page_name || '',
+      page_slug: item.page_slug || '',
+      date_and_address: item.date_and_address || '',
+      date_and_address_image: item.date_and_address_image || '',
     });
     setIsModalOpen(true);
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this static page content?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this landing page?');
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/v1/admin/static-page-contents/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/admin/landing-pages/${id}`, { method: 'DELETE' });
       const json = await res.json();
 
       if (res.ok && (json.status || json.success)) {
-        showToast('success', 'Deleted successfully');
+        showToast('success', 'Landing page deleted successfully');
         fetchData();
       } else {
         showToast('error', json.message || json.error || 'Failed to delete');
@@ -106,12 +123,16 @@ export default function StaticPageContents() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.page_name.trim()) {
+      showToast('error', 'Page name is required');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const url = editingId
-        ? `/api/v1/admin/static-page-contents/${editingId}`
-        : '/api/v1/admin/static-page-contents';
+        ? `/api/v1/admin/landing-pages/${editingId}`
+        : '/api/v1/admin/landing-pages';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -136,8 +157,8 @@ export default function StaticPageContents() {
   };
 
   const filtered = items.filter((item) =>
-    (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.page_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.page_slug || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -162,10 +183,10 @@ export default function StaticPageContents() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <FileCode className="w-6 h-6 text-indigo-600" /> University Page Contents
+            <Layout className="w-6 h-6 text-indigo-600" /> Landing Pages
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage global static descriptions and overview content blocks for university pages.
+            Manage custom event landing pages, education fair microsites, banners, participating universities, and FAQs.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -180,7 +201,7 @@ export default function StaticPageContents() {
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add Static Content
+            <Plus className="w-4 h-4" /> Add Landing Page
           </button>
         </div>
       </div>
@@ -191,7 +212,7 @@ export default function StaticPageContents() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search content text..."
+            placeholder="Search page name or slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -209,32 +230,61 @@ export default function StaticPageContents() {
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-16">ID</th>
-                <th className="py-3.5 px-4">Title / Section</th>
-                <th className="py-3.5 px-4">Description Snippet</th>
+                <th className="py-3.5 px-4">Page Name</th>
+                <th className="py-3.5 px-4">Date &amp; Venue Address</th>
+                <th className="py-3.5 px-4">Header Image</th>
+                <th className="py-3.5 px-4">Sections</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading static page contents...
+                    Loading landing pages...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
-                    No static page content sections found.
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    No landing pages found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.title || 'University Page Content'}</td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-lg truncate">
-                      {item.description ? item.description.replace(/<[^>]+>/g, '') : '-'}
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-slate-800">{item.page_name}</div>
+                      <div className="text-xs font-mono text-indigo-600">{item.page_slug}</div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs text-slate-600 max-w-xs truncate">
+                      {item.date_and_address || '-'}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {item.date_and_address_image ? (
+                        <img
+                          src={item.date_and_address_image}
+                          alt={item.page_name}
+                          className="h-8 object-contain rounded border p-1"
+                        />
+                      ) : (
+                        <span className="text-slate-400 text-xs">N/A</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-xs font-medium">
+                          <Image className="w-3 h-3" /> Banners ({item.banners_count ?? 0})
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-50 text-purple-600 text-xs font-medium">
+                          <Building2 className="w-3 h-3" /> Universities ({item.universities_count ?? 0})
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 text-amber-600 text-xs font-medium">
+                          <HelpCircle className="w-3 h-3" /> FAQs ({item.faqs_count ?? 0})
+                        </span>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -278,10 +328,10 @@ export default function StaticPageContents() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit Static Content' : 'Add Static Content'}
+                {editingId ? 'Edit Landing Page' : 'Add Landing Page'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -291,28 +341,57 @@ export default function StaticPageContents() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Content Title / Identifier
+                  Page Name / Title <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. University Page Overview"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                  placeholder="e.g. Malaysia Education Fair 2026"
+                  value={formData.page_name}
+                  onChange={(e) => setFormData({ ...formData, page_name: e.target.value })}
                   className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Description (Rich Text)
+                  Page URL Slug
                 </label>
-                <RichTextEditor
-                  value={formData.description}
-                  onChange={(content) => setFormData({ ...formData, description: content })}
-                  placeholder="Write the static page overview description..."
+                <input
+                  type="text"
+                  placeholder="malaysia-education-fair-2026"
+                  value={formData.page_slug}
+                  onChange={(e) => setFormData({ ...formData, page_slug: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  Event Date &amp; Address Details
+                </label>
+                <input
+                  type="text"
+                  placeholder="15-18 May 2026, KLCC Convention Center"
+                  value={formData.date_and_address}
+                  onChange={(e) => setFormData({ ...formData, date_and_address: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  Venue Header Banner Image URL / Path
+                </label>
+                <input
+                  type="text"
+                  placeholder="/uploads/scholarship/venue-banner.jpg"
+                  value={formData.date_and_address_image}
+                  onChange={(e) => setFormData({ ...formData, date_and_address_image: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                 />
               </div>
 
@@ -330,7 +409,7 @@ export default function StaticPageContents() {
                   className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create Static Content'}
+                  {editingId ? 'Save Changes' : 'Create Landing Page'}
                 </button>
               </div>
             </form>
@@ -340,4 +419,3 @@ export default function StaticPageContents() {
     </div>
   );
 }
-

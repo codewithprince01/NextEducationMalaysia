@@ -88,9 +88,9 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 ## Partners Module
 
 **Documentation File:** [`docs/admin/partners.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/partners.md)
-**Overall Status:** **Pending**
+**Overall Status:** **Done**
 
-- **Our Partners** (`our-partners.blade.php`) -> Status: **Pending**
+- **Our Partners** (`our-partners.blade.php`) -> Status: **Done**
 
 ## More 1 Module
 
@@ -113,17 +113,17 @@ This plan outlines all active modules in the Laravel Admin Panel (`laravel-educa
 ## More 2 Module
 
 **Documentation File:** [`docs/admin/more_2.md`](file:///C:/projects/NextEducationMalaysia/docs/admin/more_2.md)
-**Overall Status:** **Pending**
+**Overall Status:** **Done**
 
-- **Upload Files** (`upload-files.blade.php`) -> Status: **Pending**
-- **URL Redirections** (`url-redirections.blade.php`) -> Status: **Pending**
-- **Addresses** (`addresses.blade.php`) -> Status: **Pending**
-- **Email & System Settings** (`system-settings/index.blade.php`) -> Status: **Pending**
-- **Landing Pages** (`landing-pages.blade.php`) -> Status: **Pending**
-- **Landing Page Banners** (`landing-page-banners.blade.php`) -> Status: **Pending**
-- **Landing Page FAQs** (`landing-page-faqs.blade.php`) -> Status: **Pending**
-- **Landing Page Universities** (`landing-page-universities.blade.php`) -> Status: **Pending**
-- **Scholarships** (`scholarships.blade.php`) -> Status: **Pending**
-- **Scholarship Contents** (`scholarship-contents.blade.php`) -> Status: **Pending**
-- **Scholarship FAQs** (`scholarship-faqs.blade.php`) -> Status: **Pending**
-- **Page Banners** (`page-banners.blade.php`) -> Status: **Pending**
+- **Upload Files** (`upload-files.blade.php`) -> Status: **Done**
+- **URL Redirections** (`url-redirections.blade.php`) -> Status: **Done**
+- **Addresses** (`addresses.blade.php`) -> Status: **Done**
+- **Email & System Settings** (`system-settings/index.blade.php`) -> Status: **Done**
+- **Landing Pages** (`landing-pages.blade.php`) -> Status: **Done**
+- **Landing Page Banners** (`landing-page-banners.blade.php`) -> Status: **Done**
+- **Landing Page FAQs** (`landing-page-faqs.blade.php`) -> Status: **Done**
+- **Landing Page Universities** (`landing-page-universities.blade.php`) -> Status: **Done**
+- **Scholarships** (`scholarships.blade.php`) -> Status: **Done**
+- **Scholarship Contents** (`scholarship-contents.blade.php`) -> Status: **Done**
+- **Scholarship FAQs** (`scholarship-faqs.blade.php`) -> Status: **Done**
+- **Page Banners** (`page-banners.blade.php`) -> Status: **Done**
