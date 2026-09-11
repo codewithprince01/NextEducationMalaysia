@@ -25,6 +25,8 @@ import Programs from '@/pages/Programs';
 import BlogCategories from '@/pages/BlogCategories';
 import Blogs from '@/pages/Blogs';
 import AddEditBlog from '@/pages/AddEditBlog';
+import BlogContents from '@/pages/BlogContents';
+import BlogFaqs from '@/pages/BlogFaqs';
 import StaticPageSeos from '@/pages/StaticPageSeos';
 import DynamicPageSeos from '@/pages/DynamicPageSeos';
 import DefaultOgImage from '@/pages/DefaultOgImage';
@@ -115,6 +117,9 @@ export default function App() {
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/blogs/create" element={<AddEditBlog />} />
               <Route path="/blogs/edit/:id" element={<AddEditBlog />} />
+              <Route path="/blog-contents" element={<BlogContents />} />
+              <Route path="/blog-content" element={<BlogContents />} />
+              <Route path="/blog-faqs" element={<BlogFaqs />} />
               <Route path="/static-page-seos" element={<StaticPageSeos />} />
               <Route path="/dynamic-page-seos" element={<DynamicPageSeos />} />
               <Route path="/default-og-image" element={<DefaultOgImage />} />

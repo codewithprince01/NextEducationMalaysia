@@ -108,6 +108,8 @@ const navigationConfig: NavSection[] = [
           { label: 'All Blogs', href: '/blogs' },
           { label: 'Create Blog', href: '/blogs/create' },
           { label: 'Blog Categories', href: '/blog-category' },
+          { label: 'Blog Content Sections', href: '/blog-contents' },
+          { label: 'Blog FAQs', href: '/blog-faqs' },
         ],
       },
       {
