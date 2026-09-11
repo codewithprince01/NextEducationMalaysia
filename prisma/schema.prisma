@@ -372,7 +372,7 @@ model InstituteType {
 model UniversityOverview {
   id            Int       @id @default(autoincrement())
   university_id Int?
-  tab           String?
+  title         String?
   description   String?   @db.LongText
   position      Int?      @default(0)
   created_at    DateTime? @default(now())
@@ -387,6 +387,7 @@ model UniversityOverview {
 model UniversityPhoto {
   id            Int       @id @default(autoincrement())
   university_id Int?
+  title         String?
   photo_path    String?
   is_featured   Int?      @default(0)
   created_at    DateTime? @default(now())
@@ -401,6 +402,7 @@ model UniversityPhoto {
 model UniversityVideo {
   id            Int       @id @default(autoincrement())
   university_id Int?
+  title         String?
   video_url     String?
   created_at    DateTime? @default(now())
   updated_at    DateTime? @updatedAt

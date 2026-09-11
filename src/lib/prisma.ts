@@ -1,0 +1,2 @@
+export { prisma } from './db';
+

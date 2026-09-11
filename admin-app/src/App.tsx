@@ -14,10 +14,29 @@ import SpecializationLevels from '@/pages/SpecializationLevels';
 import SpecializationLevelContents from '@/pages/SpecializationLevelContents';
 import Universities from '@/pages/Universities';
 import AddUniversity from '@/pages/AddUniversity';
+import UniversityOverviews from '@/pages/UniversityOverviews';
+import UniversityGallery from '@/pages/UniversityGallery';
+import UniversityFacilities from '@/pages/UniversityFacilities';
 import UniversityReviews from '@/pages/UniversityReviews';
+import UniversityRankings from '@/pages/UniversityRankings';
 import InstituteTypes from '@/pages/InstituteTypes';
 import StudyModes from '@/pages/StudyModes';
 import Programs from '@/pages/Programs';
+import BlogCategories from '@/pages/BlogCategories';
+import Blogs from '@/pages/Blogs';
+import AddEditBlog from '@/pages/AddEditBlog';
+import StaticPageSeos from '@/pages/StaticPageSeos';
+import DynamicPageSeos from '@/pages/DynamicPageSeos';
+import DefaultOgImage from '@/pages/DefaultOgImage';
+import FaqCategories from '@/pages/FaqCategories';
+import Faqs from '@/pages/Faqs';
+import Services from '@/pages/Services';
+import Exams from '@/pages/Exams';
+import MalaysiaApplications from '@/pages/MalaysiaApplications';
+import InternationalStudentData from '@/pages/InternationalStudentData';
+import Authors from '@/pages/Authors';
+import Testimonials from '@/pages/Testimonials';
+import Users from '@/pages/Users';
 import Profile from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 
@@ -63,7 +82,15 @@ export default function App() {
               <Route path="/university/add" element={<AddUniversity />} />
               <Route path="/university/edit/:id" element={<AddUniversity />} />
               <Route path="/universities" element={<Universities />} />
+              <Route path="/university-overviews" element={<UniversityOverviews />} />
+              <Route path="/university-overviews/:id" element={<UniversityOverviews />} />
+              <Route path="/university-gallery" element={<UniversityGallery />} />
+              <Route path="/university-gallery/:id" element={<UniversityGallery />} />
+              <Route path="/university-facilities" element={<UniversityFacilities />} />
+              <Route path="/university-facilities/:id" element={<UniversityFacilities />} />
               <Route path="/university-reviews" element={<UniversityReviews />} />
+              <Route path="/university-rankings" element={<UniversityRankings />} />
+              <Route path="/university-rankings/:id" element={<UniversityRankings />} />
               <Route path="/institute-types" element={<InstituteTypes />} />
               <Route path="/study-modes" element={<StudyModes />} />
               <Route path="/levels" element={<Levels />} />
@@ -81,6 +108,23 @@ export default function App() {
               <Route path="/specialization-level-contents" element={<SpecializationLevelContents />} />
               <Route path="/specialization-level-contents/:id" element={<SpecializationLevelContents />} />
               <Route path="/programs" element={<Programs />} />
+              <Route path="/blog-category" element={<BlogCategories />} />
+              <Route path="/blog-categories" element={<BlogCategories />} />
+              <Route path="/blogs" element={<Blogs />} />
+              <Route path="/blogs/create" element={<AddEditBlog />} />
+              <Route path="/blogs/edit/:id" element={<AddEditBlog />} />
+              <Route path="/static-page-seos" element={<StaticPageSeos />} />
+              <Route path="/dynamic-page-seos" element={<DynamicPageSeos />} />
+              <Route path="/default-og-image" element={<DefaultOgImage />} />
+              <Route path="/faq-categories" element={<FaqCategories />} />
+              <Route path="/faqs" element={<Faqs />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/exams" element={<Exams />} />
+              <Route path="/malaysia-applications" element={<MalaysiaApplications />} />
+              <Route path="/international-student-data" element={<InternationalStudentData />} />
+              <Route path="/authors" element={<Authors />} />
+              <Route path="/testimonials" element={<Testimonials />} />
+              <Route path="/users" element={<Users />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Route>

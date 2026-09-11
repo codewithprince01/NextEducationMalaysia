@@ -10,7 +10,12 @@ export async function GET(req: Request) {
     const city = searchParams.get('city') || '';
 
     let sql = `
-      SELECT u.*, it.type as institute_type_name
+      SELECT u.*, it.type as institute_type_name,
+             (SELECT COUNT(*) FROM university_programs up WHERE up.university_id = u.id) AS programs_count,
+             (SELECT COUNT(*) FROM university_overviews uo WHERE uo.university_id = u.id) AS overviews_count,
+             (SELECT COUNT(*) FROM university_photos uph WHERE uph.university_id = u.id) AS photos_count,
+             (SELECT COUNT(*) FROM university_videos uv WHERE uv.university_id = u.id) AS videos_count,
+             (SELECT COUNT(*) FROM university_facilities uf WHERE uf.u_id = u.id) AS facilities_count
       FROM universities u
       LEFT JOIN institute_types it ON u.institute_type = it.id
       WHERE u.website = 'MYS'
@@ -99,11 +104,9 @@ export async function POST(req: Request) {
     const uname = customUname ? slugify(customUname) : slugify(name);
     const now = new Date();
 
-    // Get max ID
     const maxRes: any[] = await prisma.$queryRawUnsafe(`SELECT MAX(id) as max_id FROM universities`);
     const nextId = (Number(maxRes[0]?.max_id) || 0) + 1;
 
-    // Get institute type name
     let inst_type: string | null = null;
     if (institute_type) {
       const itRes: any[] = await prisma.$queryRawUnsafe(

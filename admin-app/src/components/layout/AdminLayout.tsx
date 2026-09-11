@@ -58,7 +58,11 @@ const navigationConfig: NavSection[] = [
         children: [
           { label: 'All Universities', href: '/university' },
           { label: 'Add University', href: '/university/add' },
+          { label: 'University Overviews', href: '/university-overviews' },
+          { label: 'Photos & Videos Gallery', href: '/university-gallery' },
+          { label: 'University Facilities', href: '/university-facilities' },
           { label: 'University Reviews', href: '/university-reviews' },
+          { label: 'University Rankings', href: '/university-rankings' },
           { label: 'Institute Types', href: '/institute-types' },
           { label: 'Study Modes', href: '/study-modes' },
         ],
@@ -183,7 +187,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fe] text-slate-800 flex font-sans selection:bg-indigo-600 selection:text-white">
+    <div className="min-h-screen bg-[#f4f7fe] text-slate-800 flex font-sans selection:bg-blue-600 selection:text-white">
       {/* Mobile Sidebar Backdrop */}
       {mobileSidebarOpen && (
         <div
@@ -196,9 +200,8 @@ export default function AdminLayout() {
       <aside
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-slate-200/80 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 shadow-sm ${
-          mobileSidebarOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'
-        } ${!isExpanded ? 'lg:w-[72px]' : 'lg:w-72'}`}
+        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-slate-200/80 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 shadow-sm ${mobileSidebarOpen ? 'translate-x-0 w-60' : '-translate-x-full lg:translate-x-0'
+          } ${!isExpanded ? 'lg:w-[68px]' : 'lg:w-60'}`}
       >
         <div className="flex flex-col min-h-0 flex-1">
           {/* Header Logo & Pin */}
@@ -207,7 +210,7 @@ export default function AdminLayout() {
               to="/dashboard"
               className={`flex items-center gap-3 group min-w-0 ${!isExpanded && !mobileSidebarOpen ? 'mx-auto' : ''}`}
             >
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-600 to-indigo-500 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-transform shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center text-white font-black text-lg shadow-md shadow-blue-900/25 group-hover:scale-105 transition-transform shrink-0">
                 EM
               </div>
               {(isExpanded || mobileSidebarOpen) && (
@@ -227,10 +230,10 @@ export default function AdminLayout() {
               <button
                 type="button"
                 onClick={togglePin}
-                className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-all cursor-pointer shrink-0"
+                className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-all cursor-pointer shrink-0"
                 title={isPinned ? 'Unpin sidebar (collapse on mouse leave)' : 'Pin sidebar (keep expanded)'}
               >
-                <Pin className={`w-4 h-4 transition-transform duration-200 ${isPinned ? 'rotate-45 text-indigo-600' : ''}`} />
+                <Pin className={`w-4 h-4 transition-transform duration-200 ${isPinned ? 'rotate-45 text-blue-600' : ''}`} />
               </button>
             )}
 
@@ -271,11 +274,10 @@ export default function AdminLayout() {
                           key={item.label}
                           to={firstChild.href}
                           title={item.label}
-                          className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${
-                            isAnyChildActive
-                              ? 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
+                          className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${isAnyChildActive
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
                               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           <Icon className={`w-5 h-5 shrink-0 ${isAnyChildActive ? 'text-white' : 'text-slate-500'}`} />
                         </Link>
@@ -287,25 +289,23 @@ export default function AdminLayout() {
                       <div key={item.label} className="space-y-1">
                         <button
                           onClick={() => toggleGroup(item.label)}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            isAnyChildActive
-                              ? 'text-indigo-600 bg-indigo-50/80'
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isAnyChildActive
+                              ? 'text-blue-700 bg-blue-50/90'
                               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-3">
-                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isAnyChildActive ? 'text-indigo-600' : 'text-slate-500'}`} />
+                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isAnyChildActive ? 'text-blue-700' : 'text-slate-500'}`} />
                             <span>{item.label}</span>
                           </div>
                           <ChevronDown
-                            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                              isOpen ? 'rotate-180 text-indigo-600' : ''
-                            }`}
+                            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-700' : ''
+                              }`}
                           />
                         </button>
 
                         {isOpen && (
-                          <div className="pl-9 pr-1 space-y-1 pt-1 border-l-2 border-slate-100 ml-5">
+                          <div className="ml-4 pl-2.5 pr-1 space-y-0.5 pt-0.5 border-l border-slate-200/80">
                             {item.children.map((child) => {
                               const isActive = pathname === child.href || (child.href !== '/' && pathname.startsWith(child.href + '/'));
                               return (
@@ -313,11 +313,10 @@ export default function AdminLayout() {
                                   key={child.href}
                                   to={child.href}
                                   onClick={closeMobile}
-                                  className={`block px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                                    isActive
-                                      ? 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white font-bold shadow-md shadow-indigo-500/20'
-                                      : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50'
-                                  }`}
+                                  className={`block px-2.5 py-1.5 rounded-lg text-xs transition-all ${isActive
+                                      ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-extrabold shadow-md shadow-blue-600/20'
+                                      : 'text-slate-600 hover:text-blue-700 hover:bg-slate-50 font-medium'
+                                    }`}
                                 >
                                   {child.label}
                                 </Link>
@@ -338,11 +337,10 @@ export default function AdminLayout() {
                         key={item.href}
                         to={item.href}
                         title={item.label}
-                        className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${
-                          isActive
-                            ? 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
+                        className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${isActive
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                        }`}
+                          }`}
                       >
                         <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                       </Link>
@@ -354,11 +352,10 @@ export default function AdminLayout() {
                       key={item.href}
                       to={item.href}
                       onClick={closeMobile}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                        isActive
-                          ? 'bg-gradient-to-r from-indigo-500 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
                           : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
+                        }`}
                     >
                       <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                       <span>{item.label}</span>
@@ -375,7 +372,7 @@ export default function AdminLayout() {
           {(isExpanded || mobileSidebarOpen) ? (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-indigo-100 border border-indigo-200/80 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-200/80 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || 'A'}
                 </div>
                 <div className="flex flex-col min-w-0">
@@ -386,7 +383,7 @@ export default function AdminLayout() {
               <div className="flex items-center gap-1 shrink-0">
                 <Link
                   to="/profile"
-                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   title="Profile Settings"
                 >
                   <Settings className="w-4 h-4" />
@@ -404,7 +401,7 @@ export default function AdminLayout() {
             <div className="flex flex-col items-center gap-2">
               <Link
                 to="/profile"
-                className="w-9 h-9 rounded-xl bg-indigo-100 border border-indigo-200/80 flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0 hover:ring-2 hover:ring-indigo-300 transition-all"
+                className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-200/80 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0 hover:ring-2 hover:ring-blue-300 transition-all"
                 title={user?.name || 'Super Admin'}
               >
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
@@ -415,7 +412,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${!isExpanded ? 'lg:pl-[72px]' : 'lg:pl-72'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${!isExpanded ? 'lg:pl-[68px]' : 'lg:pl-60'}`}>
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1 max-w-md">
@@ -434,7 +431,7 @@ export default function AdminLayout() {
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50/80 border border-slate-200/80 rounded-full pl-10 pr-10 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                className="w-full bg-slate-50/80 border border-slate-200/80 rounded-full pl-10 pr-10 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"
               />
               <span className="absolute right-3 inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">
                 <Command className="w-2.5 h-2.5" /> K
@@ -457,7 +454,7 @@ export default function AdminLayout() {
               to="/profile"
               className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-full border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs"
             >
-              <div className="w-7 h-7 rounded-full bg-indigo-600 text-white font-extrabold flex items-center justify-center text-xs">
+              <div className="w-7 h-7 rounded-full bg-blue-700 text-white font-extrabold flex items-center justify-center text-xs">
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
               </div>
               <span className="hidden sm:inline text-slate-800">{user?.name || 'Admin'}</span>
@@ -466,7 +463,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content View */}
-        <main className="flex-1 p-4 sm:p-8 max-w-[1700px] w-full mx-auto">
+        <main className="flex-1 p-2 sm:p-3 max-w-[1700px] w-full mx-auto">
           <Outlet />
         </main>
       </div>
