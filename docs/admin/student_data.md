@@ -4,7 +4,9 @@
 **React Migration Status:** **`Done`**  
 **React Routes:**
 
+- `/malaysia-application-categories` -> Component: [`MalaysiaApplicationCategories.tsx`](file:///c:/projects/NextEducationMalaysia/admin-app/src/pages/MalaysiaApplicationCategories.tsx)
 - `/malaysia-applications` -> Component: [`MalaysiaApplications.tsx`](file:///c:/projects/NextEducationMalaysia/admin-app/src/pages/MalaysiaApplications.tsx)
+- `/international-student-data-countries` -> Component: [`InternationalStudentDataCountries.tsx`](file:///c:/projects/NextEducationMalaysia/admin-app/src/pages/InternationalStudentDataCountries.tsx)
 - `/international-student-data` -> Component: [`InternationalStudentData.tsx`](file:///c:/projects/NextEducationMalaysia/admin-app/src/pages/InternationalStudentData.tsx)
 
 ---

@@ -85,3 +85,4 @@ export async function DELETE(
     return NextResponse.json({ status: false, message: 'Failed to delete partner', error: error.message }, { status: 500 });
   }
 }
+

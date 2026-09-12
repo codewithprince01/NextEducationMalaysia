@@ -39,7 +39,9 @@ import Exams from '@/pages/Exams';
 import Internships from '@/pages/Internships';
 import OurPartners from '@/pages/OurPartners';
 import MalaysiaApplications from '@/pages/MalaysiaApplications';
+import MalaysiaApplicationCategories from '@/pages/MalaysiaApplicationCategories';
 import InternationalStudentData from '@/pages/InternationalStudentData';
+import InternationalStudentDataCountries from '@/pages/InternationalStudentDataCountries';
 import Authors from '@/pages/Authors';
 import Testimonials from '@/pages/Testimonials';
 import Users from '@/pages/Users';
@@ -141,7 +143,9 @@ export default function App() {
               <Route path="/internships" element={<Internships />} />
               <Route path="/our-partners" element={<OurPartners />} />
               <Route path="/malaysia-applications" element={<MalaysiaApplications />} />
+              <Route path="/malaysia-application-categories" element={<MalaysiaApplicationCategories />} />
               <Route path="/international-student-data" element={<InternationalStudentData />} />
+              <Route path="/international-student-data-countries" element={<InternationalStudentDataCountries />} />
               <Route path="/authors" element={<Authors />} />
               <Route path="/testimonials" element={<Testimonials />} />
               <Route path="/users" element={<Users />} />

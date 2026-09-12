@@ -76,3 +76,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: false, message: 'Failed to create partner', error: error.message }, { status: 500 });
   }
 }
+

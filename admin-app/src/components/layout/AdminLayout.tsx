@@ -97,7 +97,9 @@ const navigationConfig: NavSection[] = [
         label: 'Applications Data',
         icon: FileCheck,
         children: [
+          { label: 'Course Categories', href: '/malaysia-application-categories' },
           { label: 'Course Applications (Malaysia)', href: '/malaysia-applications' },
+          { label: 'Countries', href: '/international-student-data-countries' },
           { label: 'Country Applications (International)', href: '/international-student-data' },
         ],
       },
