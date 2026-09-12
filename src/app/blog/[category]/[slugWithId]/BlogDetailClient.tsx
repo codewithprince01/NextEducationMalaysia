@@ -6,6 +6,7 @@ import Breadcrumb from '@/components/Breadcrumb'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import { CalendarDays, ArrowRight, User, Clock } from 'lucide-react'
 import { dedupeBlogContent } from '@/lib/blogContent'
+import { slugify } from '@/lib/utils'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = '/api/v1'
@@ -152,13 +153,40 @@ export default function BlogDetailClient({
     ? new Date(lastUpdated).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
     : ""
 
-  // The table of contents scrolls to a heading instead of navigating to it. A
-  // plain #hash link leaves `#subsection-1-4` sitting in the address bar, and
-  // that is the URL readers then copy and share. The targets carry scroll-mt-24
-  // so the sticky header does not cover the heading it lands on.
-  const scrollToHeading = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+  // Anchor ids are built from the heading text, so a link a reader copies out
+  // of the address bar reads `#fees-and-duration` instead of `#subsection-1-4`.
+  // The table of contents and the sections themselves both read their ids from
+  // here, so the two can never drift apart. Slugs are de-duplicated because two
+  // headings on one article can reduce to the same string, and an untitled
+  // section still needs something to point at.
+  const headingIds = useMemo(() => {
+    const used = new Set<string>()
+    const claim = (title: unknown, fallback: string) => {
+      const base = slugify(String(title || '')) || fallback
+      let id = base
+      let suffix = 2
+      while (used.has(id)) id = `${base}-${suffix++}`
+      used.add(id)
+      return id
+    }
+
+    const sections: any[] = Array.isArray(blog?.parent_contents) ? blog.parent_contents : []
+    return sections.map((section: any, index: number) => ({
+      id: claim(section?.title, `section-${index}`),
+      children: (Array.isArray(section?.child_contents) ? section.child_contents : []).map(
+        (child: any, i: number) => claim(child?.title, `section-${index}-${i}`),
+      ),
+    }))
+  }, [blog?.parent_contents])
+
+  // A subheading belongs to its section, so 2.3 puts the anchor of heading 2 in
+  // the address bar rather than one of its own. The page still scrolls to the
+  // subheading the reader picked — only the shared URL is coarser, pointing at
+  // the section that contains it.
+  const scrollToChild = (childId: string, sectionId: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault()
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    document.getElementById(childId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.history.pushState(null, '', `#${sectionId}`)
   }
 
   useEffect(() => {
@@ -326,8 +354,7 @@ export default function BlogDetailClient({
                   {blog.parent_contents.map((section: any, index: number) => (
                     <li key={index} className="md:ml-6">
                       <a
-                        href={`#section-${index}`}
-                        onClick={scrollToHeading(`section-${index}`)}
+                        href={`#${headingIds[index]?.id ?? `section-${index}`}`}
                         className="text-gray-900 hover:text-blue-600 font-semibold text-sm md:text-base transition-colors duration-200"
                       >
                         {index + 1}. {section.title}
@@ -337,8 +364,11 @@ export default function BlogDetailClient({
                           {section.child_contents.map((child: any, i: number) => (
                             <li key={i}>
                               <a
-                                href={`#subsection-${index}-${i}`}
-                                onClick={scrollToHeading(`subsection-${index}-${i}`)}
+                                href={`#${headingIds[index]?.id ?? `section-${index}`}`}
+                                onClick={scrollToChild(
+                                  headingIds[index]?.children[i] ?? `section-${index}-${i}`,
+                                  headingIds[index]?.id ?? `section-${index}`,
+                                )}
                                 className="text-blue-600 hover:text-blue-800 text-xs md:text-sm font-medium transition-colors hover:underline"
                               >
                                 {index + 1}.{i + 1} {child.title}
@@ -382,7 +412,7 @@ export default function BlogDetailClient({
             {blog.parent_contents?.length > 0 && (
               <div className="space-y-6 mt-2">
                 {blog.parent_contents.map((section: any, index: number) => (
-                  <div key={index} id={`section-${index}`} className="scroll-mt-24">
+                  <div key={index} id={headingIds[index]?.id ?? `section-${index}`} className="scroll-mt-24">
                     <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 px-4 py-2 border-l-4 border-blue-500 bg-blue-50 rounded">
                       {section.title}
                     </h2>
@@ -394,7 +424,7 @@ export default function BlogDetailClient({
                     {section.child_contents?.length > 0 && (
                       <div className="mt-6 space-y-6">
                         {section.child_contents.map((child: any, i: number) => (
-                          <div key={i} id={`subsection-${index}-${i}`} className="scroll-mt-24">
+                          <div key={i} id={headingIds[index]?.children[i] ?? `section-${index}-${i}`} className="scroll-mt-24">
                             <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
                               {child.title}
                             </h3>
