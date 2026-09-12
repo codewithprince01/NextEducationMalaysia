@@ -306,6 +306,13 @@ export default function UniversityHeroClient({ university, photos }: { universit
                     <Link
                       key={cat.id || cat.name}
                       href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
+                      // These chips are how Google found the filtered course URLs in the
+                      // first place — every university page linked one per category, and
+                      // each target is a filtered view of /courses that canonicalises back
+                      // to it. Useful to a visitor, nothing to crawl: nofollow keeps the
+                      // crawler out of the filter space instead of having it discover the
+                      // URLs and then find them blocked in robots.txt.
+                      rel="nofollow"
                       className="inline-flex items-center bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                     >
                       {cat.name}
@@ -407,6 +414,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
                       <Link
                         key={cat.id || cat.name}
                         href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
+                        rel="nofollow"
                         className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium"
                       >
                         {cat.name}
