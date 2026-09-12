@@ -152,6 +152,15 @@ export default function BlogDetailClient({
     ? new Date(lastUpdated).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
     : ""
 
+  // The table of contents scrolls to a heading instead of navigating to it. A
+  // plain #hash link leaves `#subsection-1-4` sitting in the address bar, and
+  // that is the URL readers then copy and share. The targets carry scroll-mt-24
+  // so the sticky header does not cover the heading it lands on.
+  const scrollToHeading = (id: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   useEffect(() => {
     if (initialData) {
       const parsed = normalizeDetailPayload(initialData)
@@ -318,6 +327,7 @@ export default function BlogDetailClient({
                     <li key={index} className="md:ml-6">
                       <a
                         href={`#section-${index}`}
+                        onClick={scrollToHeading(`section-${index}`)}
                         className="text-gray-900 hover:text-blue-600 font-semibold text-sm md:text-base transition-colors duration-200"
                       >
                         {index + 1}. {section.title}
@@ -328,6 +338,7 @@ export default function BlogDetailClient({
                             <li key={i}>
                               <a
                                 href={`#subsection-${index}-${i}`}
+                                onClick={scrollToHeading(`subsection-${index}-${i}`)}
                                 className="text-blue-600 hover:text-blue-800 text-xs md:text-sm font-medium transition-colors hover:underline"
                               >
                                 {index + 1}.{i + 1} {child.title}
