@@ -43,6 +43,66 @@ export function websiteJsonLd(): JsonLd {
   }
 }
 
+/**
+ * Stable identifier for a university across every page it appears on, so a
+ * course page and the university page describe the same entity rather than two
+ * different ones. Anchored to the university's own URL, never the current page.
+ */
+function universityNodeId(uname?: string | null, fallbackPath?: string): string {
+  const slug = (uname || '').trim()
+  const path = slug ? `/university/${slug}` : (fallbackPath || '/university')
+  return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}#organization`
+}
+
+/**
+ * The university's rating, summarised as a single value.
+ *
+ * Only the aggregate is ever published — never the individual `review` entries.
+ * Google counts one rich-result item per review plus one for the aggregate, so
+ * emitting the review list produced five items on a single page, all named
+ * after the university. The aggregate alone is one item and still earns stars.
+ *
+ * Returns null when there is nothing real to publish, so a university with no
+ * reviews never gets an invented rating.
+ */
+function universityAggregateRating(uni: {
+  rating?: string | number | null
+  review_count?: string | number | null
+  average_rating?: string | number | null
+  reviews?: Array<{ rating?: string | number | null }> | null
+}): JsonLd | null {
+  const clamp = (value: number) => Math.min(5, Math.max(1, Math.round(value * 10) / 10))
+
+  const storedCount = Number.parseInt(String(uni.review_count ?? '0'), 10)
+  const storedValue = Number.parseFloat(
+    String(uni.average_rating ?? uni.rating ?? '').replace(/[^0-9.]/g, ''),
+  )
+  const hasStored = Number.isFinite(storedValue) && storedValue > 0 && storedCount > 0
+
+  // Fallback for rows whose aggregate columns are empty: derive it from the
+  // reviews themselves rather than publish a rating with no basis.
+  const reviewRatings = (uni.reviews || [])
+    .map((r) => Number.parseFloat(String(r?.rating ?? '').replace(/[^0-9.]/g, '')))
+    .filter((r) => Number.isFinite(r) && r > 0)
+
+  const ratingValue = hasStored
+    ? clamp(storedValue)
+    : reviewRatings.length > 0
+      ? clamp(reviewRatings.reduce((sum, r) => sum + r, 0) / reviewRatings.length)
+      : 0
+  const reviewCount = hasStored ? Math.max(storedCount, reviewRatings.length) : reviewRatings.length
+
+  if (!(ratingValue > 0 && reviewCount > 0)) return null
+
+  return {
+    '@type': 'AggregateRating',
+    ratingValue: String(ratingValue),
+    reviewCount: String(reviewCount),
+    bestRating: '5',
+    worstRating: '1',
+  }
+}
+
 export function universityJsonLd(uni: {
   id?: number | string | null
   name?: string | null
@@ -92,32 +152,6 @@ export function universityJsonLd(uni: {
       .map((p) => (p?.course_name || '').trim())
       .filter(Boolean)
   )).slice(0, 15)
-  const reviewCount = Number.parseInt(String(uni.review_count ?? '0'), 10)
-  const ratingValue = Number.parseFloat(
-    String(uni.average_rating ?? uni.rating ?? '').replace(/[^0-9.]/g, ''),
-  )
-  const hasRealAggregate = Number.isFinite(ratingValue) && ratingValue > 0 && reviewCount > 0
-  const realReviews = (uni.reviews || [])
-    .map((r) => ({
-      name: (r?.name || '').trim(),
-      description: strip(r?.description || ''),
-      rating: Number.parseFloat(String(r?.rating ?? '').replace(/[^0-9.]/g, '')),
-    }))
-    .filter((r) => r.name && r.description && Number.isFinite(r.rating) && r.rating > 0)
-    .slice(0, 5)
-  // Google rejects a review list that has no aggregateRating beside it
-  // ("Multiple reviews without aggregateRating object"). When the stored
-  // aggregate is missing, derive one from the reviews we are about to emit so
-  // the two can never drift apart.
-  const clampRating = (value: number) => Math.min(5, Math.max(1, Math.round(value * 10) / 10))
-  const derivedRatingValue = realReviews.length > 0
-    ? clampRating(realReviews.reduce((sum, r) => sum + r.rating, 0) / realReviews.length)
-    : 0
-  const aggregateRatingValue = hasRealAggregate ? clampRating(ratingValue) : derivedRatingValue
-  const aggregateReviewCount = hasRealAggregate
-    ? Math.max(reviewCount, realReviews.length)
-    : realReviews.length
-  const hasAggregate = aggregateRatingValue > 0 && aggregateReviewCount > 0
   const keywords = Array.from(new Set([
     `${uni.name || 'University'} Malaysia`,
     uni.city || '',
@@ -129,6 +163,9 @@ export function universityJsonLd(uni: {
   const data: JsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollegeOrUniversity',
+    // Stable node id, so the university described on a course page is understood
+    // as the same entity as the one on its own page.
+    '@id': universityNodeId(uni.uname, pagePath),
     name: uni.name,
     description,
     url: pageUrl,
@@ -156,31 +193,9 @@ export function universityJsonLd(uni: {
     keywords,
   }
 
-  if (hasAggregate) {
-    data.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: String(aggregateRatingValue),
-      reviewCount: String(aggregateReviewCount),
-      bestRating: '5',
-      worstRating: '1',
-    }
-  }
-
-  if (realReviews.length > 0 && hasAggregate) {
-    data.review = realReviews.map((r) => ({
-      '@type': 'Review',
-      author: {
-        '@type': 'Person',
-        name: r.name,
-      },
-      reviewBody: r.description,
-      reviewRating: {
-        '@type': 'Rating',
-        ratingValue: String(clampRating(r.rating)),
-        bestRating: '5',
-        worstRating: '1',
-      },
-    }))
+  const aggregateRating = universityAggregateRating(uni)
+  if (aggregateRating) {
+    data.aggregateRating = aggregateRating
   }
 
   if (!data.name) {
