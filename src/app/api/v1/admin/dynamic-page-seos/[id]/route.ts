@@ -27,13 +27,24 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   try {
     const id = parseInt(params.id, 10);
     const body = await req.json();
-    const { url, meta_title, meta_description, meta_keyword, og_image_path, page_content } = body;
+    const {
+      url,
+      meta_title,
+      meta_description,
+      meta_keyword,
+      og_image_path,
+      page_content,
+      seo_rating,
+      best_rating,
+      review_number
+    } = body;
 
     const now = new Date();
 
     await prisma.$executeRawUnsafe(
       `UPDATE dynamic_page_seos 
-       SET url = ?, meta_title = ?, meta_description = ?, meta_keyword = ?, og_image_path = ?, page_content = ?, updated_at = ?
+       SET url = ?, meta_title = ?, meta_description = ?, meta_keyword = ?, og_image_path = ?, page_content = ?,
+           seo_rating = ?, best_rating = ?, review_number = ?, updated_at = ?
        WHERE id = ?`,
       url,
       meta_title || null,
@@ -41,6 +52,9 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
       meta_keyword || null,
       og_image_path || null,
       page_content || null,
+      seo_rating !== undefined && seo_rating !== '' && seo_rating !== null ? parseFloat(seo_rating) : null,
+      best_rating !== undefined && best_rating !== '' && best_rating !== null ? parseFloat(best_rating) : null,
+      review_number !== undefined && review_number !== '' && review_number !== null ? parseInt(review_number, 10) : null,
       now,
       id
     );

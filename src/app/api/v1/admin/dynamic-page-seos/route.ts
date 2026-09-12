@@ -21,7 +21,17 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { url, meta_title, meta_description, meta_keyword, og_image_path, page_content } = body;
+    const {
+      url,
+      meta_title,
+      meta_description,
+      meta_keyword,
+      og_image_path,
+      page_content,
+      seo_rating,
+      best_rating,
+      review_number
+    } = body;
 
     if (!url) {
       return NextResponse.json({ status: false, message: 'Target URL is required' }, { status: 400 });
@@ -30,14 +40,19 @@ export async function POST(req: Request) {
     const now = new Date();
 
     await prisma.$executeRawUnsafe(
-      `INSERT INTO dynamic_page_seos (website, url, meta_title, meta_description, meta_keyword, og_image_path, page_content, created_at, updated_at)
-       VALUES ('MYS', ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO dynamic_page_seos (
+        website, url, meta_title, meta_description, meta_keyword, og_image_path, page_content,
+        seo_rating, best_rating, review_number, created_at, updated_at
+      ) VALUES ('MYS', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       url,
       meta_title || null,
       meta_description || null,
       meta_keyword || null,
       og_image_path || null,
       page_content || null,
+      seo_rating ? parseFloat(seo_rating) : null,
+      best_rating ? parseFloat(best_rating) : null,
+      review_number ? parseInt(review_number, 10) : null,
       now,
       now
     );

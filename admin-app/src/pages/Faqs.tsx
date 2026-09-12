@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -13,7 +14,9 @@ import {
   AlertCircle,
   RefreshCw,
   HelpCircle,
-  Filter
+  Filter,
+  Eye,
+  ChevronUp
 } from 'lucide-react';
 
 interface FaqCategoryItem {
@@ -27,11 +30,11 @@ interface FaqItem {
   category_name?: string;
   question: string;
   answer?: string;
-  position?: number;
   created_at?: string;
 }
 
 export default function Faqs() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<FaqItem[]>([]);
   const [categories, setCategories] = useState<FaqCategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,15 +46,21 @@ export default function Faqs() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
 
-  // Modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Form visibility & Editing state
+  const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     category_id: '',
     question: '',
     answer: '',
-    position: 0,
+  });
+
+  // View Answer Modal
+  const [viewModal, setViewModal] = useState<{ isOpen: boolean; title: string; content: string }>({
+    isOpen: false,
+    title: '',
+    content: '',
   });
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -67,7 +76,7 @@ export default function Faqs() {
         setCategories(json.data || []);
       }
     } catch {
-      // Ignore background category error
+      // Ignore background error
     }
   };
 
@@ -80,7 +89,18 @@ export default function Faqs() {
       const res = await fetch(url);
       const json = await res.json();
       if (res.ok && json.status) {
-        setItems(json.data || []);
+        const fetchedItems: FaqItem[] = json.data || [];
+        setItems(fetchedItems);
+
+        // Check for ?edit=<ID> in URL
+        const editIdParam = searchParams.get('edit');
+        if (editIdParam) {
+          const targetId = parseInt(editIdParam, 10);
+          const found = fetchedItems.find((i) => i.id === targetId);
+          if (found) {
+            populateForm(found);
+          }
+        }
       } else {
         showToast('error', json.message || 'Failed to fetch FAQs');
       }
@@ -99,26 +119,37 @@ export default function Faqs() {
     fetchData();
   }, [selectedCategory]);
 
+  const populateForm = (item: FaqItem) => {
+    setEditingId(item.id);
+    setFormData({
+      category_id: item.category_id ? String(item.category_id) : '',
+      question: item.question || '',
+      answer: item.answer || '',
+    });
+    setShowForm(true);
+  };
+
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormData({
       category_id: selectedCategory || (categories[0]?.id ? String(categories[0].id) : ''),
       question: '',
       answer: '',
-      position: 0,
     });
-    setIsModalOpen(true);
+    setSearchParams({}, { replace: true });
+    setShowForm(true);
   };
 
   const handleOpenEdit = (item: FaqItem) => {
-    setEditingId(item.id);
-    setFormData({
-      category_id: item.category_id ? String(item.category_id) : '',
-      question: item.question || '',
-      answer: item.answer || '',
-      position: item.position || 0,
-    });
-    setIsModalOpen(true);
+    setSearchParams({ edit: String(item.id) }, { replace: true });
+    populateForm(item);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setSearchParams({}, { replace: true });
   };
 
   const handleDelete = async (id: number) => {
@@ -131,6 +162,9 @@ export default function Faqs() {
 
       if (res.ok && json.status) {
         showToast('success', 'Deleted successfully');
+        if (editingId === id) {
+          handleCancelForm();
+        }
         fetchData();
       } else {
         showToast('error', json.message || 'Failed to delete');
@@ -163,7 +197,7 @@ export default function Faqs() {
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', editingId ? 'Updated successfully' : 'Created successfully');
-        setIsModalOpen(false);
+        handleCancelForm();
         fetchData();
       } else {
         showToast('error', json.message || 'Action failed');
@@ -177,7 +211,8 @@ export default function Faqs() {
 
   const filtered = items.filter((item) =>
     (item.question || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.answer || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.answer || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.category_name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -186,13 +221,12 @@ export default function Faqs() {
   );
 
   return (
-    <div className="space-y-3 max-w-[1600px] mx-auto">
+    <div className="space-y-4 max-w-[1600px] mx-auto">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -203,10 +237,10 @@ export default function Faqs() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <HelpCircle className="w-6 h-6 text-indigo-600" /> FAQ List
+            <HelpCircle className="w-6 h-6 text-indigo-600" /> Faqs
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage global frequently asked questions and answers.
+            Manage category frequently asked questions and answers.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -218,15 +252,133 @@ export default function Faqs() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
-            onClick={handleOpenAdd}
+            onClick={() => {
+              if (showForm && !editingId) {
+                setShowForm(false);
+              } else {
+                handleOpenAdd();
+              }
+            }}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
           >
-            <Plus className="w-4 h-4" /> Add FAQ
+            {showForm ? (
+              <>
+                <ChevronUp className="w-4 h-4" /> Hide Form
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4" /> Add FAQ
+              </>
+            )}
           </button>
         </div>
       </div>
 
-      {/* Controls */}
+      {/* Form Card (Matching Laravel faqs.blade.php) */}
+      {showForm && (
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
+          <div className="flex items-center justify-between p-4 px-6 border-b border-slate-200 bg-slate-50/50">
+            <h3 className="text-base font-bold text-slate-800">
+              {editingId ? 'Edit Faq Record' : 'Add Faq Record'}
+            </h3>
+            <button
+              onClick={handleCancelForm}
+              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {/* Select Category */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  Select Category <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  required
+                  value={formData.category_id}
+                  onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-700"
+                >
+                  <option value="">-- Select Category --</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.category_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Question */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                Question <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Question"
+                value={formData.question}
+                onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+
+            {/* Answer */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                Answer <span className="text-rose-500">*</span>
+              </label>
+              <RichTextEditor
+                value={formData.answer}
+                onChange={(content) => setFormData({ ...formData, answer: content })}
+                placeholder="Enter Answer..."
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="flex items-center gap-2 pt-4 border-t border-slate-100">
+              {editingId ? (
+                <button
+                  type="button"
+                  onClick={handleCancelForm}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({
+                      category_id: '',
+                      question: '',
+                      answer: '',
+                    })
+                  }
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Reset
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+              >
+                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                Submit
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Controls / Filter / Search */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-80">
@@ -262,58 +414,69 @@ export default function Faqs() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table (Matching Laravel FaqC.php: Sr. No., Category, Question, Answer, Action) */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4 w-16">ID</th>
+                <th className="py-3.5 px-4 w-16">Sr. No.</th>
                 <th className="py-3.5 px-4">Category</th>
                 <th className="py-3.5 px-4">Question</th>
-                <th className="py-3.5 px-4">Answer Snippet</th>
-                <th className="py-3.5 px-4 w-24">Position</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+                <th className="py-3.5 px-4">Answer</th>
+                <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
                     Loading FAQs...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
                     No FAQs found.
                   </td>
                 </tr>
               ) : (
-                paginated.map((item) => (
+                paginated.map((item, index) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
+                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
                     <td className="py-3.5 px-4 font-medium text-indigo-600">
                       {item.category_name || 'General'}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800 max-w-sm truncate">{item.question}</td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-md truncate">
-                      {item.answer ? item.answer.replace(/<[^>]+>/g, '') : '-'}
+                    <td className="py-3.5 px-4 font-semibold text-slate-800 max-w-sm">
+                      {item.question}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-slate-600">{item.position || 0}</td>
+                    <td className="py-3.5 px-4">
+                      {item.answer ? (
+                        <button
+                          onClick={() => setViewModal({ isOpen: true, title: 'Answer', content: item.answer || '' })}
+                          className="px-2.5 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
+                        >
+                          <Eye className="w-3 h-3" /> View
+                        </button>
+                      ) : (
+                        <span className="text-slate-400 text-xs">Null</span>
+                      )}
+                    </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -341,97 +504,31 @@ export default function Faqs() {
         )}
       </div>
 
-      {/* Modal */}
-      {isModalOpen && (
+      {/* Answer View Modal */}
+      {viewModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-base font-semibold text-slate-800">
-                {editingId ? 'Edit FAQ' : 'Add FAQ'}
-              </h3>
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-4 px-6 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-base font-bold text-slate-800">{viewModal.title}</h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => setViewModal({ isOpen: false, title: '', content: '' })}
                 className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-            <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                    Category
-                  </label>
-                  <select
-                    value={formData.category_id}
-                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                  >
-                    <option value="">-- General (No Category) --</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.category_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                    Position Ordering
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: parseInt(e.target.value || '0', 10) })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Question <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter the question..."
-                  value={formData.question}
-                  onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Answer (WYSIWYG)
-                </label>
-                <RichTextEditor
-                  value={formData.answer}
-                  onChange={(content) => setFormData({ ...formData, answer: content })}
-                  placeholder="Write the detailed answer..."
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
-                >
-                  {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create FAQ'}
-                </button>
-              </div>
-            </form>
+            <div
+              className="p-6 text-sm text-slate-700 max-h-[60vh] overflow-y-auto leading-relaxed prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: viewModal.content }}
+            />
+            <div className="flex justify-end p-4 px-6 border-t border-slate-100 bg-slate-50/50">
+              <button
+                onClick={() => setViewModal({ isOpen: false, title: '', content: '' })}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

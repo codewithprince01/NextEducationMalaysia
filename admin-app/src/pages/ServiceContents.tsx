@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import RichTextEditor from '@/components/common/RichTextEditor';
 import {
   Plus,
   Search,
@@ -12,28 +13,33 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  FileCode,
+  FileText,
   Eye,
-  ChevronUp
+  ChevronUp,
+  ArrowLeft
 } from 'lucide-react';
 
-interface DynamicPageSeoItem {
+interface ServiceContentItem {
   id: number;
-  url: string;
-  meta_title?: string;
-  meta_description?: string;
-  meta_keyword?: string;
-  og_image_path?: string;
-  page_content?: string;
-  seo_rating?: number | string;
-  best_rating?: number | string;
-  review_number?: number | string;
+  page_id: number;
+  tab_title: string;
+  tab_content?: string;
   created_at?: string;
 }
 
-export default function DynamicPageSeos() {
+interface ServiceInfo {
+  id: number;
+  page_name?: string;
+  headline?: string;
+}
+
+export default function ServiceContents() {
+  const { id: serviceIdParam, serviceId: serviceIdAlt } = useParams();
+  const serviceId = serviceIdParam || serviceIdAlt;
   const [searchParams, setSearchParams] = useSearchParams();
-  const [items, setItems] = useState<DynamicPageSeoItem[]>([]);
+
+  const [items, setItems] = useState<ServiceContentItem[]>([]);
+  const [service, setService] = useState<ServiceInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -47,17 +53,11 @@ export default function DynamicPageSeos() {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    url: '',
-    meta_title: '',
-    meta_description: '',
-    meta_keyword: '',
-    og_image_path: '',
-    seo_rating: '',
-    best_rating: '',
-    review_number: '',
+    tab_title: '',
+    tab_content: '',
   });
 
-  // View Content Modal (for Meta Title, Keyword, Description)
+  // View Description Modal
   const [viewModal, setViewModal] = useState<{ isOpen: boolean; title: string; content: string }>({
     isOpen: false,
     title: '',
@@ -70,15 +70,19 @@ export default function DynamicPageSeos() {
   };
 
   const fetchData = async () => {
+    if (!serviceId) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/dynamic-page-seos');
+      const res = await fetch(`/api/v1/admin/service-contents?page_id=${serviceId}`);
       const json = await res.json();
       if (res.ok && json.status) {
-        const fetchedItems: DynamicPageSeoItem[] = json.data || [];
+        const fetchedItems: ServiceContentItem[] = json.data || [];
         setItems(fetchedItems);
+        if (json.service) {
+          setService(json.service);
+        }
 
-        // Check if there is an edit param in URL
+        // Check for ?edit=<ID> in URL
         const editIdParam = searchParams.get('edit');
         if (editIdParam) {
           const targetId = parseInt(editIdParam, 10);
@@ -88,10 +92,10 @@ export default function DynamicPageSeos() {
           }
         }
       } else {
-        showToast('error', json.message || 'Failed to fetch dynamic page SEOs');
+        showToast('error', json.message || 'Failed to fetch service contents');
       }
     } catch {
-      showToast('error', 'Network error while fetching dynamic page SEOs');
+      showToast('error', 'Network error while fetching service contents');
     } finally {
       setLoading(false);
     }
@@ -99,19 +103,13 @@ export default function DynamicPageSeos() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [serviceId]);
 
-  const populateForm = (item: DynamicPageSeoItem) => {
+  const populateForm = (item: ServiceContentItem) => {
     setEditingId(item.id);
     setFormData({
-      url: item.url || '',
-      meta_title: item.meta_title || '',
-      meta_description: item.meta_description || '',
-      meta_keyword: item.meta_keyword || '',
-      og_image_path: item.og_image_path || '',
-      seo_rating: item.seo_rating !== null && item.seo_rating !== undefined ? String(item.seo_rating) : '',
-      best_rating: item.best_rating !== null && item.best_rating !== undefined ? String(item.best_rating) : '',
-      review_number: item.review_number !== null && item.review_number !== undefined ? String(item.review_number) : '',
+      tab_title: item.tab_title || '',
+      tab_content: item.tab_content || '',
     });
     setShowForm(true);
   };
@@ -119,20 +117,14 @@ export default function DynamicPageSeos() {
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormData({
-      url: '',
-      meta_title: '',
-      meta_description: '',
-      meta_keyword: '',
-      og_image_path: '',
-      seo_rating: '',
-      best_rating: '',
-      review_number: '',
+      tab_title: '',
+      tab_content: '',
     });
     setSearchParams({}, { replace: true });
     setShowForm(true);
   };
 
-  const handleOpenEdit = (item: DynamicPageSeoItem) => {
+  const handleOpenEdit = (item: ServiceContentItem) => {
     setSearchParams({ edit: String(item.id) }, { replace: true });
     populateForm(item);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -145,11 +137,11 @@ export default function DynamicPageSeos() {
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this dynamic page SEO?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this content item?');
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`/api/v1/admin/dynamic-page-seos/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/v1/admin/service-contents/${id}`, { method: 'DELETE' });
       const json = await res.json();
 
       if (res.ok && json.status) {
@@ -168,22 +160,25 @@ export default function DynamicPageSeos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.url.trim()) {
-      showToast('error', 'Enter Page Name is required');
+    if (!formData.tab_title.trim()) {
+      showToast('error', 'Title is required');
       return;
     }
 
     setSubmitting(true);
     try {
       const url = editingId
-        ? `/api/v1/admin/dynamic-page-seos/${editingId}`
-        : '/api/v1/admin/dynamic-page-seos';
+        ? `/api/v1/admin/service-contents/${editingId}`
+        : '/api/v1/admin/service-contents';
       const method = editingId ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          page_id: serviceId,
+          ...formData,
+        }),
       });
 
       const json = await res.json();
@@ -202,10 +197,8 @@ export default function DynamicPageSeos() {
   };
 
   const filtered = items.filter((item) =>
-    (item.url || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.meta_title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.meta_keyword || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.meta_description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.tab_title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.tab_content || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -229,11 +222,19 @@ export default function DynamicPageSeos() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1">
+            <Link to="/services" className="hover:text-indigo-600 flex items-center gap-1 transition-colors">
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Services
+            </Link>
+          </div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <FileCode className="w-6 h-6 text-indigo-600" /> Dynamic Page SEOs
+            <FileText className="w-6 h-6 text-indigo-600" /> Service Content
+            {service?.page_name && (
+              <span className="text-rose-600 font-semibold text-lg ml-1">({service.page_name})</span>
+            )}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage page meta tags, ratings, and OG images for dynamic URLs.
+            Manage page sections and tab content for this service.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -260,19 +261,19 @@ export default function DynamicPageSeos() {
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4" /> Add Dynamic Page SEO
+                <Plus className="w-4 h-4" /> Add Description
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Form Card (Matching Laravel's Form Structure) */}
+      {/* Form Card (Matching Laravel service-content.blade.php) */}
       {showForm && (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
           <div className="flex items-center justify-between p-4 px-6 border-b border-slate-200 bg-slate-50/50">
             <h3 className="text-base font-bold text-slate-800">
-              {editingId ? 'Edit Dynamic Page SEO Record' : 'Add Dynamic Page SEO Record'}
+              {editingId ? 'Edit Record' : 'Add Record'}
             </h3>
             <button
               onClick={handleCancelForm}
@@ -284,132 +285,31 @@ export default function DynamicPageSeos() {
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
-            {/* Enter Page Name */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Enter Page Name <span className="text-rose-500">*</span>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Title <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. /study-in-malaysia/computer-science"
-                  value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
-                />
-              </div>
-            </div>
-
-            <hr className="border-slate-100 my-3" />
-
-            {/* Meta Title & Meta Keyword */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Meta Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter Meta Title"
-                  value={formData.meta_title}
-                  onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Meta Keyword
-                </label>
-                <input
-                  type="text"
-                  placeholder="Meta Keyword"
-                  value={formData.meta_keyword}
-                  onChange={(e) => setFormData({ ...formData, meta_keyword: e.target.value })}
+                  placeholder="Title"
+                  value={formData.tab_title}
+                  onChange={(e) => setFormData({ ...formData, tab_title: e.target.value })}
                   className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                 />
               </div>
             </div>
 
-            {/* Meta Description */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                Meta Description
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Decription
               </label>
-              <textarea
-                rows={5}
-                placeholder="Enter Meta Description"
-                value={formData.meta_description}
-                onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-y"
+              <RichTextEditor
+                value={formData.tab_content}
+                onChange={(content) => setFormData({ ...formData, tab_content: content })}
+                placeholder="Enter Description..."
               />
-            </div>
-
-            {/* Seo Rating, Best Rating, Number of Review, Upload OG Image */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Seo Rating
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  placeholder="Seo Rating"
-                  value={formData.seo_rating}
-                  onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Best Rating
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="5"
-                  step="0.1"
-                  placeholder="Best Rating"
-                  value={formData.best_rating}
-                  onChange={(e) => setFormData({ ...formData, best_rating: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Number of Review
-                </label>
-                <input
-                  type="number"
-                  placeholder="Number of Review"
-                  value={formData.review_number}
-                  onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Upload OG Image
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData({ ...formData, og_image_path: file.name });
-                    }
-                  }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
-                />
-                {formData.og_image_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate font-mono">
-                    Selected: {formData.og_image_path}
-                  </span>
-                )}
-              </div>
             </div>
 
             {/* Buttons */}
@@ -427,14 +327,8 @@ export default function DynamicPageSeos() {
                   type="button"
                   onClick={() =>
                     setFormData({
-                      url: '',
-                      meta_title: '',
-                      meta_description: '',
-                      meta_keyword: '',
-                      og_image_path: '',
-                      seo_rating: '',
-                      best_rating: '',
-                      review_number: '',
+                      tab_title: '',
+                      tab_content: '',
                     })
                   }
                   className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
@@ -461,7 +355,7 @@ export default function DynamicPageSeos() {
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search pages or titles..."
+            placeholder="Search title or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -472,33 +366,30 @@ export default function DynamicPageSeos() {
         </div>
       </div>
 
-      {/* Table (Matching Laravel's Columns: S.No., Page, Meta Title, Meta Keyword, Meta Description, SEO Rating, Action) */}
+      {/* Table (Matching Laravel service-content.blade.php: Sr. No., Title, Description, Action) */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4 w-16">S.No.</th>
-                <th className="py-3.5 px-4">Page</th>
-                <th className="py-3.5 px-4">Meta Title</th>
-                <th className="py-3.5 px-4">Meta Keyword</th>
-                <th className="py-3.5 px-4">Meta Description</th>
-                <th className="py-3.5 px-4">SEO Rating</th>
+                <th className="py-3.5 px-4 w-16">Sr. No.</th>
+                <th className="py-3.5 px-4">Title</th>
+                <th className="py-3.5 px-4">Description</th>
                 <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={4} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading dynamic page SEOs...
+                    Loading content...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    No dynamic page SEOs found.
+                  <td colSpan={4} className="py-12 text-center text-slate-400">
+                    No content records found.
                   </td>
                 </tr>
               ) : (
@@ -507,13 +398,13 @@ export default function DynamicPageSeos() {
                     <td className="py-3.5 px-4 font-medium text-slate-500">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-indigo-600 font-mono text-xs">
-                      {item.url}
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                      {item.tab_title}
                     </td>
                     <td className="py-3.5 px-4">
-                      {item.meta_title ? (
+                      {item.tab_content ? (
                         <button
-                          onClick={() => setViewModal({ isOpen: true, title: 'Meta Title', content: item.meta_title || '' })}
+                          onClick={() => setViewModal({ isOpen: true, title: 'Description', content: item.tab_content || '' })}
                           className="px-2.5 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
                         >
                           <Eye className="w-3 h-3" /> View
@@ -521,51 +412,22 @@ export default function DynamicPageSeos() {
                       ) : (
                         <span className="text-slate-400 text-xs">Null</span>
                       )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {item.meta_keyword ? (
-                        <button
-                          onClick={() => setViewModal({ isOpen: true, title: 'Meta Keyword', content: item.meta_keyword || '' })}
-                          className="px-2.5 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
-                        >
-                          <Eye className="w-3 h-3" /> View
-                        </button>
-                      ) : (
-                        <span className="text-slate-400 text-xs">Null</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      {item.meta_description ? (
-                        <button
-                          onClick={() => setViewModal({ isOpen: true, title: 'Meta Description', content: item.meta_description || '' })}
-                          className="px-2.5 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
-                        >
-                          <Eye className="w-3 h-3" /> View
-                        </button>
-                      ) : (
-                        <span className="text-slate-400 text-xs">Null</span>
-                      )}
-                    </td>
-                    <td className="py-3.5 px-4 text-xs font-medium text-slate-700 leading-relaxed">
-                      <div>Seo Rating : {item.seo_rating ?? ''}</div>
-                      <div>Best Rating : {item.best_rating ?? ''}</div>
-                      <div>Review Number : {item.review_number ?? ''}</div>
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
                         <button
                           onClick={() => handleDelete(item.id)}
                           className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEdit(item)}
+                          className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -590,10 +452,10 @@ export default function DynamicPageSeos() {
         )}
       </div>
 
-      {/* Content View Modal */}
+      {/* Description View Modal */}
       {viewModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
             <div className="flex items-center justify-between p-4 px-6 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-base font-bold text-slate-800">{viewModal.title}</h3>
               <button
@@ -603,9 +465,10 @@ export default function DynamicPageSeos() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 text-sm text-slate-700 whitespace-pre-wrap max-h-[60vh] overflow-y-auto leading-relaxed">
-              {viewModal.content}
-            </div>
+            <div
+              className="p-6 text-sm text-slate-700 max-h-[60vh] overflow-y-auto leading-relaxed prose max-w-none"
+              dangerouslySetInnerHTML={{ __html: viewModal.content }}
+            />
             <div className="flex justify-end p-4 px-6 border-t border-slate-100 bg-slate-50/50">
               <button
                 onClick={() => setViewModal({ isOpen: false, title: '', content: '' })}
@@ -620,3 +483,4 @@ export default function DynamicPageSeos() {
     </div>
   );
 }
+

@@ -453,15 +453,24 @@ export default function Scholarships() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Thumbnail Image URL / Path
+                        Upload Thumbnail Image
                       </label>
                       <input
-                        type="text"
-                        placeholder="/uploads/scholarship/apu-thumb.jpg"
-                        value={formData.thumbnail_path}
-                        onChange={(e) => setFormData({ ...formData, thumbnail_path: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFormData({ ...formData, thumbnail_path: file.name });
+                          }
+                        }}
+                        className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                       />
+                      {formData.thumbnail_path && (
+                        <span className="text-[11px] text-slate-500 mt-1 block truncate font-mono">
+                          Current / Selected: {formData.thumbnail_path}
+                        </span>
+                      )}
                     </div>
                   </div>
 

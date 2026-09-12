@@ -8,9 +8,18 @@ export async function GET(req: Request) {
       `SELECT * FROM default_og_images ORDER BY id DESC`
     );
 
+    const normalized = images.map((item) => ({
+      ...item,
+      page: item.page || 'all',
+      file_name: item.file_name || item.og_image_path || '',
+      file_path: item.file_path || item.og_image_path || '',
+      og_image_path: item.file_path || item.og_image_path || '',
+      is_default: item.default ?? item.is_default ?? 1,
+    }));
+
     return NextResponse.json({
       status: true,
-      data: serializeBigInt(images),
+      data: serializeBigInt(normalized),
     });
   } catch (error: any) {
     console.error('Error fetching default OG images:', error);
@@ -21,25 +30,24 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { og_image_path, is_default } = body;
+    const { page, file_name, file_path, og_image_path } = body;
 
-    if (!og_image_path) {
-      return NextResponse.json({ status: false, message: 'Image path is required' }, { status: 400 });
+    const targetPage = page || 'all';
+    const filePathVal = file_path || og_image_path || '';
+    const fileNameVal = file_name || filePathVal.split('/').pop() || filePathVal;
+
+    if (!filePathVal && !fileNameVal) {
+      return NextResponse.json({ status: false, message: 'File is required' }, { status: 400 });
     }
 
     const now = new Date();
-    const defaultVal = is_default ? 1 : 0;
-
-    if (defaultVal === 1) {
-      // Unset previous defaults
-      await prisma.$executeRawUnsafe(`UPDATE default_og_images SET is_default = 0`);
-    }
 
     await prisma.$executeRawUnsafe(
-      `INSERT INTO default_og_images (og_image_path, is_default, created_at, updated_at)
-       VALUES (?, ?, ?, ?)`,
-      og_image_path,
-      defaultVal,
+      `INSERT INTO default_og_images (page, file_name, file_path, \`default\`, created_at, updated_at)
+       VALUES (?, ?, ?, 1, ?, ?)`,
+      targetPage,
+      fileNameVal,
+      filePathVal.startsWith('uploads/') ? filePathVal : `uploads/seo/${filePathVal}`,
       now,
       now
     );

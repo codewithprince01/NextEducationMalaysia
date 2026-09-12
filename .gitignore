@@ -62,3 +62,4 @@ test-db.ts
 tmp_schema.prisma
 *_tables.txt
 *_tables.json
+scratch/

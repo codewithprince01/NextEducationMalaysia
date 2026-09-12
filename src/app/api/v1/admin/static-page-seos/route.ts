@@ -21,7 +21,18 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { page, meta_title, meta_description, meta_keyword, og_image_path } = body;
+    const {
+      page,
+      url,
+      meta_title,
+      meta_description,
+      meta_keyword,
+      og_image_path,
+      seo_rating,
+      best_rating,
+      review_number,
+      page_content
+    } = body;
 
     if (!page) {
       return NextResponse.json({ status: false, message: 'Page name is required' }, { status: 400 });
@@ -32,14 +43,21 @@ export async function POST(req: Request) {
     const nextId = Number(maxRes?.next_id || 1);
 
     await prisma.$executeRawUnsafe(
-      `INSERT INTO static_page_seos (id, website, page, meta_title, meta_description, meta_keyword, og_image_path, created_at, updated_at)
-       VALUES (?, 'MYS', ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO static_page_seos (
+        id, website, page, url, meta_title, meta_description, meta_keyword, og_image_path,
+        seo_rating, best_rating, review_number, page_content, created_at, updated_at
+      ) VALUES (?, 'MYS', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       nextId,
       page,
+      url || null,
       meta_title || null,
       meta_description || null,
       meta_keyword || null,
       og_image_path || null,
+      seo_rating ? parseFloat(seo_rating) : null,
+      best_rating ? parseFloat(best_rating) : null,
+      review_number ? parseInt(review_number, 10) : null,
+      page_content || null,
       now,
       now
     );

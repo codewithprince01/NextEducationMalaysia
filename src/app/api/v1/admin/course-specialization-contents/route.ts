@@ -17,7 +17,16 @@ export async function GET(req: Request) {
 
     sql += ` ORDER BY position ASC, id ASC`;
 
-    const contents: any[] = await prisma.$queryRawUnsafe(sql, ...params);
+    const rawContents: any[] = await prisma.$queryRawUnsafe(sql, ...params);
+
+    const contents = (rawContents || []).map((c: any) => {
+      const tabName = c.tab || c.title || c.tab_title || c.name || '';
+      return {
+        ...c,
+        tab: tabName,
+        title: tabName,
+      };
+    });
 
     return NextResponse.json({
       status: true,

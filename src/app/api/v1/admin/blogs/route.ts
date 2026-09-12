@@ -10,10 +10,19 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
 
     let sql = `SELECT b.*, b.headline AS title,
-               bc.category_name, a.name AS author_name
+               bc.category_name, a.name AS author_name,
+               uc.name AS creator_name,
+               uu.name AS updater_name,
+               ua.name AS approver_name,
+               (SELECT COUNT(*) FROM blog_contents WHERE blog_id = b.id) as contents_count,
+               (SELECT COUNT(*) FROM blog_faqs WHERE blog_id = b.id) as faqs_count
                FROM blogs b
                LEFT JOIN blog_categories bc ON bc.id = b.category_id
-               LEFT JOIN authors a ON a.id = b.author_id WHERE 1=1`;
+               LEFT JOIN authors a ON a.id = b.author_id
+               LEFT JOIN users uc ON uc.id = b.created_by
+               LEFT JOIN users uu ON uu.id = b.updated_by
+               LEFT JOIN users ua ON ua.id = b.approved_by
+               WHERE 1=1`;
 
     if (category_id) sql += ` AND b.category_id = ${parseInt(category_id, 10)}`;
     if (status !== null && status !== undefined && status !== '') {

@@ -6,27 +6,44 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const body = await req.json();
-    const { specialization_level_id, title, description, position } = body;
+    const { specialization_level_id, title, tab, description, position } = body;
+    const tabTitle = (title || tab || '').trim();
 
-    if (!title || !title.trim()) {
+    if (!tabTitle) {
       return NextResponse.json({ status: false, message: 'Title is required' }, { status: 400 });
     }
 
-    const slug = slugify(title);
+    const slug = slugify(tabTitle);
     const now = new Date();
 
-    await prisma.$executeRawUnsafe(
-      `UPDATE specialization_level_contents 
-       SET specialization_level_id = ?, title = ?, slug = ?, description = ?, position = ?, updated_at = ?
-       WHERE id = ?`,
-      specialization_level_id ? Number(specialization_level_id) : null,
-      title.trim(),
-      slug,
-      description || null,
-      position ? Number(position) : 1,
-      now,
-      Number(id)
-    );
+    try {
+      await prisma.$executeRawUnsafe(
+        `UPDATE specialization_level_contents 
+         SET specialization_level_id = ?, title = ?, tab = ?, slug = ?, description = ?, position = ?, updated_at = ?
+         WHERE id = ?`,
+        specialization_level_id ? Number(specialization_level_id) : null,
+        tabTitle,
+        tabTitle,
+        slug,
+        description || null,
+        position ? Number(position) : 1,
+        now,
+        Number(id)
+      );
+    } catch {
+      await prisma.$executeRawUnsafe(
+        `UPDATE specialization_level_contents 
+         SET specialization_level_id = ?, title = ?, slug = ?, description = ?, position = ?, updated_at = ?
+         WHERE id = ?`,
+        specialization_level_id ? Number(specialization_level_id) : null,
+        tabTitle,
+        slug,
+        description || null,
+        position ? Number(position) : 1,
+        now,
+        Number(id)
+      );
+    }
 
     return NextResponse.json({ status: true, message: 'Content tab updated successfully' });
   } catch (error: any) {

@@ -35,6 +35,7 @@ import DefaultOgImage from '@/pages/DefaultOgImage';
 import FaqCategories from '@/pages/FaqCategories';
 import Faqs from '@/pages/Faqs';
 import Services from '@/pages/Services';
+import ServiceContents from '@/pages/ServiceContents';
 import Exams from '@/pages/Exams';
 import Internships from '@/pages/Internships';
 import OurPartners from '@/pages/OurPartners';
@@ -137,6 +138,10 @@ export default function App() {
               <Route path="/faq-categories" element={<FaqCategories />} />
               <Route path="/faqs" element={<Faqs />} />
               <Route path="/services" element={<Services />} />
+              <Route path="/service-contents" element={<ServiceContents />} />
+              <Route path="/service-contents/:id" element={<ServiceContents />} />
+              <Route path="/service-content" element={<ServiceContents />} />
+              <Route path="/service-content/:id" element={<ServiceContents />} />
               <Route path="/exams" element={<Exams />} />
               <Route path="/page-contents" element={<PageContents />} />
               <Route path="/static-page-contents" element={<StaticPageContents />} />

@@ -971,12 +971,21 @@ export default function CourseSpecializations() {
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload OG Image</label>
                       <input
-                        type="text"
-                        placeholder="uploads/og_image.jpg"
-                        value={formData.og_image_path}
-                        onChange={(e) => setFormData({ ...formData, og_image_path: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFormData({ ...formData, og_image_path: file.name });
+                          }
+                        }}
+                        className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                       />
+                      {formData.og_image_path && (
+                        <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                          Current / Selected: {formData.og_image_path}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -985,36 +994,63 @@ export default function CourseSpecializations() {
               {activeTab === 'images' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Thumbnail Path</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload Thumbnail Image</label>
                     <input
-                      type="text"
-                      placeholder="uploads/specialization/thumbnail.jpg"
-                      value={formData.thumbnail_path}
-                      onChange={(e) => setFormData({ ...formData, thumbnail_path: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, thumbnail_path: file.name });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
+                    {formData.thumbnail_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Current / Selected: {formData.thumbnail_path}
+                      </span>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Banner Path</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload Banner Image</label>
                     <input
-                      type="text"
-                      placeholder="uploads/specialization/banner.jpg"
-                      value={formData.banner_path}
-                      onChange={(e) => setFormData({ ...formData, banner_path: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, banner_path: file.name });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
+                    {formData.banner_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Current / Selected: {formData.banner_path}
+                      </span>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Content Image Path</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload Content Image</label>
                     <input
-                      type="text"
-                      placeholder="uploads/specialization/content.jpg"
-                      value={formData.content_image_path}
-                      onChange={(e) => setFormData({ ...formData, content_image_path: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, content_image_path: file.name });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
+                    {formData.content_image_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Current / Selected: {formData.content_image_path}
+                      </span>
+                    )}
                   </div>
 
                   <div>

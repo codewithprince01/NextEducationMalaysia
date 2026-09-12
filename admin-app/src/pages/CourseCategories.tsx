@@ -506,9 +506,8 @@ export default function CourseCategories() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -649,149 +648,149 @@ export default function CourseCategories() {
                 {paginatedCategories.map((item, index) => {
                   const srNo = (currentPage - 1) * itemsPerPage + index + 1;
                   return (
-                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-4 px-4 text-center font-extrabold text-slate-700">{srNo}</td>
-                    <td className="py-4 px-4 text-center font-bold text-slate-400">#{item.id}</td>
-                    <td className="py-4 px-5 max-w-xs">
-                      <div className="font-bold text-slate-900 text-xs leading-snug">{item.name}</div>
-                      <div className="text-[11px] font-mono text-slate-400 mt-0.5 truncate">{item.slug}</div>
-                    </td>
+                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-4 px-4 text-center font-extrabold text-slate-700">{srNo}</td>
+                      <td className="py-4 px-4 text-center font-bold text-slate-400">#{item.id}</td>
+                      <td className="py-4 px-5 max-w-xs">
+                        <div className="font-bold text-slate-900 text-xs leading-snug">{item.name}</div>
+                        <div className="text-[11px] font-mono text-slate-400 mt-0.5 truncate">{item.slug}</div>
+                      </td>
 
-                    {/* Shortnote Column */}
-                    <td className="py-4 px-4">
-                      {item.shortnote ? (
+                      {/* Shortnote Column */}
+                      <td className="py-4 px-4">
+                        {item.shortnote ? (
+                          <button
+                            onClick={() => setPreviewShortnote(item)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-indigo-700 text-[11px] font-bold hover:bg-indigo-100 transition-colors cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View</span>
+                          </button>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">N/A</span>
+                        )}
+                      </td>
+
+                      {/* SEO Metadata Column */}
+                      <td className="py-4 px-4">
                         <button
-                          onClick={() => setPreviewShortnote(item)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 text-indigo-700 text-[11px] font-bold hover:bg-indigo-100 transition-colors cursor-pointer"
+                          onClick={() => setPreviewSeo(item)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-sky-200 bg-sky-50/70 text-sky-700 text-[11px] font-bold hover:bg-sky-100 transition-colors cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>View</span>
                         </button>
-                      ) : (
-                        <span className="text-slate-400 italic text-[11px]">N/A</span>
-                      )}
-                    </td>
+                      </td>
 
-                    {/* SEO Metadata Column */}
-                    <td className="py-4 px-4">
-                      <button
-                        onClick={() => setPreviewSeo(item)}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-sky-200 bg-sky-50/70 text-sky-700 text-[11px] font-bold hover:bg-sky-100 transition-colors cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>View</span>
-                      </button>
-                    </td>
-
-                    {/* Images Column */}
-                    <td className="py-4 px-5">
-                      <div className="space-y-1 text-[11px]">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-slate-400 font-semibold">Thumbnail:</span>
-                          {item.thumbnail_path ? (
-                            <button
-                              onClick={() => setPreviewImage({ title: 'Thumbnail', url: item.thumbnail_path! })}
-                              className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
-                            >
-                              View <ExternalLink className="w-2.5 h-2.5" />
-                            </button>
-                          ) : (
-                            <span className="text-slate-400">N/A</span>
-                          )}
+                      {/* Images Column */}
+                      <td className="py-4 px-5">
+                        <div className="space-y-1 text-[11px]">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-slate-400 font-semibold">Thumbnail:</span>
+                            {item.thumbnail_path ? (
+                              <button
+                                onClick={() => setPreviewImage({ title: 'Thumbnail', url: item.thumbnail_path! })}
+                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                              >
+                                View <ExternalLink className="w-2.5 h-2.5" />
+                              </button>
+                            ) : (
+                              <span className="text-slate-400">N/A</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-slate-400 font-semibold">Banner:</span>
+                            {item.banner_path ? (
+                              <button
+                                onClick={() => setPreviewImage({ title: 'Banner', url: item.banner_path! })}
+                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                              >
+                                View <ExternalLink className="w-2.5 h-2.5" />
+                              </button>
+                            ) : (
+                              <span className="text-slate-400">N/A</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-slate-400 font-semibold">Content Img:</span>
+                            {item.content_image_path ? (
+                              <button
+                                onClick={() => setPreviewImage({ title: 'Content Image', url: item.content_image_path! })}
+                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                              >
+                                View <ExternalLink className="w-2.5 h-2.5" />
+                              </button>
+                            ) : (
+                              <span className="text-slate-400">N/A</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-slate-400 font-semibold">Banner:</span>
-                          {item.banner_path ? (
-                            <button
-                              onClick={() => setPreviewImage({ title: 'Banner', url: item.banner_path! })}
-                              className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
-                            >
-                              View <ExternalLink className="w-2.5 h-2.5" />
-                            </button>
-                          ) : (
-                            <span className="text-slate-400">N/A</span>
-                          )}
+                      </td>
+
+                      {/* More Details Column */}
+                      <td className="py-4 px-5">
+                        <div className="space-y-1 text-[11px]">
+                          <div className="flex items-center gap-1.5">
+                            <User className="w-3 h-3 text-slate-400" />
+                            <span className="text-slate-500">Author:</span>
+                            <span className="font-bold text-slate-800">{item.author_name || 'Team Education Malaysia'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Tag className="w-3 h-3 text-slate-400" />
+                            <span className="text-slate-500">Icon:</span>
+                            <span className="font-mono text-slate-600">{item.icon_class || 'N/A'}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-slate-400 font-semibold">Content Img:</span>
-                          {item.content_image_path ? (
-                            <button
-                              onClick={() => setPreviewImage({ title: 'Content Image', url: item.content_image_path! })}
-                              className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
-                            >
-                              View <ExternalLink className="w-2.5 h-2.5" />
-                            </button>
-                          ) : (
-                            <span className="text-slate-400">N/A</span>
-                          )}
+                      </td>
+
+                      {/* Actions Column */}
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Sub-module 1: Content Badge */}
+                          <button
+                            onClick={() => navigate(`/course-category-contents/${item.id}`)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] shadow-sm transition-all cursor-pointer"
+                            title="Manage Category Content Tabs in Dedicated Editor"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>Content</span>
+                            <span className="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[9.5px]">
+                              {item.contents_count || 0}
+                            </span>
+                          </button>
+
+                          {/* Sub-module 2: FAQs Badge */}
+                          <button
+                            onClick={() => handleOpenFaqsModal(item)}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-[11px] shadow-sm transition-all cursor-pointer"
+                            title="Manage Category FAQs"
+                          >
+                            <HelpCircle className="w-3.5 h-3.5" />
+                            <span>Faqs</span>
+                            <span className="bg-sky-800 text-white px-1.5 py-0.5 rounded-full text-[9.5px]">
+                              {item.faqs_count || 0}
+                            </span>
+                          </button>
+
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                            title="Edit Category"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(item.id, item.name)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="Delete Category"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-
-                    {/* More Details Column */}
-                    <td className="py-4 px-5">
-                      <div className="space-y-1 text-[11px]">
-                        <div className="flex items-center gap-1.5">
-                          <User className="w-3 h-3 text-slate-400" />
-                          <span className="text-slate-500">Author:</span>
-                          <span className="font-bold text-slate-800">{item.author_name || 'Team Education Malaysia'}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Tag className="w-3 h-3 text-slate-400" />
-                          <span className="text-slate-500">Icon:</span>
-                          <span className="font-mono text-slate-600">{item.icon_class || 'N/A'}</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Actions Column */}
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Sub-module 1: Content Badge */}
-                        <button
-                          onClick={() => navigate(`/course-category-contents/${item.id}`)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] shadow-sm transition-all cursor-pointer"
-                          title="Manage Category Content Tabs in Dedicated Editor"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Content</span>
-                          <span className="bg-indigo-800 text-white px-1.5 py-0.5 rounded-full text-[9.5px]">
-                            {item.contents_count || 0}
-                          </span>
-                        </button>
-
-                        {/* Sub-module 2: FAQs Badge */}
-                        <button
-                          onClick={() => handleOpenFaqsModal(item)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-[11px] shadow-sm transition-all cursor-pointer"
-                          title="Manage Category FAQs"
-                        >
-                          <HelpCircle className="w-3.5 h-3.5" />
-                          <span>Faqs</span>
-                          <span className="bg-sky-800 text-white px-1.5 py-0.5 rounded-full text-[9.5px]">
-                            {item.faqs_count || 0}
-                          </span>
-                        </button>
-
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
-                          title="Edit Category"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handleDelete(item.id, item.name)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Delete Category"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
+                      </td>
+                    </tr>
+                  );
                 })}
               </tbody>
             </table>
@@ -827,33 +826,30 @@ export default function CourseCategories() {
               <button
                 type="button"
                 onClick={() => setActiveTab('basic')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'basic'
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'basic'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 Basic Information
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('seo')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'seo'
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'seo'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 SEO Metadata
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('images')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'images'
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'images'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 Media Assets
               </button>
@@ -1018,63 +1014,108 @@ export default function CourseCategories() {
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload OG Image</label>
                       <input
-                        type="text"
-                        placeholder="uploads/og_image.jpg"
-                        value={formData.og_image_path}
-                        onChange={(e) => setFormData({ ...formData, og_image_path: e.target.value })}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setFormData({ ...formData, og_image_path: file.name });
+                          }
+                        }}
+                        className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                       />
+                      {formData.og_image_path && (
+                        <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                          Current / Selected: {formData.og_image_path}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
 
               {activeTab === 'images' && (
-                <>
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Thumbnail Image Path</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload Thumbnail Image</label>
                     <input
-                      type="text"
-                      placeholder="uploads/category/thumbnail.jpg"
-                      value={formData.thumbnail_path}
-                      onChange={(e) => setFormData({ ...formData, thumbnail_path: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, thumbnail_path: file.name });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
+                    {formData.thumbnail_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Current / Selected: {formData.thumbnail_path}
+                      </span>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Banner Image Path</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload Banner Image</label>
                     <input
-                      type="text"
-                      placeholder="uploads/category/banner.jpg"
-                      value={formData.banner_path}
-                      onChange={(e) => setFormData({ ...formData, banner_path: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, banner_path: file.name });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
+                    {formData.banner_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Current / Selected: {formData.banner_path}
+                      </span>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Content Image Path</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload Content Image</label>
                     <input
-                      type="text"
-                      placeholder="uploads/category/content.jpg"
-                      value={formData.content_image_path}
-                      onChange={(e) => setFormData({ ...formData, content_image_path: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, content_image_path: file.name });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
+                    {formData.content_image_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Current / Selected: {formData.content_image_path}
+                      </span>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">OG Image Path</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">Upload OG Image</label>
                     <input
-                      type="text"
-                      placeholder="uploads/category/og.jpg"
-                      value={formData.og_image_path}
-                      onChange={(e) => setFormData({ ...formData, og_image_path: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({ ...formData, og_image_path: file.name });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
+                    {formData.og_image_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Current / Selected: {formData.og_image_path}
+                      </span>
+                    )}
                   </div>
-                </>
+                </div>
               )}
 
               <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">

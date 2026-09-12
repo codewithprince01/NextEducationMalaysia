@@ -3,6 +3,7 @@ import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import {
+  Plus,
   Search,
   Edit2,
   Trash2,
@@ -65,7 +66,7 @@ export default function Internships() {
 
   // Form state for Add/Update
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formOpen, setFormOpen] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -150,6 +151,12 @@ export default function Internships() {
       review_number: '',
       og_image_path: '',
     });
+  };
+
+  const handleOpenAdd = () => {
+    handleResetForm();
+    setFormOpen(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleStartEdit = (item: InternshipItem) => {
@@ -383,38 +390,54 @@ export default function Internships() {
       )}
 
       {/* Header & Page Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Award className="w-6 h-6 text-blue-600" /> Internships
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+              <Award className="w-5 h-5" />
+            </div>
+            <span>Internship Programs</span>
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs font-medium text-slate-500 mt-1">
             Manage global training-cum-internship programs, content tabs, and FAQs.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={fetchData}
-            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl border border-slate-200 transition-all cursor-pointer"
             title="Refresh Data"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={handleOpenAdd}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Internship</span>
           </button>
         </div>
       </div>
 
       {/* ── FORM CARD (Add New / Update Record) ── */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div
           onClick={() => setFormOpen(!formOpen)}
           className="flex items-center justify-between px-5 py-3.5 bg-slate-50/80 border-b border-slate-200/80 cursor-pointer select-none hover:bg-slate-100/60 transition-colors"
         >
           <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
             <span>{editingId ? 'Update Record' : 'Add New Record'}</span>
           </h2>
-          <button type="button" className="text-slate-500 p-1 rounded-md hover:bg-slate-200/60">
-            {formOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-slate-400">
+              {formOpen ? 'Click to collapse' : 'Click to expand'}
+            </span>
+            <button type="button" className="text-slate-500 p-1 rounded-md hover:bg-slate-200/60">
+              {formOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         {formOpen && (
