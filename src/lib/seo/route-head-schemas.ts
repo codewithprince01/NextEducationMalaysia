@@ -4,7 +4,7 @@ import { getFaqs } from '@/lib/queries/home'
 import { getSpecializationBySlug } from '@/lib/queries/specializations'
 import { getUniversityFull } from '@/lib/queries/universities'
 import { serializeBigInt } from '@/lib/utils'
-import { blogJsonLd, courseDiscoveryJsonLd, universityJsonLd } from '@/lib/seo/structured-data'
+import { blogJsonLd, courseDiscoveryJsonLd, universityJsonLd, universityRatingJsonLd } from '@/lib/seo/structured-data'
 import { generateFAQSchema, normalizeFaqs } from '@/lib/seo/faq-schema'
 
 type JsonLd = Record<string, unknown>
@@ -284,6 +284,9 @@ export async function resolveRouteHeadSchemas(pathname: string): Promise<JsonLd[
       schemas.push(
         universityJsonLd(university, { path: `/university/${slug}` }) as JsonLd,
       )
+      // Rating goes in its own minimal block — see universityRatingJsonLd().
+      const rating = universityRatingJsonLd(university, { path: `/university/${slug}` })
+      if (rating) schemas.push(rating)
     }
   }
 

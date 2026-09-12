@@ -55,15 +55,9 @@ function universityNodeId(uname?: string | null, fallbackPath?: string): string 
 }
 
 /**
- * The university's rating, summarised as a single value.
- *
- * Only the aggregate is ever published — never the individual `review` entries.
- * Google counts one rich-result item per review plus one for the aggregate, so
- * emitting the review list produced five items on a single page, all named
- * after the university. The aggregate alone is one item and still earns stars.
- *
- * Returns null when there is nothing real to publish, so a university with no
- * reviews never gets an invented rating.
+ * Average rating + how many reviews it is based on, taken from the reviews
+ * table. Returns null when there is nothing real to publish, so a university
+ * with no reviews never gets an invented rating.
  */
 function universityAggregateRating(uni: {
   rating?: string | number | null
@@ -193,10 +187,10 @@ export function universityJsonLd(uni: {
     keywords,
   }
 
-  const aggregateRating = universityAggregateRating(uni)
-  if (aggregateRating) {
-    data.aggregateRating = aggregateRating
-  }
+  // The rating is published by universityRatingJsonLd() as its own small block,
+  // not here. Google's review snippet reports whichever node carries
+  // aggregateRating, so hanging it on this node made the review item render the
+  // entire university — every image, course and keyword.
 
   if (!data.name) {
     data.name = 'University in Malaysia'
@@ -223,6 +217,43 @@ export function universityJsonLd(uni: {
   }
 
   return data
+}
+
+/**
+ * The university's rating as a deliberately tiny standalone block: a name and
+ * the aggregate, nothing else.
+ *
+ * Google's "Review snippets" report renders whichever node carries
+ * aggregateRating. On the full university node that meant the review item
+ * listed every image, course and keyword on the page. Keeping the rating on a
+ * node of its own makes that item exactly what it should be — the score.
+ *
+ * It carries no `@id` on purpose: sharing one with universityJsonLd() would let
+ * Google merge the two back into a single node and the review item would show
+ * the whole university again.
+ *
+ * Returns null when the university has no reviews.
+ */
+export function universityRatingJsonLd(uni: {
+  name?: string | null
+  uname?: string | null
+  rating?: string | number | null
+  review_count?: string | number | null
+  average_rating?: string | number | null
+  reviews?: Array<{ rating?: string | number | null }> | null
+}, options?: { path?: string }): JsonLd | null {
+  const aggregateRating = universityAggregateRating(uni)
+  if (!aggregateRating) return null
+
+  const pagePath = options?.path || `/university/${uni.uname || ''}`
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollegeOrUniversity',
+    name: uni.name || 'University in Malaysia',
+    url: `${SITE_URL}${pagePath.startsWith('/') ? pagePath : `/${pagePath}`}`,
+    aggregateRating,
+  }
 }
 
 export function courseJsonLd(program: {
