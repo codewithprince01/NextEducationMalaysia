@@ -54,45 +54,74 @@ function universityNodeId(uname?: string | null, fallbackPath?: string): string 
   return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}#organization`
 }
 
+/** A number out of a mixed string/number column, or 0 when there is none. */
+function toNumber(value: unknown): number {
+  const parsed = Number.parseFloat(String(value ?? '').replace(/[^0-9.]/g, ''))
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+}
+
 /**
- * Average rating + how many reviews it is based on, taken from the reviews
- * table. Returns null when there is nothing real to publish, so a university
- * with no reviews never gets an invented rating.
+ * The rating a page publishes, built from whatever the admin panel holds.
+ *
+ * The admin panel writes three columns — `seo_rating`, `review_number` and
+ * `best_rating` — and they exist on universities, programmes and
+ * specializations alike. Nothing here used to read them: the rating came from
+ * `average_rating`/`review_count`, which the panel does not write, so it always
+ * fell through to counting rows in the reviews table. SEGi is the clearest
+ * example — the panel says 491 reviews, the page published 4, and editing the
+ * field in admin changed nothing on the site.
+ *
+ * So the admin values win. They are what someone deliberately entered, and the
+ * whole point of the field is that it drives what Google sees. Only when they
+ * are blank does this fall back to the older columns and then to averaging the
+ * real review rows, so a page with nothing entered still publishes a true
+ * rating rather than an invented one.
+ *
+ * `bestRating` comes from the panel too instead of being pinned at 5 — a
+ * university scored out of 10 was being published as 10 out of 5.
+ *
+ * Returns null when there is nothing real to say, so a page with no rating
+ * anywhere never gets one made up for it.
  */
-function universityAggregateRating(uni: {
+function aggregateRatingFrom(entity: {
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
   rating?: string | number | null
   review_count?: string | number | null
   average_rating?: string | number | null
   reviews?: Array<{ rating?: string | number | null }> | null
 }): JsonLd | null {
-  const clamp = (value: number) => Math.min(5, Math.max(1, Math.round(value * 10) / 10))
+  const bestRating = toNumber(entity.best_rating) || 5
+  const clamp = (value: number) =>
+    Math.min(bestRating, Math.max(1, Math.round(value * 10) / 10))
 
-  const storedCount = Number.parseInt(String(uni.review_count ?? '0'), 10)
-  const storedValue = Number.parseFloat(
-    String(uni.average_rating ?? uni.rating ?? '').replace(/[^0-9.]/g, ''),
-  )
-  const hasStored = Number.isFinite(storedValue) && storedValue > 0 && storedCount > 0
+  // 1. What the admin panel entered.
+  const adminValue = toNumber(entity.seo_rating)
+  const adminCount = toNumber(entity.review_number)
 
-  // Fallback for rows whose aggregate columns are empty: derive it from the
-  // reviews themselves rather than publish a rating with no basis.
-  const reviewRatings = (uni.reviews || [])
-    .map((r) => Number.parseFloat(String(r?.rating ?? '').replace(/[^0-9.]/g, '')))
-    .filter((r) => Number.isFinite(r) && r > 0)
+  // 2. The older aggregate columns, for rows written before the panel had them.
+  const storedValue = toNumber(entity.average_rating ?? entity.rating)
+  const storedCount = toNumber(entity.review_count)
 
-  const ratingValue = hasStored
-    ? clamp(storedValue)
-    : reviewRatings.length > 0
-      ? clamp(reviewRatings.reduce((sum, r) => sum + r, 0) / reviewRatings.length)
-      : 0
-  const reviewCount = hasStored ? Math.max(storedCount, reviewRatings.length) : reviewRatings.length
+  // 3. The reviews actually left on the site.
+  const reviewRatings = (entity.reviews || [])
+    .map((review) => toNumber(review?.rating))
+    .filter((value) => value > 0)
+  const reviewsValue = reviewRatings.length
+    ? reviewRatings.reduce((sum, value) => sum + value, 0) / reviewRatings.length
+    : 0
+
+  const ratingValue = adminValue || storedValue || reviewsValue
+  const reviewCount = adminCount || storedCount || reviewRatings.length
 
   if (!(ratingValue > 0 && reviewCount > 0)) return null
 
   return {
     '@type': 'AggregateRating',
-    ratingValue: String(ratingValue),
-    reviewCount: String(reviewCount),
-    bestRating: '5',
+    ratingValue: String(clamp(ratingValue)),
+    reviewCount: String(Math.round(reviewCount)),
+    bestRating: String(bestRating),
     worstRating: '1',
   }
 }
@@ -237,12 +266,16 @@ export function universityJsonLd(uni: {
 export function universityRatingJsonLd(uni: {
   name?: string | null
   uname?: string | null
+  // What the admin panel writes; these take priority — see aggregateRatingFrom.
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
   rating?: string | number | null
   review_count?: string | number | null
   average_rating?: string | number | null
   reviews?: Array<{ rating?: string | number | null }> | null
 }, options?: { path?: string }): JsonLd | null {
-  const aggregateRating = universityAggregateRating(uni)
+  const aggregateRating = aggregateRatingFrom(uni)
   if (!aggregateRating) return null
 
   const pagePath = options?.path || `/university/${uni.uname || ''}`
@@ -282,8 +315,19 @@ export function courseJsonLd(program: {
   tution_fee?: unknown
   total_fee?: unknown
   tutions_fee?: unknown
+  // The admin panel exposes these on a programme exactly as it does on a
+  // university. They were never read, so filling them in did nothing.
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
 }, universityName: string, universitySlug: string, description?: string | null): JsonLd {
   const url = `${SITE_URL}/university/${universitySlug}/courses/${program.slug}`
+
+  // A rating entered against this course describes the course, not the
+  // university it belongs to, so it belongs on this node. Omitted entirely when
+  // the panel has nothing for it, which leaves the university's own rating as
+  // the only one on the page — the behaviour before these fields were wired up.
+  const aggregateRating = aggregateRatingFrom(program)
 
   // Fees arrive as strings as often as numbers, and sometimes carry a currency
   // symbol or thousands separators, so everything but the digits is stripped
@@ -317,6 +361,7 @@ export function courseJsonLd(program: {
       url: `${SITE_URL}/university/${universitySlug}`,
     },
     ...(program.level ? { educationalLevel: program.level } : {}),
+    ...(aggregateRating ? { aggregateRating } : {}),
     hasCourseInstance: {
       '@type': 'CourseInstance',
       courseMode: mode,

@@ -136,6 +136,9 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
         up.total_tuition_fee, up.annual_tuition_fee, up.total_fee, up.tutions_fee,
         up.currency,
         up.meta_title, up.meta_description, up.meta_keyword, up.og_image_path,
+        -- Rating the admin panel entered against this course. Read by the Course
+        -- schema so editing it in admin changes what Google sees.
+        up.seo_rating, up.best_rating, up.review_number,
         up.university_id, up.course_category_id, up.specialization_id,
         u.id AS u_id, u.name AS u_name, u.uname AS u_uname, u.logo_path AS u_logo_path,
         -- Stands in as the social preview image: no course row has one of its own
@@ -213,6 +216,9 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
       meta_description: row.meta_description,
       meta_keyword: row.meta_keyword,
       og_image_path: row.og_image_path,
+      seo_rating: row.seo_rating,
+      best_rating: row.best_rating,
+      review_number: row.review_number,
       university_id: row.university_id,
       course_category_id: row.course_category_id,
       specialization_id: row.specialization_id,

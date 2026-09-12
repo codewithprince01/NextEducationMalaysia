@@ -113,7 +113,6 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const bannerSrc = imgUrl(university.banner_path) || imgUrl(mainPhoto?.photo_path)
   const logoSrc = imgUrl(university.logo_path)
   const typeLabel = university.inst_type || university.institute_type?.type || 'University'
-  const stars = Math.round(Number(university.rating) || 4)
   const approvedBy = university.approved_by || 'MQA'
 
   const [fetchedCategories, setFetchedCategories] = useState<Array<{ id: number; name: string }>>([])
