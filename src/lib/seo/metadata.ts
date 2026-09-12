@@ -265,19 +265,23 @@ export async function resolveCourseMeta(
 
   const title = replaceTag(program.meta_title || dseo?.meta_title || '%coursename% at %universityname% | Fees & Admission', tags)
 
+  // A course keeps its write-up in the content tabs rather than a column on the
+  // row, so both the description and the index decision read from there.
+  const contentHtml = (program.contents as any[] | undefined)?.map((row) => row?.description) || []
+
   // Hand-written description first, then the shared template, then one built
-  // from this course's own figures. Before the last fallback existed, a course
-  // with none of the first two shipped with no description tag at all.
+  // from this course's own write-up or figures. Before the last fallback
+  // existed, a course with none of the first two shipped with no tag at all.
   const desc =
     replaceTag(program.meta_description || dseo?.meta_description || '', tags) ||
-    buildCourseDescription(program, program.university?.name)
+    buildCourseDescription(program, program.university?.name, contentHtml)
   const kw = replaceTag(program.meta_keyword || dseo?.meta_keyword || '', tags)
   const canonical = `${SITE_URL}/university/${program.university?.uname}/courses/${program.slug}`
   const ogImage = buildOgImage(program.og_image_path || dseo?.og_image_path, fallbackOg)
 
   // A course with nothing but its name, level and study mode is asking to be
   // crawled and followed, not indexed — see lib/seo/indexability.
-  const robots = robotsFor(getCourseIndexability(program))
+  const robots = robotsFor(getCourseIndexability(program, contentHtml))
 
   return buildMeta(title, desc, kw, canonical, ogImage, robots)
 }

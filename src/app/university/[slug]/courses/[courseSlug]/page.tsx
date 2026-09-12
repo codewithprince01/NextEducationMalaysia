@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getProgramBySlug } from '@/lib/queries/courses'
 import CourseDetailClient from './CourseDetailClient'
 import UniversityCoursesClient from '@/components/university/UniversityCoursesClient'
@@ -55,6 +55,22 @@ export default async function CourseDetailPage({ params }: Props) {
   if (!programData) notFound()
 
   const program = serializeBigInt(programData) as any
+
+  // The lookup deliberately accepts more than the canonical slug — a numeric id,
+  // or the course name with different capitalisation — so old and hand-typed
+  // links keep working. Each of those was answering 200 with the same content,
+  // which is three URLs for one page and exactly what makes Google report
+  // "Duplicate, Google chose a different canonical". They now redirect to the
+  // canonical URL instead, so only one URL ever serves the page.
+  const canonicalSlug = String(program.slug || '')
+  const canonicalUniSlug = String(program.university?.uname || '')
+  if (
+    canonicalSlug &&
+    canonicalUniSlug &&
+    (courseSlug !== canonicalSlug || slug !== canonicalUniSlug)
+  ) {
+    permanentRedirect(`/university/${canonicalUniSlug}/courses/${canonicalSlug}`)
+  }
 
   return (
     <UniversitySectionContainer

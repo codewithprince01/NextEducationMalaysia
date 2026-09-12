@@ -147,7 +147,7 @@ export class SitemapDataService {
       // far more than the threshold needs, and it keeps thousands of LongText
       // bodies out of memory.
       const programs = await prisma.$queryRawUnsafe(`
-        SELECT up.slug, up.updated_at, u.uname,
+        SELECT up.id, up.slug, up.updated_at, u.uname,
                LEFT(up.overview, 4000) AS overview,
                LEFT(up.page_content, 4000) AS page_content,
                up.total_tuition_fee, up.annual_tuition_fee, up.tution_fee,
@@ -167,8 +167,24 @@ export class SitemapDataService {
           AND u.uname <> ''
       `, SITE_VAR, SITE_VAR) as any[];
 
+      // A course keeps its write-up in content tabs, so the longest section for
+      // each is loaded here and handed to the same check the page metadata runs.
+      const courseProse = new Map<number, string>();
+      const sections = await prisma.$queryRawUnsafe(`
+        SELECT c_id AS owner_id, LEFT(description, 4000) AS body
+        FROM university_program_contents
+        WHERE status = 1 AND description IS NOT NULL
+      `) as any[];
+
+      for (const section of sections) {
+        const id = Number(section.owner_id);
+        if (!Number.isFinite(id)) continue;
+        const body = String(section.body || '');
+        if (body.length > (courseProse.get(id) || '').length) courseProse.set(id, body);
+      }
+
       return programs
-        .filter((p) => getCourseIndexability(p).index)
+        .filter((p) => getCourseIndexability(p, [courseProse.get(Number(p.id))]).index)
         .map((p) => ({
           endpoint: `university/${p.uname}/courses/${p.slug}`,
           updated_at: this.formatDate(p.updated_at),

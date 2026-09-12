@@ -97,12 +97,23 @@ function formatFee(course: any): string {
  * Returns an empty string when the page has neither, so the caller omits the
  * tag rather than emitting boilerplate.
  */
-export function buildCourseDescription(course: any, universityName?: string | null): string {
+export function buildCourseDescription(
+  course: any,
+  universityName?: string | null,
+  // The Overview tab, where a course's actual write-up lives.
+  contentHtml: Array<unknown> = [],
+): string {
   const name = toText(course?.course_name)
   const university = toText(universityName || course?.university?.name)
   if (!name) return ''
 
-  const lead = leadSentence(course?.overview) || leadSentence(course?.page_content)
+  const longestSection = contentHtml
+    .map((html) => ({ html, length: proseLength(html) }))
+    .sort((a, b) => b.length - a.length)[0]
+  const lead =
+    leadSentence(course?.overview) ||
+    leadSentence(course?.page_content) ||
+    leadSentence(longestSection?.html)
   if (lead) return lead
 
   const opening = university ? `${name} at ${university}.` : `${name}.`
