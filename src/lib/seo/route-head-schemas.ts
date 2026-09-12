@@ -288,16 +288,17 @@ export async function resolveRouteHeadSchemas(pathname: string): Promise<JsonLd[
   const uniMatch =
     pathOnly.match(/^\/university\/([^/]+)(?:\/.*)?$/i) ||
     pathOnly.match(/^\/universities\/([^/]+)(?:\/.*)?$/i)
-  if (uniMatch) {
+  // Skipped on course detail pages. That page is about the course and renders
+  // its own Course node with the course's rating; the university node there
+  // would carry no rating, leaving a bare name-and-url item — exactly the shape
+  // Google reported as an invalid review item.
+  if (uniMatch && !isCourseDetailPath(pathOnly)) {
     const slug = uniMatch[1]
     const universityData = await getUniversityFull(slug)
     if (universityData) {
       const university = serializeBigInt(universityData) as any
       schemas.push(
-        universityJsonLd(university, {
-          path: `/university/${slug}`,
-          includeRating: !isCourseDetailPath(pathOnly),
-        }) as JsonLd,
+        universityJsonLd(university, { path: `/university/${slug}` }) as JsonLd,
       )
 
       // Nothing further is pushed for the rating: the node above carries its

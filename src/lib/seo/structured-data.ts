@@ -43,17 +43,6 @@ export function websiteJsonLd(): JsonLd {
   }
 }
 
-/**
- * Stable identifier for a university across every page it appears on, so a
- * course page and the university page describe the same entity rather than two
- * different ones. Anchored to the university's own URL, never the current page.
- */
-function universityNodeId(uname?: string | null, fallbackPath?: string): string {
-  const slug = (uname || '').trim()
-  const path = slug ? `/university/${slug}` : (fallbackPath || '/university')
-  return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}#organization`
-}
-
 /** A number out of a mixed string/number column, or 0 when there is none. */
 function toNumber(value: unknown): number {
   const parsed = Number.parseFloat(String(value ?? '').replace(/[^0-9.]/g, ''))
@@ -121,10 +110,14 @@ function aggregateRatingFrom(entity: {
   // is not a usable ceiling falls back to the conventional 5.
   const scaleMax = bestRating > 1 && bestRating >= ratingValue ? bestRating : 5
 
+  // `ratingCount`, not `reviewCount`. The number comes from a figure typed into
+  // the admin panel, not from that many written reviews on the site, and Google
+  // asks for reviewCount only when the reviews themselves exist. ratingCount is
+  // the honest claim and carries the same star display.
   return {
     '@type': 'AggregateRating',
     ratingValue: String(Math.min(scaleMax, Math.max(1, Math.round(ratingValue * 10) / 10))),
-    reviewCount: String(Math.round(reviewCount)),
+    ratingCount: String(Math.round(reviewCount)),
     bestRating: String(scaleMax),
     worstRating: '1',
   }
@@ -171,92 +164,29 @@ export function universityJsonLd(uni: {
    */
   includeRating?: boolean
 }): JsonLd {
-  const strip = (value?: string | null) => (value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
   const pagePath = options?.path || `/university/${uni.uname || ''}`
   const pageUrl = `${SITE_URL}${pagePath.startsWith('/') ? pagePath : `/${pagePath}`}`
-  const officialWebsiteRaw = (uni.website_url || uni.website || '').trim()
-  const officialWebsite = /^https?:\/\//i.test(officialWebsiteRaw) ? officialWebsiteRaw : undefined
-  const country = (uni.country || '').trim() || 'Malaysia'
-  const city = (uni.city || uni.state || '').trim() || country
-  const description = strip(uni.description || uni.shortnote) || `${uni.name || 'University'} in ${country}`
-  const logo = storageUrl(uni.logo_path) || undefined
-  const imageCandidates = [
-    ...(uni.photos || []).map((p) => storageUrl(p?.photo_path)).filter(Boolean) as string[],
-    storageUrl(uni.banner_path) || undefined,
-    logo,
-  ].filter(Boolean) as string[]
-  const images = imageCandidates.length ? Array.from(new Set(imageCandidates)) : undefined
-  const courseNames = Array.from(new Set(
-    (uni.programs || [])
-      .map((p) => (p?.course_name || '').trim())
-      .filter(Boolean)
-  )).slice(0, 15)
-  const keywords = Array.from(new Set([
-    `${uni.name || 'University'} Malaysia`,
-    uni.city || '',
-    uni.state || '',
-    uni.instituteType?.type || '',
-    ...courseNames.slice(0, 6),
-  ].map((v) => v.trim()).filter(Boolean))).join(', ')
   const aggregateRating = options?.includeRating === false ? null : aggregateRatingFrom(uni)
 
+  // Name, url, rating. Nothing else.
+  //
+  // This node used to carry the description, logo, a gallery of images, the
+  // postal address, founding date, an OfferCatalog of fifteen courses and a
+  // keyword list. All of it true, none of it needed: the page states those
+  // things in its own markup, and in the Rich Results report they buried the
+  // one thing this node exists to publish. Every extra property was also one
+  // more thing Google could flag.
   const data: JsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollegeOrUniversity',
-    // Stable node id, so the university described on a course page is understood
-    // as the same entity as the one on its own page.
-    '@id': universityNodeId(uni.uname, pagePath),
     name: uni.name,
-    description,
     url: pageUrl,
-    logo,
-    // One representative image rather than the whole gallery. Seven URLs added
-    // nothing Google uses here, and they were the bulk of what made the review
-    // snippet report render this entity as a wall of content.
-    image: images?.[0],
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: (uni.address || '').trim() || undefined,
-      addressLocality: city,
-      addressRegion: (uni.state || '').trim() || undefined,
-      addressCountry: country,
-    },
-    foundingDate: uni.established_year || undefined,
-    sameAs: officialWebsite || pageUrl,
-    // The rating lives on this node, the only node describing the university.
-    //
-    // It used to be published as a second, near-empty CollegeOrUniversity block
-    // to stop the review snippet showing the whole university. That worked, but
-    // it left two nodes for one entity on every page, and Google reported the
-    // one without a rating as an invalid review item. Trimming this node down
-    // solves the original problem without splitting the entity in two.
     ...(aggregateRating ? { aggregateRating } : {}),
-    areaServed: country,
-    keywords,
   }
 
+  // A row with no name would otherwise publish a node identifying nothing.
   if (!data.name) {
     data.name = 'University in Malaysia'
-  }
-
-  if (!data.description) {
-    data.description = 'University details and programs in Malaysia.'
-  }
-
-  if (!data.url) {
-    data.url = pageUrl
-  }
-
-  if (!data.sameAs && officialWebsite) {
-    data.sameAs = officialWebsite
-  }
-
-  if (!data.address) {
-    data.address = {
-      '@type': 'PostalAddress',
-      addressLocality: city,
-      addressCountry: country,
-    }
   }
 
   return data
@@ -304,94 +234,37 @@ export function universityRatingJsonLd(uni: {
 }
 
 /**
- * Course entity for a single programme page.
+ * A course's rating, and nothing else.
  *
- * Sibling courses at one university share most of their markup — the header,
- * tabs, sidebar and footer are identical, and only the write-up differs — which
- * is why Google was clustering them and reporting "Duplicate, Google chose a
- * different canonical". Naming each URL as its own Course, with its own
- * provider, level, duration and fee, gives it an identity that does not depend
- * on how much of the visible page it shares with its neighbours.
+ * This node used to describe the whole programme — description, provider,
+ * level, duration, tuition offer. All of it was accurate, and all of it was
+ * noise: the page already says those things in its own markup, and every extra
+ * property was another line in the Rich Results report to read past and another
+ * thing that could be flagged. The one thing markup adds that the page cannot
+ * express on its own is the star rating.
  *
- * Every optional field is omitted rather than guessed: an incomplete entity is
- * fine, an entity asserting a fee the page does not show is not.
+ * So the node is the rating, attached to a name so Google knows what is being
+ * rated. Nothing is emitted at all when there is no rating to publish.
  */
 export function courseJsonLd(program: {
   course_name?: string | null
-  slug?: string | null
-  meta_description?: string | null
-  level?: string | null
-  duration?: string | null
-  study_mode?: string | null
-  currency?: string | null
-  total_tuition_fee?: unknown
-  annual_tuition_fee?: unknown
-  tution_fee?: unknown
-  total_fee?: unknown
-  tutions_fee?: unknown
-  // The admin panel exposes these on a programme exactly as it does on a
-  // university. They were never read, so filling them in did nothing.
+  // The rating the admin panel holds against this programme.
   seo_rating?: string | number | null
   review_number?: string | number | null
   best_rating?: string | number | null
-}, universityName: string, universitySlug: string, description?: string | null): JsonLd {
-  const url = `${SITE_URL}/university/${universitySlug}/courses/${program.slug}`
-
-  // A rating entered against this course describes the course, not the
-  // university it belongs to, so it belongs on this node. Omitted entirely when
-  // the panel has nothing for it, which leaves the university's own rating as
-  // the only one on the page — the behaviour before these fields were wired up.
+}): JsonLd | null {
   const aggregateRating = aggregateRatingFrom(program)
 
-  // Fees arrive as strings as often as numbers, and sometimes carry a currency
-  // symbol or thousands separators, so everything but the digits is stripped
-  // before the value is trusted.
-  const toAmount = (value: unknown) => Number(String(value ?? '').replace(/[^\d.]/g, ''))
-  const feeRaw = [
-    program.total_tuition_fee,
-    program.annual_tuition_fee,
-    program.tution_fee,
-    program.total_fee,
-    program.tutions_fee,
-  ].find((value) => {
-    const amount = toAmount(value)
-    return Number.isFinite(amount) && amount > 0
-  })
-  const fee = feeRaw == null ? 0 : toAmount(feeRaw)
-
-  const mode = String(program.study_mode || '').toLowerCase().includes('online')
-    ? 'online'
-    : 'onsite'
+  // No rating, no node. A name on its own tells Google nothing it cannot read
+  // off the page, and an empty node is one more thing for the Rich Results
+  // report to complain about.
+  if (!aggregateRating) return null
 
   return {
     '@context': 'https://schema.org',
     '@type': 'Course',
     name: program.course_name,
-    description: description || program.meta_description || program.course_name,
-    url,
-    provider: {
-      '@type': 'CollegeOrUniversity',
-      name: universityName,
-      url: `${SITE_URL}/university/${universitySlug}`,
-    },
-    ...(program.level ? { educationalLevel: program.level } : {}),
-    ...(aggregateRating ? { aggregateRating } : {}),
-    hasCourseInstance: {
-      '@type': 'CourseInstance',
-      courseMode: mode,
-      ...(program.duration ? { courseWorkload: program.duration } : {}),
-    },
-    ...(fee > 0
-      ? {
-          offers: {
-            '@type': 'Offer',
-            price: fee,
-            priceCurrency: String(program.currency || 'MYR'),
-            category: 'Tuition',
-            url,
-          },
-        }
-      : {}),
+    aggregateRating,
   }
 }
 
