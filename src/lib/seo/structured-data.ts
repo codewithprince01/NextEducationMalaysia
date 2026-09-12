@@ -93,8 +93,6 @@ function aggregateRatingFrom(entity: {
   reviews?: Array<{ rating?: string | number | null }> | null
 }): JsonLd | null {
   const bestRating = toNumber(entity.best_rating) || 5
-  const clamp = (value: number) =>
-    Math.min(bestRating, Math.max(1, Math.round(value * 10) / 10))
 
   // 1. What the admin panel entered.
   const adminValue = toNumber(entity.seo_rating)
@@ -117,11 +115,17 @@ function aggregateRatingFrom(entity: {
 
   if (!(ratingValue > 0 && reviewCount > 0)) return null
 
+  // A scale has to be able to hold the score. `best_rating` is a free text field
+  // in admin and has been saved as 1, which produced "1 out of 1 (worst 1)" —
+  // a rating Google rejects and that means nothing to a reader. Anything that
+  // is not a usable ceiling falls back to the conventional 5.
+  const scaleMax = bestRating > 1 && bestRating >= ratingValue ? bestRating : 5
+
   return {
     '@type': 'AggregateRating',
-    ratingValue: String(clamp(ratingValue)),
+    ratingValue: String(Math.min(scaleMax, Math.max(1, Math.round(ratingValue * 10) / 10))),
     reviewCount: String(Math.round(reviewCount)),
-    bestRating: String(bestRating),
+    bestRating: String(scaleMax),
     worstRating: '1',
   }
 }
@@ -142,6 +146,10 @@ export function universityJsonLd(uni: {
   city?: string | null
   state?: string | null
   rating?: string | number | null
+  // Admin-entered rating; drives aggregateRating on this node.
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
   qs_rank?: string | number | null
   rank?: string | number | null
   review_count?: string | number | null
@@ -154,7 +162,15 @@ export function universityJsonLd(uni: {
   established_year?: string | null
   programs?: Array<{ course_name?: string | null }> | null
   instituteType?: { type?: string | null } | null
-}, options?: { path?: string }): JsonLd {
+}, options?: {
+  path?: string
+  /**
+   * Set false where the page is about something other than the university —
+   * a course page, say, whose own Course node carries the rating. Two rated
+   * nodes on one page leave Google guessing which the review describes.
+   */
+  includeRating?: boolean
+}): JsonLd {
   const strip = (value?: string | null) => (value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
   const pagePath = options?.path || `/university/${uni.uname || ''}`
   const pageUrl = `${SITE_URL}${pagePath.startsWith('/') ? pagePath : `/${pagePath}`}`
@@ -182,6 +198,7 @@ export function universityJsonLd(uni: {
     uni.instituteType?.type || '',
     ...courseNames.slice(0, 6),
   ].map((v) => v.trim()).filter(Boolean))).join(', ')
+  const aggregateRating = options?.includeRating === false ? null : aggregateRatingFrom(uni)
 
   const data: JsonLd = {
     '@context': 'https://schema.org',
@@ -193,7 +210,10 @@ export function universityJsonLd(uni: {
     description,
     url: pageUrl,
     logo,
-    image: images && images.length === 1 ? images[0] : images,
+    // One representative image rather than the whole gallery. Seven URLs added
+    // nothing Google uses here, and they were the bulk of what made the review
+    // snippet report render this entity as a wall of content.
+    image: images?.[0],
     address: {
       '@type': 'PostalAddress',
       streetAddress: (uni.address || '').trim() || undefined,
@@ -203,23 +223,17 @@ export function universityJsonLd(uni: {
     },
     foundingDate: uni.established_year || undefined,
     sameAs: officialWebsite || pageUrl,
-    hasOfferCatalog: {
-      '@type': 'OfferCatalog',
-      name: `${uni.name || 'University'} Courses`,
-      itemListElement: courseNames.map((course, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        name: course,
-      })),
-    },
+    // The rating lives on this node, the only node describing the university.
+    //
+    // It used to be published as a second, near-empty CollegeOrUniversity block
+    // to stop the review snippet showing the whole university. That worked, but
+    // it left two nodes for one entity on every page, and Google reported the
+    // one without a rating as an invalid review item. Trimming this node down
+    // solves the original problem without splitting the entity in two.
+    ...(aggregateRating ? { aggregateRating } : {}),
     areaServed: country,
     keywords,
   }
-
-  // The rating is published by universityRatingJsonLd() as its own small block,
-  // not here. Google's review snippet reports whichever node carries
-  // aggregateRating, so hanging it on this node made the review item render the
-  // entire university — every image, course and keyword.
 
   if (!data.name) {
     data.name = 'University in Malaysia'
