@@ -467,12 +467,21 @@ export default function Internships() {
                   Upload thumbnail
                 </label>
                 <input
-                  type="text"
-                  placeholder="Image URL or Path (e.g. /uploads/internships/thumb.jpg)"
-                  value={formData.thumbnail_path}
-                  onChange={(e) => setFormData({ ...formData, thumbnail_path: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setFormData({ ...formData, thumbnail_path: file.name });
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
+                {formData.thumbnail_path && (
+                  <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                    Current / Selected: {formData.thumbnail_path}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -480,10 +489,12 @@ export default function Internships() {
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                 Shortnote
               </label>
-              <RichTextEditor
+              <textarea
+                rows={3}
+                placeholder="Shortnote"
                 value={formData.shortnote}
-                onChange={(content) => setFormData({ ...formData, shortnote: content })}
-                placeholder="Shortnote content..."
+                onChange={(e) => setFormData({ ...formData, shortnote: e.target.value })}
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-y"
               />
             </div>
 
@@ -567,12 +578,21 @@ export default function Internships() {
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Upload OG Image</label>
                   <input
-                    type="text"
-                    placeholder="OG Image URL"
-                    value={formData.og_image_path}
-                    onChange={(e) => setFormData({ ...formData, og_image_path: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormData({ ...formData, og_image_path: file.name });
+                      }
+                    }}
+                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                   />
+                  {formData.og_image_path && (
+                    <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                      Current / Selected: {formData.og_image_path}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -761,7 +781,7 @@ export default function Internships() {
         {!loading && filtered.length > 0 && (
           <div className="p-4 border-t border-slate-100 flex items-center justify-between">
             <div className="text-xs text-slate-500">
-              Showing { (currentPage - 1) * itemsPerPage + 1 } to { Math.min(currentPage * itemsPerPage, filtered.length) } of { filtered.length } entries
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} entries
             </div>
             <Pagination
               currentPage={currentPage}
@@ -1035,10 +1055,12 @@ export default function Internships() {
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Answer</label>
-                  <RichTextEditor
-                    value={faqFormData.answer}
-                    onChange={(val) => setFaqFormData({ ...faqFormData, answer: val })}
+                  <textarea
+                    rows={3}
                     placeholder="Enter answer..."
+                    value={faqFormData.answer}
+                    onChange={(e) => setFaqFormData({ ...faqFormData, answer: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 transition-all resize-y"
                   />
                 </div>
 
