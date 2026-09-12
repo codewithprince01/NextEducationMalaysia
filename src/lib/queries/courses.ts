@@ -138,6 +138,9 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
         up.meta_title, up.meta_description, up.meta_keyword, up.og_image_path,
         up.university_id, up.course_category_id, up.specialization_id,
         u.id AS u_id, u.name AS u_name, u.uname AS u_uname, u.logo_path AS u_logo_path,
+        -- Stands in as the social preview image: no course row has one of its own
+        -- and the shared default file is missing from storage.
+        u.banner_path AS u_banner_path,
         cc.name AS category_name, cc.slug AS category_slug,
         cs.name AS specialization_name, cs.slug AS specialization_slug
       FROM university_programs up
@@ -218,6 +221,7 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
         name: row.u_name,
         uname: row.u_uname,
         logo_path: row.u_logo_path,
+        banner_path: row.u_banner_path,
       },
       courseCategory: row.category_name
         ? { name: row.category_name, slug: row.category_slug }

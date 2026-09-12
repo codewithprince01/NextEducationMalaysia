@@ -39,6 +39,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     meta_description: university?.meta_description || null,
     meta_keyword: university?.meta_keyword || null,
     og_image_path: university?.og_image_path || null,
+    // Real fallbacks for the social preview: most og_image_path values point at
+    // the retired upload location and 404.
+    banner_path: university?.banner_path || null,
+    logo_path: university?.logo_path || null,
   }
 
   return resolveUniversityMeta(universityMetaSource, 'overview')
