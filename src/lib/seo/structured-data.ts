@@ -256,21 +256,83 @@ export function universityRatingJsonLd(uni: {
   }
 }
 
+/**
+ * Course entity for a single programme page.
+ *
+ * Sibling courses at one university share most of their markup — the header,
+ * tabs, sidebar and footer are identical, and only the write-up differs — which
+ * is why Google was clustering them and reporting "Duplicate, Google chose a
+ * different canonical". Naming each URL as its own Course, with its own
+ * provider, level, duration and fee, gives it an identity that does not depend
+ * on how much of the visible page it shares with its neighbours.
+ *
+ * Every optional field is omitted rather than guessed: an incomplete entity is
+ * fine, an entity asserting a fee the page does not show is not.
+ */
 export function courseJsonLd(program: {
   course_name?: string | null
   slug?: string | null
   meta_description?: string | null
-}, universityName: string, universitySlug: string): JsonLd {
+  level?: string | null
+  duration?: string | null
+  study_mode?: string | null
+  currency?: string | null
+  total_tuition_fee?: unknown
+  annual_tuition_fee?: unknown
+  tution_fee?: unknown
+  total_fee?: unknown
+  tutions_fee?: unknown
+}, universityName: string, universitySlug: string, description?: string | null): JsonLd {
+  const url = `${SITE_URL}/university/${universitySlug}/courses/${program.slug}`
+
+  // Fees arrive as strings as often as numbers, and sometimes carry a currency
+  // symbol or thousands separators, so everything but the digits is stripped
+  // before the value is trusted.
+  const toAmount = (value: unknown) => Number(String(value ?? '').replace(/[^\d.]/g, ''))
+  const feeRaw = [
+    program.total_tuition_fee,
+    program.annual_tuition_fee,
+    program.tution_fee,
+    program.total_fee,
+    program.tutions_fee,
+  ].find((value) => {
+    const amount = toAmount(value)
+    return Number.isFinite(amount) && amount > 0
+  })
+  const fee = feeRaw == null ? 0 : toAmount(feeRaw)
+
+  const mode = String(program.study_mode || '').toLowerCase().includes('online')
+    ? 'online'
+    : 'onsite'
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Course',
     name: program.course_name,
-    description: program.meta_description || program.course_name,
-    url: `${SITE_URL}/university/${universitySlug}/courses/${program.slug}`,
+    description: description || program.meta_description || program.course_name,
+    url,
     provider: {
-      '@type': 'EducationalOrganization',
+      '@type': 'CollegeOrUniversity',
       name: universityName,
+      url: `${SITE_URL}/university/${universitySlug}`,
     },
+    ...(program.level ? { educationalLevel: program.level } : {}),
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: mode,
+      ...(program.duration ? { courseWorkload: program.duration } : {}),
+    },
+    ...(fee > 0
+      ? {
+          offers: {
+            '@type': 'Offer',
+            price: fee,
+            priceCurrency: String(program.currency || 'MYR'),
+            category: 'Tuition',
+            url,
+          },
+        }
+      : {}),
   }
 }
 

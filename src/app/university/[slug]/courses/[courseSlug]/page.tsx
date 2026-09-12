@@ -5,6 +5,8 @@ import UniversityCoursesClient from '@/components/university/UniversityCoursesCl
 import { serializeBigInt } from '@/lib/utils'
 import UniversitySectionContainer from '@/components/university/UniversitySectionContainer'
 import { resolveCourseMeta } from '@/lib/seo/metadata'
+import { courseJsonLd } from '@/lib/seo/structured-data'
+import { buildCourseDescription } from '@/lib/seo/descriptions'
 import type { Metadata } from 'next'
 
 type Props = { params: Promise<{ slug: string; courseSlug: string }> }
@@ -72,12 +74,29 @@ export default async function CourseDetailPage({ params }: Props) {
     permanentRedirect(`/university/${canonicalUniSlug}/courses/${canonicalSlug}`)
   }
 
+  // Rendered here rather than in head.tsx: that file is a Next 13.0 convention
+  // the App Router dropped, so the Course entity it declared never reached the
+  // page. Without it every course was describing itself only as part of the
+  // university, which gives Google nothing to tell two sibling courses apart
+  // when their markup is otherwise 80% identical.
+  const contentHtml = (program.contents as any[] | undefined)?.map((row) => row?.description) || []
+  const courseSchema = courseJsonLd(
+    program,
+    program.university?.name || '',
+    program.university?.uname || slug,
+    program.meta_description || buildCourseDescription(program, program.university?.name, contentHtml),
+  )
+
   return (
     <UniversitySectionContainer
       slug={slug}
       universityName={program.university?.name || ''}
       fullWidth={true}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
+      />
       <CourseDetailClient slug={slug} courseSlug={courseSlug} program={program as any} />
     </UniversitySectionContainer>
   )
