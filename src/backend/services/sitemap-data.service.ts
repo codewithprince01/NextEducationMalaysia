@@ -1,4 +1,9 @@
 import { prisma } from '@/lib/db';
+import {
+  getCourseIndexability,
+  getSpecializationIndexability,
+  getSpecializationLevelIndexability,
+} from '@/lib/seo/indexability'
 import { SITE_VAR } from '@/lib/constants';
 
 /**
@@ -133,8 +138,23 @@ export class SitemapDataService {
 
   async getUniversityProgramData() {
     try {
+      // The quality columns come back with the row so indexability is decided by
+      // the same helper the page metadata uses. Duplicating the rule in SQL would
+      // let the two drift, and a sitemap that advertises a noindex page wastes
+      // precisely the crawl budget this is meant to protect.
+      //
+      // Prose is truncated because only its length matters here: 4k characters is
+      // far more than the threshold needs, and it keeps thousands of LongText
+      // bodies out of memory.
       const programs = await prisma.$queryRawUnsafe(`
-        SELECT up.slug, up.updated_at, u.uname 
+        SELECT up.slug, up.updated_at, u.uname,
+               LEFT(up.overview, 4000) AS overview,
+               LEFT(up.page_content, 4000) AS page_content,
+               up.total_tuition_fee, up.annual_tuition_fee, up.tution_fee,
+               up.total_fee, up.tutions_fee,
+               up.entry_requirement, up.exam_required, up.scholarship_info,
+               up.accreditations, up.intake, up.application_deadline,
+               up.mode_of_instruction
         FROM university_programs up
         JOIN universities u ON up.university_id = u.id
         WHERE up.status = 1
@@ -147,10 +167,12 @@ export class SitemapDataService {
           AND u.uname <> ''
       `, SITE_VAR, SITE_VAR) as any[];
 
-      return programs.map((p) => ({
-        endpoint: `university/${p.uname}/courses/${p.slug}`,
-        updated_at: this.formatDate(p.updated_at),
-      }));
+      return programs
+        .filter((p) => getCourseIndexability(p).index)
+        .map((p) => ({
+          endpoint: `university/${p.uname}/courses/${p.slug}`,
+          updated_at: this.formatDate(p.updated_at),
+        }));
     } catch (error) {
       console.error('Error fetching sitemap programs:', error);
       return [];
@@ -164,9 +186,16 @@ export class SitemapDataService {
           cs.id,
           cs.slug,
           cs.updated_at,
+          cs.avrg_fees, cs.avrg_salary, cs.job_demand, cs.courses_description,
+          LEFT(cs.page_content, 4000) AS page_content,
+          sl.id AS level_id,
           sl.url_slug AS level_url_slug,
           sl.level_slug AS level_level_slug,
-          sl.updated_at AS level_updated_at
+          sl.updated_at AS level_updated_at,
+          sl.tuition_fees AS level_tuition_fees,
+          sl.intake AS level_intake,
+          sl.accreditation AS level_accreditation,
+          sl.duration AS level_duration
         FROM course_specializations cs
         LEFT JOIN specialization_levels sl
           ON sl.specialization_id = cs.id
@@ -201,6 +230,35 @@ export class SitemapDataService {
         ORDER BY cs.id ASC
       `, SITE_VAR) as any[];
 
+      // Prose lives in child rows for both the hub page and its levels, so the
+      // longest section for each owner is loaded once here. Indexability is then
+      // decided by the same helpers the page metadata uses, so a URL can never be
+      // advertised in the sitemap while its page says noindex.
+      const specProse = new Map<number, string>();
+      const levelProse = new Map<number, string>();
+
+      const [specSections, levelSections] = await Promise.all([
+        prisma.$queryRawUnsafe(`
+          SELECT specialization_id AS owner_id, LEFT(description, 4000) AS body
+          FROM specialization_contents WHERE description IS NOT NULL
+        `) as Promise<any[]>,
+        prisma.$queryRawUnsafe(`
+          SELECT specialization_level_id AS owner_id, LEFT(description, 4000) AS body
+          FROM specialization_level_contents WHERE description IS NOT NULL
+        `) as Promise<any[]>,
+      ]);
+
+      const keepLongest = (target: Map<number, string>, rows: any[]) => {
+        for (const row of rows) {
+          const id = Number(row.owner_id);
+          if (!Number.isFinite(id)) continue;
+          const body = String(row.body || '');
+          if (body.length > (target.get(id) || '').length) target.set(id, body);
+        }
+      };
+      keepLongest(specProse, specSections);
+      keepLongest(levelProse, levelSections);
+
       const rowsMap = new Map<string, string>();
 
       for (const row of specializationRows) {
@@ -208,7 +266,7 @@ export class SitemapDataService {
         if (!specSlug) continue;
 
         const baseEndpoint = `specialization/${specSlug}`;
-        if (!rowsMap.has(baseEndpoint)) {
+        if (!rowsMap.has(baseEndpoint) && getSpecializationIndexability(row, [specProse.get(Number(row.id))]).index) {
           rowsMap.set(baseEndpoint, this.formatDate(row.updated_at));
         }
 
@@ -220,8 +278,19 @@ export class SitemapDataService {
         const levelSlug = slugFromUrl || fallbackSlug;
         if (!levelSlug) continue;
 
+        // A level is judged on its own body, which is written per level and is
+        // almost always distinct — frequently richer than the hub above it.
+        const level = {
+          tuition_fees: row.level_tuition_fees,
+          intake: row.level_intake,
+          accreditation: row.level_accreditation,
+          duration: row.level_duration,
+        };
         const levelEndpoint = `specialization/${specSlug}/${levelSlug}`;
-        if (!rowsMap.has(levelEndpoint)) {
+        if (
+          !rowsMap.has(levelEndpoint) &&
+          getSpecializationLevelIndexability(level, [levelProse.get(Number(row.level_id))]).index
+        ) {
           rowsMap.set(levelEndpoint, this.formatDate(row.level_updated_at || row.updated_at));
         }
       }

@@ -3,6 +3,8 @@ import { replaceTag } from './replace-tag'
 import { prisma } from '@/lib/db'
 import { SITE_URL, storageUrl } from '@/lib/constants'
 import { currentMonth, currentYear, stripTags, truncate } from '@/lib/utils'
+import { getCourseIndexability, getSpecializationIndexability, robotsFor } from './indexability'
+import { buildCourseDescription, buildSpecializationDescription } from './descriptions'
 
 type TagMap = Record<string, string>
 
@@ -40,10 +42,16 @@ function buildMeta(
   keywords: string,
   canonical: string,
   ogImage: string,
+  // Omitted by every page that has no opinion, which leaves the site-wide
+  // `index, follow` from the root layout in place. Only pages that judge
+  // themselves thin pass a directive here.
+  robots?: Metadata['robots'],
 ): Metadata {
   return {
     title: { absolute: title },
-    description,
+    // An empty description is dropped rather than emitted as an empty tag.
+    ...(description ? { description } : {}),
+    ...(robots ? { robots } : {}),
     keywords,
     alternates: { canonical },
     openGraph: {
@@ -142,7 +150,19 @@ export async function resolveBlogMeta(
 }
 
 export async function resolveSpecializationMeta(
-  spec: { name?: string | null; slug?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image_path?: string | null },
+  spec: {
+    name?: string | null
+    slug?: string | null
+    meta_title?: string | null
+    meta_description?: string | null
+    meta_keyword?: string | null
+    og_image_path?: string | null
+    [key: string]: unknown
+  },
+  // A specialization keeps its prose in child `specialization_contents` rows,
+  // so whether the page has anything to say can only be judged with those in
+  // hand. Callers that do not load them get the structured-fact rules alone.
+  sectionHtml: Array<unknown> = [],
 ): Promise<Metadata> {
   const dseo = await getDynamicSeo('specialization')
   const fallbackOg = await getDefaultOgImage()
@@ -154,12 +174,15 @@ export async function resolveSpecializationMeta(
   }
 
   const title = replaceTag(spec.meta_title || dseo?.meta_title || '%specializationname%', tags)
-  const desc = replaceTag(spec.meta_description || dseo?.meta_description || '', tags)
+  const desc =
+    replaceTag(spec.meta_description || dseo?.meta_description || '', tags) ||
+    buildSpecializationDescription(spec, sectionHtml)
   const kw = replaceTag(spec.meta_keyword || dseo?.meta_keyword || '', tags)
   const canonical = `${SITE_URL}/specialization/${spec.slug}`
   const ogImage = buildOgImage(spec.og_image_path || dseo?.og_image_path, fallbackOg)
+  const robots = robotsFor(getSpecializationIndexability(spec, sectionHtml))
 
-  return buildMeta(title, desc, kw, canonical, ogImage)
+  return buildMeta(title, desc, kw, canonical, ogImage, robots)
 }
 
 export async function resolveScholarshipMeta(
@@ -216,7 +239,19 @@ export async function resolveExamMeta(
 }
 
 export async function resolveCourseMeta(
-  program: { course_name?: string | null; slug?: string | null; meta_title?: string | null; meta_description?: string | null; meta_keyword?: string | null; og_image_path?: string | null; university?: { name?: string | null; uname?: string | null } | null },
+  // Loosely typed on purpose: the indexability check and the generated
+  // description read a dozen optional columns off the programme row, and the
+  // callers pass the row straight through from the query.
+  program: {
+    course_name?: string | null
+    slug?: string | null
+    meta_title?: string | null
+    meta_description?: string | null
+    meta_keyword?: string | null
+    og_image_path?: string | null
+    university?: { name?: string | null; uname?: string | null } | null
+    [key: string]: unknown
+  },
 ): Promise<Metadata> {
   const dseo = await getDynamicSeo('course-detail')
   const fallbackOg = await getDefaultOgImage()
@@ -229,12 +264,22 @@ export async function resolveCourseMeta(
   }
 
   const title = replaceTag(program.meta_title || dseo?.meta_title || '%coursename% at %universityname% | Fees & Admission', tags)
-  const desc = replaceTag(program.meta_description || dseo?.meta_description || '', tags)
+
+  // Hand-written description first, then the shared template, then one built
+  // from this course's own figures. Before the last fallback existed, a course
+  // with none of the first two shipped with no description tag at all.
+  const desc =
+    replaceTag(program.meta_description || dseo?.meta_description || '', tags) ||
+    buildCourseDescription(program, program.university?.name)
   const kw = replaceTag(program.meta_keyword || dseo?.meta_keyword || '', tags)
   const canonical = `${SITE_URL}/university/${program.university?.uname}/courses/${program.slug}`
   const ogImage = buildOgImage(program.og_image_path || dseo?.og_image_path, fallbackOg)
 
-  return buildMeta(title, desc, kw, canonical, ogImage)
+  // A course with nothing but its name, level and study mode is asking to be
+  // crawled and followed, not indexed — see lib/seo/indexability.
+  const robots = robotsFor(getCourseIndexability(program))
+
+  return buildMeta(title, desc, kw, canonical, ogImage, robots)
 }
 
 export async function resolveServiceMeta(

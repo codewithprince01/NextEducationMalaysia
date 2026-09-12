@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { getSpecializationBySlug, getSpecializationLevel } from '@/lib/queries/specializations'
 import { SITE_URL } from '@/lib/constants'
 import { resolveSpecializationMeta } from '@/lib/seo/metadata'
+import { getSpecializationLevelIndexability, robotsFor } from '@/lib/seo/indexability'
+import { buildSpecializationDescription } from '@/lib/seo/descriptions'
 import SpecializationDetailClient from '../SpecializationDetailClient'
 
 // Rendered per request so an edit saved in the admin panel shows up straight away.
@@ -34,15 +36,32 @@ function matchesLevelSlug(item: any, levelSlug: string, specializationName: stri
 
 export async function generateMetadata({ params }: Props) {
   const { slug, levelSlug } = await params
-  const detail = await getSpecializationBySlug(slug)
+  const [detail, levelDetail] = await Promise.all([
+    getSpecializationBySlug(slug),
+    getSpecializationLevel(slug, levelSlug),
+  ])
   const spec = detail?.specialization
   const levels = spec?.specializationLevels || spec?.specializationlevels || spec?.specialization_levels || []
   const level = levels.find((item: any) => matchesLevelSlug(item, levelSlug, spec?.name || ''))
   if (!spec || !level) return {}
 
+  // A level page is judged on its own content, never on its parent's. The URL
+  // shape suggests a duplicate of the specialization above it, but the bodies
+  // are written per level and are almost entirely distinct — many carry far
+  // more than the hub page does, so inheriting the hub verdict would hide the
+  // best pages in this section.
+  const sectionHtml = (levelDetail?.contents || []).map((section: any) => section?.description)
+  const inherited = await resolveSpecializationMeta(spec, sectionHtml)
+  const ownDescription =
+    level.meta_description ||
+    buildSpecializationDescription({ ...spec, ...level }, sectionHtml) ||
+    inherited.description
+
   return {
-    ...(await resolveSpecializationMeta(spec)),
+    ...inherited,
     title: `${level.level || level.level_name} - ${spec.name}`,
+    ...(ownDescription ? { description: ownDescription } : {}),
+    robots: robotsFor(getSpecializationLevelIndexability(level, sectionHtml)),
     alternates: { canonical: `${SITE_URL}/specialization/${slug}/${levelSlug}` },
   }
 }

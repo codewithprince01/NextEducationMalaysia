@@ -127,6 +127,14 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
       SELECT
         up.id, up.course_name, up.slug, up.level, up.study_mode, up.intake, up.duration,
         up.tution_fee, up.application_deadline, up.accreditations,
+        -- Quality columns. The page metadata decides from these whether the course
+        -- has enough of its own substance to ask Google to index it, and builds its
+        -- description from them when no one has written one. Omitting them made
+        -- every course look empty and silently marked the good ones noindex.
+        up.overview, up.page_content, up.entry_requirement, up.exam_required,
+        up.scholarship_info, up.mode_of_instruction,
+        up.total_tuition_fee, up.annual_tuition_fee, up.total_fee, up.tutions_fee,
+        up.currency,
         up.meta_title, up.meta_description, up.meta_keyword, up.og_image_path,
         up.university_id, up.course_category_id, up.specialization_id,
         u.id AS u_id, u.name AS u_name, u.uname AS u_uname, u.logo_path AS u_logo_path,
@@ -187,6 +195,17 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
       tution_fee: row.tution_fee,
       application_deadline: row.application_deadline,
       accreditations: row.accreditations,
+      overview: row.overview,
+      page_content: row.page_content,
+      entry_requirement: row.entry_requirement,
+      exam_required: row.exam_required,
+      scholarship_info: row.scholarship_info,
+      mode_of_instruction: row.mode_of_instruction,
+      total_tuition_fee: row.total_tuition_fee,
+      annual_tuition_fee: row.annual_tuition_fee,
+      total_fee: row.total_fee,
+      tutions_fee: row.tutions_fee,
+      currency: row.currency,
       meta_title: row.meta_title,
       meta_description: row.meta_description,
       meta_keyword: row.meta_keyword,
