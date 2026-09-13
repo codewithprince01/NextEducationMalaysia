@@ -20,7 +20,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, university_name, program_name, rating, review, student_image } = body;
+    const { name, email, university_name, program_name, rating, review, student_image } = body;
 
     if (!name) {
       return NextResponse.json({ status: false, message: 'Student name is required' }, { status: 400 });
