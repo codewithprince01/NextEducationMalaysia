@@ -12,8 +12,7 @@ import {
   AlertCircle,
   RefreshCw,
   Users as UsersIcon,
-  ShieldCheck,
-  KeyRound
+  ShieldCheck
 } from 'lucide-react';
 
 interface UserItem {
@@ -41,24 +40,43 @@ const PERMISSION_MODULES: { key: string; label: string }[] = [
   { key: 'course-specialization-contents', label: 'Course Specialization Contents' },
   { key: 'specialization-levels', label: 'Specialization Levels' },
   { key: 'specialization-level-contents', label: 'Specialization Level Contents' },
+  { key: 'course-specialization-level-contents', label: 'Course Specialization Level Contents' },
+  { key: 'course-specialization-faqs', label: 'Course Specialization FAQs' },
   { key: 'programs', label: 'Programs' },
   { key: 'levels', label: 'Levels' },
   { key: 'institute-types', label: 'Institute Types' },
   { key: 'study-modes', label: 'Study Modes' },
+  { key: 'course-modes', label: 'Course Modes' },
   { key: 'university', label: 'University' },
+  { key: 'university-documents', label: 'University Documents' },
+  { key: 'document-categories', label: 'Document Categories' },
   { key: 'university-overview', label: 'University Overview' },
+  { key: 'university-programs', label: 'University Programs' },
+  { key: 'university-program-contents', label: 'University Program Contents' },
   { key: 'university-photos', label: 'University Photos' },
   { key: 'university-videos', label: 'University Videos' },
   { key: 'university-facilities', label: 'University Facilities' },
+  { key: 'other-content', label: 'Other Content' },
   { key: 'university-ranking', label: 'University Ranking' },
+  { key: 'university-scholarships', label: 'University Scholarships' },
+  { key: 'university-scholarship-contents', label: 'University Scholarship Contents' },
   { key: 'university-reviews', label: 'University Reviews' },
   { key: 'services', label: 'Services' },
   { key: 'service-content', label: 'Service Content' },
   { key: 'exams', label: 'Exams' },
+  { key: 'exam-page-tabs', label: 'Exam Page Tabs' },
+  { key: 'exam-page-tab-contents', label: 'Exam Page Tab Contents' },
+  { key: 'exam-tab-faqs', label: 'Exam Tab FAQs' },
+  { key: 'exam-faqs', label: 'Exam FAQs' },
+  { key: 'exam-content', label: 'Exam Content' },
+  { key: 'job-pages', label: 'Job Pages' },
+  { key: 'job-page-tabs', label: 'Job Page Tabs' },
+  { key: 'job-page-tab-contents', label: 'Job Page Tab Contents' },
   { key: 'blog-category', label: 'Blog Categories' },
   { key: 'blogs', label: 'Blogs' },
   { key: 'blog-contents', label: 'Blog Contents' },
   { key: 'blog-faqs', label: 'Blog FAQs' },
+  { key: 'employee-statuses', label: 'Employee Statuses' },
   { key: 'static-page-seos', label: 'Static Page SEOs' },
   { key: 'dynamic-page-seos', label: 'Dynamic Page SEOs' },
   { key: 'default-og-image', label: 'Default OG Image' },
@@ -69,14 +87,24 @@ const PERMISSION_MODULES: { key: string; label: string }[] = [
   { key: 'faq-categories', label: 'FAQ Categories' },
   { key: 'faqs', label: 'FAQs' },
   { key: 'landing-pages', label: 'Landing Pages' },
+  { key: 'landing-page-banners', label: 'Landing Page Banners' },
+  { key: 'landing-page-faqs', label: 'Landing Page FAQs' },
+  { key: 'landing-page-universities', label: 'Landing Page Universities' },
   { key: 'scholarships', label: 'Scholarships' },
+  { key: 'scholarship-faqs', label: 'Scholarship FAQs' },
+  { key: 'scholarship-contents', label: 'Scholarship Contents' },
   { key: 'page-contents', label: 'Page Contents' },
   { key: 'static-page-contents', label: 'Static Page Contents' },
   { key: 'page-banners', label: 'Page Banners' },
   { key: 'url-redirections', label: 'URL Redirections' },
   { key: 'addresses', label: 'Addresses' },
+  { key: 'email-settings', label: 'Email Settings' },
   { key: 'internships', label: 'Internships' },
+  { key: 'internship-contents', label: 'Internship Contents' },
+  { key: 'internship-faqs', label: 'Internship FAQs' },
+  { key: 'malaysia-application-categories', label: 'Malaysia Application Categories' },
   { key: 'malaysia-applications', label: 'Malaysia Applications' },
+  { key: 'international-student-data-countries', label: 'International Student Data Countries' },
   { key: 'international-student-data', label: 'International Student Data' },
   { key: 'our-partners', label: 'Our Partners' },
 ];
@@ -85,6 +113,7 @@ export default function Users() {
   const [items, setItems] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pagination
@@ -339,146 +368,202 @@ export default function Users() {
     }
   };
 
-  const filtered = items.filter((item) =>
-    (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.mobile || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.role || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Helper check for column switches state
+  const isGlobalAllChecked = PERMISSION_MODULES.every((mod) => {
+    const row = permState[mod.key] || { view: 0, add: 0, edit: 0, delete: 0 };
+    return row.view && row.add && row.edit && row.delete;
+  });
+
+  const isColumnActionChecked = (action: string) =>
+    PERMISSION_MODULES.every((mod) => Boolean(permState[mod.key]?.[action]));
+
+  const filtered = items.filter((item) => {
+    const matchesSearch =
+      (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.mobile || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.username || '').toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesRole = roleFilter === '' || (item.role || '').toLowerCase() === roleFilter.toLowerCase();
+
+    return matchesSearch && matchesRole;
+  });
 
   const paginated = filtered.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto pb-10">
+    <div className="p-6">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+          }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-          <span>{toast.message}</span>
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="w-5 h-5" />
+          ) : (
+            <AlertCircle className="w-5 h-5" />
+          )}
+          <span className="font-medium text-sm">{toast.message}</span>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <UsersIcon className="w-6 h-6 text-indigo-600" /> Users Management
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <UsersIcon className="w-7 h-7 text-indigo-600" />
+            Users & Module Permissions
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage administrative staff accounts, assign granular module permissions, and control action access.
+            Manage admin users, roles, and granular access permissions for all system modules.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
-          >
-            <Plus className="w-4 h-4" /> Add Admin User
-          </button>
+
+        <button
+          onClick={handleOpenAdd}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm"
+        >
+          <Plus className="w-4 h-4" />
+          Add New User
+        </button>
+      </div>
+
+      {/* Search & Filter Bar */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search name, email, mobile..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            />
+          </div>
+
+          <div>
+            <select
+              value={roleFilter}
+              onChange={(e) => {
+                setRoleFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            >
+              <option value="">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="subadmin">Sub Admin</option>
+              <option value="author">Author</option>
+              <option value="counsellor">Counsellor</option>
+              <option value="agent">Agent</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 text-sm text-slate-500">
+            <button
+              onClick={fetchData}
+              className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+              title="Refresh Users"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <span>
+              Total Users: <strong className="text-slate-800">{filtered.length}</strong>
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search by name, email, or role..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-          />
-        </div>
-        <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* Main Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
+                <th className="py-3.5 px-4 w-16 text-center">S.No.</th>
                 <th className="py-3.5 px-4">Name</th>
                 <th className="py-3.5 px-4">Email</th>
                 <th className="py-3.5 px-4">Mobile</th>
                 <th className="py-3.5 px-4">Role</th>
-                <th className="py-3.5 px-4">Permissions</th>
-                <th className="py-3.5 px-4 text-right">Action</th>
+                <th className="py-3.5 px-4 text-center">Permissions</th>
+                <th className="py-3.5 px-4 text-right w-28">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-600 mb-2" />
                     Loading users...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    No data found.
+                  <td colSpan={7} className="py-12 text-center text-slate-500">
+                    No users found matching your search.
                   </td>
                 </tr>
               ) : (
-                paginated.map((item, index) => (
+                paginated.map((item, idx) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    <td className="py-3 px-4 text-center text-slate-500 font-mono text-xs">
+                      {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.name}</td>
-                    <td className="py-3.5 px-4 font-medium text-slate-600 text-xs">
-                      {item.email} {item.username ? `- ${item.username}` : ''}
+
+                    <td className="py-3 px-4">
+                      <div className="font-semibold text-slate-900">{item.name}</div>
+                      {item.username && (
+                        <span className="text-xs text-slate-400 font-mono">@{item.username}</span>
+                      )}
                     </td>
-                    <td className="py-3.5 px-4 text-xs font-mono text-slate-600">
+
+                    <td className="py-3 px-4 text-slate-700 font-mono text-xs">{item.email}</td>
+
+                    <td className="py-3 px-4 text-slate-600 font-mono text-xs">
                       {item.mobile || 'N/A'}
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 capitalize">
+
+                    <td className="py-3 px-4">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 capitalize border border-indigo-100">
                         {item.role || 'subadmin'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4">
+
+                    <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => handleOpenPermissions(item)}
-                        className="text-indigo-600 hover:text-indigo-800 hover:underline font-semibold text-xs transition-colors flex items-center gap-1"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline bg-indigo-50/60 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-200/60 transition-all"
                       >
-                        <KeyRound className="w-3.5 h-3.5 text-indigo-500" />
-                        {item.granted_count ?? 0} module(s)
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        {item.granted_count || 0} module(s)
                       </button>
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+
+                    <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors shadow-sm"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors shadow-sm"
-                          title="Edit"
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit User"
                         >
                           <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          title="Delete User"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
@@ -489,51 +574,51 @@ export default function Users() {
           </table>
         </div>
 
-        {/* Pagination */}
         {!loading && filtered.length > 0 && (
-          <div className="p-4 border-t border-slate-100">
+          <div className="p-4 border-t border-slate-200">
             <Pagination
               currentPage={currentPage}
-              totalPages={Math.ceil(filtered.length / itemsPerPage)}
-              onPageChange={setCurrentPage}
-              totalItems={filtered.length}
-              itemsPerPage={itemsPerPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
             />
           </div>
         )}
       </div>
 
-      {/* Manage Module Permissions Modal */}
+      {/* MANAGE MODULE PERMISSIONS MODAL */}
       {permUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-5 border-b border-slate-200 bg-slate-800 text-white">
-              <h3 className="text-base font-bold flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-indigo-400" /> Manage Module Permissions
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-900 text-white">
+              <h3 className="text-lg font-bold flex items-center gap-2 text-white">
+                <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                Manage Module Permissions
               </h3>
               <button
                 onClick={() => setPermUser(null)}
-                className="p-1 text-slate-300 hover:text-white rounded-lg transition-colors"
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Subheader Controls */}
-            <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Subheader / User & Copy From Section */}
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <span className="text-xs text-slate-500 block uppercase font-bold tracking-wider mb-0.5">Target User</span>
-                <span className="text-base font-bold text-slate-800">{permUser.name}</span>
-                <span className="text-xs text-slate-500 ml-2 font-mono">({permUser.email})</span>
+                <h4 className="text-base font-bold text-slate-900">{permUser.name}</h4>
+                <p className="text-xs text-slate-500 font-mono">{permUser.email}</p>
               </div>
-              <div className="flex items-center gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Copy From User</label>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex-1 sm:flex-initial">
+                  <label className="block text-xs font-bold text-slate-600 mb-1">
+                    Copy From User
+                  </label>
                   <select
                     value={copyFromUserId}
                     onChange={(e) => handleCopyPermissionsFromUser(e.target.value)}
-                    className="px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[240px]"
+                    className="w-full sm:w-72 px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   >
                     <option value="">Select user</option>
                     {items
@@ -545,94 +630,119 @@ export default function Users() {
                       ))}
                   </select>
                 </div>
+
                 <button
                   type="button"
                   onClick={handleSelectNone}
-                  className="mt-5 px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
+                  className="mt-5 px-3.5 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm whitespace-nowrap"
                 >
                   Select None
                 </button>
               </div>
             </div>
 
-            {/* Permissions Grid Table */}
-            <div className="p-5 overflow-y-auto flex-1">
+            {/* Table Container */}
+            <div className="flex-1 overflow-y-auto p-6">
               <table className="w-full text-left text-xs border border-slate-200 rounded-lg overflow-hidden">
-                <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
+                <thead className="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider sticky top-0 z-10 shadow-sm">
                   <tr>
-                    <th className="py-3 px-4 w-5/12">Module</th>
-                    <th className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                    <th className="py-3.5 px-4 w-[46%] bg-slate-100">Module</th>
+                    <th className="py-3.5 px-4 text-center bg-slate-100">
+                      <div className="flex flex-col items-center gap-1">
                         <span>All</span>
-                        <input
-                          type="checkbox"
-                          onChange={(e) => handleToggleGlobalAll(e.target.checked)}
-                          className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
-                        />
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isGlobalAllChecked}
+                            onChange={(e) => handleToggleGlobalAll(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-slate-700"></div>
+                        </label>
                       </div>
                     </th>
-                    <th className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-indigo-600">View</span>
-                        <input
-                          type="checkbox"
-                          onChange={(e) => handleToggleColumn('view', e.target.checked)}
-                          className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
-                        />
+                    <th className="py-3.5 px-4 text-center bg-slate-100">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-blue-600">View</span>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isColumnActionChecked('view')}
+                            onChange={(e) => handleToggleColumn('view', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
                       </div>
                     </th>
-                    <th className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                    <th className="py-3.5 px-4 text-center bg-slate-100">
+                      <div className="flex flex-col items-center gap-1">
                         <span className="text-emerald-600">Add</span>
-                        <input
-                          type="checkbox"
-                          onChange={(e) => handleToggleColumn('add', e.target.checked)}
-                          className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
-                        />
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isColumnActionChecked('add')}
+                            onChange={(e) => handleToggleColumn('add', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
                       </div>
                     </th>
-                    <th className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                    <th className="py-3.5 px-4 text-center bg-slate-100">
+                      <div className="flex flex-col items-center gap-1">
                         <span className="text-amber-600">Edit</span>
-                        <input
-                          type="checkbox"
-                          onChange={(e) => handleToggleColumn('edit', e.target.checked)}
-                          className="w-4 h-4 accent-amber-600 rounded cursor-pointer"
-                        />
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isColumnActionChecked('edit')}
+                            onChange={(e) => handleToggleColumn('edit', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
+                        </label>
                       </div>
                     </th>
-                    <th className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                    <th className="py-3.5 px-4 text-center bg-slate-100">
+                      <div className="flex flex-col items-center gap-1">
                         <span className="text-rose-600">Delete</span>
-                        <input
-                          type="checkbox"
-                          onChange={(e) => handleToggleColumn('delete', e.target.checked)}
-                          className="w-4 h-4 accent-rose-600 rounded cursor-pointer"
-                        />
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isColumnActionChecked('delete')}
+                            onChange={(e) => handleToggleColumn('delete', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-rose-600"></div>
+                        </label>
                       </div>
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-200">
                   {PERMISSION_MODULES.map((mod) => {
                     const row = permState[mod.key] || { view: 0, add: 0, edit: 0, delete: 0 };
-                    const isAllChecked = Boolean(row.view && row.add && row.edit && row.delete);
+                    const isAllRowChecked = Boolean(row.view && row.add && row.edit && row.delete);
 
                     return (
-                      <tr key={mod.key} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-2.5 px-4 font-semibold text-slate-800">{mod.label}</td>
-                        <td className="py-2.5 px-4">
+                      <tr key={mod.key} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="py-3 px-4 font-semibold text-slate-800">{mod.label}</td>
+
+                        {/* Row ALL Switch */}
+                        <td className="py-3 px-4 text-center">
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={isAllChecked}
+                              checked={isAllRowChecked}
                               onChange={(e) => handleToggleRowAll(mod.key, e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-slate-600"></div>
+                            <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-slate-700"></div>
                           </label>
                         </td>
-                        <td className="py-2.5 px-4">
+
+                        {/* View Switch */}
+                        <td className="py-3 px-4 text-center">
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
@@ -640,10 +750,12 @@ export default function Users() {
                               onChange={(e) => handleToggleRowAction(mod.key, 'view', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600"></div>
+                            <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
                           </label>
                         </td>
-                        <td className="py-2.5 px-4">
+
+                        {/* Add Switch */}
+                        <td className="py-3 px-4 text-center">
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
@@ -651,10 +763,12 @@ export default function Users() {
                               onChange={(e) => handleToggleRowAction(mod.key, 'add', e.target.checked)}
                               className="sr-only peer"
                             />
-                            <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                            <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"></div>
                           </label>
                         </td>
-                        <td className="py-2.5 px-4">
+
+                        {/* Edit Switch */}
+                        <td className="py-3 px-4 text-center">
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
@@ -665,7 +779,9 @@ export default function Users() {
                             <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
                           </label>
                         </td>
-                        <td className="py-2.5 px-4">
+
+                        {/* Delete Switch */}
+                        <td className="py-3 px-4 text-center">
                           <label className="relative inline-flex items-center cursor-pointer">
                             <input
                               type="checkbox"
@@ -688,7 +804,7 @@ export default function Users() {
               <button
                 type="button"
                 onClick={() => setPermUser(null)}
-                className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-sm"
               >
                 Close
               </button>
@@ -696,7 +812,7 @@ export default function Users() {
                 type="button"
                 onClick={handleSavePermissions}
                 disabled={savingPerms}
-                className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
               >
                 {savingPerms && <Loader2 className="w-4 h-4 animate-spin" />}
                 Save
@@ -751,37 +867,23 @@ export default function Users() {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Mobile
-                </label>
-                <input
-                  type="text"
-                  placeholder="Mobile Number"
-                  value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Password {editingId && <span className="text-slate-400 font-normal">(Leave blank to keep current)</span>}
-                </label>
-                <input
-                  type="password"
-                  required={!editingId}
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                    User Role
+                    Mobile Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Mobile"
+                    value={formData.mobile}
+                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                    Role
                   </label>
                   <select
                     value={formData.role}
@@ -790,43 +892,42 @@ export default function Users() {
                   >
                     <option value="admin">Admin</option>
                     <option value="subadmin">Sub Admin</option>
+                    <option value="author">Author</option>
                     <option value="counsellor">Counsellor</option>
-                    <option value="employee">Employee</option>
-                    <option value="sales-head">Sales Head</option>
-                    <option value="digital-marketing">Digital Marketing</option>
+                    <option value="agent">Agent</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                    Account Status
-                  </label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value, 10) })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                  >
-                    <option value={1}>Active</option>
-                    <option value={0}>Disabled</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  Password {!editingId && <span className="text-rose-500">*</span>}
+                </label>
+                <input
+                  type="password"
+                  required={!editingId}
+                  placeholder={editingId ? 'Leave blank to keep current password' : 'Password'}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow-sm transition-colors disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create User'}
+                  {editingId ? 'Update User' : 'Create User'}
                 </button>
               </div>
             </form>

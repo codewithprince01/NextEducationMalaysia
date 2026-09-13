@@ -356,9 +356,8 @@ export default function UniversityDocuments() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+            }`}
         >
           {toast.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5" />

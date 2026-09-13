@@ -175,9 +175,8 @@ export default function DocumentCategories() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
+            }`}
         >
           {toast.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5" />
@@ -322,11 +321,10 @@ export default function DocumentCategories() {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          item.status === 1
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === 1
                             ? 'bg-emerald-100 text-emerald-800'
                             : 'bg-red-100 text-red-800'
-                        }`}
+                          }`}
                       >
                         {item.status === 1 ? 'Active' : 'Inactive'}
                       </span>
@@ -477,3 +475,4 @@ export default function DocumentCategories() {
     </div>
   );
 }
+
