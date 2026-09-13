@@ -76,3 +76,4 @@ export async function DELETE(
     return NextResponse.json({ status: false, message: 'Failed to delete page content', error: error.message }, { status: 500 });
   }
 }
+

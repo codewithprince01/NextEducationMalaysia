@@ -4,10 +4,11 @@ import { serializeBigInt } from '@/lib/utils';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT uo.*, uo.title AS tab, u.name AS university_name
        FROM university_overviews uo
@@ -34,10 +35,11 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     const body = await request.json();
     const { tab, title, description, position } = body;
     const tabTitle = title || tab;
@@ -67,10 +69,11 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     await prisma.$executeRawUnsafe(`DELETE FROM university_overviews WHERE id = ?`, id);
 
     return NextResponse.json({ success: true, message: 'Overview deleted' });

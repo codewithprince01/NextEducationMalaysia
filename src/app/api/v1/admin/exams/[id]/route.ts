@@ -2,9 +2,13 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT * FROM exams WHERE id = ? LIMIT 1`,
       id
@@ -23,9 +27,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     const body = await req.json();
     const { name, uri, description, meta_title, meta_description, meta_keyword, og_image_path, banner_path } = body;
 
@@ -53,9 +61,13 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     await prisma.$executeRawUnsafe(`DELETE FROM exams WHERE id = ?`, id);
     return NextResponse.json({ status: true, message: 'Exam deleted successfully' });
   } catch (error: any) {

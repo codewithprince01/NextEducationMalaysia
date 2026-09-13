@@ -4,10 +4,11 @@ import { slugify, serializeBigInt } from '@/lib/utils';
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const progId = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const progId = parseInt(rawId, 10);
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT up.*, u.name as university_name, cc.name as category_name, cs.name as specialization_name
        FROM university_programs up
@@ -30,10 +31,11 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const progId = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const progId = parseInt(rawId, 10);
     const body = await req.json();
     const {
       university_id,
@@ -208,10 +210,11 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const progId = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const progId = parseInt(rawId, 10);
     await prisma.$executeRawUnsafe(`DELETE FROM university_programs WHERE id = ?`, progId);
     return NextResponse.json({ status: true, message: 'Program deleted successfully' });
   } catch (error: any) {

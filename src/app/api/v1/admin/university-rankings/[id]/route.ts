@@ -4,10 +4,11 @@ import { serializeBigInt } from '@/lib/utils';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     const body = await request.json();
     const { title, description, position } = body;
     const now = new Date();
@@ -30,14 +31,14 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id, 10);
+    const { id: rawId } = await params;
+    const id = parseInt(rawId, 10);
     await prisma.$executeRawUnsafe(`DELETE FROM university_rankings WHERE id = ?`, id);
     return NextResponse.json({ success: true, message: 'Ranking deleted' });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: 'Failed to delete ranking' }, { status: 500 });
   }
 }
-

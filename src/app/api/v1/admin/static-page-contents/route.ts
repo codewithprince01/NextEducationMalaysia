@@ -45,3 +45,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: false, message: 'Failed to create static page content', error: error.message }, { status: 500 });
   }
 }
+
