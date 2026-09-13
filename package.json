@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
     "admin:dev": "npm --prefix admin-app run dev",
+    "dev:all": "concurrently -n \"NEXT,ADMIN\" -c \"cyan,magenta\" \"npm run dev\" \"npm run admin:dev\"",
     "dev:legacy": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev --webpack",
     "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "next start",
@@ -42,6 +43,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "typescript": "^5"
