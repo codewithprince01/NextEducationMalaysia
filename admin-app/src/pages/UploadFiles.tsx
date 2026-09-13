@@ -70,7 +70,7 @@ export default function UploadFiles() {
     fetchData();
   }, []);
 
-  const handleCopy = (path: string) => {
+  const handleCopy = (path: string, id: number) => {
     const fullUrl = window.location.origin + (path.startsWith('/') ? path : `/${path}`);
     navigator.clipboard.writeText(fullUrl);
     showToast('success', `Copied URL to clipboard: ${fullUrl}`);
@@ -170,9 +170,8 @@ export default function UploadFiles() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -338,7 +337,7 @@ export default function UploadFiles() {
                             className="w-full px-2.5 py-1 bg-slate-50 border border-slate-200 rounded text-xs truncate font-mono text-slate-700"
                           />
                           <button
-                            onClick={() => handleCopy(item.file_path)}
+                            onClick={() => handleCopy(item.file_path, item.id)}
                             className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs font-medium transition-colors whitespace-nowrap shadow-sm"
                             title="Copy to clipboard"
                           >
