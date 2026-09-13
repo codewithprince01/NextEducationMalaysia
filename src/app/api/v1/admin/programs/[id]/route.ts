@@ -131,7 +131,7 @@ export async function PUT(
 
     const sql = `UPDATE university_programs SET ${fields.join(', ')} WHERE id = ?`;
 
-    const params = [
+    const queryParams = [
       university_id ? Number(university_id) : null,
       course_category_id ? Number(course_category_id) : null,
       specialization_id ? Number(specialization_id) : null,
@@ -199,7 +199,7 @@ export async function PUT(
       progId
     ];
 
-    await prisma.$executeRawUnsafe(sql, ...params);
+    await prisma.$executeRawUnsafe(sql, ...queryParams);
 
     return NextResponse.json({ status: true, message: 'Program updated successfully' });
   } catch (error: any) {
