@@ -44,3 +44,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: false, message: 'Failed to create url redirection', error: error.message }, { status: 500 });
   }
 }
+

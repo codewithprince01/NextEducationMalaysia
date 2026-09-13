@@ -10,7 +10,7 @@ export async function GET(
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM url_redirections WHERE id = ? LIMIT 1`,
+      `SELECT * FROM addresses WHERE id = ? LIMIT 1`,
       id
     );
 
@@ -35,27 +35,30 @@ export async function PUT(
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
     const body = await req.json();
-    const { old_url, new_url } = body;
+    const { country, city, mobile, email, address } = body;
 
-    if (!old_url || !new_url) {
-      return NextResponse.json({ status: false, message: 'Both old_url and new_url are required' }, { status: 400 });
+    if (!country || !city || !mobile || !email || !address) {
+      return NextResponse.json({ status: false, message: 'All fields are required' }, { status: 400 });
     }
 
     const now = new Date();
 
     await prisma.$executeRawUnsafe(
-      `UPDATE url_redirections 
-       SET old_url = ?, new_url = ?, updated_at = ?
+      `UPDATE addresses 
+       SET country = ?, city = ?, mobile = ?, email = ?, address = ?, updated_at = ?
        WHERE id = ?`,
-      old_url.trim(),
-      new_url.trim(),
+      country,
+      city,
+      mobile,
+      email,
+      address,
       now,
       id
     );
 
     return NextResponse.json({ status: true, message: 'Record has been updated successfully.' });
   } catch (error: any) {
-    console.error('Error updating url_redirection:', error);
+    console.error('Error updating address:', error);
     return NextResponse.json({ status: false, message: 'Failed to update record', error: error.message }, { status: 500 });
   }
 }
@@ -67,11 +70,10 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
-    await prisma.$executeRawUnsafe(`DELETE FROM url_redirections WHERE id = ?`, id);
+    await prisma.$executeRawUnsafe(`DELETE FROM addresses WHERE id = ?`, id);
     return NextResponse.json({ status: true, message: 'Record deleted successfully' });
   } catch (error: any) {
-    console.error('Error deleting url_redirection:', error);
+    console.error('Error deleting address:', error);
     return NextResponse.json({ status: false, message: 'Failed to delete record', error: error.message }, { status: 500 });
   }
 }
-
