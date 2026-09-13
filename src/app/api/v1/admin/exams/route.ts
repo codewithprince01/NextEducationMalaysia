@@ -13,6 +13,7 @@ export async function GET() {
               e.imgpath AS thumbnail_path,
               e.og_image AS og_image_path
        FROM exams e 
+       WHERE e.website = 'MYS'
        ORDER BY e.position ASC, e.id DESC`
     );
 
