@@ -110,3 +110,4 @@ export async function deleteFromRemoteStorage(filePath: string): Promise<boolean
     client.close();
   }
 }
+
