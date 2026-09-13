@@ -70,7 +70,7 @@ export default function UploadFiles() {
     fetchData();
   }, []);
 
-  const handleCopy = (path: string, id: number) => {
+  const handleCopy = (path: string) => {
     const fullUrl = window.location.origin + (path.startsWith('/') ? path : `/${path}`);
     navigator.clipboard.writeText(fullUrl);
     showToast('success', `Copied URL to clipboard: ${fullUrl}`);
@@ -337,7 +337,7 @@ export default function UploadFiles() {
                             className="w-full px-2.5 py-1 bg-slate-50 border border-slate-200 rounded text-xs truncate font-mono text-slate-700"
                           />
                           <button
-                            onClick={() => handleCopy(item.file_path, item.id)}
+                            onClick={() => handleCopy(item.file_path)}
                             className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded text-xs font-medium transition-colors whitespace-nowrap shadow-sm"
                             title="Copy to clipboard"
                           >

@@ -77,3 +77,4 @@ export async function DELETE(
     return NextResponse.json({ status: false, message: 'Failed to delete record', error: error.message }, { status: 500 });
   }
 }
+
