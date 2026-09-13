@@ -282,9 +282,8 @@ export default function Scholarships() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -337,18 +336,16 @@ export default function Scholarships() {
               <button
                 type="button"
                 onClick={() => setActiveTab('main')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  activeTab === 'main' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${activeTab === 'main' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
               >
                 General Details
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('seo')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                  activeTab === 'seo' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${activeTab === 'seo' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
               >
                 SEO Fields
               </button>
