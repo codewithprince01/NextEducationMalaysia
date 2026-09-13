@@ -13,7 +13,8 @@ import {
   AlertCircle,
   RefreshCw,
   Layout,
-  UserCheck
+  UserCheck,
+  Eye
 } from 'lucide-react';
 
 interface AuthorOption {
@@ -40,9 +41,13 @@ export default function PageContents() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const itemsPerPage = 10;
 
-  // Modal
+  // View Modals for Heading & Description
+  const [headingModal, setHeadingModal] = useState<string | null>(null);
+  const [descModal, setDescModal] = useState<string | null>(null);
+
+  // Form Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -179,12 +184,13 @@ export default function PageContents() {
   );
 
   return (
-    <div className="space-y-3 max-w-[1600px] mx-auto">
+    <div className="space-y-4 max-w-[1600px] mx-auto pb-10">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+          }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -195,10 +201,10 @@ export default function PageContents() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Layout className="w-6 h-6 text-indigo-600" /> Home Page Contents
+            <Layout className="w-6 h-6 text-indigo-600" /> Page Contents
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage main home page content sections, banners, and featured headlines.
+            Manage main page content sections, headers, descriptions, and authors.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -241,46 +247,64 @@ export default function PageContents() {
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4 w-16">ID</th>
+                <th className="py-3.5 px-4 w-16">Sr. No.</th>
                 <th className="py-3.5 px-4">Page Name</th>
                 <th className="py-3.5 px-4">Heading</th>
-                <th className="py-3.5 px-4">Author</th>
-                <th className="py-3.5 px-4">Description Snippet</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+                <th className="py-3.5 px-4">Description</th>
+                <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading home page contents...
+                    Loading page contents...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
-                    No home page content sections found.
+                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                    No page content sections found.
                   </td>
                 </tr>
               ) : (
-                paginated.map((item) => (
+                paginated.map((item, index) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-semibold text-indigo-600">{item.page_name}</td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">{item.heading || '-'}</td>
-                    <td className="py-3.5 px-4">
-                      {item.author ? (
-                        <span className="inline-flex items-center gap-1 font-medium text-slate-700 text-xs">
-                          <UserCheck className="w-3.5 h-3.5 text-purple-600" />
-                          {item.author.name}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-xs">Admin</span>
+                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
+                    <td className="py-3.5 px-4 font-semibold text-indigo-600">
+                      <div>{item.page_name}</div>
+                      {item.author && (
+                        <div className="text-[11px] font-normal text-slate-400 flex items-center gap-1 mt-0.5">
+                          <UserCheck className="w-3 h-3 text-purple-600" /> {item.author.name}
+                        </div>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 max-w-md truncate">
-                      {item.description ? item.description.replace(/<[^>]+>/g, '') : '-'}
+                    <td className="py-3.5 px-4">
+                      {item.heading ? (
+                        <button
+                          onClick={() => setHeadingModal(item.heading || '')}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium transition-colors"
+                        >
+                          View Heading
+                        </button>
+                      ) : (
+                        <span className="text-slate-400 text-xs">N/A</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      {item.description ? (
+                        <button
+                          onClick={() => setDescModal(item.description || '')}
+                          className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded text-xs font-medium transition-colors flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View Description
+                        </button>
+                      ) : (
+                        <span className="text-slate-400 text-xs">N/A</span>
+                      )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -321,7 +345,66 @@ export default function PageContents() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* Heading View Modal */}
+      {headingModal !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-sm font-bold text-slate-800">Heading Title</h3>
+              <button
+                onClick={() => setHeadingModal(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 max-h-80 overflow-y-auto text-xs leading-relaxed text-slate-700 font-semibold">
+              {headingModal}
+            </div>
+            <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+              <button
+                onClick={() => setHeadingModal(null)}
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Description View Modal */}
+      {descModal !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                <Eye className="w-4 h-4 text-indigo-600" /> Description Content
+              </h3>
+              <button
+                onClick={() => setDescModal(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div
+              className="p-5 max-h-[70vh] overflow-y-auto text-xs leading-relaxed text-slate-700 prose prose-slate max-w-none"
+              dangerouslySetInnerHTML={{ __html: descModal }}
+            />
+            <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+              <button
+                onClick={() => setDescModal(null)}
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Form Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
@@ -338,7 +421,7 @@ export default function PageContents() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
                     Page Name <span className="text-rose-500">*</span>
@@ -419,4 +502,3 @@ export default function PageContents() {
     </div>
   );
 }
-
