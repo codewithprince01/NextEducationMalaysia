@@ -72,6 +72,8 @@ const navigationConfig: NavSection[] = [
           { label: 'University Rankings', href: '/university-rankings' },
           { label: 'Institute Types', href: '/institute-types' },
           { label: 'Study Modes', href: '/study-modes' },
+          { label: 'University Documents', href: '/university-documents' },
+          { label: 'Document Categories', href: '/document-categories' },
         ],
       },
       {

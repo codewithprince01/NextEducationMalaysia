@@ -21,6 +21,8 @@ import UniversityReviews from '@/pages/UniversityReviews';
 import UniversityRankings from '@/pages/UniversityRankings';
 import InstituteTypes from '@/pages/InstituteTypes';
 import StudyModes from '@/pages/StudyModes';
+import UniversityDocuments from '@/pages/UniversityDocuments';
+import DocumentCategories from '@/pages/DocumentCategories';
 import Programs from '@/pages/Programs';
 import BlogCategories from '@/pages/BlogCategories';
 import Blogs from '@/pages/Blogs';
@@ -109,6 +111,9 @@ export default function App() {
               <Route path="/university-rankings/:id" element={<UniversityRankings />} />
               <Route path="/institute-types" element={<InstituteTypes />} />
               <Route path="/study-modes" element={<StudyModes />} />
+              <Route path="/university-documents" element={<UniversityDocuments />} />
+              <Route path="/university-documents/:university_id" element={<UniversityDocuments />} />
+              <Route path="/document-categories" element={<DocumentCategories />} />
               <Route path="/levels" element={<Levels />} />
               <Route path="/course-category" element={<CourseCategories />} />
               <Route path="/course-categories" element={<CourseCategories />} />
