@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
+import { uploadToRemoteStorage, deleteFromRemoteStorage, getRemoteFileUrl } from '@/lib/remoteStorage';
 import path from 'path';
 
 export async function GET(
@@ -28,12 +28,7 @@ export async function GET(
       );
     }
 
-    let file_url = doc.file_path || '';
-    if (file_url && !file_url.startsWith('http://') && !file_url.startsWith('https://')) {
-      if (!file_url.startsWith('/')) {
-        file_url = '/' + file_url;
-      }
-    }
+    const file_url = getRemoteFileUrl(doc.file_path);
 
     return NextResponse.json({
       success: true,
@@ -110,6 +105,11 @@ export async function PUT(
     let storageDriver = existingDoc.storage_driver;
 
     if (replacementFile) {
+      // Delete old remote file
+      if (existingDoc.file_path) {
+        await deleteFromRemoteStorage(existingDoc.file_path);
+      }
+
       const [cat]: any[] = await prisma.$queryRawUnsafe(
         `SELECT slug FROM university_document_categories WHERE id = ?`,
         category_id
@@ -118,25 +118,16 @@ export async function PUT(
 
       const buffer = Buffer.from(await replacementFile.arrayBuffer());
       originalName = replacementFile.name;
-      const ext = path.extname(originalName);
-      extension = ext.replace('.', '').toLowerCase();
-      fileSize = replacementFile.size;
-      mimeType = replacementFile.type || 'application/octet-stream';
+      const subFolder = `university_docs/${university_id}/${categorySlug}`;
+      const remoteRes = await uploadToRemoteStorage(buffer, subFolder, originalName, replacementFile.type);
 
-      const baseName = path.basename(originalName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-      const fileName = `${Date.now()}_${baseName}${ext}`;
-
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'university_docs', String(university_id), categorySlug);
-      await mkdir(uploadDir, { recursive: true });
-      await writeFile(path.join(uploadDir, fileName), buffer);
-
-      filePath = `uploads/university_docs/${university_id}/${categorySlug}/${fileName}`;
-      storageDriver = 'local';
+      filePath = remoteRes.file_path;
+      extension = remoteRes.extension;
+      fileSize = remoteRes.file_size;
+      mimeType = remoteRes.mime_type;
+      storageDriver = remoteRes.storage_driver;
     } else if (manualFilePath) {
       filePath = manualFilePath;
-      if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-        storageDriver = 'remote_ftp';
-      }
     }
 
     const now = new Date();
@@ -179,7 +170,7 @@ export async function PUT(
   } catch (error: any) {
     console.error('Error updating document:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to update document', error: error.message },
+      { success: false, message: error.message || 'Failed to update document', error: error.message },
       { status: 500 }
     );
   }
@@ -192,6 +183,15 @@ export async function DELETE(
   try {
     const { id } = await params;
     const docId = parseInt(id, 10);
+
+    const [existingDoc]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT file_path FROM university_documents WHERE id = ?`,
+      docId
+    );
+
+    if (existingDoc && existingDoc.file_path) {
+      await deleteFromRemoteStorage(existingDoc.file_path);
+    }
 
     await prisma.$executeRawUnsafe(
       `DELETE FROM university_documents WHERE id = ?`,
@@ -209,4 +209,3 @@ export async function DELETE(
     );
   }
 }
-

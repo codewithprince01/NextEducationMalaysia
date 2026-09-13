@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
+import { uploadToRemoteStorage, getRemoteFileUrl } from '@/lib/remoteStorage';
 import path from 'path';
 
 export async function GET(request: Request) {
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
     const whereClause = whereConditions.join(' AND ');
 
-    // Count query
+    // Total Count
     const [countResult]: any[] = await prisma.$queryRawUnsafe(
       `SELECT COUNT(*) AS total
        FROM university_documents d
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 
     const total = Number(countResult?.total || 0);
 
-    // Documents data query
+    // Fetch Rows
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT d.*,
               u.name AS university_name,
@@ -77,7 +77,7 @@ export async function GET(request: Request) {
       offset
     );
 
-    // Compute Stats
+    // Summary Stats
     const [statsResult]: any[] = await prisma.$queryRawUnsafe(`
       SELECT 
         COUNT(*) AS totalDocs,
@@ -93,7 +93,6 @@ export async function GET(request: Request) {
       `SELECT id, name FROM universities ORDER BY name ASC`
     );
 
-    // Fetch Filter Universities (universities with documents)
     const filterUniversities: any[] = await prisma.$queryRawUnsafe(
       `SELECT DISTINCT u.id, u.name 
        FROM universities u 
@@ -101,7 +100,6 @@ export async function GET(request: Request) {
        ORDER BY u.name ASC`
     );
 
-    // Fetch Categories
     const categories: any[] = await prisma.$queryRawUnsafe(
       `SELECT id, name, icon, slug FROM university_document_categories WHERE status = 1 ORDER BY position ASC`
     );
@@ -111,13 +109,7 @@ export async function GET(request: Request) {
       const is_image = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
       const is_video = ['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(ext);
       const is_pdf = ext === 'pdf';
-      
-      let file_url = doc.file_path || '';
-      if (file_url && !file_url.startsWith('http://') && !file_url.startsWith('https://')) {
-        if (!file_url.startsWith('/')) {
-          file_url = '/' + file_url;
-        }
-      }
+      const file_url = getRemoteFileUrl(doc.file_path);
 
       return {
         ...doc,
@@ -176,10 +168,8 @@ export async function POST(request: Request) {
       description = (formData.get('description') as string) || null;
       visibility = (formData.get('visibility') as string) || 'all';
 
-      // Check for attached files
       const files = formData.getAll('documents') as (File | string)[];
       const singleFile = formData.get('document_file') as File | string | null;
-
       const allFiles = [...files, ...(singleFile ? [singleFile] : [])];
 
       for (const item of allFiles) {
@@ -245,7 +235,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get category slug for directory naming
+    // Get category slug
     const [cat]: any[] = await prisma.$queryRawUnsafe(
       `SELECT slug FROM university_document_categories WHERE id = ?`,
       category_id
@@ -261,23 +251,18 @@ export async function POST(request: Request) {
       let extension = path.extname(originalName).replace('.', '').toLowerCase() || 'file';
       let fileSize = entry.file_size || 0;
       let mimeType = entry.mime_type || 'application/octet-stream';
-      let storageDriver = 'local';
+      let storageDriver = 'remote_ftp';
 
       if (entry.buffer) {
-        const ext = path.extname(originalName);
-        const baseName = path.basename(originalName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'university_docs', String(university_id), categorySlug);
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), entry.buffer);
-
-        finalFilePath = `uploads/university_docs/${university_id}/${categorySlug}/${fileName}`;
+        const subFolder = `university_docs/${university_id}/${categorySlug}`;
+        const remoteRes = await uploadToRemoteStorage(entry.buffer, subFolder, originalName, mimeType);
+        finalFilePath = remoteRes.file_path;
+        extension = remoteRes.extension;
+        fileSize = remoteRes.file_size;
+        mimeType = remoteRes.mime_type;
+        storageDriver = remoteRes.storage_driver;
       } else if (entry.manualPath) {
         finalFilePath = entry.manualPath;
-        if (finalFilePath.startsWith('http://') || finalFilePath.startsWith('https://')) {
-          storageDriver = 'remote_ftp';
-        }
       }
 
       let docTitle = title;
@@ -312,12 +297,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `${uploadedCount} document(s) uploaded successfully`,
+      message: `${uploadedCount} document(s) uploaded successfully to remote storage (images.britannicaoverseas.com).`,
     });
   } catch (error: any) {
     console.error('Error uploading university documents:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to upload document', error: error.message },
+      { success: false, message: error.message || 'Failed to upload document', error: error.message },
       { status: 500 }
     );
   }
@@ -329,4 +314,3 @@ function formatBytes(bytes: number): string {
   if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
   return bytes + ' bytes';
 }
-

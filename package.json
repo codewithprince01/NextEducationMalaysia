@@ -19,6 +19,7 @@
     "@types/axios": "^0.9.36",
     "@types/jsonwebtoken": "^9.0.10",
     "axios": "^1.14.0",
+    "basic-ftp": "^6.2.1",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.36.0",
     "jsonwebtoken": "^9.0.3",
