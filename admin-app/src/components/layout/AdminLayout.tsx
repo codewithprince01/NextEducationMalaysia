@@ -78,7 +78,6 @@ const navigationConfig: NavSection[] = [
         label: 'Programs & Courses',
         icon: GraduationCap,
         children: [
-          { label: 'All Programs', href: '/programs' },
           { label: 'Levels', href: '/levels' },
           { label: 'Course Categories', href: '/course-category' },
           { label: 'Category Contents', href: '/course-category-contents' },
