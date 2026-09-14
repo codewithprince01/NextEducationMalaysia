@@ -1,22 +1,22 @@
 import { NextRequest } from 'next/server';
-import { searchApplyService, apiSuccess, apiError, withMiddleware, checkApiKey } from '@/backend';
+import { searchApplyService, apiSuccess, apiError } from '@/backend';
 
-export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const universityId = searchParams.get('university_id');
+    const website = searchParams.get('website') || undefined;
 
-    if (!universityId) {
-      return apiError('university_id is required', 400);
-    }
+    const levels = await searchApplyService.getLevels(
+      universityId ? Number(universityId) : undefined,
+      website
+    );
 
-    const levels = await searchApplyService.getLevels(Number(universityId));
     if (levels.length === 0) {
-      return apiError('No levels found', 404);
+      return apiError('No levels found', 404, { data: [] });
     }
     return apiSuccess(levels, 'Levels fetched successfully');
   } catch (error: any) {
     return apiError(error.message);
   }
-});
-
+}

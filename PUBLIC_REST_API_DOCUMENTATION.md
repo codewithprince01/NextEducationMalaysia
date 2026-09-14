@@ -18,12 +18,31 @@ This documentation provides an overview, endpoint reference, query parameters, u
 
 ## 📌 API Endpoints Overview
 
-| Method | Endpoint                                  | Description                                                                         |
-| :----- | :---------------------------------------- | :---------------------------------------------------------------------------------- |
-| `GET`  | `/api/v1/university-documents`            | List university documents with filtering, search, pagination, and category grouping |
-| `GET`  | `/api/v1/university-documents/[id]`       | Get single document details & track download counts                                 |
-| `GET`  | `/api/v1/document-categories`             | List document categories with active file counts                                    |
-| `GET`  | `/api/v1/university-documents/categories` | Alias endpoint for document categories                                              |
+### Document APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/university-documents` | List university documents with filtering, search, pagination, and category grouping |
+| `GET` | `/api/v1/university-documents/[id]` | Get single document details & track download counts |
+| `GET` | `/api/v1/document-categories` | List document categories with active file counts |
+| `GET` | `/api/v1/university-documents/categories` | Alias endpoint for document categories |
+
+### Single Search & Apply APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/search-and-apply/countries` | Fetch all countries that have university programs |
+| `GET` | `/api/v1/search-and-apply/universities` | Fetch universities having programs (optional `website` filter) |
+| `GET` | `/api/v1/search-and-apply/levels` | Fetch study levels (optional `university_id`, `website` filters) |
+| `GET` | `/api/v1/search-and-apply/categories` | Fetch course categories (optional `university_id`, `level` filters) |
+| `GET` | `/api/v1/search-and-apply/specializations` | Fetch specializations (optional `university_id`, `level`, `course_category_id`) |
+| `GET` | `/api/v1/search-and-apply/programs` | Fetch paginated university programs with filters |
+
+### Multiple Search & Apply APIs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/v1/multiple-search-and-apply/levels` | Fetch levels by `website` and multiple `university_id`s |
+| `GET` | `/api/v1/multiple-search-and-apply/categories` | Fetch categories by `website`, multiple `university_id`s & `level`s |
+| `GET` | `/api/v1/multiple-search-and-apply/specializations` | Fetch specializations by `website`, `university_id`s, `level`s & `course_category_id`s |
+| `GET` | `/api/v1/multiple-search-and-apply/programs` | Fetch paginated programs supporting multiple comma-separated filters |
 
 ---
 
@@ -276,3 +295,100 @@ curl -X GET "https://<your-domain>/api/v1/document-categories?university_slug=as
   ]
 }
 ```
+
+---
+
+## 4. Search & Apply REST APIs
+
+### 4.1 Countries
+- **Endpoint**: `GET /api/v1/search-and-apply/countries`
+- **Response**: List of countries with active university programs (`[{ "website": "MYS", "name": "Malaysia" }]`).
+
+### 4.2 Universities
+- **Endpoint**: `GET /api/v1/search-and-apply/universities`
+- **Query Params**: `website` (optional, e.g. `MYS`)
+- **Response**: List of universities having programs (`[{ "id": 5, "name": "Asia Pacific University", "uname": "asia-pacific-university" }]`).
+
+### 4.3 Levels
+- **Endpoint**: `GET /api/v1/search-and-apply/levels`
+- **Query Params**: `university_id` (optional), `website` (optional)
+- **Response**: List of study levels (`[{ "level": "Bachelor Degree" }, { "level": "Master" }]`).
+
+### 4.4 Categories
+- **Endpoint**: `GET /api/v1/search-and-apply/categories`
+- **Query Params**: `university_id` (optional), `level` (optional)
+- **Response**: Course categories (`[{ "id": 1, "name": "Engineering", "slug": "engineering" }]`).
+
+### 4.5 Specializations
+- **Endpoint**: `GET /api/v1/search-and-apply/specializations`
+- **Query Params**: `university_id` (optional), `level` (optional), `course_category_id` (optional)
+- **Response**: Specializations (`[{ "id": 4, "name": "Software Engineering", "slug": "software-engineering" }]`).
+
+### 4.6 Programs (Paginated)
+- **Endpoint**: `GET /api/v1/search-and-apply/programs`
+- **Query Params**: `university_id`, `level`, `course_category_id`, `specialization_id`, `country` (`website`), `page` (default `1`), `per_page` (default `10`)
+- **Response**:
+```json
+{
+  "status": true,
+  "message": "Programs fetched successfully",
+  "pagination": {
+    "current_page": 1,
+    "last_page": 5,
+    "per_page": 10,
+    "total": 50
+  },
+  "data": [
+    {
+      "id": 101,
+      "course_name": "BSc (Hons) in Software Engineering",
+      "level": "Bachelor Degree",
+      "tution_fee": "RM 30,000",
+      "university": {
+        "id": 5,
+        "name": "Asia Pacific University",
+        "uname": "asia-pacific-university"
+      },
+      "courseCategory": { "id": 1, "name": "Engineering", "slug": "engineering" },
+      "courseSpecialization": { "id": 4, "name": "Software Engineering", "slug": "software-engineering" }
+    }
+  ]
+}
+```
+
+---
+
+## 5. Multiple Search & Apply REST APIs
+
+Supports selecting multiple values using comma-separated strings or arrays (e.g. `university_id=1,2,3`).
+
+### 5.1 Levels
+- **Endpoint**: `GET /api/v1/multiple-search-and-apply/levels`
+- **Query Params**: `website` (required, e.g. `MYS`), `university_id` (optional, e.g. `1,2,5`)
+
+### 5.2 Categories
+- **Endpoint**: `GET /api/v1/multiple-search-and-apply/categories`
+- **Query Params**: `website` (required), `university_id` (optional), `level` (optional, e.g. `Bachelor Degree,Master`)
+
+### 5.3 Specializations
+- **Endpoint**: `GET /api/v1/multiple-search-and-apply/specializations`
+- **Query Params**: `website` (required), `university_id` (optional), `level` (optional), `course_category_id` (optional)
+
+### 5.4 Programs (Paginated Multiple Filters)
+- **Endpoint**: `GET /api/v1/multiple-search-and-apply/programs`
+- **Query Params**: `website` (e.g. `MYS`), `university_id` (`1,2`), `level` (`Bachelor Degree,Master`), `course_category_id` (`1,3`), `specialization_id` (`4,8`), `page` (`1`), `per_page` (`10`)
+- **Response**:
+```json
+{
+  "status": true,
+  "message": "Programs fetched successfully",
+  "pagination": {
+    "current_page": 1,
+    "last_page": 8,
+    "per_page": 10,
+    "total": 78
+  },
+  "data": [ ... ]
+}
+```
+

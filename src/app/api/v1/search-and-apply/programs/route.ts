@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchApplyService, apiSuccess, apiError, serializeBigInt, withMiddleware, checkApiKey } from '@/backend';
+import { searchApplyService, apiError, serializeBigInt } from '@/backend';
 
-export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const filters = {
@@ -12,13 +12,20 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
       country: searchParams.get('country'),
     };
 
-    const page = parseInt(searchParams.get('page') || '1');
-    const perPage = parseInt(searchParams.get('per_page') || '10');
+    const page = parseInt(searchParams.get('page') || searchParams.get('current_page') || '1', 10);
+    const perPage = parseInt(searchParams.get('per_page') || '10', 10);
 
     const result = await searchApplyService.getPrograms(filters, page, perPage);
 
     if (result.items.length === 0) {
-      return apiError('No programs found', 404);
+      return NextResponse.json(
+        {
+          status: false,
+          message: 'No programs found',
+          data: [],
+        },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
@@ -30,4 +37,4 @@ export const GET = withMiddleware(checkApiKey)(async (req: NextRequest) => {
   } catch (error: any) {
     return apiError(error.message);
   }
-});
+}
