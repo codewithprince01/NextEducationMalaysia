@@ -1,8 +1,9 @@
-import { prisma } from '@/lib/db';
-import { serializeBigInt } from '@/lib/utils';
+import { prisma } from "@/lib/db";
+import { serializeBigInt } from "@/lib/utils";
 
 /**
  * Enterprise Multiple Search-Apply Service (Singleton)
+ * 1:1 Match to Laravel MultipleSearchAndApplyApiController
  */
 export class MultipleSearchApplyService {
   private static instance: MultipleSearchApplyService;
@@ -17,147 +18,156 @@ export class MultipleSearchApplyService {
   }
 
   /**
-   * Normalize filter values (comma-separated string or array).
+   * Helper to normalize comma-separated strings or arrays into cleaned arrays.
    */
   private normalize(value: any): any[] {
-    if (!value) return [];
-    if (typeof value === 'string') {
+    if (value === null || value === undefined) return [];
+    if (typeof value === "string") {
       return value
-        .split(',')
+        .split(",")
         .map((s) => s.trim())
-        .filter((s) => s !== '');
+        .filter((s) => s !== "");
     }
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) {
+      return value
+        .map((s) => (typeof s === "string" ? s.trim() : s))
+        .filter((s) => s !== null && s !== "");
+    }
     return [value];
   }
 
   /**
-   * Get levels for a website and multiple universities.
+   * 1. GET /levels
+   * Match: MultipleSearchAndApplyApiController::levels
+   * $website is required (returns null if missing so route can send 422)
    */
-  async getLevels(website: string, universityIds?: any) {
-    const normalizedIds = this.normalize(universityIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
+  async getLevels(website?: string, universityIds?: any) {
+    if (!website || !website.trim()) return null;
 
-    const where: any = {
-      website: website,
-    };
+    const normalizedIds = this.normalize(universityIds)
+      .map((id) => Number(id))
+      .filter((id) => !Number.isNaN(id));
+
+    const params: any[] = [website.trim()];
+    let uniWhere = "";
+
     if (normalizedIds.length > 0) {
-      where.university_id = { in: normalizedIds };
+      uniWhere = `AND university_id IN (${normalizedIds.map(() => "?").join(",")})`;
+      params.push(...normalizedIds);
     }
 
-    const levels = await prisma.universityProgram.findMany({
-      where,
-      select: {
-        level: true,
-      },
-      distinct: ['level'],
-    });
+    const rows = (await prisma.$queryRawUnsafe(
+      `
+      SELECT level
+      FROM university_programs
+      WHERE website = ? ${uniWhere} AND level IS NOT NULL AND level != ''
+      GROUP BY level
+    `,
+      ...params,
+    )) as any[];
 
-    return levels.filter((l) => l.level).map((l) => ({ level: l.level }));
+    return rows.map((r) => ({ level: r.level }));
   }
 
   /**
-   * Get categories for a website, multiple universities, and multiple levels.
+   * 2. GET /categories
+   * Match: MultipleSearchAndApplyApiController::categories
+   * $website is required (returns null if missing so route can send 422)
    */
-  async getCategories(website: string, universityIds?: any, levels?: any) {
-    const normalizedUniIds = this.normalize(universityIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
+  async getCategories(website?: string, universityIds?: any, levels?: any) {
+    if (!website || !website.trim()) return null;
+
+    const normalizedUniIds = this.normalize(universityIds)
+      .map((id) => Number(id))
+      .filter((id) => !Number.isNaN(id));
     const normalizedLevels = this.normalize(levels);
 
-    const where: any = {
-      website: website,
-    };
+    const params: any[] = [website.trim()];
+    let uniWhere = "";
     if (normalizedUniIds.length > 0) {
-      where.university_id = { in: normalizedUniIds };
+      uniWhere = `AND up.university_id IN (${normalizedUniIds.map(() => "?").join(",")})`;
+      params.push(...normalizedUniIds);
     }
+
+    let levelWhere = "";
     if (normalizedLevels.length > 0) {
-      where.level = { in: normalizedLevels };
+      levelWhere = `AND up.level IN (${normalizedLevels.map(() => "?").join(",")})`;
+      params.push(...normalizedLevels);
     }
 
-    const programs = await prisma.universityProgram.findMany({
-      where,
-      select: {
-        course_category_id: true,
-      },
-      distinct: ['course_category_id'],
-    });
+    const rows = (await prisma.$queryRawUnsafe(
+      `
+      SELECT DISTINCT cc.name, cc.slug, cc.id
+      FROM university_programs up
+      JOIN course_categories cc ON up.course_category_id = cc.id
+      WHERE up.website = ? ${uniWhere} ${levelWhere}
+    `,
+      ...params,
+    )) as any[];
 
-    const categoryIds = programs
-      .map((p) => p.course_category_id)
-      .filter((id): id is number => id !== null);
-
-    const categories = await prisma.courseCategory.findMany({
-      where: {
-        id: { in: categoryIds },
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
-
-    return serializeBigInt(categories);
+    return serializeBigInt(
+      rows.map((r) => ({ name: r.name, slug: r.slug, id: r.id })),
+    );
   }
 
   /**
-   * Get specializations with multiple filters.
+   * 3. GET /specializations
+   * Match: MultipleSearchAndApplyApiController::specializations
+   * $website is required (returns null if missing so route can send 422)
    */
   async getSpecializations(
-    website: string,
+    website?: string,
     universityIds?: any,
     levels?: any,
-    categoryIds?: any
+    categoryIds?: any,
   ) {
-    const normalizedUniIds = this.normalize(universityIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
+    if (!website || !website.trim()) return null;
+
+    const normalizedUniIds = this.normalize(universityIds)
+      .map((id) => Number(id))
+      .filter((id) => !Number.isNaN(id));
     const normalizedLevels = this.normalize(levels);
-    const normalizedCatIds = this.normalize(categoryIds).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
+    const normalizedCatIds = this.normalize(categoryIds)
+      .map((id) => Number(id))
+      .filter((id) => !Number.isNaN(id));
 
-    const where: any = {
-      website: website,
-    };
+    const params: any[] = [website.trim()];
+    let uniWhere = "";
     if (normalizedUniIds.length > 0) {
-      where.university_id = { in: normalizedUniIds };
+      uniWhere = `AND up.university_id IN (${normalizedUniIds.map(() => "?").join(",")})`;
+      params.push(...normalizedUniIds);
     }
+
+    let levelWhere = "";
     if (normalizedLevels.length > 0) {
-      where.level = { in: normalizedLevels };
+      levelWhere = `AND up.level IN (${normalizedLevels.map(() => "?").join(",")})`;
+      params.push(...normalizedLevels);
     }
+
+    let catWhere = "";
     if (normalizedCatIds.length > 0) {
-      where.course_category_id = { in: normalizedCatIds };
+      catWhere = `AND up.course_category_id IN (${normalizedCatIds.map(() => "?").join(",")})`;
+      params.push(...normalizedCatIds);
     }
 
-    const programs = await prisma.universityProgram.findMany({
-      where,
-      select: {
-        specialization_id: true,
-      },
-      distinct: ['specialization_id'],
-    });
+    const rows = (await prisma.$queryRawUnsafe(
+      `
+      SELECT DISTINCT cs.name, cs.slug, cs.id
+      FROM university_programs up
+      JOIN course_specializations cs ON up.specialization_id = cs.id
+      WHERE up.website = ? ${uniWhere} ${levelWhere} ${catWhere}
+    `,
+      ...params,
+    )) as any[];
 
-    const specializationIds = programs
-      .map((p) => p.specialization_id)
-      .filter((id): id is number => id !== null);
-
-    const specializations = await prisma.courseSpecialization.findMany({
-      where: {
-        id: { in: specializationIds },
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
-
-    return serializeBigInt(specializations);
+    return serializeBigInt(
+      rows.map((r) => ({ name: r.name, slug: r.slug, id: r.id })),
+    );
   }
 
   /**
-   * Get paginated programs with multiple filters.
+   * 4. GET /programs
+   * Match: MultipleSearchAndApplyApiController::programs
    */
   async getPrograms(filters: any, page = 1, perPage = 10) {
     const where: any = {};
@@ -165,29 +175,52 @@ export class MultipleSearchApplyService {
     const websites = this.normalize(filters.website);
     if (websites.length > 0) where.website = { in: websites };
 
-    const universityIds = this.normalize(filters.university_id).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
+    const universityIds = this.normalize(filters.university_id)
+      .map((id) => Number(id))
+      .filter((id) => !Number.isNaN(id));
     if (universityIds.length > 0) where.university_id = { in: universityIds };
 
     const levels = this.normalize(filters.level);
     if (levels.length > 0) where.level = { in: levels };
 
-    const categoryIds = this.normalize(filters.course_category_id).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
+    const categoryIds = this.normalize(filters.course_category_id)
+      .map((id) => Number(id))
+      .filter((id) => !Number.isNaN(id));
     if (categoryIds.length > 0) where.course_category_id = { in: categoryIds };
 
-    const specializationIds = this.normalize(filters.specialization_id).map((id) => Number(id)).filter((id) => !Number.isNaN(id));
-    if (specializationIds.length > 0) where.specialization_id = { in: specializationIds };
+    const specializationIds = this.normalize(filters.specialization_id)
+      .map((id) => Number(id))
+      .filter((id) => !Number.isNaN(id));
+    if (specializationIds.length > 0)
+      where.specialization_id = { in: specializationIds };
 
     const [total, items] = await Promise.all([
       prisma.universityProgram.count({ where }),
       prisma.universityProgram.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          website: true,
+          university_id: true,
+          course_category_id: true,
+          specialization_id: true,
+          level: true,
+          course_name: true,
+          intake: true,
+          study_mode: true,
+          duration: true,
+          application_deadline: true,
+          tution_fee: true,
+          total_fee: true,
+          total_tuition_fee: true,
+          commission: true,
           university: {
             select: {
               id: true,
               name: true,
               uname: true,
               email: true,
+              cc: true,
               logo_path: true,
             },
           },
@@ -207,23 +240,55 @@ export class MultipleSearchApplyService {
           },
         },
         orderBy: {
-          id: 'desc',
+          id: "desc",
         },
         skip: (page - 1) * perPage,
         take: perPage,
       }),
     ]);
 
+    const formattedItems = items.map((item: any) => ({
+      id: item.id,
+      website: item.website,
+      university_id: item.university_id,
+      course_category_id: item.course_category_id,
+      specialization_id: item.specialization_id,
+      level: item.level,
+      course_name: item.course_name,
+      intake: item.intake,
+      study_mode: item.study_mode,
+      duration: item.duration,
+      application_deadline: item.application_deadline,
+      tution_fee: item.tution_fee != null ? String(item.tution_fee) : null,
+      total_fee: item.total_fee != null ? String(item.total_fee) : null,
+      total_tuition_fee:
+        item.total_tuition_fee != null ? String(item.total_tuition_fee) : null,
+      commission: item.commission != null ? item.commission : null,
+      university: item.university
+        ? {
+            id: item.university.id,
+            name: item.university.name,
+            uname: item.university.uname,
+            email: item.university.email ?? null,
+            cc: item.university.cc ?? null,
+            logo_path: item.university.logo_path ?? null,
+          }
+        : null,
+      course_category: item.courseCategory,
+      course_specialization: item.courseSpecialization,
+    }));
+
     return {
-      items: serializeBigInt(items),
+      items: serializeBigInt(formattedItems),
       pagination: {
-        total,
         current_page: page,
-        per_page: perPage,
         last_page: Math.ceil(total / perPage),
+        per_page: perPage,
+        total,
       },
     };
   }
 }
 
-export const multipleSearchApplyService = MultipleSearchApplyService.getInstance();
+export const multipleSearchApplyService =
+  MultipleSearchApplyService.getInstance();
