@@ -28,10 +28,13 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
+    const [maxRes]: any[] = await prisma.$queryRawUnsafe(`SELECT IFNULL(MAX(id), 0) + 1 AS next_id FROM study_modes`);
+    const nextId = Number(maxRes?.next_id || 1);
 
     await prisma.$executeRawUnsafe(
-      `INSERT INTO study_modes (study_mode, created_at, updated_at)
-       VALUES (?, ?, ?)`,
+      `INSERT INTO study_modes (id, study_mode, created_at, updated_at)
+       VALUES (?, ?, ?, ?)`,
+      nextId,
       study_mode,
       now,
       now

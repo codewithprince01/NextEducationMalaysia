@@ -21,7 +21,16 @@ export async function GET(req: Request) {
 
     sql += ` ORDER BY slc.position ASC, slc.id DESC`;
 
-    const contents: any[] = await prisma.$queryRawUnsafe(sql, ...params);
+    const rawContents: any[] = await prisma.$queryRawUnsafe(sql, ...params);
+
+    const contents = (rawContents || []).map((c: any) => {
+      const itemTitle = c.title || c.tab || c.tab_title || c.name || '';
+      return {
+        ...c,
+        title: itemTitle,
+        tab: itemTitle,
+      };
+    });
 
     // If specialization_level_id is provided, fetch level details
     let levelData = null;
@@ -54,27 +63,44 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { specialization_level_id, title, description, position } = body;
+    const { specialization_level_id, title, tab, description, position } = body;
+    const tabTitle = (title || tab || '').trim();
 
-    if (!title || !title.trim()) {
+    if (!tabTitle) {
       return NextResponse.json({ status: false, message: 'Title is required' }, { status: 400 });
     }
 
-    const slug = slugify(title);
+    const slug = slugify(tabTitle);
     const now = new Date();
 
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO specialization_level_contents 
-       (id, specialization_level_id, title, slug, description, position, created_at, updated_at)
-       SELECT IFNULL(MAX(id), 0) + 1, ?, ?, ?, ?, ?, ?, ? FROM specialization_level_contents slc_max`,
-      specialization_level_id ? Number(specialization_level_id) : null,
-      title.trim(),
-      slug,
-      description || null,
-      position ? Number(position) : 1,
-      now,
-      now
-    );
+    try {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO specialization_level_contents 
+         (id, specialization_level_id, title, tab, slug, description, position, created_at, updated_at)
+         SELECT IFNULL(MAX(id), 0) + 1, ?, ?, ?, ?, ?, ?, ?, ? FROM specialization_level_contents slc_max`,
+        specialization_level_id ? Number(specialization_level_id) : null,
+        tabTitle,
+        tabTitle,
+        slug,
+        description || null,
+        position ? Number(position) : 1,
+        now,
+        now
+      );
+    } catch {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO specialization_level_contents 
+         (id, specialization_level_id, title, slug, description, position, created_at, updated_at)
+         SELECT IFNULL(MAX(id), 0) + 1, ?, ?, ?, ?, ?, ?, ? FROM specialization_level_contents slc_max`,
+        specialization_level_id ? Number(specialization_level_id) : null,
+        tabTitle,
+        slug,
+        description || null,
+        position ? Number(position) : 1,
+        now,
+        now
+      );
+    }
 
     return NextResponse.json({ status: true, message: 'Content tab created successfully' });
   } catch (error: any) {

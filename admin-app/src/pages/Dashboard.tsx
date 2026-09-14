@@ -25,14 +25,12 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchQuickStats = async () => {
       try {
-        const res = await fetch('/api/v1/courses/filters');
+        const res = await fetch('/api/v1/admin/dashboard/stats');
         if (res.ok) {
           const json = await res.json();
-          const filters = json.data || {};
-          setStats((prev) => ({
-            ...prev,
-            programs: (filters.categories?.length || 30) * 15,
-          }));
+          if (json.success && json.data) {
+            setStats(json.data);
+          }
         }
       } catch (e) {
         console.error('Stats error:', e);

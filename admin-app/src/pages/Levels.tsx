@@ -166,7 +166,7 @@ export default function Levels() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {toast && (
         <div
           className={`fixed top-5 right-5 z-50 p-4 rounded-2xl shadow-xl border flex items-center gap-3 text-xs font-bold ${

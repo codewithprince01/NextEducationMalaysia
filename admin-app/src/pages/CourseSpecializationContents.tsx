@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -15,7 +15,10 @@ import {
   Layers,
   Sparkles,
   RotateCcw,
-  Send
+  Send,
+  Plus,
+  X,
+  Eye
 } from 'lucide-react';
 
 interface SpecializationOption {
@@ -28,6 +31,9 @@ interface ContentTabItem {
   id: number;
   specialization_id: number;
   tab: string;
+  title?: string;
+  tab_title?: string;
+  name?: string;
   position: number;
   description: string;
   created_at?: string;
@@ -37,6 +43,8 @@ interface ContentTabItem {
 export default function CourseSpecializationContents() {
   const { id: routeSpecId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editIdParam = searchParams.get('edit');
 
   const [specializations, setSpecializations] = useState<SpecializationOption[]>([]);
   const [selectedSpecId, setSelectedSpecId] = useState<number | null>(
@@ -46,6 +54,8 @@ export default function CourseSpecializationContents() {
   const [contents, setContents] = useState<ContentTabItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [viewModalItem, setViewModalItem] = useState<ContentTabItem | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pagination (20 per page)
@@ -55,7 +65,7 @@ export default function CourseSpecializationContents() {
   // Edit State
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    tab: 'Overview',
+    tab: '',
     position: 1,
     description: '',
   });
@@ -116,34 +126,61 @@ export default function CourseSpecializationContents() {
     }
   }, [selectedSpecId]);
 
+  // Auto pre-fill edit form if URL has ?edit=ID
+  useEffect(() => {
+    if (contents.length > 0 && editIdParam) {
+      const editItem = contents.find((i) => String(i.id) === String(editIdParam));
+      if (editItem) {
+        setEditingId(editItem.id);
+        const itemTab = editItem.tab || editItem.title || editItem.tab_title || editItem.name || '';
+        setFormData({
+          tab: itemTab,
+          position: editItem.position || 1,
+          description: editItem.description || '',
+        });
+        setShowForm(true);
+      }
+    }
+  }, [contents, editIdParam]);
+
   const handleSpecSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = Number(e.target.value);
     setSelectedSpecId(val);
     navigate(`/course-specialization-contents/${val}`);
     setEditingId(null);
+    setShowForm(false);
     setFormData({
-      tab: 'Overview',
+      tab: '',
       position: 1,
       description: '',
     });
+    if (searchParams.has('edit')) {
+      setSearchParams({}, { replace: true });
+    }
   };
 
   const handleReset = () => {
     setEditingId(null);
     setFormData({
-      tab: 'Overview',
+      tab: '',
       position: contents.length + 1,
       description: '',
     });
+    if (searchParams.has('edit')) {
+      setSearchParams({}, { replace: true });
+    }
   };
 
   const handleEditClick = (item: ContentTabItem) => {
     setEditingId(item.id);
+    const itemTab = item.tab || item.title || item.tab_title || item.name || '';
     setFormData({
-      tab: item.tab || 'Overview',
+      tab: itemTab,
       position: item.position || 1,
       description: item.description || '',
     });
+    setShowForm(true);
+    setSearchParams({ edit: String(item.id) }, { replace: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -180,6 +217,7 @@ export default function CourseSpecializationContents() {
       if (res.ok && json.status) {
         showToast('success', editingId ? 'Content tab updated successfully' : 'Content tab created successfully');
         handleReset();
+        setShowForm(false);
         fetchContents(selectedSpecId);
       } else {
         showToast('error', json.message || 'Failed to save content tab');
@@ -225,9 +263,8 @@ export default function CourseSpecializationContents() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -259,103 +296,140 @@ export default function CourseSpecializationContents() {
           </div>
         </div>
 
-        {/* Specialization Selector Dropdown */}
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold text-slate-600 shrink-0">Select Specialization:</label>
-          <select
-            value={selectedSpecId || ''}
-            onChange={handleSpecSelectChange}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
-          >
-            {specializations.map((s) => (
-              <option key={s.id} value={s.id}>
-                #{s.id} - {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* ── FORM SECTION: RICH DESCRIPTION EDITOR ── */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        {/* Action controls & Specialization Selector Dropdown */}
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
-            <h2 className="font-extrabold text-slate-900 text-sm">
-              {editingId ? `Edit Tab #${editingId}` : 'Enter Description'}
-            </h2>
+            <label className="text-xs font-bold text-slate-600 shrink-0">Specialization:</label>
+            <select
+              value={selectedSpecId || ''}
+              onChange={handleSpecSelectChange}
+              className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+            >
+              {specializations.map((s) => (
+                <option key={s.id} value={s.id}>
+                  #{s.id} - {s.name}
+                </option>
+              ))}
+            </select>
           </div>
-          {editingId && (
-            <span className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">
-              Editing Existing Content
-            </span>
-          )}
+
+          <button
+            onClick={() => {
+              if (!showForm) {
+                handleReset();
+                setShowForm(true);
+              } else {
+                setShowForm(false);
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+          >
+            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span>{showForm ? 'Close Form' : '+ Add Description'}</span>
+          </button>
         </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Tab Title *</label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Overview, Admission, Fees, Career"
-                value={formData.tab}
-                onChange={(e) => setFormData({ ...formData, tab: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Display Position Order</label>
-              <input
-                type="number"
-                min="1"
-                required
-                placeholder="1"
-                value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: Number(e.target.value) })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5">Enter Description *</label>
-            <RichTextEditor
-              value={formData.description}
-              onChange={(val) => setFormData({ ...formData, description: val })}
-              placeholder="Write detailed tab content with formatting, images, bullet points..."
-              minHeight="350px"
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={handleReset}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset</span>
-            </button>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-3.5 h-3.5" />
-              )}
-              <span>{editingId ? 'Update Tab Content' : 'Submit'}</span>
-            </button>
-          </div>
-        </form>
       </div>
+
+      {/* ── FORM SECTION: RICH DESCRIPTION EDITOR (HIDDEN BY DEFAULT) ── */}
+      {showForm && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-in fade-in duration-200">
+          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-600" />
+              <h2 className="font-extrabold text-slate-900 text-sm">
+                {editingId ? `Edit Tab #${editingId}` : 'Enter Description'}
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              {editingId && (
+                <span className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">
+                  Editing Existing Content
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                title="Close Form"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Tab Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Overview, Admission, Fees, Career"
+                  value={formData.tab}
+                  onChange={(e) => setFormData({ ...formData, tab: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Display Position Order</label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  placeholder="1"
+                  value={formData.position}
+                  onChange={(e) => setFormData({ ...formData, position: Number(e.target.value) })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">Enter Description *</label>
+              <RichTextEditor
+                value={formData.description}
+                onChange={(val) => setFormData({ ...formData, description: val })}
+                placeholder="Write detailed tab content with formatting, images, bullet points..."
+                minHeight="350px"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
+              </button>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {submitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                <span>{editingId ? 'Update Tab Content' : 'Submit'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition-all cursor-pointer ml-auto"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* ── TABLE OF EXISTING CONTENT TABS ── */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
@@ -384,19 +458,18 @@ export default function CourseSpecializationContents() {
           <div className="p-12 text-center text-slate-400">
             <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
             <p className="text-sm font-bold text-slate-700">No Content Tabs Created Yet</p>
-            <p className="text-xs text-slate-400 mt-1">Use the editor form above to enter description and create content tabs.</p>
+            <p className="text-xs text-slate-400 mt-1">Click "+ Add Description" above to create content tabs.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
-                  <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center">ID</th>
-                  <th className="py-3.5 px-5">Tab Name</th>
-                  <th className="py-3.5 px-4 text-center">Position</th>
-                  <th className="py-3.5 px-6">Description Preview</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
+                  <th className="py-3.5 px-4 w-16 text-center">Sr. No.</th>
+                  <th className="py-3.5 px-4 w-24 text-center">Position</th>
+                  <th className="py-3.5 px-5 w-44">Tab</th>
+                  <th className="py-3.5 px-6">Description</th>
+                  <th className="py-3.5 px-5 text-right w-28">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -405,18 +478,21 @@ export default function CourseSpecializationContents() {
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-4 px-4 text-center font-extrabold text-slate-700">{srNo}</td>
-                      <td className="py-4 px-4 text-center font-bold text-slate-400">#{item.id}</td>
-                      <td className="py-4 px-5 font-bold text-slate-900">{item.tab}</td>
                       <td className="py-4 px-4 text-center">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                          Pos: {item.position}
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">
+                          {item.position}
                         </span>
                       </td>
-                      <td className="py-4 px-6 max-w-lg">
-                        <div
-                          className="line-clamp-2 text-[11.5px] text-slate-600 prose prose-xs max-w-none"
-                          dangerouslySetInnerHTML={{ __html: item.description || '<em className="text-slate-400">No description</em>' }}
-                        />
+                      <td className="py-4 px-5 font-bold text-slate-900">{item.tab}</td>
+                      <td className="py-4 px-6">
+                        <button
+                          type="button"
+                          onClick={() => setViewModalItem(item)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/60 font-bold text-xs transition-colors cursor-pointer shadow-2xs"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>View Description</span>
+                        </button>
                       </td>
                       <td className="py-4 px-5 text-right">
                         <div className="flex items-center justify-end gap-2">
@@ -452,6 +528,56 @@ export default function CourseSpecializationContents() {
           </div>
         )}
       </div>
+
+      {/* ── DESCRIPTION VIEW MODAL POPUP ── */}
+      {viewModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-extrabold text-slate-900 text-base">
+                  Tab Description: {viewModalItem.tab}
+                </h3>
+                <span className="text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-0.5 rounded-full ml-2">
+                  Position: {viewModalItem.position}
+                </span>
+              </div>
+              <button
+                onClick={() => setViewModalItem(null)}
+                className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(85vh-120px)] space-y-4">
+              {viewModalItem.description ? (
+                <div
+                  className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed font-normal"
+                  dangerouslySetInnerHTML={{ __html: viewModalItem.description }}
+                />
+              ) : (
+                <p className="text-sm italic text-slate-400">No description entered.</p>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+              <button
+                onClick={() => setViewModalItem(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-all cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+

@@ -7,7 +7,7 @@ import { slugify, serializeBigInt } from '@/lib/utils';
 export async function GET() {
   try {
     const categories: any[] = await prisma.$queryRawUnsafe(
-      `SELECT cc.*, 
+      `SELECT cc.*, cc.name AS category, 
               a.name as author_name,
               (SELECT COUNT(*) FROM course_category_contents ccc WHERE ccc.course_category_id = cc.id) as contents_count,
               (SELECT COUNT(*) FROM course_category_faqs ccf WHERE ccf.course_category_id = cc.id) as faqs_count

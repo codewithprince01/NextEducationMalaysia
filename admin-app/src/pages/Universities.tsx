@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
@@ -13,12 +13,9 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  Eye,
-  Download,
-  Upload,
   ExternalLink,
   MapPin,
-  Award
+  MoreVertical
 } from 'lucide-react';
 
 interface UniversityItem {
@@ -29,20 +26,31 @@ interface UniversityItem {
   state?: string;
   rank?: string;
   qs_rank?: string;
+  qs_asia_rank?: string;
   times_rank?: string;
   institute_type?: number;
   institute_type_name?: string;
   established_year?: string;
+  email?: string;
+  cc?: string;
+  contact_number1?: string;
   shortnote?: string;
-  overview?: string;
   logo_path?: string;
   banner_path?: string;
   og_image_path?: string;
   meta_title?: string;
   meta_description?: string;
   meta_keyword?: string;
-  status: number;
+  status?: number;
+  homeview?: number;
+  featured?: number;
+  programs_count?: number;
+  overviews_count?: number;
+  photos_count?: number;
+  videos_count?: number;
+  facilities_count?: number;
   created_at?: string;
+  updated_at?: string;
 }
 
 export default function Universities() {
@@ -51,6 +59,8 @@ export default function Universities() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [stateFilter, setStateFilter] = useState('');
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pagination State (20 per page)
@@ -76,7 +86,7 @@ export default function Universities() {
       const univRes = await fetch('/api/v1/admin/universities');
       const univJson = await univRes.json();
 
-      if (univRes.ok && univJson.status) {
+      if (univRes.ok && (univJson.status || univJson.success)) {
         setUniversities(univJson.data || []);
       } else {
         showToast('error', univJson.message || 'Failed to fetch universities');
@@ -91,6 +101,22 @@ export default function Universities() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(paginated.map((u) => u.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((item) => item !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
 
   const handleDownloadFormat = () => {
     const csvContent =
@@ -147,7 +173,7 @@ export default function Universities() {
     try {
       const res = await fetch(`/api/v1/admin/universities/${id}`, { method: 'DELETE' });
       const json = await res.json();
-      if (res.ok && json.status) {
+      if (res.ok && (json.status || json.success)) {
         showToast('success', 'University deleted successfully');
         fetchData();
       } else {
@@ -158,10 +184,8 @@ export default function Universities() {
     }
   };
 
-  // Unique States list for filter
   const stateOptions = Array.from(new Set(universities.map((u) => u.state).filter(Boolean)));
 
-  // Filter & Pagination
   const filtered = universities.filter((item) => {
     const matchesSearch =
       item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -182,8 +206,18 @@ export default function Universities() {
     currentPage * itemsPerPage
   );
 
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return 'N/A';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' - ' + d.toLocaleDateString('en-GB');
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -250,23 +284,22 @@ export default function Universities() {
             <button
               onClick={handleImport}
               disabled={importing || !importFile}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
             >
-              {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
               <span>Import</span>
             </button>
             <button
               onClick={handleDownloadFormat}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Formate</span>
+              <span>Download Format</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Search & State Filter Bar */}
+      {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-72">
@@ -315,110 +348,303 @@ export default function Universities() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
-                  <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center">ID</th>
-                  <th className="py-3.5 px-5">University Name & Slug</th>
-                  <th className="py-3.5 px-5">Location</th>
-                  <th className="py-3.5 px-4 text-center">Type & Rank</th>
-                  <th className="py-3.5 px-4 text-center">SEO</th>
-                  <th className="py-3.5 px-5">Images</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
+                  <th className="py-3.5 px-3 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      onChange={handleSelectAll}
+                      checked={selectedIds.length === paginated.length && paginated.length > 0}
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                  </th>
+                  <th className="py-3.5 px-3 w-12 text-center">S.No</th>
+                  <th className="py-3.5 px-5">University Details</th>
+                  <th className="py-3.5 px-4">Location</th>
+                  <th className="py-3.5 px-4">Rankings</th>
+                  <th className="py-3.5 px-4">Media</th>
+                  <th className="py-3.5 px-4 text-center">Status</th>
+                  <th className="py-3.5 px-4 text-center">Sub Modules</th>
+                  <th className="py-3.5 px-4">Timestamps</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                 {paginated.map((item, index) => {
                   const srNo = (currentPage - 1) * itemsPerPage + index + 1;
+                  const isDropdownOpen = openDropdownId === item.id;
+
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-4 text-center font-extrabold text-slate-700">{srNo}</td>
-                      <td className="py-4 px-4 text-center font-bold text-slate-400">#{item.id}</td>
+                      {/* Checkbox */}
+                      <td className="py-4 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(item.id)}
+                          onChange={() => handleSelectOne(item.id)}
+                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                      </td>
 
-                      {/* Name & Slug */}
-                      <td className="py-4 px-5 max-w-xs">
-                        <div className="font-bold text-slate-900 text-xs leading-snug">{item.name}</div>
-                        <div className="text-[11px] font-mono text-slate-400 mt-0.5 truncate">{item.uname}</div>
+                      {/* Sr. No */}
+                      <td className="py-4 px-3 text-center font-extrabold text-slate-700">{srNo}</td>
+
+                      {/* University Details */}
+                      <td className="py-4 px-5 max-w-xs space-y-1">
+                        <div className="text-[11px] font-bold text-slate-400">Id : {item.id}</div>
+                        <div className="font-extrabold text-slate-900 text-xs leading-snug">{item.name}</div>
+                        <div className="text-[11px] font-medium text-slate-600">
+                          <span className="font-bold text-slate-500">Inst Type :</span>{' '}
+                          <span className="text-slate-800 font-bold">{item.institute_type_name || 'Private Institution'}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          <span className="font-bold">Established Year :</span> {item.established_year || 'N/A'}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          <span className="font-bold">Email :</span> {item.email || 'N/A'}
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          <span className="font-bold">CC :</span> {item.cc || item.contact_number1 || 'N/A'}
+                        </div>
                       </td>
 
                       {/* Location */}
-                      <td className="py-4 px-5">
-                        <div className="flex items-center gap-1 text-slate-800 font-semibold">
-                          <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                          <span>{item.city || 'N/A'}</span>
+                      <td className="py-4 px-4 space-y-1">
+                        <div className="text-[11px]">
+                          <span className="font-bold text-slate-500">City :</span>{' '}
+                          <span className="font-extrabold text-slate-900">{item.city || 'N/A'}</span>
                         </div>
-                        <div className="text-[11px] text-slate-400 font-medium mt-0.5">{item.state || 'N/A'}</div>
+                        <div className="text-[11px]">
+                          <span className="font-bold text-slate-500">State :</span>{' '}
+                          <span className="font-semibold text-slate-800">{item.state || 'N/A'}</span>
+                        </div>
+                        <a
+                          href={`https://maps.google.com/?q=${encodeURIComponent((item.city || '') + ' ' + (item.state || ''))}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 hover:underline pt-0.5"
+                        >
+                          <MapPin className="w-3 h-3" /> Get Directions
+                        </a>
                       </td>
 
-                      {/* Type & Rank */}
-                      <td className="py-4 px-4 text-center">
-                        <div className="space-y-1 inline-flex flex-col items-center text-[11px]">
-                          <span className="bg-indigo-50 text-indigo-700 border border-indigo-100 px-2 py-0.5 rounded-md font-bold">
-                            {item.institute_type_name || 'General'}
-                          </span>
-                          {item.rank && (
-                            <div className="flex items-center gap-1 text-slate-500 font-bold">
-                              <Award className="w-3 h-3 text-amber-500" />
-                              <span>Rank #{item.rank}</span>
-                            </div>
+                      {/* Rankings */}
+                      <td className="py-4 px-4 space-y-1 text-[11px]">
+                        <div>
+                          <span className="font-bold text-slate-500">Rank (QS Malaysia) :</span>{' '}
+                          <span className="font-extrabold text-slate-900">{item.qs_rank || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-500">QS World Ranking :</span>{' '}
+                          <span className="font-semibold text-slate-800">{item.rank || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-500">The Times :</span>{' '}
+                          <span className="font-semibold text-slate-800">{item.times_rank || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-500">QS Asia Rank :</span>{' '}
+                          <span className="font-semibold text-slate-800">{item.qs_asia_rank || 'N/A'}</span>
+                        </div>
+                      </td>
+
+                      {/* Media */}
+                      <td className="py-4 px-4 space-y-1 text-[11px]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-500">Logo :</span>
+                          {item.logo_path ? (
+                            <button
+                              onClick={() => setPreviewImage({ title: 'Logo', url: item.logo_path! })}
+                              className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                            >
+                              View <ExternalLink className="w-2.5 h-2.5" />
+                            </button>
+                          ) : (
+                            <span className="text-slate-400 font-bold">N/A</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-500">Banner :</span>
+                          {item.banner_path ? (
+                            <button
+                              onClick={() => setPreviewImage({ title: 'Banner', url: item.banner_path! })}
+                              className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                            >
+                              View <ExternalLink className="w-2.5 h-2.5" />
+                            </button>
+                          ) : (
+                            <span className="text-slate-400 font-bold">N/A</span>
                           )}
                         </div>
                       </td>
 
-                      {/* SEO Column */}
-                      <td className="py-4 px-4 text-center">
-                        <button
-                          onClick={() => setPreviewSeo(item)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-sky-200 bg-sky-50 text-sky-700 text-[11px] font-bold hover:bg-sky-100 transition-colors cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
-                        </button>
-                      </td>
-
-                      {/* Images Column */}
-                      <td className="py-4 px-5">
-                        <div className="space-y-1 text-[11px]">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 font-semibold">Logo:</span>
-                            {item.logo_path ? (
-                              <button
-                                onClick={() => setPreviewImage({ title: 'Logo', url: item.logo_path! })}
-                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
-                              >
-                                View <ExternalLink className="w-2.5 h-2.5" />
-                              </button>
-                            ) : (
-                              <span className="text-slate-400">N/A</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 font-semibold">Banner:</span>
-                            {item.banner_path ? (
-                              <button
-                                onClick={() => setPreviewImage({ title: 'Banner', url: item.banner_path! })}
-                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
-                              >
-                                View <ExternalLink className="w-2.5 h-2.5" />
-                              </button>
-                            ) : (
-                              <span className="text-slate-400">N/A</span>
-                            )}
-                          </div>
+                      {/* Status Badges */}
+                      <td className="py-4 px-4 text-center space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <span className="font-bold text-slate-500">Status</span>
+                          {item.status !== 0 ? (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[10px]">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white font-extrabold text-[10px]">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <span className="font-bold text-slate-500">Home View</span>
+                          {item.homeview === 1 ? (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[10px]">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white font-extrabold text-[10px]">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <span className="font-bold text-slate-500">Featured</span>
+                          {item.featured === 1 ? (
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[10px]">
+                              Yes
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-rose-500 text-white font-extrabold text-[10px]">
+                              No
+                            </span>
+                          )}
                         </div>
                       </td>
 
-                      {/* Actions Column */}
-                      <td className="py-4 px-5 text-right">
+                      {/* Quick Counts Column */}
+                      <td className="py-4 px-4 text-center space-y-1.5 text-[11px]">
+                        <div>
+                          <span className="font-bold text-slate-500">Programs : </span>
+                          <button
+                            onClick={() => navigate(`/programs?university_id=${item.id}`)}
+                            className="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[10px] hover:bg-emerald-600 cursor-pointer"
+                          >
+                            {item.programs_count || 0} Programs
+                          </button>
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-500">Overview : </span>
+                          <button
+                            onClick={() => navigate(`/university-overviews?university_id=${item.id}`)}
+                            className="px-2 py-0.5 rounded-md bg-emerald-500 text-white font-extrabold text-[10px] hover:bg-emerald-600 cursor-pointer"
+                          >
+                            {item.overviews_count || 0} Entry
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Timestamps */}
+                      <td className="py-4 px-4 text-[11px] space-y-1 text-slate-500">
+                        <div>
+                          <span className="font-bold text-slate-700">Created at :</span>
+                          <div className="font-medium text-slate-800">{formatDate(item.created_at)}</div>
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-700">Updated at :</span>
+                          <div className="font-medium text-slate-800">{formatDate(item.updated_at)}</div>
+                        </div>
+                      </td>
+
+                      {/* Actions & Popup Menu */}
+                      <td className="py-4 px-4 text-right relative">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Dropdown Toggle Button (Laravel Blue Action Button Style) */}
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenDropdownId(isDropdownOpen ? null : item.id)}
+                              className="p-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white transition-colors cursor-pointer"
+                              title="Sub-module Options"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+
+                            {/* Dropdown Popup Menu */}
+                            {isDropdownOpen && (
+                              <div className="absolute right-0 top-8 z-50 w-44 bg-white border border-slate-200 rounded-xl shadow-2xl p-2 text-left space-y-1 text-xs animate-in fade-in-50 duration-150">
+                                <button
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    navigate(`/university-overviews?university_id=${item.id}`);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-slate-100 font-bold text-slate-700 cursor-pointer"
+                                >
+                                  <span>Overview</span>
+                                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[10px]">
+                                    {item.overviews_count || 0}
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    navigate(`/programs?university_id=${item.id}`);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-slate-100 font-bold text-slate-700 cursor-pointer"
+                                >
+                                  <span>Programs</span>
+                                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[10px]">
+                                    {item.programs_count || 0}
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    navigate(`/university-gallery?university_id=${item.id}`);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-slate-100 font-bold text-slate-700 cursor-pointer"
+                                >
+                                  <span>Photos</span>
+                                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-500 text-white text-[10px]">
+                                    {item.photos_count || 0}
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    navigate(`/university-gallery?university_id=${item.id}`);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-slate-100 font-bold text-slate-700 cursor-pointer"
+                                >
+                                  <span>Videos</span>
+                                  <span className="px-1.5 py-0.5 rounded-md bg-purple-500 text-white text-[10px]">
+                                    {item.videos_count || 0}
+                                  </span>
+                                </button>
+
+                                <button
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    navigate(`/university-facilities?university_id=${item.id}`);
+                                  }}
+                                  className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-slate-100 font-bold text-slate-700 cursor-pointer"
+                                >
+                                  <span>Facilities</span>
+                                  <span className="px-1.5 py-0.5 rounded-md bg-rose-500 text-white text-[10px]">
+                                    {item.facilities_count || 0}
+                                  </span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
                           <button
                             onClick={() => navigate(`/university/edit/${item.id}`)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white transition-colors cursor-pointer"
                             title="Edit University"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
+
                           <button
                             onClick={() => handleDelete(item.id, item.name)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white transition-colors cursor-pointer"
                             title="Delete University"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -435,10 +661,12 @@ export default function Universities() {
 
         {/* Pagination Footer */}
         {filtered.length > itemsPerPage && (
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between">
+          <div className="border-t border-slate-100">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
             />
           </div>

@@ -4,14 +4,13 @@ import Pagination from '@/components/common/Pagination';
 import {
   Building2,
   Plus,
-  Search,
   Edit2,
   Trash2,
   Loader2,
-  X,
   CheckCircle2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  X
 } from 'lucide-react';
 
 interface InstituteTypeItem {
@@ -20,6 +19,7 @@ interface InstituteTypeItem {
   slug: string;
   seo_title?: string;
   seo_title_slug?: string;
+  university_count?: number;
   created_at?: string;
 }
 
@@ -29,12 +29,12 @@ export default function InstituteTypes() {
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Pagination State (20 per page)
+  // Pagination & Display State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Add / Edit Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Form Modal State (Closed by default, matching StudyModes.tsx)
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
@@ -68,19 +68,23 @@ export default function InstituteTypes() {
     fetchData();
   }, []);
 
-  const handleOpenAdd = () => {
+  const handleReset = () => {
     setEditingId(null);
     setFormData({ type: '', seo_title: '' });
-    setIsModalOpen(true);
+  };
+
+  const handleOpenAdd = () => {
+    handleReset();
+    setIsFormOpen(true);
   };
 
   const handleOpenEdit = (item: InstituteTypeItem) => {
     setEditingId(item.id);
     setFormData({
-      type: item.type,
+      type: item.type || '',
       seo_title: item.seo_title || '',
     });
-    setIsModalOpen(true);
+    setIsFormOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,7 +110,8 @@ export default function InstituteTypes() {
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', json.message || (editingId ? 'Updated successfully' : 'Created successfully'));
-        setIsModalOpen(false);
+        handleReset();
+        setIsFormOpen(false);
         fetchData();
       } else {
         showToast('error', json.message || 'Operation failed');
@@ -143,21 +148,20 @@ export default function InstituteTypes() {
   const filtered = types.filter(
     (item) =>
       item.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.seo_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.slug?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [searchQuery, itemsPerPage]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginated = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -182,9 +186,9 @@ export default function InstituteTypes() {
                 University Setup
               </span>
             </div>
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight mt-0.5">Institute Types List</h1>
+            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight mt-0.5">Institute Type</h1>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Manage public, private, and specialized university classification categories.
+              Manage university & college institute classifications.
             </p>
           </div>
         </div>
@@ -208,26 +212,49 @@ export default function InstituteTypes() {
         </div>
       </div>
 
-      {/* Search & Stats Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search type name, slug..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
-          />
-        </div>
-
-        <div className="text-xs font-semibold text-slate-500">
-          Total Types: <span className="text-slate-900 font-bold">{types.length}</span>
-        </div>
-      </div>
-
-      {/* Main Data Table */}
+      {/* Data Table Card */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        {/* Table Controls Header */}
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <span>Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-none focus:border-indigo-500"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span>entries</span>
+          </div>
+
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <button
+              onClick={fetchData}
+              className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer"
+              title="Refresh table"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+
+            <div className="relative flex-1 sm:w-64">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                Search:
+              </span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-16 pr-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Main Table */}
         {loading ? (
           <div className="p-12 flex flex-col items-center justify-center text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
@@ -237,49 +264,50 @@ export default function InstituteTypes() {
           <div className="p-12 text-center text-slate-400">
             <Building2 className="w-12 h-12 mx-auto mb-3 text-slate-300" />
             <p className="text-sm font-bold text-slate-700">No Institute Types Found</p>
-            <p className="text-xs text-slate-400 mt-1">Add a new institute type to get started.</p>
+            <p className="text-xs text-slate-400 mt-1">Add a new record to get started.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
-                  <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center">ID</th>
-                  <th className="py-3.5 px-5">Type Name & Slug</th>
-                  <th className="py-3.5 px-5">SEO Title</th>
-                  <th className="py-3.5 px-5">SEO Title Slug</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-600 font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-4 w-16">Sr. No.</th>
+                  <th className="py-3 px-4 w-16">Id</th>
+                  <th className="py-3 px-6">Type</th>
+                  <th className="py-3 px-6">SEO Name</th>
+                  <th className="py-3 px-6">University</th>
+                  <th className="py-3 px-4 text-center w-28">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                 {paginated.map((item, index) => {
-                  const srNo = (currentPage - 1) * itemsPerPage + index + 1;
+                  const srNo = startIndex + index + 1;
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-4 text-center font-extrabold text-slate-700">{srNo}</td>
-                      <td className="py-4 px-4 text-center font-bold text-slate-400">#{item.id}</td>
-                      <td className="py-4 px-5">
-                        <div className="font-bold text-slate-900 text-xs leading-snug">{item.type}</div>
-                        <div className="text-[11px] font-mono text-slate-400 mt-0.5">{item.slug}</div>
+                      <td className="py-3.5 px-4 font-bold text-slate-700">{srNo}</td>
+                      <td className="py-3.5 px-4 font-bold text-slate-600">{item.id}</td>
+                      <td className="py-3.5 px-6 font-semibold text-slate-900">{item.type}</td>
+                      <td className="py-3.5 px-6 font-medium text-slate-700">{item.seo_title || item.type}</td>
+                      <td className="py-3.5 px-6">
+                        <span className="px-2 py-0.5 text-xs font-bold text-white bg-sky-500 rounded-md inline-block shadow-2xs">
+                          {item.university_count ?? 0}
+                        </span>
                       </td>
-                      <td className="py-4 px-5 text-slate-700 font-semibold">{item.seo_title || 'N/A'}</td>
-                      <td className="py-4 px-5 text-slate-500 font-mono text-[11px]">{item.seo_title_slug || 'N/A'}</td>
-                      <td className="py-4 px-5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
-                            title="Edit Type"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
+                      <td className="py-3.5 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleDelete(item.id, item.type)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            title="Delete Type"
+                            className="p-1.5 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors cursor-pointer shadow-2xs"
+                            title="Delete"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white transition-colors cursor-pointer shadow-2xs"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -291,28 +319,33 @@ export default function InstituteTypes() {
           </div>
         )}
 
-        {/* Pagination Footer */}
-        {filtered.length > itemsPerPage && (
-          <div className="p-4 border-t border-slate-100 flex items-center justify-between">
+        {/* Table Footer */}
+        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-xs font-semibold text-slate-500">
+            Showing {filtered.length === 0 ? 0 : startIndex + 1} to{' '}
+            {Math.min(startIndex + itemsPerPage, filtered.length)} of {filtered.length} entries
+          </div>
+
+          {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Add / Edit Modal */}
-      {isModalOpen && (
+      {/* Add / Edit Form Modal */}
+      {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <h3 className="font-extrabold text-slate-900 text-sm">
                 {editingId ? 'Edit Institute Type' : 'Add New Institute Type'}
               </h3>
               <button
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => setIsFormOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
@@ -321,11 +354,13 @@ export default function InstituteTypes() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Institute Type Name *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Enter Institute Type *
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Public University, Private University"
+                  placeholder="e.g. Public University, Private University, College"
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
@@ -333,20 +368,22 @@ export default function InstituteTypes() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">SEO Title</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Enter Institute Type SEO Name
+                </label>
                 <input
                   type="text"
-                  placeholder="e.g. Best Public Universities in Malaysia"
+                  placeholder="e.g. Public Universities in Malaysia"
                   value={formData.seo_title}
                   onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-500 focus:bg-white transition-all"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={() => setIsFormOpen(false)}
                   className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancel
@@ -357,7 +394,7 @@ export default function InstituteTypes() {
                   className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 disabled:opacity-50 transition-all cursor-pointer flex items-center gap-2"
                 >
                   {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{editingId ? 'Update Type' : 'Save Type'}</span>
+                  <span>{editingId ? 'Update Record' : 'Save Record'}</span>
                 </button>
               </div>
             </form>

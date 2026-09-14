@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
@@ -24,6 +24,9 @@ interface SpecializationLevelContentItem {
   specialization_level_id?: number;
   position: number;
   title: string;
+  tab?: string;
+  tab_title?: string;
+  name?: string;
   slug?: string;
   description?: string;
 }
@@ -31,6 +34,8 @@ interface SpecializationLevelContentItem {
 export default function SpecializationLevelContents() {
   const { id: paramLevelId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editIdParam = searchParams.get('edit');
 
   const [items, setItems] = useState<SpecializationLevelContentItem[]>([]);
   const [levelInfo, setLevelInfo] = useState<{ id: number; level: string; specialization_id?: number; specialization_name?: string } | null>(null);
@@ -88,6 +93,24 @@ export default function SpecializationLevelContents() {
     fetchData();
   }, [paramLevelId]);
 
+  // Auto pre-fill edit form if URL has ?edit=ID
+  useEffect(() => {
+    if (items.length > 0 && editIdParam) {
+      const editItem = items.find((i) => String(i.id) === String(editIdParam));
+      if (editItem) {
+        setEditingId(editItem.id);
+        const itemTitle = editItem.title || editItem.tab || editItem.tab_title || editItem.name || '';
+        setFormData({
+          specialization_level_id: editItem.specialization_level_id ? String(editItem.specialization_level_id) : (paramLevelId || ''),
+          position: editItem.position || 1,
+          title: itemTitle,
+          description: editItem.description || ''
+        });
+        setIsFormVisible(true);
+      }
+    }
+  }, [items, editIdParam]);
+
   const handleResetForm = () => {
     setEditingId(null);
     setFormData({
@@ -96,17 +119,22 @@ export default function SpecializationLevelContents() {
       title: '',
       description: ''
     });
+    if (searchParams.has('edit')) {
+      setSearchParams({}, { replace: true });
+    }
   };
 
   const handleOpenEdit = (item: SpecializationLevelContentItem) => {
     setEditingId(item.id);
+    const itemTitle = item.title || item.tab || item.tab_title || item.name || '';
     setFormData({
       specialization_level_id: item.specialization_level_id ? String(item.specialization_level_id) : (paramLevelId || ''),
       position: item.position || 1,
-      title: item.title || '',
+      title: itemTitle,
       description: item.description || ''
     });
     setIsFormVisible(true);
+    setSearchParams({ edit: String(item.id) }, { replace: true });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -129,6 +157,7 @@ export default function SpecializationLevelContents() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          tab: formData.title,
           specialization_level_id: formData.specialization_level_id || paramLevelId
         })
       });
@@ -180,9 +209,8 @@ export default function SpecializationLevelContents() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -351,45 +379,48 @@ export default function SpecializationLevelContents() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
-                {paginatedItems.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-4 px-5 font-bold text-slate-400">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
-                    </td>
-                    <td className="py-4 px-5 font-semibold text-slate-800">
-                      {item.position || ''}
-                    </td>
-                    <td className="py-4 px-5 font-bold text-slate-900">
-                      {item.title}
-                    </td>
-                    <td className="py-4 px-5">
-                      <button
-                        onClick={() => setPreviewContent(item)}
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg border border-sky-400 text-sky-500 hover:bg-sky-50 font-semibold text-[11px] transition-colors cursor-pointer"
-                      >
-                        View
-                      </button>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                {paginatedItems.map((item, index) => {
+                  const itemTitle = item.title || item.tab || item.tab_title || item.name || '';
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="py-4 px-5 font-bold text-slate-400">
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </td>
+                      <td className="py-4 px-5 font-semibold text-slate-800">
+                        {item.position || ''}
+                      </td>
+                      <td className="py-4 px-5 font-bold text-slate-900">
+                        {itemTitle}
+                      </td>
+                      <td className="py-4 px-5">
                         <button
-                          onClick={() => handleDelete(item.id, item.title)}
-                          className="p-1.5 rounded-lg text-white bg-rose-500 hover:bg-rose-600 shadow-xs transition-colors cursor-pointer"
-                          title="Delete Content Tab"
+                          onClick={() => setPreviewContent({ ...item, title: itemTitle })}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg border border-sky-400 text-sky-500 hover:bg-sky-50 font-semibold text-[11px] transition-colors cursor-pointer"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          View
                         </button>
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 rounded-lg text-white bg-sky-500 hover:bg-sky-600 shadow-xs transition-colors cursor-pointer"
-                          title="Edit Content Tab"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-4 px-5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleDelete(item.id, itemTitle)}
+                            className="p-1.5 rounded-lg text-white bg-rose-500 hover:bg-rose-600 shadow-xs transition-colors cursor-pointer"
+                            title="Delete Content Tab"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 rounded-lg text-white bg-sky-500 hover:bg-sky-600 shadow-xs transition-colors cursor-pointer"
+                            title="Edit Content Tab"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

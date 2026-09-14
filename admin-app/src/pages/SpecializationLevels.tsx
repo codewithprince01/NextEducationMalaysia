@@ -668,14 +668,23 @@ export default function SpecializationLevels() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Upload OG Image Path</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Upload OG Image</label>
                   <input
-                    type="text"
-                    placeholder="Upload OG Image Path"
-                    value={formData.og_image_path}
-                    onChange={(e) => setFormData({ ...formData, og_image_path: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-cyan-500 focus:bg-white"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormData({ ...formData, og_image_path: file.name });
+                      }
+                    }}
+                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                   />
+                  {formData.og_image_path && (
+                    <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                      Current / Selected: {formData.og_image_path}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

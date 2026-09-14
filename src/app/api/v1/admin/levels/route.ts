@@ -6,7 +6,7 @@ import { slugify, serializeBigInt } from '@/lib/utils';
 export async function GET() {
   try {
     const levels: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM levels WHERE website = 'MYS' ORDER BY id DESC`
+      `SELECT * FROM levels ORDER BY id DESC`
     );
 
     return NextResponse.json({
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
     // Check duplicate
     const existing: any[] = await prisma.$queryRawUnsafe(
-      `SELECT id FROM levels WHERE (level = ? OR slug = ?) AND website = 'MYS' LIMIT 1`,
+      `SELECT id FROM levels WHERE level = ? OR slug = ? LIMIT 1`,
       level.trim(),
       slug
     );
@@ -56,8 +56,8 @@ export async function POST(req: Request) {
 
     const now = new Date();
     await prisma.$executeRawUnsafe(
-      `INSERT INTO levels (level, slug, short_name, short_name_slug, seo_name, seo_name_slug, courses_description, status, website, created_at, updated_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'MYS', ?, ?)`,
+      `INSERT INTO levels (level, slug, short_name, short_name_slug, seo_name, seo_name_slug, courses_description, status, created_at, updated_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
       level.trim(),
       slug,
       short_name?.trim() || null,
