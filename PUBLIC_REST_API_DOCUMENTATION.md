@@ -18,12 +18,12 @@ This documentation provides an overview, endpoint reference, query parameters, u
 
 ## 📌 API Endpoints Overview
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/university-documents` | List university documents with filtering, search, pagination, and category grouping |
-| `GET` | `/api/v1/university-documents/[id]` | Get single document details & track download counts |
-| `GET` | `/api/v1/document-categories` | List document categories with active file counts |
-| `GET` | `/api/v1/university-documents/categories` | Alias endpoint for document categories |
+| Method | Endpoint                                  | Description                                                                         |
+| :----- | :---------------------------------------- | :---------------------------------------------------------------------------------- |
+| `GET`  | `/api/v1/university-documents`            | List university documents with filtering, search, pagination, and category grouping |
+| `GET`  | `/api/v1/university-documents/[id]`       | Get single document details & track download counts                                 |
+| `GET`  | `/api/v1/document-categories`             | List document categories with active file counts                                    |
+| `GET`  | `/api/v1/university-documents/categories` | Alias endpoint for document categories                                              |
 
 ---
 
@@ -33,45 +33,51 @@ This documentation provides an overview, endpoint reference, query parameters, u
 
 ### Query Parameters
 
-| Parameter | Type | Required | Default | Description |
-| :--- | :--- | :--- | :--- | :--- |
-| `university_id` | `number` | No | - | Filter documents by University ID (e.g. `5`) |
-| `university_slug` | `string` | No | - | Filter documents by University Slug (e.g. `asia-pacific-university`) |
-| `category_id` | `number` | No | - | Filter by Document Category ID (e.g. `2`) |
-| `category_slug` | `string` | No | - | Filter by Category Slug (e.g. `brochures`, `fee-structure`) |
-| `file_type` | `string` | No | - | Filter by file extension type: `pdf`, `image`, `video`, `doc` |
-| `search` | `string` | No | - | Search keyword across document title, category, and description |
-| `group_by` | `string` | No | - | Pass `category` to receive documents grouped by category |
-| `visibility` | `string` | No | `public` | Filter visibility level (`public`, `agents_only`, `all`) |
-| `page` | `number` | No | `1` | Page number for pagination |
-| `limit` | `number` | No | `20` | Items per page (Pass `1000` for all items) |
+| Parameter         | Type     | Required | Default  | Description                                                          |
+| :---------------- | :------- | :------- | :------- | :------------------------------------------------------------------- |
+| `university_id`   | `number` | No       | -        | Filter documents by University ID (e.g. `5`)                         |
+| `university_slug` | `string` | No       | -        | Filter documents by University Slug (e.g. `asia-pacific-university`) |
+| `category_id`     | `number` | No       | -        | Filter by Document Category ID (e.g. `2`)                            |
+| `category_slug`   | `string` | No       | -        | Filter by Category Slug (e.g. `brochures`, `fee-structure`)          |
+| `file_type`       | `string` | No       | -        | Filter by file extension type: `pdf`, `image`, `video`, `doc`        |
+| `search`          | `string` | No       | -        | Search keyword across document title, category, and description      |
+| `group_by`        | `string` | No       | -        | Pass `category` to receive documents grouped by category             |
+| `visibility`      | `string` | No       | `public` | Filter visibility level (`public`, `agents_only`, `all`)             |
+| `page`            | `number` | No       | `1`      | Page number for pagination                                           |
+| `limit`           | `number` | No       | `20`     | Items per page (Pass `1000` for all items)                           |
 
 ---
 
 ### Common Usage Scenarios & HTTP Examples
 
 #### Scenario A: Get ALL Documents of a Selected University
+
 ```http
 GET /api/v1/university-documents?university_slug=asia-pacific-university&limit=1000
 ```
+
 ```bash
 curl -X GET "https://<your-domain>/api/v1/university-documents?university_slug=asia-pacific-university&limit=1000"
 ```
 
 #### Scenario B: Get Documents of a University GROUPED BY CATEGORY
+
 ```http
 GET /api/v1/university-documents?university_slug=asia-pacific-university&group_by=category&limit=1000
 ```
+
 ```bash
 curl -X GET "https://<your-domain>/api/v1/university-documents?university_slug=asia-pacific-university&group_by=category"
 ```
 
 #### Scenario C: Get Documents of a University for a SINGLE CATEGORY
+
 ```http
 GET /api/v1/university-documents?university_slug=asia-pacific-university&category_slug=brochures
 ```
 
 #### Scenario D: Search Documents Across All Universities
+
 ```http
 GET /api/v1/university-documents?search=engineering&file_type=pdf
 ```
@@ -177,19 +183,22 @@ GET /api/v1/university-documents?search=engineering&file_type=pdf
 
 ### Query Parameters
 
-| Parameter | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `track_download` | `boolean` | No | Set to `true` to increment `downloads_count` when user downloads document |
+| Parameter        | Type      | Required | Description                                                               |
+| :--------------- | :-------- | :------- | :------------------------------------------------------------------------ |
+| `track_download` | `boolean` | No       | Set to `true` to increment `downloads_count` when user downloads document |
 
 ### HTTP Example
+
 ```http
 GET /api/v1/university-documents/12?track_download=true
 ```
+
 ```bash
 curl -X GET "https://<your-domain>/api/v1/university-documents/12?track_download=true"
 ```
 
 ### JSON Response Format
+
 ```json
 {
   "success": true,
@@ -220,26 +229,30 @@ curl -X GET "https://<your-domain>/api/v1/university-documents/12?track_download
 ## 3. List Document Categories
 
 **Endpoints**:
+
 - `GET /api/v1/document-categories`
 - `GET /api/v1/university-documents/categories`
 
 ### Query Parameters
 
-| Parameter | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `university_id` | `number` | No | Filter active categories associated with a specific University ID |
-| `university_slug` | `string` | No | Filter active categories associated with a specific University Slug |
-| `search` | `string` | No | Search category name or slug |
+| Parameter         | Type     | Required | Description                                                         |
+| :---------------- | :------- | :------- | :------------------------------------------------------------------ |
+| `university_id`   | `number` | No       | Filter active categories associated with a specific University ID   |
+| `university_slug` | `string` | No       | Filter active categories associated with a specific University Slug |
+| `search`          | `string` | No       | Search category name or slug                                        |
 
 ### HTTP Example
+
 ```http
 GET /api/v1/document-categories?university_slug=asia-pacific-university
 ```
+
 ```bash
 curl -X GET "https://<your-domain>/api/v1/document-categories?university_slug=asia-pacific-university"
 ```
 
 ### JSON Response Format
+
 ```json
 {
   "success": true,
