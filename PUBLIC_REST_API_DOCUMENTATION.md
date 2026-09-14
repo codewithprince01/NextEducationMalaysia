@@ -9,6 +9,7 @@ This document provides a comprehensive reference for the public REST APIs create
 When running the Next.js server locally (default: `http://localhost:3000`), you can call these public endpoints via browser, Postman, cURL, or frontend apps.
 
 ### Base URL
+
 - **Local**: `http://localhost:3000/api/v1`
 - **Production**: `https://<your-domain>/api/v1`
 
@@ -17,24 +18,27 @@ When running the Next.js server locally (default: `http://localhost:3000`), you 
 ## 2. API Endpoints Reference
 
 ### 2.1 List All University Documents
+
 - **Endpoint**: `GET /api/v1/university-documents`
 - **Description**: Returns a paginated list of public university documents with remote CDN file URLs, file size, and file type flags. Supports filtering, searching, and grouping.
 
 #### Query Parameters
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `page` | `number` | `1` | Page number for pagination |
-| `limit` | `number` | `20` | Items per page (max 100) |
-| `university_id` | `number` | - | Filter documents by university ID |
-| `university_slug` | `string` | - | Filter documents by university slug |
-| `category_id` | `number` | - | Filter documents by category ID |
-| `category_slug` | `string` | - | Filter documents by category slug |
-| `file_type` | `string` | - | Filter by file extension/type (e.g. `pdf`, `image`, `video`, `doc`) |
-| `visibility` | `string` | `public` | Filter by visibility (`public`, `private`, or `all`) |
-| `search` | `string` | - | Search term in document title, category, description, or keywords |
-| `group_by` | `string` | - | Set to `category` to receive documents grouped by category |
+
+| Parameter         | Type     | Default  | Description                                                         |
+| :---------------- | :------- | :------- | :------------------------------------------------------------------ |
+| `page`            | `number` | `1`      | Page number for pagination                                          |
+| `limit`           | `number` | `20`     | Items per page (max 100)                                            |
+| `university_id`   | `number` | -        | Filter documents by university ID                                   |
+| `university_slug` | `string` | -        | Filter documents by university slug                                 |
+| `category_id`     | `number` | -        | Filter documents by category ID                                     |
+| `category_slug`   | `string` | -        | Filter documents by category slug                                   |
+| `file_type`       | `string` | -        | Filter by file extension/type (e.g. `pdf`, `image`, `video`, `doc`) |
+| `visibility`      | `string` | `public` | Filter by visibility (`public`, `private`, or `all`)                |
+| `search`          | `string` | -        | Search term in document title, category, description, or keywords   |
+| `group_by`        | `string` | -        | Set to `category` to receive documents grouped by category          |
 
 #### Example Requests
+
 ```bash
 # Get page 1 with 10 documents
 GET http://localhost:3000/api/v1/university-documents?page=1&limit=10
@@ -50,6 +54,7 @@ GET http://localhost:3000/api/v1/university-documents?group_by=category
 ```
 
 #### Response Structure
+
 ```json
 {
   "success": true,
@@ -104,15 +109,18 @@ GET http://localhost:3000/api/v1/university-documents?group_by=category
 ---
 
 ### 2.2 Single Document Detail & Download Counter
+
 - **Endpoint**: `GET /api/v1/university-documents/[id]`
 - **Description**: Returns complete details for a single document by ID. Optionally increments download counter when downloaded.
 
 #### Query Parameters
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
+
+| Parameter        | Type      | Default | Description                                |
+| :--------------- | :-------- | :------ | :----------------------------------------- |
 | `track_download` | `boolean` | `false` | Pass `true` to increment `downloads_count` |
 
 #### Example Request
+
 ```bash
 GET http://localhost:3000/api/v1/university-documents/12?track_download=true
 ```
@@ -120,22 +128,97 @@ GET http://localhost:3000/api/v1/university-documents/12?track_download=true
 ---
 
 ### 2.3 List Document Categories
+
 - **Endpoints**:
   - `GET /api/v1/document-categories`
   - `GET /api/v1/university-documents/categories`
 - **Description**: Returns all document categories along with associated file counts.
 
 #### Query Parameters
-| Parameter | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `university_id` | `number` | - | Filter categories by documents attached to a specific university |
-| `university_slug` | `string` | - | Filter categories by university slug |
-| `search` | `string` | - | Search category title or slug |
+
+| Parameter         | Type     | Default | Description                                                      |
+| :---------------- | :------- | :------ | :--------------------------------------------------------------- |
+| `university_id`   | `number` | -       | Filter categories by documents attached to a specific university |
+| `university_slug` | `string` | -       | Filter categories by university slug                             |
+| `search`          | `string` | -       | Search category title or slug                                    |
 
 #### Example Request
+
 ```bash
 GET http://localhost:3000/api/v1/document-categories
 ```
+
+---
+
+### 2.4 Querying Documents by Selected University
+
+To get documents after selecting a specific university (either **all documents**, **grouped by category**, or **for a single category**), use the following patterns:
+
+#### A. Get ALL documents for a university
+Pass `university_id` or `university_slug`. Use `limit=1000` to bypass default page limits.
+
+```bash
+GET http://localhost:3000/api/v1/university-documents?university_id=5&limit=1000
+# OR by slug
+GET http://localhost:3000/api/v1/university-documents?university_slug=asia-pacific-university&limit=1000
+```
+
+#### B. Get ALL documents for a university GROUPED BY CATEGORY
+Pass `university_id` (or `university_slug`) and **`group_by=category`**.
+
+```bash
+GET http://localhost:3000/api/v1/university-documents?university_slug=asia-pacific-university&group_by=category&limit=1000
+```
+
+**Response includes `grouped_by_category` key**:
+```json
+{
+  "success": true,
+  "data": [ ...flat array of docs... ],
+  "grouped_by_category": [
+    {
+      "category": {
+        "id": 1,
+        "name": "Brochures & Prospectus",
+        "slug": "brochures",
+        "icon": "ri-book-open-line"
+      },
+      "documents": [
+        {
+          "id": 12,
+          "title": "2026 Prospectus",
+          "file_url": "https://www.images.britannicaoverseas.com/em/uploads/university_docs/apu_prospectus.pdf",
+          "formatted_file_size": "2.35 MB",
+          "is_pdf": true
+        }
+      ]
+    },
+    {
+      "category": {
+        "id": 2,
+        "name": "Fee Structure",
+        "slug": "fee-structure"
+      },
+      "documents": [ ... ]
+    }
+  ]
+}
+```
+
+#### C. Get documents of a university for a SINGLE CATEGORY
+Pass `university_id` (or `university_slug`) AND `category_id` (or `category_slug`).
+
+```bash
+GET http://localhost:3000/api/v1/university-documents?university_slug=asia-pacific-university&category_slug=brochures
+```
+
+#### D. Get list of active categories for a selected university
+To show a tab bar or category filter specifically for one university:
+
+```bash
+GET http://localhost:3000/api/v1/university-documents/categories?university_slug=asia-pacific-university
+```
+
 
 ---
 
@@ -144,6 +227,7 @@ GET http://localhost:3000/api/v1/document-categories
 All file paths are stored relative to the uploads folder (e.g., `/uploads/university_docs/file.pdf`).
 
 The API automatically resolves relative paths into full CDN URLs using the `getRemoteFileUrl` utility:
+
 - **CDN Domain**: `https://www.images.britannicaoverseas.com`
 - **Root Directory**: `/em`
 - **Resulting CDN URL**: `https://www.images.britannicaoverseas.com/em/uploads/university_docs/file.pdf`
@@ -153,35 +237,37 @@ The API automatically resolves relative paths into full CDN URLs using the `getR
 ## 4. How to Check/Extract URLs in Next.js Code
 
 ### 4.1 In Next.js Route Handlers (`src/app/api/.../route.ts`)
+
 ```ts
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   // 1. Get complete URL string
-  const fullUrl = request.url; 
+  const fullUrl = request.url;
   // Output: "http://localhost:3000/api/v1/university-documents?category_id=5"
 
   // 2. Access parsed Next.js URL object
   const { searchParams, pathname, origin, host } = request.nextUrl;
 
-  console.log("Pathname:", pathname);                       // e.g. "/api/v1/university-documents"
+  console.log("Pathname:", pathname); // e.g. "/api/v1/university-documents"
   console.log("Category ID:", searchParams.get("category_id")); // e.g. "5"
-  console.log("Origin:", origin);                           // e.g. "http://localhost:3000"
+  console.log("Origin:", origin); // e.g. "http://localhost:3000"
 
   return NextResponse.json({ fullUrl, pathname });
 }
 ```
 
 ### 4.2 In Client Components (`"use client"`)
+
 ```tsx
 "use client";
 
 import { usePathname, useSearchParams } from "next/navigation";
 
 export default function DocumentList() {
-  const pathname = usePathname();           // e.g. "/university-documents"
-  const searchParams = useSearchParams();     // e.g. searchParams.get("search")
-  
+  const pathname = usePathname(); // e.g. "/university-documents"
+  const searchParams = useSearchParams(); // e.g. searchParams.get("search")
+
   // Get full window URL in browser context
   const fullUrl = typeof window !== "undefined" ? window.location.href : "";
 
