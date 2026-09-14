@@ -43,6 +43,7 @@ model University {
   status                 Int?      @default(1)
   homeview               Int?      @default(0)
   email                  String?
+  cc                     String?   @db.Text
   contact_number1        String?
   contact_number2        String?
   hostel_facility        String?
@@ -83,7 +84,12 @@ model UniversityProgram {
   study_mode        String?   @db.Text
   intake            String?   @db.Text
   duration          String?
-  tution_fee        String?
+  tution_fee        Int?
+  total_fee         Decimal?  @db.Decimal(12, 2)
+  total_tuition_fee Decimal?  @db.Decimal(12, 2)
+  commission        Int?
+  course_category   String?
+  specialization    String?
   application_deadline String?
   accreditations    String?
   course_category_id Int?
@@ -93,9 +99,8 @@ model UniversityProgram {
   meta_description  String?   @db.Text
   meta_keyword      String?   @db.Text
   og_image_path     String?
-  courses_description String? @db.LongText
+  overview          String?   @db.LongText
   website           String?   @default("MYS")
-  views             Int?      @default(0)
   created_at        DateTime? @default(now())
   updated_at        DateTime? @updatedAt
 
