@@ -551,11 +551,19 @@ export function globalBreadcrumbJsonLd(pathname: string): JsonLd | null {
   const segments = pathOnly.split('/').filter(Boolean)
   const items: { name: string; url: string }[] = [{ name: 'Home', url: SITE_URL }]
   let currentPath = ''
-  for (const raw of segments) {
-    const name = toBreadcrumbLabel(raw)
+  for (let i = 0; i < segments.length; i++) {
+    const raw = segments[i]
+    let name = toBreadcrumbLabel(raw)
     if (!name) continue
     currentPath += `/${raw}`
-    items.push({ name, url: `${SITE_URL}${currentPath}` })
+
+    let itemUrl = `${SITE_URL}${currentPath}`
+    if (i === 0 && raw.toLowerCase() === 'university') {
+      name = 'Universities'
+      itemUrl = `${SITE_URL}/universities`
+    }
+
+    items.push({ name, url: itemUrl })
   }
 
   return breadcrumbJsonLd(items)
