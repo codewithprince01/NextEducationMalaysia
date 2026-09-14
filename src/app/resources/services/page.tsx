@@ -41,7 +41,7 @@ export default async function ServicesPage() {
 
   return (
     <section className="py-12 bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="site-container">
         <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-3">
           <span className="text-blue-600">What We Do</span>
         </h2>

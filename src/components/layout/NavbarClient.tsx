@@ -197,7 +197,7 @@ export default function NavbarClient() {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-[9999] h-[76px] bg-white/95 backdrop-blur-md text-black shadow-md border-b border-slate-100">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between w-full">
+        <div className="site-container h-full flex items-center justify-between w-full">
           {/* Logo */}
           <Link href="/" aria-label="Home" className="flex items-center h-full shrink-0">
             <Image

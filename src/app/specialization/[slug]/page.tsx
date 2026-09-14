@@ -21,7 +21,11 @@ export async function generateMetadata({ params }: Props) {
   const detail = await getSpecializationBySlug(slug)
   const spec = detail?.specialization
   if (!spec) return {}
-  return resolveSpecializationMeta(spec)
+
+  // The prose that decides whether this page is worth indexing lives in the
+  // child sections, not on the specialization row, so it is passed through.
+  const sectionHtml = (spec?.contents || []).map((section: any) => section?.description)
+  return resolveSpecializationMeta(spec, sectionHtml)
 }
 
 export default async function SpecializationDetailPage({ params }: Props) {

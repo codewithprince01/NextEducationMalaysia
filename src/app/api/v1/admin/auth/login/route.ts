@@ -14,7 +14,9 @@ export async function POST(req: NextRequest) {
     }
 
     const rows: any[] = await prisma.$queryRawUnsafe(
-      'SELECT id, name, email, password, role, status, permissions, login_count, profile_picture FROM users WHERE email = ? LIMIT 1',
+      // The avatar lives in `users`.`image`; there is no profile_picture column,
+      // and selecting one made every login fail with MySQL 1054.
+      'SELECT id, name, email, password, role, status, permissions, login_count, image AS profile_picture FROM users WHERE email = ? LIMIT 1',
       username
     );
 

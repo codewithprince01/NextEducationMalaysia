@@ -6,6 +6,7 @@ import Breadcrumb from '@/components/Breadcrumb'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
 import { CalendarDays, ArrowRight, User, Clock } from 'lucide-react'
 import { dedupeBlogContent } from '@/lib/blogContent'
+import { slugify } from '@/lib/utils'
 
 const IMAGE_BASE = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || ''
 const API_BASE = '/api/v1'
@@ -82,8 +83,8 @@ function formatBlogHTML(html?: string | null, sectionIndex: number | string | nu
 function BlogDetailSkeleton() {
   return (
     <div className="bg-gray-50 py-4 md:py-8 animate-pulse">
-      <div className="max-w-7xl mx-auto px-3 md:px-4 flex flex-col lg:flex-row gap-6 md:gap-8">
-        <div className="w-full lg:w-2/3 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
+      <div className="site-container flex flex-col lg:flex-row gap-6 md:gap-8">
+        <div className="w-full lg:w-3/4 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
           <div className="h-8 bg-gray-200 rounded w-3/4" />
           <div className="h-4 bg-gray-200 rounded w-1/3" />
           <div className="aspect-video w-full bg-gray-200 rounded-xl" />
@@ -93,7 +94,7 @@ function BlogDetailSkeleton() {
             <div className="h-4 bg-gray-200 rounded w-4/6" />
           </div>
         </div>
-        <div className="w-full lg:w-1/3 space-y-4">
+        <div className="w-full lg:w-1/4 space-y-4">
           <div className="bg-white rounded-xl shadow-md p-4 h-64" />
           <div className="bg-white rounded-xl shadow-md p-4 h-48" />
         </div>
@@ -140,6 +141,53 @@ export default function BlogDetailClient({
   const [courses, setCourses] = useState<any[]>(normalizedInitial.courses)
   const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(null)
+
+  // The stamp on the article is the last edit, not the first publish, so a post
+  // that gets corrected or refreshed reads as current. Rows saved before the
+  // column was populated fall back to created_at rather than showing nothing.
+  const lastUpdated = blog?.last_updated_at || blog?.updated_at || blog?.created_at || null
+  const lastUpdatedDate = lastUpdated
+    ? new Date(lastUpdated).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+    : ""
+  const lastUpdatedTime = lastUpdated
+    ? new Date(lastUpdated).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
+    : ""
+
+  // Anchor ids are built from the heading text, so a link a reader copies out
+  // of the address bar reads `#fees-and-duration` instead of `#subsection-1-4`.
+  // The table of contents and the sections themselves both read their ids from
+  // here, so the two can never drift apart. Slugs are de-duplicated because two
+  // headings on one article can reduce to the same string, and an untitled
+  // section still needs something to point at.
+  const headingIds = useMemo(() => {
+    const used = new Set<string>()
+    const claim = (title: unknown, fallback: string) => {
+      const base = slugify(String(title || '')) || fallback
+      let id = base
+      let suffix = 2
+      while (used.has(id)) id = `${base}-${suffix++}`
+      used.add(id)
+      return id
+    }
+
+    const sections: any[] = Array.isArray(blog?.parent_contents) ? blog.parent_contents : []
+    return sections.map((section: any, index: number) => ({
+      id: claim(section?.title, `section-${index}`),
+      children: (Array.isArray(section?.child_contents) ? section.child_contents : []).map(
+        (child: any, i: number) => claim(child?.title, `section-${index}-${i}`),
+      ),
+    }))
+  }, [blog?.parent_contents])
+
+  // A subheading belongs to its section, so 2.3 puts the anchor of heading 2 in
+  // the address bar rather than one of its own. The page still scrolls to the
+  // subheading the reader picked — only the shared URL is coarser, pointing at
+  // the section that contains it.
+  const scrollToChild = (childId: string, sectionId: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    document.getElementById(childId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.history.pushState(null, '', `#${sectionId}`)
+  }
 
   useEffect(() => {
     if (initialData) {
@@ -257,10 +305,10 @@ export default function BlogDetailClient({
       `}</style>
 
       <div className="bg-gray-50 py-4 md:py-8">
-        <div className="max-w-7xl mx-auto px-3 md:px-4 flex flex-col lg:flex-row gap-6 md:gap-8">
+        <div className="site-container flex flex-col lg:flex-row gap-6 md:gap-8">
 
           {/* ── Main Article Column ── */}
-          <div className="w-full lg:w-2/3 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
+          <div className="w-full lg:w-3/4 bg-white shadow-lg rounded-xl p-4 md:p-6 space-y-4">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
               {blog.headline}
             </h1>
@@ -274,11 +322,11 @@ export default function BlogDetailClient({
               )}
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="w-4 h-4 text-gray-500" />
-                {new Date(blog.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                {lastUpdatedDate}
               </span>
               <span className="flex items-center gap-1.5">
                 <Clock className="w-4 h-4 text-gray-500" />
-                {new Date(blog.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                {lastUpdatedTime}
               </span>
             </div>
 
@@ -306,7 +354,7 @@ export default function BlogDetailClient({
                   {blog.parent_contents.map((section: any, index: number) => (
                     <li key={index} className="md:ml-6">
                       <a
-                        href={`#section-${index}`}
+                        href={`#${headingIds[index]?.id ?? `section-${index}`}`}
                         className="text-gray-900 hover:text-blue-600 font-semibold text-sm md:text-base transition-colors duration-200"
                       >
                         {index + 1}. {section.title}
@@ -316,7 +364,11 @@ export default function BlogDetailClient({
                           {section.child_contents.map((child: any, i: number) => (
                             <li key={i}>
                               <a
-                                href={`#subsection-${index}-${i}`}
+                                href={`#${headingIds[index]?.id ?? `section-${index}`}`}
+                                onClick={scrollToChild(
+                                  headingIds[index]?.children[i] ?? `section-${index}-${i}`,
+                                  headingIds[index]?.id ?? `section-${index}`,
+                                )}
                                 className="text-blue-600 hover:text-blue-800 text-xs md:text-sm font-medium transition-colors hover:underline"
                               >
                                 {index + 1}.{i + 1} {child.title}
@@ -360,7 +412,7 @@ export default function BlogDetailClient({
             {blog.parent_contents?.length > 0 && (
               <div className="space-y-6 mt-2">
                 {blog.parent_contents.map((section: any, index: number) => (
-                  <div key={index} id={`section-${index}`} className="scroll-mt-24">
+                  <div key={index} id={headingIds[index]?.id ?? `section-${index}`} className="scroll-mt-24">
                     <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 px-4 py-2 border-l-4 border-blue-500 bg-blue-50 rounded">
                       {section.title}
                     </h2>
@@ -372,7 +424,7 @@ export default function BlogDetailClient({
                     {section.child_contents?.length > 0 && (
                       <div className="mt-6 space-y-6">
                         {section.child_contents.map((child: any, i: number) => (
-                          <div key={i} id={`subsection-${index}-${i}`} className="scroll-mt-24">
+                          <div key={i} id={headingIds[index]?.children[i] ?? `section-${index}-${i}`} className="scroll-mt-24">
                             <h3 className="text-xl md:text-2xl font-semibold text-gray-800">
                               {child.title}
                             </h3>
@@ -404,7 +456,7 @@ export default function BlogDetailClient({
                   </div>
                   <div className="text-center md:text-left">
                     <h2 className="text-xs md:text-sm font-semibold text-gray-900">Team Education Malaysia</h2>
-                    <p className="text-gray-600 md:text-gray-700 text-xs md:text-sm">Content Curator | Updated on – Aug 18, 2023</p>
+                    <p className="text-gray-600 md:text-gray-700 text-xs md:text-sm">Content Curator{lastUpdatedDate ? ` | Updated on – ${lastUpdatedDate}` : ""}</p>
                     <button
                       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                       className="text-blue-600 mt-1 font-medium hover:underline text-xs md:text-sm cursor-pointer"
@@ -418,7 +470,7 @@ export default function BlogDetailClient({
           </div>
 
           {/* ── Sidebar ── */}
-          <aside className="w-full lg:w-1/3 space-y-4 md:space-y-6">
+          <aside className="w-full lg:w-1/4 space-y-4 md:space-y-6">
             {/* Categories */}
             {categories.length > 0 && (
               <div className="bg-white rounded-xl shadow-md p-4 md:p-6">

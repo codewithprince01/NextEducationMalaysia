@@ -214,7 +214,7 @@ export default function FieldStudyClient() {
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header Section */}
       <div className="bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="site-container py-6 sm:py-8">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-linear-to-r from-[#003893] to-[#003893] rounded-xl mb-3 sm:mb-4 shadow-lg">
               <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
@@ -277,7 +277,7 @@ export default function FieldStudyClient() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-10">
+      <div className="site-container py-6 sm:py-8 space-y-6 sm:space-y-10">
         {/* Summary */}
         {selectedYears.length > 0 && (
           <div className="text-center">

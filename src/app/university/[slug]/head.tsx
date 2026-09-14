@@ -1,6 +1,6 @@
 import { getUniversityFull } from '@/lib/queries/universities'
 import { serializeBigInt } from '@/lib/utils'
-import { universityJsonLd } from '@/lib/seo/structured-data'
+import { universityJsonLd, universityRatingJsonLd } from '@/lib/seo/structured-data'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -14,6 +14,7 @@ export default async function Head({ params }: Props) {
 
     const university = serializeBigInt(universityData) as any
     const schema = universityJsonLd(university, { path: `/university/${slug}` })
+    const rating = universityRatingJsonLd(university, { path: `/university/${slug}` })
 
     return (
       <>
@@ -21,6 +22,12 @@ export default async function Head({ params }: Props) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
+        {rating ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(rating) }}
+          />
+        ) : null}
       </>
     )
   } catch {

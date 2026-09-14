@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Info, Gift, Building2, FileEdit, CheckCircle, ChevronRight } from 'lucide-react'
 import SideInquiryForm from '@/components/forms/SideInquiryForm'
+import { formatRichText } from '@/lib/richText'
 
 type ScholarshipContent = {
   tab?: string | null
@@ -31,23 +32,6 @@ const iconMap: Record<string, ReactNode> = {
   University: <Building2 size={16} />,
   'Application Process': <FileEdit size={16} />,
   Conclusion: <CheckCircle size={16} />,
-}
-
-function formatHTML(html: string): string {
-  if (!html) return ''
-
-  let decoded = html
-  decoded = decoded.replace(/<span[^>]*>/gi, '')
-  decoded = decoded.replace(/<\/span>/gi, '')
-  decoded = decoded.replace(/style="[^"]*"/gi, '')
-  decoded = decoded.replace(/&nbsp;/gi, ' ')
-  decoded = decoded.replace(/<h[1-6][^>]*>.*?<\/h[1-6]>/gi, '')
-  decoded = decoded.replace(/<strong>(.*?)<\/strong>/gi, '<h4 class="text-lg font-semibold mb-2 mt-4">$1</h4>')
-  decoded = decoded.replace(/<b>(.*?)<\/b>/gi, '<h4 class="text-lg font-semibold mb-2 mt-4">$1</h4>')
-  decoded = decoded.replace(/(?:\r\n|\r|\n)/g, '</p><p>')
-  decoded = `<p>${decoded}</p>`
-  decoded = decoded.replace(/<p><\/p>/g, '')
-  return decoded
 }
 
 function buildTabs(contents: ScholarshipContent[]) {
@@ -185,9 +169,9 @@ export default function ScholarshipDetailClient({ data }: { data: ScholarshipDat
                 >
                   <Section title={name}>
                     <div
-                      className="formatted-content"
+                      className="formatted-content cms-content"
                       dangerouslySetInnerHTML={{
-                        __html: formatHTML(contentObj?.description || ''),
+                        __html: formatRichText(contentObj?.description),
                       }}
                     />
                   </Section>
@@ -224,25 +208,10 @@ export default function ScholarshipDetailClient({ data }: { data: ScholarshipDat
         </div>
       </div>
 
+      {/* Paragraph, list and link styling now comes from `.cms-content` in
+          globals.css, which also covers bold, italic, underline, headings,
+          blank lines and tables. */}
       <style jsx global>{`
-        .formatted-content p {
-          margin-bottom: 0.75rem;
-          color: #374151;
-          line-height: 1.75;
-        }
-        .formatted-content ul {
-          list-style-type: disc;
-          padding-left: 1.25rem;
-          margin-bottom: 0.75rem;
-        }
-        .formatted-content li {
-          margin-bottom: 0.4rem;
-          color: #374151;
-        }
-        .formatted-content a {
-          color: #2563eb;
-          text-decoration: underline;
-        }
         .no-scrollbar::-webkit-scrollbar {
           display: none;
         }

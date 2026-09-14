@@ -127,9 +127,23 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
       SELECT
         up.id, up.course_name, up.slug, up.level, up.study_mode, up.intake, up.duration,
         up.tution_fee, up.application_deadline, up.accreditations,
+        -- Quality columns. The page metadata decides from these whether the course
+        -- has enough of its own substance to ask Google to index it, and builds its
+        -- description from them when no one has written one. Omitting them made
+        -- every course look empty and silently marked the good ones noindex.
+        up.overview, up.page_content, up.entry_requirement, up.exam_required,
+        up.scholarship_info, up.mode_of_instruction,
+        up.total_tuition_fee, up.annual_tuition_fee, up.total_fee, up.tutions_fee,
+        up.currency,
         up.meta_title, up.meta_description, up.meta_keyword, up.og_image_path,
+        -- Rating the admin panel entered against this course. Read by the Course
+        -- schema so editing it in admin changes what Google sees.
+        up.seo_rating, up.best_rating, up.review_number,
         up.university_id, up.course_category_id, up.specialization_id,
         u.id AS u_id, u.name AS u_name, u.uname AS u_uname, u.logo_path AS u_logo_path,
+        -- Stands in as the social preview image: no course row has one of its own
+        -- and the shared default file is missing from storage.
+        u.banner_path AS u_banner_path,
         cc.name AS category_name, cc.slug AS category_slug,
         cs.name AS specialization_name, cs.slug AS specialization_slug
       FROM university_programs up
@@ -187,10 +201,24 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
       tution_fee: row.tution_fee,
       application_deadline: row.application_deadline,
       accreditations: row.accreditations,
+      overview: row.overview,
+      page_content: row.page_content,
+      entry_requirement: row.entry_requirement,
+      exam_required: row.exam_required,
+      scholarship_info: row.scholarship_info,
+      mode_of_instruction: row.mode_of_instruction,
+      total_tuition_fee: row.total_tuition_fee,
+      annual_tuition_fee: row.annual_tuition_fee,
+      total_fee: row.total_fee,
+      tutions_fee: row.tutions_fee,
+      currency: row.currency,
       meta_title: row.meta_title,
       meta_description: row.meta_description,
       meta_keyword: row.meta_keyword,
       og_image_path: row.og_image_path,
+      seo_rating: row.seo_rating,
+      best_rating: row.best_rating,
+      review_number: row.review_number,
       university_id: row.university_id,
       course_category_id: row.course_category_id,
       specialization_id: row.specialization_id,
@@ -199,6 +227,7 @@ async function fetchProgramBySlug(slug: string, universitySlug?: string) {
         name: row.u_name,
         uname: row.u_uname,
         logo_path: row.u_logo_path,
+        banner_path: row.u_banner_path,
       },
       courseCategory: row.category_name
         ? { name: row.category_name, slug: row.category_slug }

@@ -30,7 +30,7 @@ export default function BodiesClient() {
     <div className="bg-white min-h-screen">
       {/* Header Section */}
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="site-container py-6">
           {/* Logo + Title */}
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 mb-6">
             {/* Left - Logo + Info */}
@@ -131,7 +131,7 @@ export default function BodiesClient() {
 
       {/* University Details Section */}
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:mt-2">
+        <div className="site-container py-6 sm:mt-2">
           <div className="flex flex-col lg:flex-row items-start justify-between gap-6 lg:gap-8">
             {/* Left Info */}
             <div className="w-full">
@@ -183,7 +183,7 @@ export default function BodiesClient() {
 
       {/* Tabs */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto no-scrollbar">
+        <div className="site-container flex overflow-x-auto no-scrollbar">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -201,7 +201,7 @@ export default function BodiesClient() {
       </div>
 
       {/* Content Area (Placeholder for static route) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+      <div className="site-container py-12">
         <div className="bg-gray-50 rounded-3xl p-8 sm:p-12 border border-gray-100 text-center">
             <h2 className="text-2xl font-black text-gray-900 mb-4 uppercase">Institution Overview</h2>
             <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">

@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
 
     const userId = Number(payload.sub);
     const rows: any[] = await prisma.$queryRawUnsafe(
-      'SELECT id, name, email, role, status, permissions, profile_picture, department, last_login, created_at FROM users WHERE id = ? LIMIT 1',
+      // See the login route: the avatar column is `image`, not profile_picture.
+      'SELECT id, name, email, role, status, permissions, image AS profile_picture, department, last_login, created_at FROM users WHERE id = ? LIMIT 1',
       userId
     );
 

@@ -108,7 +108,7 @@ export default function WhoWeAreClient() {
       {/* Hero */}
       <div className="bg-slate-900 py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-linear-to-br from-blue-900/30 to-slate-900/80" />
-        <div className="relative max-w-[1400px] mx-auto px-4 text-center">
+        <div className="relative site-container text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-full text-blue-300 text-xs font-bold uppercase tracking-widest mb-6">
             About Us
           </div>
@@ -121,7 +121,7 @@ export default function WhoWeAreClient() {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-4 py-20 space-y-24">
+      <div className="site-container py-20 space-y-24">
         {/* About + VMO */}
         <div className="grid lg:grid-cols-12 gap-12 items-start">
           <div className="lg:col-span-7 bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-2xl shadow-blue-900/5 relative overflow-hidden">

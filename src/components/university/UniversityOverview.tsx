@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PopularCourses from './PopularCourses'
 import { storageUrl } from '@/lib/constants'
+import { formatRichText } from '@/lib/richText'
 import AuthModal from '@/components/modals/AuthModal'
-import { CounsellingForm } from '@/components/modals/UniversityForms/CounsellingForm'
+import { FeeStructureForm } from '@/components/modals/UniversityForms/FeeStructureForm'
 
 type Section = {
   id: number
@@ -35,53 +36,6 @@ const isPopularCoursesSection = (title?: string | null) => {
   return POPULAR_COURSES_TOKENS.some(token => normalized.includes(token))
 }
 
-/* ============================================================
-    FINAL CLEAN HTML FORMATTER (NO BLANK SPACE + FIXED TABLES)
-   ============================================================ */
-const formatHTML = (html: string) => {
-  if (!html) return ''
-
-  let decoded = html
-
-  decoded = decoded.replace(/^<p[^>]*>.*?About.*?<\/p>/i, '')
-  decoded = decoded.replace(/<span[^>]*>/gi, '')
-  decoded = decoded.replace(/<\/span>/gi, '')
-  decoded = decoded.replace(/style="[^"]*"/gi, '')
-  decoded = decoded.replace(/&nbsp;/gi, ' ')
-
-  decoded = decoded.replace(
-    /<p>\s*<(strong|b)>([^<]{5,})<\/\1>\s*<\/p>/gi,
-    '<h3 class="text-lg font-bold text-gray-900 mb-3 mt-6">$2</h3>'
-  )
-
-  decoded = decoded.replace(/<(strong|b)>/gi, '<span class="font-semibold text-gray-900">')
-  decoded = decoded.replace(/<\/(strong|b)>/gi, '</span>')
-
-  decoded = decoded.replace(/<p>/gi, '<p class="text-sm text-gray-700 leading-relaxed mb-4">')
-  decoded = decoded.replace(/<p[^>]*>\s*<\/p>/gi, '')
-
-  decoded = decoded.replace(/<table[^>]*>/gi,
-    `<div class="responsive-table-wrapper overflow-x-auto my-6" style="display:block;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <table class="border-collapse text-sm" style="width:max-content;min-width:100%;">`)
-  decoded = decoded.replace(/<\/table>/gi, '</table></div>')
-
-  decoded = decoded.replace(/<thead[^>]*>/gi, `<thead class="bg-blue-600 text-white">`)
-  decoded = decoded.replace(/<tr[^>]*>(\s*<th[\s\S]*?<\/tr>)/i, `<tr class="bg-blue-600 text-white">$1`)
-  decoded = decoded.replace(/<tbody[^>]*>/gi, `<tbody class="text-gray-800">`)
-  decoded = decoded.replace(/<th[^>]*>/gi, `<th class="px-4 py-3 border-b border-gray-200 text-left font-semibold whitespace-nowrap">`)
-  decoded = decoded.replace(/<tr[^>]*>/gi, `<tr class="even:bg-blue-50">`)
-  decoded = decoded.replace(/<td[^>]*>/gi, `<td class="px-4 py-3 border-b border-gray-100">`)
-
-  decoded = decoded.replace(/<input[^>]*type=["']checkbox["'][^>]*>/gi,
-    `<span class="inline-block w-4 h-4 rounded border border-gray-400 mr-2 bg-white"></span>`)
-
-  decoded = decoded.replace(/<ul>/gi, '<ul class="list-disc pl-6 space-y-2 text-gray-800 mb-4">')
-  decoded = decoded.replace(/<ol>/gi, '<ol class="list-decimal pl-6 space-y-2 text-gray-800 mb-4">')
-  decoded = decoded.replace(/<li>/gi, '<li class="mb-1 text-sm">')
-
-  return decoded
-}
-
 const createSlug = (title: string) => {
   if (!title) return ''
   return title
@@ -102,7 +56,7 @@ export default function UniversityOverview({
   const router = useRouter()
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
-  const [isCounsellingOpen, setIsCounsellingOpen] = useState(false)
+  const [isEnquiryOpen, setIsEnquiryOpen] = useState(false)
 
   const validSections = useMemo(
     () =>
@@ -165,7 +119,7 @@ export default function UniversityOverview({
       if (universitySlug) {
         router.push(`/university/${universitySlug}/courses`)
       } else {
-        setIsCounsellingOpen(true)
+        setIsEnquiryOpen(true)
       }
     } else {
       setIsAuthModalOpen(true)
@@ -173,7 +127,7 @@ export default function UniversityOverview({
   }
 
   const handleEnquireClick = () => {
-    setIsCounsellingOpen(true)
+    setIsEnquiryOpen(true)
   }
 
   if (validSections.length === 0) {
@@ -266,8 +220,8 @@ export default function UniversityOverview({
 
               {section.description && (
                 <div
-                  className="prose prose-blue max-w-none text-gray-700 leading-relaxed [&_a]:text-blue-600 hover:[&_a]:underline font-normal"
-                  dangerouslySetInnerHTML={{ __html: formatHTML(section.description) }}
+                  className="cms-content max-w-none"
+                  dangerouslySetInnerHTML={{ __html: formatRichText(section.description) }}
                 />
               )}
             </div>
@@ -289,13 +243,16 @@ export default function UniversityOverview({
         }}
       />
 
-      {/* Enquiry / Counselling Form Modal */}
-      <CounsellingForm
+      {/* Enquiry Form Modal — the fee-structure form asks for exactly what an
+          enquiry needs, so it is reused here with enquiry wording and, so the
+          lead email says where it came from, an enquiry request type. */}
+      <FeeStructureForm
+        variant="enquiry"
         universityId={universityId}
         universityName={universityName}
         universityLogo={universityLogo}
-        isOpen={isCounsellingOpen}
-        onClose={() => setIsCounsellingOpen(false)}
+        isOpen={isEnquiryOpen}
+        onClose={() => setIsEnquiryOpen(false)}
       />
     </div>
   )

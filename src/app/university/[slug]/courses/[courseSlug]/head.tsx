@@ -13,7 +13,7 @@ export default async function Head({ params }: Props) {
     if (!programData) return null
 
     const program = serializeBigInt(programData) as any
-    const schema = courseJsonLd(program, program?.university?.name || '', slug)
+    const schema = courseJsonLd(program)
 
     return (
       <>

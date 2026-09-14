@@ -79,7 +79,7 @@ export default function ResourcesHubPage() {
         <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
         <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/2 w-96 h-96 bg-purple-50 rounded-full blur-3xl opacity-50"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div className="site-container relative">
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-50 text-blue-600 font-semibold text-sm mb-6">
               <Sparkles size={16} className="mr-2" />
@@ -113,7 +113,7 @@ export default function ResourcesHubPage() {
 
       {/* Main Grid */}
       <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {sections.map((section, idx) => (
               <div key={idx} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
@@ -156,7 +156,7 @@ export default function ResourcesHubPage() {
 
       {/* Bottom CTA */}
       <section className="pb-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="bg-linear-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-[3rem] p-12 md:p-20 relative overflow-hidden text-center shadow-2xl">
             <div className="relative z-10">
               <h2 className="text-3xl md:text-5xl font-black text-white mb-8">
