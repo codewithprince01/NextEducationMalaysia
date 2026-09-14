@@ -7,7 +7,7 @@ import path from 'path';
 export async function GET() {
   try {
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM page_banners WHERE website = 'MYS' OR website IS NULL ORDER BY id DESC`
+      `SELECT * FROM page_banners WHERE website = 'MYS' ORDER BY id DESC`
     );
 
     const formatted = rows.map((r) => ({
