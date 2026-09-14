@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
+import { usePathname } from 'next/navigation'
+
 // Inline SVGs — eliminates ~30-50KB lucide-react from Footer chunk
 const FacebookIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
 const InstagramIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -60,7 +62,7 @@ export default function Footer() {
 
   return (
     <footer className="overflow-hidden bg-gradient-to-b from-white via-slate-50 to-blue-50/20 border-t border-slate-200/80" style={{ contain: 'layout', willChange: 'auto' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-7 sm:pt-9 sm:pb-8">
+      <div className="site-container pt-8 pb-7 sm:pt-9 sm:pb-8">
         {/* Top section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 pb-6 mb-6 border-b border-slate-200/70">
           <div className="max-w-xl">
@@ -217,7 +219,7 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="bg-gradient-to-r from-blue-700 via-blue-600 to-blue-700 py-3.5 border-t border-blue-500/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1 text-xs text-blue-100/90">
               <span>© {year} Education Malaysia. All rights reserved.</span>

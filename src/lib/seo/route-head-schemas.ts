@@ -18,6 +18,18 @@ function parseSlugWithId(slugWithId: string) {
   return { slug, id }
 }
 
+/**
+ * `/university/<slug>/courses/<courseSlug>` — a page about one programme.
+ *
+ * Such a page renders its own Course node carrying that course's rating, so the
+ * university node alongside it must not carry one too: two rated nodes on a
+ * page leave Google deciding which the review describes, and the university's
+ * review count is not about this course.
+ */
+function isCourseDetailPath(pathOnly: string): boolean {
+  return /^\/university\/[^/]+\/courses\/[^/]+/i.test(pathOnly)
+}
+
 function pushFaqSchema(schemas: JsonLd[], rows: Array<{ question?: string; answer?: string }>) {
   const faqSchema = generateFAQSchema(normalizeFaqs(rows as any[]))
   if (faqSchema) schemas.push(faqSchema as JsonLd)
@@ -276,7 +288,11 @@ export async function resolveRouteHeadSchemas(pathname: string): Promise<JsonLd[
   const uniMatch =
     pathOnly.match(/^\/university\/([^/]+)(?:\/.*)?$/i) ||
     pathOnly.match(/^\/universities\/([^/]+)(?:\/.*)?$/i)
-  if (uniMatch) {
+  // Skipped on course detail pages. That page is about the course and renders
+  // its own Course node with the course's rating; the university node there
+  // would carry no rating, leaving a bare name-and-url item — exactly the shape
+  // Google reported as an invalid review item.
+  if (uniMatch && !isCourseDetailPath(pathOnly)) {
     const slug = uniMatch[1]
     const universityData = await getUniversityFull(slug)
     if (universityData) {
@@ -284,6 +300,20 @@ export async function resolveRouteHeadSchemas(pathname: string): Promise<JsonLd[
       schemas.push(
         universityJsonLd(university, { path: `/university/${slug}` }) as JsonLd,
       )
+
+      // Nothing further is pushed for the rating: the node above carries its
+      // own aggregateRating now.
+      //
+      // A second, rating-only CollegeOrUniversity used to follow it. That kept
+      // the review snippet small, but it meant two nodes described one entity
+      // on every page — and Google reported the one without a rating as an
+      // invalid review item ("Multiple reviews without aggregateRating"). The
+      // node above was trimmed instead, which fixes the snippet without
+      // splitting the university in two.
+      //
+      // On a course detail page the university node deliberately carries no
+      // rating either, because the page is about the course: its rating belongs
+      // to the Course node that page renders itself.
     }
   }
 

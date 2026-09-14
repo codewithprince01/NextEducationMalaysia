@@ -49,7 +49,7 @@ const CoursesSidebar: React.FC<CoursesSidebarProps> = ({
   }
 
   return (
-    <div className="w-full lg:w-64 bg-white p-4 rounded-xl shadow-md space-y-6 text-sm">
+    <div className="w-full lg:w-64 bg-white p-4 rounded-xl border border-gray-200/90 shadow-sm space-y-6 text-sm self-start">
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-bold text-gray-800">Filters</h2>
         <button

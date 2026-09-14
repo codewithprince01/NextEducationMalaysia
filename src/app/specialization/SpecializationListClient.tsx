@@ -23,6 +23,7 @@ import {
   GraduationCap
 } from 'lucide-react'
 import Breadcrumb from '@/components/Breadcrumb'
+import { formatRichText } from '@/lib/richText'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -486,7 +487,6 @@ export default function SpecializationListClient({
   )
 
   const description = pageContent?.contents?.description || ''
-  const descriptionPreview = description.length > 200 ? description.substring(0, 200) + '...' : description
   const hasLongDescription = description.length > 200
 
   const handleCategorySelect = (slug: string) => {
@@ -559,20 +559,14 @@ export default function SpecializationListClient({
 		              )}
 		              <div className="p-4 sm:p-5 md:p-6">
 		                <div className="relative">
-		                  <div 
-		                    className={`content-html text-gray-700 text-sm sm:text-base transition-all duration-300 ease-in-out
+		                  {/* The full description is always rendered; the collapsed state is
+		                      clamped by max-height below. Slicing the HTML string instead cut
+		                      through tags and produced broken markup. */}
+		                  <div
+		                    className={`content-html cms-content transition-all duration-300 ease-in-out
                     ${showMore ? 'max-h-[65vh] overflow-y-auto pr-2' : 'max-h-[300px]'}
-		                    ${!showMore && 'overflow-hidden'}
-		                    [&>p]:mb-3 sm:[&>p]:mb-4 [&>p]:leading-relaxed [&>p]:text-sm sm:[&>p]:text-base
-		                    [&>ul]:my-4 sm:[&>ul]:my-6 [&>ul]:pl-5 sm:[&>ul]:pl-6 [&>ul]:list-disc
-		                    [&>ul>li]:mb-2 sm:[&>ul>li]:mb-3 [&>ul>li]:pl-2 [&>ul>li]:leading-relaxed [&>ul>li]:text-sm sm:[&>ul>li]:text-base
-		                    [&>h2]:text-xl sm:[&>h2]:text-2xl [&>h2]:font-semibold [&>h2]:mt-4 sm:[&>h2]:mt-6 [&>h2]:mb-3 sm:[&>h2]:mb-4 [&>h2]:text-gray-800
-		                    [&>h3]:text-lg sm:[&>h3]:text-xl [&>h3]:font-semibold [&>h3]:mt-3 sm:[&>h3]:mt-4 [&>h3]:mb-2 sm:[&>h3]:mb-3 [&>h3]:text-gray-800
-		                    [&>strong]:font-semibold [&>strong]:text-gray-900
-		                    [&>div>table]:w-full [&>div>table]:border-collapse [&>div>table]:text-sm
-		                    [&>div>table>thead>tr>th]:p-3 [&>div>table>thead>tr>th]:bg-blue-100/50 [&>div>table>thead>tr>th]:text-blue-900 [&>div>table>thead>tr>th]:border-b [&>div>table>thead>tr>th]:border-blue-200 [&>div>table>thead>tr>th]:text-left [&>div>table>thead>tr>th]:font-semibold
-		                    [&>div>table>tbody>tr>td]:p-3 [&>div>table>tbody>tr>td]:border-b [&>div>table>tbody>tr>td]:border-gray-100 [&>div>table>tbody>tr:last-child>td]:border-0`}
-		                    dangerouslySetInnerHTML={{ __html: showMore ? description : descriptionPreview }} 
+		                    ${!showMore && 'overflow-hidden'}`}
+		                    dangerouslySetInnerHTML={{ __html: formatRichText(description) }}
 		                  />
 		                  {!showMore && hasLongDescription && (
 		                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-blue-50 to-transparent pointer-events-none sm:h-32" />

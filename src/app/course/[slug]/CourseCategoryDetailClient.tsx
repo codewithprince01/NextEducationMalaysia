@@ -105,7 +105,7 @@ export default function CourseCategoryDetailClient({ slug }: PageProps) {
 
   if (loading) return (
     <div className="bg-gray-50 min-h-screen py-10 animate-pulse">
-        <div className="max-w-7xl mx-auto px-4 flex gap-10">
+        <div className="site-container flex gap-10">
             <div className="flex-1 space-y-10">
                 <div className="h-12 bg-white rounded-xl shadow-sm" />
                 <div className="h-96 bg-white rounded-2xl shadow-sm" />

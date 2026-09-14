@@ -11,7 +11,7 @@ const MAX_DISMISSALS = 2
 const POPUP_DELAY_MS = 2000
 const POPUP_DISMISS_KEY = 'popupDismissCountV2'
 
-const EXCLUDED_PREFIXES = ['/student', '/login', '/signup', '/confirmed-email', '/account/password/reset']
+const EXCLUDED_PREFIXES = ['/student', '/login', '/signup', '/confirmed-email', '/account/password/reset', '/admin']
 
 export default function MalaysiaCallingAutoPopup() {
   const pathname = usePathname() || '/'

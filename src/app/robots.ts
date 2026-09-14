@@ -19,6 +19,25 @@ export default function robots(): MetadataRoute.Robots {
     '/*?program_id=',
     '/*?redirect=',
     '/*?_escaped_fragment_=',
+
+    // Course-listing filters. Each combination is a view of a page that already
+    // exists — /university/<slug>/courses — and the canonical on them says so,
+    // but there are far more combinations than real pages and crawling them all
+    // spends the budget that should reach the course pages themselves. Both the
+    // `?` and `&` forms are listed because a robots pattern matches literally:
+    // `/*?course_category_id=` alone would miss the parameter whenever it is not
+    // the first one in the query string.
+    //
+    // Only ever matches URLs carrying a query string, so the canonical course
+    // and listing URLs — which have none — stay fully crawlable.
+    '/*?specialization_id=',
+    '/*&specialization_id=',
+    '/*?course_category_id=',
+    '/*&course_category_id=',
+    '/*?study_mode=',
+    '/*&study_mode=',
+    '/*?level=',
+    '/*&level=',
   ]
 
   const googlebotAllowRules = [

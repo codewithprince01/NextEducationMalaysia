@@ -43,6 +43,86 @@ export function websiteJsonLd(): JsonLd {
   }
 }
 
+/** A number out of a mixed string/number column, or 0 when there is none. */
+function toNumber(value: unknown): number {
+  const parsed = Number.parseFloat(String(value ?? '').replace(/[^0-9.]/g, ''))
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0
+}
+
+/**
+ * The rating a page publishes, built from whatever the admin panel holds.
+ *
+ * The admin panel writes three columns — `seo_rating`, `review_number` and
+ * `best_rating` — and they exist on universities, programmes and
+ * specializations alike. Nothing here used to read them: the rating came from
+ * `average_rating`/`review_count`, which the panel does not write, so it always
+ * fell through to counting rows in the reviews table. SEGi is the clearest
+ * example — the panel says 491 reviews, the page published 4, and editing the
+ * field in admin changed nothing on the site.
+ *
+ * So the admin values win. They are what someone deliberately entered, and the
+ * whole point of the field is that it drives what Google sees. Only when they
+ * are blank does this fall back to the older columns and then to averaging the
+ * real review rows, so a page with nothing entered still publishes a true
+ * rating rather than an invented one.
+ *
+ * `bestRating` comes from the panel too instead of being pinned at 5 — a
+ * university scored out of 10 was being published as 10 out of 5.
+ *
+ * Returns null when there is nothing real to say, so a page with no rating
+ * anywhere never gets one made up for it.
+ */
+function aggregateRatingFrom(entity: {
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
+  rating?: string | number | null
+  review_count?: string | number | null
+  average_rating?: string | number | null
+  reviews?: Array<{ rating?: string | number | null }> | null
+}): JsonLd | null {
+  const bestRating = toNumber(entity.best_rating) || 5
+
+  // 1. What the admin panel entered.
+  const adminValue = toNumber(entity.seo_rating)
+  const adminCount = toNumber(entity.review_number)
+
+  // 2. The older aggregate columns, for rows written before the panel had them.
+  const storedValue = toNumber(entity.average_rating ?? entity.rating)
+  const storedCount = toNumber(entity.review_count)
+
+  // 3. The reviews actually left on the site.
+  const reviewRatings = (entity.reviews || [])
+    .map((review) => toNumber(review?.rating))
+    .filter((value) => value > 0)
+  const reviewsValue = reviewRatings.length
+    ? reviewRatings.reduce((sum, value) => sum + value, 0) / reviewRatings.length
+    : 0
+
+  const ratingValue = adminValue || storedValue || reviewsValue
+  const reviewCount = adminCount || storedCount || reviewRatings.length
+
+  if (!(ratingValue > 0 && reviewCount > 0)) return null
+
+  // A scale has to be able to hold the score. `best_rating` is a free text field
+  // in admin and has been saved as 1, which produced "1 out of 1 (worst 1)" —
+  // a rating Google rejects and that means nothing to a reader. Anything that
+  // is not a usable ceiling falls back to the conventional 5.
+  const scaleMax = bestRating > 1 && bestRating >= ratingValue ? bestRating : 5
+
+  // `ratingCount`, not `reviewCount`. The number comes from a figure typed into
+  // the admin panel, not from that many written reviews on the site, and Google
+  // asks for reviewCount only when the reviews themselves exist. ratingCount is
+  // the honest claim and carries the same star display.
+  return {
+    '@type': 'AggregateRating',
+    ratingValue: String(Math.min(scaleMax, Math.max(1, Math.round(ratingValue * 10) / 10))),
+    ratingCount: String(Math.round(reviewCount)),
+    bestRating: String(scaleMax),
+    worstRating: '1',
+  }
+}
+
 export function universityJsonLd(uni: {
   id?: number | string | null
   name?: string | null
@@ -59,6 +139,10 @@ export function universityJsonLd(uni: {
   city?: string | null
   state?: string | null
   rating?: string | number | null
+  // Admin-entered rating; drives aggregateRating on this node.
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
   qs_rank?: string | number | null
   rank?: string | number | null
   review_count?: string | number | null
@@ -71,145 +155,116 @@ export function universityJsonLd(uni: {
   established_year?: string | null
   programs?: Array<{ course_name?: string | null }> | null
   instituteType?: { type?: string | null } | null
-}, options?: { path?: string }): JsonLd {
-  const strip = (value?: string | null) => (value || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+}, options?: {
+  path?: string
+  /**
+   * Set false where the page is about something other than the university —
+   * a course page, say, whose own Course node carries the rating. Two rated
+   * nodes on one page leave Google guessing which the review describes.
+   */
+  includeRating?: boolean
+}): JsonLd {
   const pagePath = options?.path || `/university/${uni.uname || ''}`
   const pageUrl = `${SITE_URL}${pagePath.startsWith('/') ? pagePath : `/${pagePath}`}`
-  const officialWebsiteRaw = (uni.website_url || uni.website || '').trim()
-  const officialWebsite = /^https?:\/\//i.test(officialWebsiteRaw) ? officialWebsiteRaw : undefined
-  const country = (uni.country || '').trim() || 'Malaysia'
-  const city = (uni.city || uni.state || '').trim() || country
-  const description = strip(uni.description || uni.shortnote) || `${uni.name || 'University'} in ${country}`
-  const logo = storageUrl(uni.logo_path) || undefined
-  const imageCandidates = [
-    ...(uni.photos || []).map((p) => storageUrl(p?.photo_path)).filter(Boolean) as string[],
-    storageUrl(uni.banner_path) || undefined,
-    logo,
-  ].filter(Boolean) as string[]
-  const images = imageCandidates.length ? Array.from(new Set(imageCandidates)) : undefined
-  const courseNames = Array.from(new Set(
-    (uni.programs || [])
-      .map((p) => (p?.course_name || '').trim())
-      .filter(Boolean)
-  )).slice(0, 15)
-  const reviewCount = Number.parseInt(String(uni.review_count ?? '0'), 10)
-  const ratingValue = Number.parseFloat(
-    String(uni.average_rating ?? uni.rating ?? '').replace(/[^0-9.]/g, ''),
-  )
-  const hasRealAggregate = Number.isFinite(ratingValue) && ratingValue > 0 && reviewCount > 0
-  const realReviews = (uni.reviews || [])
-    .map((r) => ({
-      name: (r?.name || '').trim(),
-      description: strip(r?.description || ''),
-      rating: Number.parseFloat(String(r?.rating ?? '').replace(/[^0-9.]/g, '')),
-    }))
-    .filter((r) => r.name && r.description && Number.isFinite(r.rating) && r.rating > 0)
-    .slice(0, 5)
-  const keywords = Array.from(new Set([
-    `${uni.name || 'University'} Malaysia`,
-    uni.city || '',
-    uni.state || '',
-    uni.instituteType?.type || '',
-    ...courseNames.slice(0, 6),
-  ].map((v) => v.trim()).filter(Boolean))).join(', ')
+  const aggregateRating = options?.includeRating === false ? null : aggregateRatingFrom(uni)
 
+  // Name, url, rating. Nothing else.
+  //
+  // This node used to carry the description, logo, a gallery of images, the
+  // postal address, founding date, an OfferCatalog of fifteen courses and a
+  // keyword list. All of it true, none of it needed: the page states those
+  // things in its own markup, and in the Rich Results report they buried the
+  // one thing this node exists to publish. Every extra property was also one
+  // more thing Google could flag.
   const data: JsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollegeOrUniversity',
     name: uni.name,
-    description,
     url: pageUrl,
-    logo,
-    image: images && images.length === 1 ? images[0] : images,
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: (uni.address || '').trim() || undefined,
-      addressLocality: city,
-      addressRegion: (uni.state || '').trim() || undefined,
-      addressCountry: country,
-    },
-    foundingDate: uni.established_year || undefined,
-    sameAs: officialWebsite || pageUrl,
-    hasOfferCatalog: {
-      '@type': 'OfferCatalog',
-      name: `${uni.name || 'University'} Courses`,
-      itemListElement: courseNames.map((course, index) => ({
-        '@type': 'ListItem',
-        position: index + 1,
-        name: course,
-      })),
-    },
-    areaServed: country,
-    keywords,
+    ...(aggregateRating ? { aggregateRating } : {}),
   }
 
-  if (hasRealAggregate) {
-    data.aggregateRating = {
-      '@type': 'AggregateRating',
-      ratingValue: String(ratingValue),
-      reviewCount: String(reviewCount),
-      bestRating: '5',
-    }
-  }
-
-  if (realReviews.length > 0) {
-    data.review = realReviews.map((r) => ({
-      '@type': 'Review',
-      author: {
-        '@type': 'Person',
-        name: r.name,
-      },
-      reviewBody: r.description,
-      reviewRating: {
-        '@type': 'Rating',
-        ratingValue: String(r.rating),
-        bestRating: '5',
-      },
-    }))
-  }
-
+  // A row with no name would otherwise publish a node identifying nothing.
   if (!data.name) {
     data.name = 'University in Malaysia'
-  }
-
-  if (!data.description) {
-    data.description = 'University details and programs in Malaysia.'
-  }
-
-  if (!data.url) {
-    data.url = pageUrl
-  }
-
-  if (!data.sameAs && officialWebsite) {
-    data.sameAs = officialWebsite
-  }
-
-  if (!data.address) {
-    data.address = {
-      '@type': 'PostalAddress',
-      addressLocality: city,
-      addressCountry: country,
-    }
   }
 
   return data
 }
 
+/**
+ * The university's rating as a deliberately tiny standalone block: a name and
+ * the aggregate, nothing else.
+ *
+ * Google's "Review snippets" report renders whichever node carries
+ * aggregateRating. On the full university node that meant the review item
+ * listed every image, course and keyword on the page. Keeping the rating on a
+ * node of its own makes that item exactly what it should be — the score.
+ *
+ * It carries no `@id` on purpose: sharing one with universityJsonLd() would let
+ * Google merge the two back into a single node and the review item would show
+ * the whole university again.
+ *
+ * Returns null when the university has no reviews.
+ */
+export function universityRatingJsonLd(uni: {
+  name?: string | null
+  uname?: string | null
+  // What the admin panel writes; these take priority — see aggregateRatingFrom.
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
+  rating?: string | number | null
+  review_count?: string | number | null
+  average_rating?: string | number | null
+  reviews?: Array<{ rating?: string | number | null }> | null
+}, options?: { path?: string }): JsonLd | null {
+  const aggregateRating = aggregateRatingFrom(uni)
+  if (!aggregateRating) return null
+
+  const pagePath = options?.path || `/university/${uni.uname || ''}`
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollegeOrUniversity',
+    name: uni.name || 'University in Malaysia',
+    url: `${SITE_URL}${pagePath.startsWith('/') ? pagePath : `/${pagePath}`}`,
+    aggregateRating,
+  }
+}
+
+/**
+ * A course's rating, and nothing else.
+ *
+ * This node used to describe the whole programme — description, provider,
+ * level, duration, tuition offer. All of it was accurate, and all of it was
+ * noise: the page already says those things in its own markup, and every extra
+ * property was another line in the Rich Results report to read past and another
+ * thing that could be flagged. The one thing markup adds that the page cannot
+ * express on its own is the star rating.
+ *
+ * So the node is the rating, attached to a name so Google knows what is being
+ * rated. Nothing is emitted at all when there is no rating to publish.
+ */
 export function courseJsonLd(program: {
   course_name?: string | null
-  slug?: string | null
-  meta_description?: string | null
-}, universityName: string, universitySlug: string): JsonLd {
+  // The rating the admin panel holds against this programme.
+  seo_rating?: string | number | null
+  review_number?: string | number | null
+  best_rating?: string | number | null
+}): JsonLd | null {
+  const aggregateRating = aggregateRatingFrom(program)
+
+  // No rating, no node. A name on its own tells Google nothing it cannot read
+  // off the page, and an empty node is one more thing for the Rich Results
+  // report to complain about.
+  if (!aggregateRating) return null
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Course',
     name: program.course_name,
-    description: program.meta_description || program.course_name,
-    url: `${SITE_URL}/university/${universitySlug}/courses/${program.slug}`,
-    provider: {
-      '@type': 'EducationalOrganization',
-      name: universityName,
-    },
+    aggregateRating,
   }
 }
 

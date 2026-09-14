@@ -4,11 +4,9 @@ import { useState, useEffect, useCallback, useMemo, type SyntheticEvent } from '
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import {
-  MapPin, Navigation, Star, Building, BedDouble,
-  Phone, Mail, Image as ImageIcon,
+  MapPin, Navigation, Star, Building, Image as ImageIcon,
   Check
 } from 'lucide-react'
-import { FaBuilding, FaBed, FaUsers, FaPhoneAlt, FaFax, FaEnvelope } from 'react-icons/fa'
 import UniversityInfoCards from './UniversityInfoCards'
 import UniversityActionButtons from './UniversityActionButtons'
 import UniversityRankings from './UniversityRankings'
@@ -22,9 +20,7 @@ import { CounsellingForm } from '@/components/modals/UniversityForms/Counselling
 import { ReviewForm } from '@/components/modals/UniversityForms/ReviewForm'
 import { storageUrl } from '@/lib/constants'
 
-const DEFAULT_PHONE_1 = '+60 1121376171'
-const DEFAULT_PHONE_2 = '+91 9818560331'
-const DEFAULT_EMAIL = 'info@educationmalaysia.in'
+
 
 function imgUrl(path: string | null | undefined) {
   return storageUrl(path)
@@ -67,11 +63,7 @@ function toInt(value: unknown): number {
 
 type Photo = { id?: number; photo_path: string; photo_name?: string | null; title?: string | null }
 
-const STUDY_OPTIONS = [
-  { label: 'Study Online', bg: 'bg-green-50', border: 'border-green-300', text: 'text-green-700', icon: 'text-green-500' },
-  { label: 'Part Time', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', icon: 'text-blue-500' },
-  { label: 'Full Time', bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-700', icon: 'text-purple-500' },
-]
+
 
 export default function UniversityHeroClient({ university, photos }: { university: any; photos: Photo[] }) {
   const pathname = usePathname()
@@ -121,18 +113,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
   const bannerSrc = imgUrl(university.banner_path) || imgUrl(mainPhoto?.photo_path)
   const logoSrc = imgUrl(university.logo_path)
   const typeLabel = university.inst_type || university.institute_type?.type || 'University'
-  const stars = Math.round(Number(university.rating) || 4)
-  const accreditedBy = parseListValue(university.accredited_by)
-  const hostelFacility = parseListValue(university.hostel_facility)
-  const phone1 = university.contact_number1 || DEFAULT_PHONE_1
-  const phone2 = university.contact_number2 || DEFAULT_PHONE_2
-  const email = university.email || DEFAULT_EMAIL
   const approvedBy = university.approved_by || 'MQA'
-  const localStudents = toInt(university.local_students)
-  const internationalStudents = toInt(university.international_students)
-  const totalStudents = Math.max(localStudents + internationalStudents, 1)
-  const localWidth = `${Math.round((localStudents / totalStudents) * 100)}%`
-  const internationalWidth = `${Math.round((internationalStudents / totalStudents) * 100)}%`
 
   const [fetchedCategories, setFetchedCategories] = useState<Array<{ id: number; name: string }>>([])
 
@@ -195,11 +176,12 @@ export default function UniversityHeroClient({ university, photos }: { universit
       </div>
 
       {/* ── DESKTOP HERO ── */}
-      <div className="hidden sm:block max-w-[1400px] mx-auto px-2 md:px-4 py-4 bg-white">
+      <div className="hidden sm:block site-container py-4 bg-white">
         {/* Logo + Info Row */}
-        <div className="flex flex-row items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 shrink-0 border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center bg-white shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+          {/* Left: Logo + Title + Location & Action */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-20 h-20 shrink-0 border border-slate-200/90 rounded-2xl overflow-hidden flex items-center justify-center bg-white shadow-xs p-1.5">
               <img
                 src={logoSrc || '/placeholder-logo.png'}
                 alt="Logo"
@@ -209,45 +191,50 @@ export default function UniversityHeroClient({ university, photos }: { universit
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2 tracking-tight">{university.name}</h1>
-              <div className="flex flex-row items-center gap-2 text-sm text-gray-600 flex-wrap">
-                <div className="flex items-center gap-1 min-w-0">
+              <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
+                {university.name}
+              </h1>
+              <div className="flex items-center gap-2.5 text-sm text-slate-600 flex-wrap">
+                <div className="flex items-center gap-1.5 text-slate-600 text-xs sm:text-sm font-medium">
                   <MapPin className="text-blue-600 shrink-0 w-4 h-4" />
-                  <span className="text-blue-600 font-bold truncate">Location: {university.city}</span>
+                  <span>Location: <strong className="text-slate-900 font-semibold">{university.city || 'Malaysia'}</strong></span>
                 </div>
                 <button
                   onClick={handleDirections}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all font-bold shadow-lg shadow-blue-200/50 transform hover:-translate-y-0.5 active:translate-y-0 text-sm cursor-pointer"
+                  className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg font-semibold transition-all shadow-xs hover:shadow-sm active:scale-95 text-xs cursor-pointer border border-blue-600"
                 >
-                  <Navigation size={14} className="rotate-45" />
+                  <Navigation size={12} className="rotate-45" />
                   Get Directions
                 </button>
+                <div className="inline-flex items-center gap-1.5 bg-emerald-50/90 border border-emerald-200/80 px-2.5 py-1.5 rounded-lg text-xs font-medium text-emerald-900 shadow-2xs">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 font-bold shrink-0" />
+                  <span>Approved by <strong className="font-extrabold">{approvedBy}</strong></span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="flex items-start gap-4 text-sm">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600 text-sm font-medium">Type:</span>
-                <span className="bg-blue-700 text-white px-2.5 py-1 rounded-full font-medium text-sm">{typeLabel}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-700">
-                <span className="font-bold text-xs uppercase tracking-widest">SETARA</span>
-                <div className="flex items-center bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-100">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                  ))}
-                </div>
-              </div>
+          {/* Right: Status & Rating Badges */}
+          <div className="flex flex-wrap items-center lg:justify-end gap-2 shrink-0">
+            {/* Type */}
+            <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/90 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 shadow-2xs">
+              <Building className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+              <span>{typeLabel}</span>
             </div>
-            <div className="flex flex-col gap-1.5 pt-0.5">
-              <div className="flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-medium gap-2 text-[13px] border border-blue-100">
-                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.6)]" />
-                <span>Featured</span>
-              </div>
-              <div className="text-gray-500 text-[10px] font-bold uppercase tracking-tighter ml-1">
-                Approved By: <span className="text-gray-900 font-black">{approvedBy}</span>
+
+            {/* Featured */}
+            <div className="inline-flex items-center gap-1.5 bg-blue-50/80 border border-blue-200/90 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+              <span>Featured</span>
+            </div>
+
+            {/* SETARA Rating */}
+            <div className="inline-flex items-center gap-1.5 bg-amber-50/80 border border-amber-200/90 px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-900 shadow-2xs">
+              <span className="font-extrabold text-[10px] tracking-wider uppercase text-amber-900">SETARA</span>
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                ))}
               </div>
             </div>
           </div>
@@ -294,112 +281,38 @@ export default function UniversityHeroClient({ university, photos }: { universit
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 relative z-20 pb-8">
+          {/* Left Column: Info Cards, Rankings & Course Categories */}
           <div className="col-span-2 space-y-4">
             <UniversityInfoCards universityData={university} cols={4} />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 -mt-2">
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaBuilding className="text-blue-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Accredited By</h3>
-                </div>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {accreditedBy.length > 0 ? (
-                    accreditedBy.map((a: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
-                        <span>{a}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
-                      <span>{approvedBy}</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
 
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaBed className="text-green-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Hostel Facility</h3>
-                </div>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {hostelFacility.length > 0 ? (
-                    hostelFacility.map((f: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-green-600 mt-0.5">•</span>
-                        <span>{f}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="flex items-start gap-2">
-                      <span className="text-green-600 mt-0.5">•</span>
-                      <span>Available</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaUsers className="text-purple-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Total Students</h3>
-                </div>
-                <div className="space-y-4">
-                   <div>
-                     <div className="flex justify-between items-center mb-2">
-                       <span>Local Students</span>
-                       <span className="text-sm font-bold text-purple-700">{localStudents}</span>
-                     </div>
-                     <div className="w-full bg-gray-200 rounded-full h-2">
-                       <div className="bg-purple-600 h-2 rounded-full transition-all duration-1000" style={{ width: localStudents > 0 ? localWidth : '0%' }} />
-                     </div>
-                   </div>
-                   <div>
-                     <div className="flex justify-between items-center mb-2">
-                       <span>International Students</span>
-                       <span className="text-sm font-bold text-blue-700">{internationalStudents}</span>
-                     </div>
-                     <div className="w-full bg-gray-200 rounded-full h-2">
-                       <div className="bg-blue-600 h-2 rounded-full transition-all duration-1000" style={{ width: internationalStudents > 0 ? internationalWidth : '0%' }} />
-                     </div>
-                   </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <FaPhoneAlt className="text-orange-600 text-lg" />
-                  <h3 className="text-base font-semibold text-gray-900">Contact Info</h3>
-                </div>
-                <div className="space-y-4 text-sm text-gray-700">
-                   <div className="flex items-center gap-3 group">
-                     <FaPhoneAlt className="text-orange-500" />
-                     <span>{phone1}</span>
-                   </div>
-                   <div className="flex items-center gap-3 group">
-                     <FaFax className="text-gray-500" />
-                     <span>{phone2}</span>
-                   </div>
-                   <div className="flex items-center gap-3 group">
-                     <FaEnvelope className="text-blue-500" />
-                     <span>{email}</span>
-                   </div>
-                </div>
-              </div>
-            </div>
+            {/* Global Rankings */}
+            <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
 
             {/* Course Categories */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mt-3">
-              <h3 className="text-base font-bold text-gray-900 mb-4">Course Categories:</h3>
-              <div className="flex flex-wrap gap-2.5">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3.5 sm:p-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900">Course Categories</h3>
+                <Link
+                  href={`/university/${university.uname}/courses`}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  View All Courses →
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {categoriesList.length > 0 ? (
                   categoriesList.map((cat: any) => (
                     <Link
                       key={cat.id || cat.name}
                       href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
-                      className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-medium transition cursor-pointer"
+                      // These chips are how Google found the filtered course URLs in the
+                      // first place — every university page linked one per category, and
+                      // each target is a filtered view of /courses that canonicalises back
+                      // to it. Useful to a visitor, nothing to crawl: nofollow keeps the
+                      // crawler out of the filter space instead of having it discover the
+                      // URLs and then find them blocked in robots.txt.
+                      rel="nofollow"
+                      className="inline-flex items-center bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 border border-blue-100 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                     >
                       {cat.name}
                     </Link>
@@ -409,9 +322,10 @@ export default function UniversityHeroClient({ university, photos }: { universit
                 )}
               </div>
             </div>
-
           </div>
-          <div className="col-span-1 space-y-4">
+
+          {/* Right Column: Actions & Location Map */}
+          <div className="col-span-1 flex flex-col gap-4 h-full">
              <UniversityActionButtons
                variant="desktop"
                onBrochure={() => openPopup('brochure')}
@@ -419,53 +333,60 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onCounselling={() => openPopup('counselling')}
                onReview={() => openPopup('review')}
              />
-             <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} qs_asia_rank={university.qs_asia_rank} />
 
-             {/* Study Options on Right Column */}
-             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-               <h3 className="text-base font-semibold text-gray-900 mb-3">Study Options</h3>
-               <div className="grid grid-cols-3 gap-2">
-                 {STUDY_OPTIONS.map(opt => (
-                   <div key={opt.label} className={`flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg border-2 ${opt.bg} ${opt.border}`}>
-                     <Check size={14} className={opt.icon} />
-                     <span className={`text-xs font-semibold whitespace-nowrap ${opt.text}`}>{opt.label}</span>
-                   </div>
-                 ))}
-               </div>
+             {/* Google Maps Card - Clean full-bleed map matching remaining height */}
+             <div className="relative rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex-1 min-h-0 bg-slate-100">
+               <iframe
+                 title={`Map of ${university.name}`}
+                 src={`https://maps.google.com/maps?q=${encodeURIComponent(`${university.name} ${university.city || ''} Malaysia`)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                 className="absolute inset-0 w-full h-full border-0"
+                 loading="lazy"
+                 referrerPolicy="no-referrer-when-downgrade"
+               />
              </div>
           </div>
         </div>
       </div>
 
       {/* ── MOBILE HERO ── */}
-      <div className="sm:hidden bg-gray-50 pb-8">
-        <div className="bg-white p-3">
-          <div className="flex items-center gap-4 mb-5">
-            <div className="w-20 h-20 shrink-0 bg-white border border-gray-100 rounded-2xl p-1.5 flex items-center justify-center shadow-sm">
+      <div className="sm:hidden px-4 pt-3 pb-6">
+        <div className="space-y-3">
+          {/* Logo + Name */}
+          <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
+            <div className="w-14 h-14 shrink-0 border border-gray-100 rounded-xl overflow-hidden flex items-center justify-center bg-white p-1">
               <img
                 src={logoSrc || '/placeholder-logo.png'}
                 alt="Logo"
-                className="max-w-full max-h-full object-contain"
+                className="w-full h-full object-contain"
                 fetchPriority="high"
                 onError={(e) => setFallbackImage(e, '/placeholder-logo.png')}
               />
             </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-gray-900 leading-tight mb-1">{university.name}</h1>
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <MapPin className="text-blue-500 w-3.5 h-3.5 shrink-0" />
-                <span className="text-gray-600 text-sm font-medium truncate">{university.city}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="font-bold text-[10px] uppercase tracking-wider text-gray-500">SETARA:</span>
-              <div className="flex gap-1 ml-1 items-center bg-yellow-50 px-1.5 py-0.5 rounded-md border border-yellow-100">
-                  {[...Array(5)].map((_, i) => <Star key={i} className={`w-3 h-3 ${i < stars ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} />)}
-                </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-bold text-gray-900 leading-tight line-clamp-2">{university.name}</h1>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                  <MapPin size={11} className="text-blue-600" />
+                  {university.city || 'Malaysia'}
+                </span>
+                <span className="text-[11px] bg-blue-50 text-blue-700 font-medium px-2 py-0.5 rounded-full border border-blue-100">
+                  {typeLabel}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="relative mb-6 rounded-2xl overflow-hidden shadow-lg border border-gray-100 aspect-16/10 bg-gray-200">
+          {/* Quick Actions Grid (2x2) */}
+          <UniversityActionButtons
+            variant="mobile"
+            onBrochure={() => openPopup('brochure')}
+            onFeeStructure={() => openPopup('fee')}
+            onCounselling={() => openPopup('counselling')}
+            onReview={() => openPopup('review')}
+          />
+
+          {/* Banner Photo */}
+          <div className="relative rounded-xl overflow-hidden shadow-sm aspect-16/9 bg-gray-100">
              <img
                src={bannerSrc || '/placeholder-university.jpg'}
                alt="Banner"
@@ -482,48 +403,6 @@ export default function UniversityHeroClient({ university, photos }: { universit
 
           <div className="space-y-3">
              <UniversityInfoCards universityData={university} cols={2} />
-             
-             {/* Mobile Info Cards (Accredited, Hostel, Contact) */}
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Building className="text-blue-600" size={16} />
-                  <h3 className="text-sm font-semibold text-gray-900">Accredited By</h3>
-                </div>
-                <ul className="space-y-1 text-xs text-gray-700">
-                  {accreditedBy.length > 0 ? (
-                    accreditedBy.slice(0, 3).map((a: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-blue-600 mt-0.5">•</span>
-                        <span>{a}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
-                      <span>{approvedBy}</span>
-                    </li>
-                  )}
-                </ul>
-             </div>
-
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <BedDouble className="text-green-600" size={16} />
-                  <h3 className="text-sm font-semibold text-gray-900">Hostel Facility</h3>
-                </div>
-                <p className="text-xs text-gray-700">{hostelFacility[0] || 'Available'}</p>
-             </div>
-
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Phone className="text-orange-600" size={16} />
-                  <h3 className="text-sm font-semibold text-gray-900">Contact Info</h3>
-                </div>
-                <div className="space-y-1.5 text-xs text-gray-700">
-                   <div className="flex items-center gap-2"><Phone size={12} className="text-orange-500" /><span>{phone1}</span></div>
-                   <div className="flex items-center gap-2"><Mail size={12} className="text-blue-500" /><span>{email}</span></div>
-                </div>
-             </div>
 
              {/* Mobile Course Categories */}
              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
@@ -534,6 +413,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
                       <Link
                         key={cat.id || cat.name}
                         href={`/university/${university.uname}/courses?course_category_id=${cat.id}`}
+                        rel="nofollow"
                         className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-medium"
                       >
                         {cat.name}
@@ -547,18 +427,7 @@ export default function UniversityHeroClient({ university, photos }: { universit
 
              <UniversityRankings qs_rank={university.qs_rank} times_rank={university.times_rank} compact={true} />
 
-             {/* Mobile Study Options */}
-             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
-               <h3 className="text-xs font-semibold text-gray-900 mb-2">Study Options</h3>
-               <div className="grid grid-cols-3 gap-1.5">
-                 {STUDY_OPTIONS.map(opt => (
-                   <div key={opt.label} className={`flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md border ${opt.bg} ${opt.border}`}>
-                     <Check size={12} className={opt.icon} />
-                     <span className={`text-[11px] font-medium whitespace-nowrap ${opt.text}`}>{opt.label}</span>
-                   </div>
-                 ))}
-               </div>
-             </div>
+
 
              <UniversityActionButtons
                variant="mobile"
@@ -567,6 +436,17 @@ export default function UniversityHeroClient({ university, photos }: { universit
                onCounselling={() => openPopup('counselling')}
                onReview={() => openPopup('review')}
              />
+
+             {/* Mobile Google Maps Card */}
+             <div className="relative rounded-xl overflow-hidden border border-gray-100 shadow-sm h-[160px] bg-slate-100">
+               <iframe
+                 title={`Map of ${university.name}`}
+                 src={`https://maps.google.com/maps?q=${encodeURIComponent(`${university.name} ${university.city || ''} Malaysia`)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                 className="w-full h-full border-0"
+                 loading="lazy"
+                 referrerPolicy="no-referrer-when-downgrade"
+               />
+             </div>
           </div>
         </div>
       </div>

@@ -1,10 +1,11 @@
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { getProgramBySlug } from '@/lib/queries/courses'
 import CourseDetailClient from './CourseDetailClient'
 import UniversityCoursesClient from '@/components/university/UniversityCoursesClient'
 import { serializeBigInt } from '@/lib/utils'
 import UniversitySectionContainer from '@/components/university/UniversitySectionContainer'
 import { resolveCourseMeta } from '@/lib/seo/metadata'
+import { courseJsonLd } from '@/lib/seo/structured-data'
 import type { Metadata } from 'next'
 
 type Props = { params: Promise<{ slug: string; courseSlug: string }> }
@@ -56,12 +57,40 @@ export default async function CourseDetailPage({ params }: Props) {
 
   const program = serializeBigInt(programData) as any
 
+  // The lookup deliberately accepts more than the canonical slug — a numeric id,
+  // or the course name with different capitalisation — so old and hand-typed
+  // links keep working. Each of those was answering 200 with the same content,
+  // which is three URLs for one page and exactly what makes Google report
+  // "Duplicate, Google chose a different canonical". They now redirect to the
+  // canonical URL instead, so only one URL ever serves the page.
+  const canonicalSlug = String(program.slug || '')
+  const canonicalUniSlug = String(program.university?.uname || '')
+  if (
+    canonicalSlug &&
+    canonicalUniSlug &&
+    (courseSlug !== canonicalSlug || slug !== canonicalUniSlug)
+  ) {
+    permanentRedirect(`/university/${canonicalUniSlug}/courses/${canonicalSlug}`)
+  }
+
+  // Rendered here rather than in head.tsx: that file is a Next 13.0 convention
+  // the App Router dropped, so anything it declared never reached the page.
+  // Null whenever the course has no rating of its own, in which case the page
+  // carries no Course node at all.
+  const courseSchema = courseJsonLd(program)
+
   return (
     <UniversitySectionContainer
       slug={slug}
       universityName={program.university?.name || ''}
       fullWidth={true}
     >
+      {courseSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(courseSchema) }}
+        />
+      )}
       <CourseDetailClient slug={slug} courseSlug={courseSlug} program={program as any} />
     </UniversitySectionContainer>
   )

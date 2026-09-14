@@ -4,6 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
+    "admin:dev": "npm --prefix admin-app run dev",
+    "dev:all": "concurrently -n \"NEXT,ADMIN\" -c \"cyan,magenta\" \"npm run dev\" \"npm run admin:dev\"",
+    "admin:install": "npm --prefix admin-app ci --no-audit --no-fund",
+    "admin:build": "npm --prefix admin-app run build",
+    "build:all": "npm run admin:install && npm run admin:build && npm run build",
     "dev:legacy": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev --webpack",
     "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build",
     "start": "next start",
@@ -17,6 +22,7 @@
     "@types/axios": "^0.9.36",
     "@types/jsonwebtoken": "^9.0.10",
     "axios": "^1.14.0",
+    "basic-ftp": "^6.2.1",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.36.0",
     "jsonwebtoken": "^9.0.3",
@@ -32,6 +38,7 @@
     "react-toastify": "^11.0.5",
     "swiper": "^12.1.2",
     "tailwindcss": "^4.2.1",
+    "xlsx": "^0.18.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -40,6 +47,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "typescript": "^5"

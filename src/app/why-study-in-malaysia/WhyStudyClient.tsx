@@ -25,7 +25,7 @@ const COSTS = [
 export default function WhyStudyClient() {
   return (
     <div className="bg-slate-50 min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-4 py-20">
+      <div className="site-container py-20">
         <div className="flex flex-col lg:grid lg:grid-cols-[2fr_1fr] gap-16">
           
           {/* Main Content */}

@@ -91,6 +91,8 @@ function ScrollToTopButton() {
   )
 }
 
+import { usePathname } from 'next/navigation'
+
 export default function FloatingActions() {
   return (
     <>

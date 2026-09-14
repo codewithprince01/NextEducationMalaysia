@@ -5,7 +5,7 @@ export class ContentRepository extends BaseRepository<any> {
     super('static_page_contents');
   }
 
-  async findByPage(page: string, position?: string) {
+    async findByPage(page: string, position?: string) {
     return this.model.findMany({
       where: {
         page_name: page,
@@ -14,3 +14,4 @@ export class ContentRepository extends BaseRepository<any> {
     });
   }
 }
+

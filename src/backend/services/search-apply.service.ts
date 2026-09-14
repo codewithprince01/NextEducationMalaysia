@@ -83,13 +83,19 @@ export class SearchApplyService {
   }
 
   /**
-   * Get all levels for a specific university.
+   * Get all levels, optionally filtered by university_id and/or website.
    */
-  async getLevels(universityId: number) {
+  async getLevels(universityId?: number, website?: string) {
+    const where: any = {};
+    if (universityId) {
+      where.university_id = universityId;
+    }
+    if (website) {
+      where.website = website;
+    }
+
     const levels = await prisma.universityProgram.findMany({
-      where: {
-        university_id: universityId,
-      },
+      where,
       select: {
         level: true,
       },
@@ -100,12 +106,13 @@ export class SearchApplyService {
   }
 
   /**
-   * Get all course categories for a specific university and level.
+   * Get all course categories, optionally filtered by university_id and level.
    */
-  async getCategories(universityId: number, level?: string) {
-    const where: any = {
-      university_id: universityId,
-    };
+  async getCategories(universityId?: number, level?: string) {
+    const where: any = {};
+    if (universityId) {
+      where.university_id = universityId;
+    }
     if (level) {
       where.level = level;
     }
@@ -121,6 +128,8 @@ export class SearchApplyService {
     const categoryIds = programs
       .map((p) => p.course_category_id)
       .filter((id): id is number => id !== null);
+
+    if (categoryIds.length === 0) return [];
 
     const categories = await prisma.courseCategory.findMany({
       where: {
@@ -142,12 +151,13 @@ export class SearchApplyService {
   }
 
   /**
-   * Get all specializations for a specific university, level, and category.
+   * Get all specializations, optionally filtered by university_id, level, and categoryId.
    */
-  async getSpecializations(universityId: number, level?: string, categoryId?: number) {
-    const where: any = {
-      university_id: universityId,
-    };
+  async getSpecializations(universityId?: number, level?: string, categoryId?: number) {
+    const where: any = {};
+    if (universityId) {
+      where.university_id = universityId;
+    }
     if (level) {
       where.level = level;
     }
@@ -166,6 +176,8 @@ export class SearchApplyService {
     const specializationIds = programs
       .map((p) => p.specialization_id)
       .filter((id): id is number => id !== null);
+
+    if (specializationIds.length === 0) return [];
 
     const specializations = await prisma.courseSpecialization.findMany({
       where: {

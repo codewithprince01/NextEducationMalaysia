@@ -126,7 +126,7 @@ export default async function UniversitiesByTypePaginatedPage({ params }: Props)
       })
 
       return (
-        <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
+        <Suspense fallback={<div className="site-container py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
           <UniversityListClient
             typeSlug={type}
             typeName={finalHeading}
@@ -170,7 +170,7 @@ export default async function UniversitiesByTypePaginatedPage({ params }: Props)
   })
 
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
+    <Suspense fallback={<div className="site-container py-16 text-center"><div className="animate-pulse h-8 bg-gray-200 rounded w-64 mx-auto" /></div>}>
       <UniversityListClient
         typeSlug={type}
         typeName={finalHeading}

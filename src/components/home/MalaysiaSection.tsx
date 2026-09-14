@@ -94,7 +94,7 @@ export default function MalaysiaSection() {
   return (
     <div className="bg-linear-to-br from-slate-50 via-white to-blue-50">
       {/* Why Malaysia */}
-      <section className="container mx-auto px-6 py-8 lg:py-10">
+      <section className="site-container py-8 lg:py-10">
         <div className="text-center mb-10">
           <h2 className="text-5xl lg:text-6xl font-bold bg-linear-to-r from-slate-800 to-blue-900 bg-clip-text text-transparent mb-3">
             Study in Malaysia
@@ -199,7 +199,7 @@ export default function MalaysiaSection() {
 
       {/* Education system section */}
       <div className="py-4 md:py-8 bg-linear-to-br from-slate-50 to-slate-100 -mt-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="site-container">
           <div className="text-center mb-8 md:mb-10">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 mb-3 md:mb-4 tracking-tight">
               Education System in Malaysia
