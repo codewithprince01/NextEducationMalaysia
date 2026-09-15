@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile } from '@/lib/fileStorage';
 
 export async function GET() {
   try {
@@ -54,16 +53,8 @@ export async function POST(req: Request) {
       const file = formData.get('date_and_address_image') as File | null;
 
       if (file && typeof file === 'object' && file.name) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = path.extname(file.name);
-        const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'scholarship');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        date_and_address_image_path = `uploads/scholarship/${fileName}`;
+        const saved = await saveUploadedFile(file, file.name, 'landingpage');
+        date_and_address_image_path = saved.file_path;
       }
     } else {
       const body = await req.json();
@@ -97,4 +88,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: false, message: 'Failed to create landing page', error: error.message }, { status: 500 });
   }
 }
-

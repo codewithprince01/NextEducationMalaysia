@@ -15,6 +15,7 @@ import {
   Eye,
   Download
 } from 'lucide-react';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 
 interface PhotoItem {
   id: number;
@@ -629,15 +630,29 @@ export default function UniversityGallery() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Photo URL / Path *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Upload Photo *</label>
                 <input
-                  type="text"
-                  placeholder="/storage/photos/univ1.jpg or https://..."
-                  value={photoForm.photo_path}
-                  onChange={(e) => setPhotoForm({ ...photoForm, photo_path: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        const res = await uploadFileToStorage(file, 'university-photos');
+                        setPhotoForm((prev) => ({ ...prev, photo_path: res.file_path }));
+                        showToast('success', 'Photo uploaded successfully');
+                      } catch (err: any) {
+                        showToast('error', err.message || 'Upload failed');
+                      }
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                 />
+                {photoForm.photo_path && (
+                  <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                    Current: {photoForm.photo_path}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">

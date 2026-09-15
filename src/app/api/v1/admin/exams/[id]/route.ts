@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile, deleteUploadedFile } from '@/lib/fileStorage';
 
 export async function GET(
   req: Request,
@@ -95,31 +94,15 @@ export async function PUT(
 
       const thumbFile = formData.get('thumbnail') as File | null;
       if (thumbFile && typeof thumbFile === 'object' && thumbFile.name) {
-        const buffer = Buffer.from(await thumbFile.arrayBuffer());
-        const ext = path.extname(thumbFile.name);
-        const baseName = path.basename(thumbFile.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_thumb_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'exams');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        imgname = fileName;
-        imgpath = `uploads/exams/${fileName}`;
+        const saved = await saveUploadedFile(thumbFile, thumbFile.name, 'exams', existing.imgpath);
+        imgname = saved.file_name;
+        imgpath = saved.file_path;
       }
 
       const ogFile = formData.get('og_image') as File | null;
       if (ogFile && typeof ogFile === 'object' && ogFile.name) {
-        const buffer = Buffer.from(await ogFile.arrayBuffer());
-        const ext = path.extname(ogFile.name);
-        const baseName = path.basename(ogFile.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_og_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'exams');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        og_image = `uploads/exams/${fileName}`;
+        const savedOg = await saveUploadedFile(ogFile, ogFile.name, 'exams', existing.og_image);
+        og_image = savedOg.file_path;
       }
     } else {
       const body = await req.json();
@@ -135,6 +118,8 @@ export async function PUT(
       if (body.seo_rating !== undefined) seo_rating = body.seo_rating;
       if (body.best_rating !== undefined) best_rating = body.best_rating;
       if (body.review_number !== undefined) review_number = body.review_number;
+      if (body.thumbnail_path !== undefined) imgpath = body.thumbnail_path;
+      if (body.og_image_path !== undefined) og_image = body.og_image_path;
     }
 
     const uri = slugify(page_name);
@@ -158,9 +143,9 @@ export async function PUT(
       meta_title,
       meta_keyword,
       meta_description,
-      seo_rating,
-      best_rating,
-      review_number,
+      seo_rating ? parseFloat(String(seo_rating)) : null,
+      best_rating ? parseFloat(String(best_rating)) : null,
+      review_number ? parseInt(String(review_number), 10) : null,
       now,
       id
     );
@@ -197,12 +182,10 @@ export async function DELETE(
 
     const row = existingRows[0];
     if (row.imgpath) {
-      const fullPath = path.join(process.cwd(), 'public', row.imgpath.replace(/^\//, ''));
-      await unlink(fullPath).catch(() => {});
+      await deleteUploadedFile(row.imgpath);
     }
     if (row.og_image) {
-      const fullPath = path.join(process.cwd(), 'public', row.og_image.replace(/^\//, ''));
-      await unlink(fullPath).catch(() => {});
+      await deleteUploadedFile(row.og_image);
     }
 
     await prisma.$executeRawUnsafe(`DELETE FROM exams WHERE id = ?`, id);

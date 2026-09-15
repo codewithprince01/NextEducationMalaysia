@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile, deleteUploadedFile } from '@/lib/fileStorage';
 
 export async function GET(
   req: Request,
@@ -102,32 +101,16 @@ export async function PUT(
 
       const thumbFile = formData.get('thumbnail') as File | null;
       if (thumbFile && typeof thumbFile === 'object' && thumbFile.name) {
-        const buffer = Buffer.from(await thumbFile.arrayBuffer());
-        const ext = path.extname(thumbFile.name);
-        const baseName = path.basename(thumbFile.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_thumb_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'scholarship');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        thumbnail_name = fileName;
-        thumbnail_path = `uploads/scholarship/${fileName}`;
+        const saved = await saveUploadedFile(thumbFile, thumbFile.name, 'scholarship', existing.thumbnail_path);
+        thumbnail_name = saved.file_name;
+        thumbnail_path = saved.file_path;
       }
 
       const ogFile = formData.get('og_image') as File | null;
       if (ogFile && typeof ogFile === 'object' && ogFile.name) {
-        const buffer = Buffer.from(await ogFile.arrayBuffer());
-        const ext = path.extname(ogFile.name);
-        const baseName = path.basename(ogFile.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_og_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'scholarship');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        og_image_name = fileName;
-        og_image_path = `uploads/scholarship/${fileName}`;
+        const savedOg = await saveUploadedFile(ogFile, ogFile.name, 'scholarship', existing.og_image_path);
+        og_image_name = savedOg.file_name;
+        og_image_path = savedOg.file_path;
       }
     } else {
       const body = await req.json();
@@ -145,6 +128,8 @@ export async function PUT(
       if (body.seo_rating !== undefined) seo_rating = body.seo_rating;
       if (body.best_rating !== undefined) best_rating = body.best_rating;
       if (body.review_number !== undefined) review_number = body.review_number;
+      if (body.thumbnail_path !== undefined) thumbnail_path = body.thumbnail_path;
+      if (body.og_image_path !== undefined) og_image_path = body.og_image_path;
     }
 
     const finalSlug = slug.trim() ? slugify(slug) : slugify(title);
@@ -158,7 +143,7 @@ export async function PUT(
        WHERE id = ?`,
       title,
       finalSlug,
-      active_status,
+      parseInt(String(active_status), 10) || 1,
       type,
       page_type,
       landing_page_link,
@@ -171,9 +156,9 @@ export async function PUT(
       meta_keyword,
       meta_description,
       page_content,
-      seo_rating,
-      best_rating,
-      review_number,
+      seo_rating ? parseFloat(String(seo_rating)) : null,
+      best_rating ? parseFloat(String(best_rating)) : null,
+      review_number ? parseInt(String(review_number), 10) : null,
       id
     );
 
@@ -209,12 +194,10 @@ export async function DELETE(
 
     const row = existingRows[0];
     if (row.thumbnail_path) {
-      const fullPath = path.join(process.cwd(), 'public', row.thumbnail_path.replace(/^\//, ''));
-      await unlink(fullPath).catch(() => {});
+      await deleteUploadedFile(row.thumbnail_path);
     }
     if (row.og_image_path) {
-      const fullPath = path.join(process.cwd(), 'public', row.og_image_path.replace(/^\//, ''));
-      await unlink(fullPath).catch(() => {});
+      await deleteUploadedFile(row.og_image_path);
     }
 
     await prisma.$executeRawUnsafe(`DELETE FROM scholarships WHERE id = ?`, id);
@@ -231,4 +214,3 @@ export async function DELETE(
     );
   }
 }
-

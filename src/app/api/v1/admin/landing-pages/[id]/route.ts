@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile, deleteUploadedFile } from '@/lib/fileStorage';
 
 export async function GET(
   req: Request,
@@ -51,16 +50,8 @@ export async function PUT(
       const file = formData.get('date_and_address_image') as File | null;
 
       if (file && typeof file === 'object' && file.name) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = path.extname(file.name);
-        const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'scholarship');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        date_and_address_image_path = `uploads/scholarship/${fileName}`;
+        const saved = await saveUploadedFile(file, file.name, 'landingpage');
+        date_and_address_image_path = saved.file_path;
       }
     } else {
       const body = await req.json();
@@ -116,6 +107,10 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+    const rows: any[] = await prisma.$queryRawUnsafe(`SELECT date_and_address_image FROM landing_pages WHERE id = ?`, id);
+    if (rows.length > 0 && rows[0].date_and_address_image) {
+      await deleteUploadedFile(rows[0].date_and_address_image);
+    }
     await prisma.$executeRawUnsafe(`DELETE FROM landing_pages WHERE id = ?`, id);
     return NextResponse.json({ status: true, message: 'Record deleted successfully' });
   } catch (error: any) {
@@ -123,4 +118,3 @@ export async function DELETE(
     return NextResponse.json({ status: false, message: 'Failed to delete record', error: error.message }, { status: 500 });
   }
 }
-

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 import {
   GraduationCap,
   Plus,
@@ -973,10 +974,16 @@ export default function CourseSpecializations() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            setFormData({ ...formData, og_image_path: file.name });
+                            try {
+                              const res = await uploadFileToStorage(file, 'seo');
+                              setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
+                              showToast('success', 'OG image uploaded successfully');
+                            } catch (err: any) {
+                              showToast('error', err.message || 'Failed to upload OG image');
+                            }
                           }
                         }}
                         className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
@@ -998,10 +1005,16 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          setFormData({ ...formData, thumbnail_path: file.name });
+                          try {
+                            const res = await uploadFileToStorage(file, 'specializations');
+                            setFormData((prev) => ({ ...prev, thumbnail_path: res.file_path }));
+                            showToast('success', 'Thumbnail uploaded successfully');
+                          } catch (err: any) {
+                            showToast('error', err.message || 'Failed to upload thumbnail');
+                          }
                         }
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
@@ -1018,10 +1031,16 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          setFormData({ ...formData, banner_path: file.name });
+                          try {
+                            const res = await uploadFileToStorage(file, 'specializations');
+                            setFormData((prev) => ({ ...prev, banner_path: res.file_path }));
+                            showToast('success', 'Banner uploaded successfully');
+                          } catch (err: any) {
+                            showToast('error', err.message || 'Failed to upload banner');
+                          }
                         }
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
@@ -1038,10 +1057,16 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          setFormData({ ...formData, content_image_path: file.name });
+                          try {
+                            const res = await uploadFileToStorage(file, 'specializations');
+                            setFormData((prev) => ({ ...prev, content_image_path: res.file_path }));
+                            showToast('success', 'Content image uploaded successfully');
+                          } catch (err: any) {
+                            showToast('error', err.message || 'Failed to upload content image');
+                          }
                         }
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"

@@ -13,6 +13,7 @@ import {
   RefreshCw,
   PenTool
 } from 'lucide-react';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 
 interface AuthorItem {
   id: number;
@@ -364,15 +365,30 @@ export default function Authors() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Profile Image Path
+                  Profile Image
                 </label>
                 <input
-                  type="text"
-                  placeholder="/uploads/authors/sarah.jpg"
-                  value={formData.profile_image}
-                  onChange={(e) => setFormData({ ...formData, profile_image: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        const res = await uploadFileToStorage(file, 'author');
+                        setFormData((prev) => ({ ...prev, profile_image: res.file_path }));
+                        showToast('success', 'Profile image uploaded successfully');
+                      } catch (err: any) {
+                        showToast('error', err.message || 'Upload failed');
+                      }
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
+                {formData.profile_image && (
+                  <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                    Current: {formData.profile_image}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

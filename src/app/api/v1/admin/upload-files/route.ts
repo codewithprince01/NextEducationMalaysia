@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile } from '@/lib/fileStorage';
 
 export async function GET() {
   try {
@@ -32,28 +31,18 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const title = formData.get('title') as string;
+    const title = (formData.get('title') as string) || '';
     const file = formData.get('file') as File | null;
     const manualFilePath = formData.get('file_path') as string | null;
-
-    if (!title) {
-      return NextResponse.json({ status: false, message: 'Title is required' }, { status: 400 });
-    }
+    const targetFolder = (formData.get('folder') as string) || 'files';
 
     let fileName = '';
     let filePath = '';
 
     if (file && typeof file === 'object' && file.name) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const ext = path.extname(file.name);
-      const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-      fileName = `${Date.now()}_${baseName}${ext}`;
-
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'files');
-      await mkdir(uploadDir, { recursive: true });
-      await writeFile(path.join(uploadDir, fileName), buffer);
-
-      filePath = `uploads/files/${fileName}`;
+      const res = await saveUploadedFile(file, file.name, targetFolder);
+      fileName = res.file_name;
+      filePath = res.file_path;
     } else if (manualFilePath) {
       filePath = manualFilePath.startsWith('/') ? manualFilePath.slice(1) : manualFilePath;
       fileName = filePath.split('/').pop() || filePath;
@@ -61,22 +50,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: 'File is required' }, { status: 400 });
     }
 
+    const docTitle = title || file?.name || fileName;
     const now = new Date();
 
+    // Insert record into upload_files if title or file was uploaded
     await prisma.$executeRawUnsafe(
       `INSERT INTO upload_files (title, file_name, file_path, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?)`,
-      title,
+      docTitle,
       fileName,
       filePath,
       now,
       now
     );
 
-    return NextResponse.json({ status: true, message: 'File uploaded successfully' });
+    return NextResponse.json({
+      status: true,
+      success: true,
+      message: 'File uploaded successfully',
+      file_name: fileName,
+      file_path: filePath,
+      file_url: `/storage/${filePath.replace(/^\//, '')}`,
+    });
   } catch (error: any) {
     console.error('Error uploading file:', error);
     return NextResponse.json({ status: false, message: 'Failed to upload file', error: error.message }, { status: 500 });
   }
 }
-

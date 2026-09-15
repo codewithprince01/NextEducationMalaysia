@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile, deleteUploadedFile } from '@/lib/fileStorage';
 
 export async function GET(
   req: Request,
@@ -75,17 +74,9 @@ export async function PUT(
 
       const file = formData.get('banner') as File | null;
       if (file && typeof file === 'object' && file.name) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = path.extname(file.name);
-        const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'banners');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        banner_name = fileName;
-        banner_path = `uploads/banners/${fileName}`;
+        const saved = await saveUploadedFile(file, file.name, 'page-banners', existing.banner_path);
+        banner_name = saved.file_name;
+        banner_path = saved.file_path;
       }
     } else {
       const body = await req.json();
@@ -139,8 +130,7 @@ export async function DELETE(
 
     const row = existingRows[0];
     if (row.banner_path) {
-      const fullPath = path.join(process.cwd(), 'public', row.banner_path.replace(/^\//, ''));
-      await unlink(fullPath).catch(() => {});
+      await deleteUploadedFile(row.banner_path);
     }
 
     await prisma.$executeRawUnsafe(`DELETE FROM page_banners WHERE id = ?`, id);
@@ -157,4 +147,3 @@ export async function DELETE(
     );
   }
 }
-

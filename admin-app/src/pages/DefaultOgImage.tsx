@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -284,10 +285,16 @@ export default function DefaultOgImage() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      setFormData({ ...formData, file_path: file.name });
+                      try {
+                        const res = await uploadFileToStorage(file, 'seo');
+                        setFormData((prev) => ({ ...prev, file_path: res.file_path }));
+                        showToast('success', 'Image uploaded successfully');
+                      } catch (err: any) {
+                        showToast('error', err.message || 'Failed to upload image');
+                      }
                     }
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"

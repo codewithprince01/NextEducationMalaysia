@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
 import { uploadToRemoteStorage, getRemoteFileUrl } from '@/lib/remoteStorage';
+import { saveUploadedFile } from '@/lib/fileStorage';
 import path from 'path';
 
 export async function GET(request: Request) {
@@ -254,13 +255,21 @@ export async function POST(request: Request) {
       let storageDriver = 'remote_ftp';
 
       if (entry.buffer) {
-        const subFolder = `university_docs/${university_id}/${categorySlug}`;
-        const remoteRes = await uploadToRemoteStorage(entry.buffer, subFolder, originalName, mimeType);
-        finalFilePath = remoteRes.file_path;
-        extension = remoteRes.extension;
-        fileSize = remoteRes.file_size;
-        mimeType = remoteRes.mime_type;
-        storageDriver = remoteRes.storage_driver;
+        const folder = `university_docs/${university_id}/${categorySlug}`;
+        const blob = new Blob([new Uint8Array(entry.buffer)]);
+        const localRes = await saveUploadedFile(blob, originalName, folder);
+        finalFilePath = localRes.file_path;
+
+        try {
+          const remoteRes = await uploadToRemoteStorage(entry.buffer, folder, originalName, mimeType);
+          if (remoteRes && remoteRes.file_path) {
+            finalFilePath = remoteRes.file_path;
+            storageDriver = remoteRes.storage_driver;
+          }
+        } catch (e) {
+          console.warn('Remote storage upload warning (falling back to local file):', e);
+          storageDriver = 'local';
+        }
       } else if (entry.manualPath) {
         finalFilePath = entry.manualPath;
       }

@@ -12,6 +12,7 @@ import {
   Search,
   Image as ImageIcon
 } from 'lucide-react';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 
 interface InstituteTypeOption {
   id: number;
@@ -626,27 +627,55 @@ export default function AddUniversity() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Logo Path / URL</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Upload Logo</label>
               <input
-                type="text"
-                name="logo_path"
-                value={formData.logo_path}
-                onChange={handleChange}
-                placeholder="uploads/university/logo.png"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    try {
+                      const res = await uploadFileToStorage(file, 'university');
+                      setFormData((prev) => ({ ...prev, logo_path: res.file_path }));
+                      showToast('success', 'Logo uploaded successfully');
+                    } catch (err: any) {
+                      showToast('error', err.message || 'Failed to upload logo');
+                    }
+                  }
+                }}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
+              {formData.logo_path && (
+                <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                  Current: {formData.logo_path}
+                </span>
+              )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Banner Path / URL</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Upload Banner</label>
               <input
-                type="text"
-                name="banner_path"
-                value={formData.banner_path}
-                onChange={handleChange}
-                placeholder="uploads/university/banner.jpg"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    try {
+                      const res = await uploadFileToStorage(file, 'university');
+                      setFormData((prev) => ({ ...prev, banner_path: res.file_path }));
+                      showToast('success', 'Banner uploaded successfully');
+                    } catch (err: any) {
+                      showToast('error', err.message || 'Failed to upload banner');
+                    }
+                  }
+                }}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
+              {formData.banner_path && (
+                <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                  Current: {formData.banner_path}
+                </span>
+              )}
             </div>
 
             <div>
@@ -654,17 +683,23 @@ export default function AddUniversity() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    setFormData((prev) => ({ ...prev, og_image_path: file.name }));
+                    try {
+                      const res = await uploadFileToStorage(file, 'university');
+                      setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
+                      showToast('success', 'OG Image uploaded successfully');
+                    } catch (err: any) {
+                      showToast('error', err.message || 'Failed to upload OG image');
+                    }
                   }
                 }}
                 className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
               {formData.og_image_path && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                  Current / Selected: {formData.og_image_path}
+                  Current: {formData.og_image_path}
                 </span>
               )}
             </div>

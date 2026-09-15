@@ -8,6 +8,8 @@ import {
   FileText
 } from 'lucide-react';
 
+import { uploadFileToStorage } from '@/lib/uploadHelper';
+
 interface CategoryOption {
   id: number;
   category_name: string;
@@ -289,10 +291,16 @@ export default function AddEditBlog() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      setFormData({ ...formData, thumbnail_path: file.name });
+                      try {
+                        const res = await uploadFileToStorage(file, 'blogs');
+                        setFormData((prev) => ({ ...prev, thumbnail_path: res.file_path }));
+                        showToast('success', 'Thumbnail uploaded successfully');
+                      } catch (err: any) {
+                        showToast('error', err.message || 'Failed to upload thumbnail');
+                      }
                     }
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
@@ -411,10 +419,16 @@ export default function AddEditBlog() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        setFormData({ ...formData, og_image_path: file.name });
+                        try {
+                          const res = await uploadFileToStorage(file, 'blogs');
+                          setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
+                          showToast('success', 'OG Image uploaded successfully');
+                        } catch (err: any) {
+                          showToast('error', err.message || 'Failed to upload OG image');
+                        }
                       }
                     }}
                     className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"

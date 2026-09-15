@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile } from '@/lib/fileStorage';
 
 export async function GET() {
   try {
@@ -51,17 +50,9 @@ export async function POST(req: Request) {
 
       const file = formData.get('banner') as File | null;
       if (file && typeof file === 'object' && file.name) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = path.extname(file.name);
-        const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'banners');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        banner_name = fileName;
-        banner_path = `uploads/banners/${fileName}`;
+        const saved = await saveUploadedFile(file, file.name, 'page-banners');
+        banner_name = saved.file_name;
+        banner_path = saved.file_path;
       }
     } else {
       const body = await req.json();
@@ -100,4 +91,3 @@ export async function POST(req: Request) {
     );
   }
 }
-

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { saveUploadedFile } from '@/lib/fileStorage';
 
 export async function GET() {
   try {
@@ -85,38 +84,22 @@ export async function POST(req: Request) {
 
       const thumbFile = formData.get('thumbnail') as File | null;
       if (thumbFile && typeof thumbFile === 'object' && thumbFile.name) {
-        const buffer = Buffer.from(await thumbFile.arrayBuffer());
-        const ext = path.extname(thumbFile.name);
-        const baseName = path.basename(thumbFile.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_thumb_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'scholarship');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        thumbnail_name = fileName;
-        thumbnail_path = `uploads/scholarship/${fileName}`;
+        const saved = await saveUploadedFile(thumbFile, thumbFile.name, 'scholarship');
+        thumbnail_name = saved.file_name;
+        thumbnail_path = saved.file_path;
       }
 
       const ogFile = formData.get('og_image') as File | null;
       if (ogFile && typeof ogFile === 'object' && ogFile.name) {
-        const buffer = Buffer.from(await ogFile.arrayBuffer());
-        const ext = path.extname(ogFile.name);
-        const baseName = path.basename(ogFile.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_og_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'scholarship');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        og_image_name = fileName;
-        og_image_path = `uploads/scholarship/${fileName}`;
+        const savedOg = await saveUploadedFile(ogFile, ogFile.name, 'scholarship');
+        og_image_name = savedOg.file_name;
+        og_image_path = savedOg.file_path;
       }
     } else {
       const body = await req.json();
       title = body.title || '';
       slug = body.slug || '';
-      active_status = String(body.active_status ?? '1');
+      active_status = body.active_status !== undefined ? String(body.active_status) : '1';
       type = body.type || '';
       page_type = body.page_type || '';
       landing_page_link = body.landing_page_link || '';
@@ -136,18 +119,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ status: false, message: 'Title is required' }, { status: 400 });
     }
 
-    const finalSlug = slug.trim() ? slugify(slug) : slugify(title);
+    const slugVal = slug ? slugify(slug) : slugify(title);
+    const now = new Date();
 
     await prisma.$executeRawUnsafe(
-      `INSERT INTO scholarships (
-        website, title, slug, active_status, type, page_type, landing_page_link,
-        shortnote, thumbnail_name, thumbnail_path, og_image_name, og_image_path,
-        meta_title, meta_keyword, meta_description, page_content, seo_rating, best_rating, review_number
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      'MYS',
+      `INSERT INTO scholarships (website, title, slug, active_status, type, page_type, landing_page_link, shortnote, thumbnail_name, thumbnail_path, og_image_name, og_image_path, meta_title, meta_keyword, meta_description, page_content, seo_rating, best_rating, review_number, created_at, updated_at)
+       VALUES ('MYS', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       title,
-      finalSlug,
-      active_status,
+      slugVal,
+      parseInt(active_status, 10) || 1,
       type,
       page_type,
       landing_page_link,
@@ -160,15 +140,14 @@ export async function POST(req: Request) {
       meta_keyword,
       meta_description,
       page_content,
-      seo_rating,
-      best_rating,
-      review_number
+      seo_rating ? parseFloat(seo_rating) : null,
+      best_rating ? parseFloat(best_rating) : null,
+      review_number ? parseInt(review_number, 10) : null,
+      now,
+      now
     );
 
-    return NextResponse.json({
-      status: true,
-      message: 'Scholarship created successfully',
-    });
+    return NextResponse.json({ status: true, message: 'Scholarship created successfully' });
   } catch (error: any) {
     console.error('Error creating scholarship:', error);
     return NextResponse.json(
@@ -177,4 +156,3 @@ export async function POST(req: Request) {
     );
   }
 }
-
