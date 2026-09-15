@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="35" height="35" viewBox="0 0 35 35">
+  <defs>
+    <pattern id="pattern" preserveAspectRatio="none" width="100%" height="100%" viewBox="0 0 255 128">
+      <image width="255" height="128" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAP8AAACACAYAAADEfL/eAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAHPSURBVHhe7daxTQNBEEDROWJSZxA5oYtzF+6FBEqzm3A7x0lsF/89zWp3CvjSbsfMOU3Pj/e53a9rg5a3dQMx4oco8UOU+CFK/BAlfogSP0SJH6LED1HihyjxQ5T4IUr8ECV+iBI/RIkfosQPUeKHKPFDlPghSvwQJX6IEj9EiR+ixA9R4oco8UOU+CFK/BAlfogSP0SJH6LED1HihyjxQ5T4IUr8ECV+iBI/RIkfosQPUdsxc07T6+tzfr/va4OWdPyz7zOPx1qgxbcfosQPUeKHKPFDlPghSvwQJX6IEj9EiR+ixA9R4oco8UOU+CFK/BAlfogSP0SJH6LED1HihyjxQ5T4IUr8ECV+iBI/RIkfosQPUeKHKPFDlPghSvwQJX6IEj9EiR+ixA9R4oco8UOU+CFK/BAlfogSP0SJH6K2Y+acptflMj/7vjZoScf/PM/t/wk5vv0QJX6IEj9EiR+ixA9R4oco8UOU+CFK/BAlfogSP0SJH6LED1HihyjxQ5T4IUr8ECV+iBI/RIkfosQPUeKHKPFDlPghSvwQJX6IEj9EiR+ixA9R4oco8UOU+CFK/BAlfogSP0SJH6LED1HihyjxQ5T4IUr8kDTzB0weE/0u2cR2AAAAAElFTkSuQmCC"/>
+    </pattern>
+  </defs>
+  <g id="Group_1" data-name="Group 1" transform="translate(-981 -290)">
+    <path id="Path_1" data-name="Path 1" d="M0,0H35V35H0Z" transform="translate(981 290)" fill="#ffffff"/>
+    <rect id="Image_1" data-name="Image 1" width="35" height="18" transform="translate(981 299)" fill="url(#pattern)"/>
+  </g>
+</svg>
