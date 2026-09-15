@@ -1,0 +1,28 @@
+# Disable directory listing
+Options -Indexes
+
+# --- Deny direct access to any PHP files (Apache 2.4+) ---
+<IfModule mod_authz_core.c>
+  <FilesMatch "\.(php|php[0-9]|phtml)$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+# --- Fallback for Apache 2.2 ---
+<IfModule !mod_authz_core.c>
+  <FilesMatch "\.(php|php[0-9]|phtml)$">
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+# Also remove handlers so PHP won't be executed if server uses AddHandler
+<IfModule mod_mime.c>
+  RemoveHandler .php .phtml .php3 .php4 .php5
+  RemoveType .php .phtml .php3 .php4 .php5
+</IfModule>
+
+# Optional: force downloads for unsafe extensions (if you prefer)
+# <FilesMatch "\.(php|phps|phtml|php3|php4|php5)$">
+#   ForceType application/octet-stream
+#   Header set Content-Disposition attachment
+# </FilesMatch>
