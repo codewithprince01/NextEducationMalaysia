@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -354,7 +355,7 @@ export default function OurPartners() {
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
                     <td className="py-3.5 px-4 font-semibold text-slate-800 flex items-center gap-2">
                       {item.profile_image ? (
-                        <img src={item.profile_image} alt={item.name} className="w-8 h-8 rounded-full object-cover border" />
+                        <img src={getStorageUrl(item.profile_image)} alt={item.name} className="w-8 h-8 rounded-full object-cover border" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
                           {item.name ? item.name.charAt(0).toUpperCase() : 'P'}

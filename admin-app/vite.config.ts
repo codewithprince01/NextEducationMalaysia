@@ -42,6 +42,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/storage': {
+        target: NEXT_ORIGIN,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/uploads': {
+        target: NEXT_ORIGIN,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })

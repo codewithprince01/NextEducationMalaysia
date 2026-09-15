@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   GraduationCap,
   Search,
@@ -680,7 +681,7 @@ export default function Scholarships() {
                           <span className="text-slate-400">Thumbnail:</span>
                           {item.thumbnail_path ? (
                             <a
-                              href={item.thumbnail_path}
+                              href={getStorageUrl(item.thumbnail_path)}
                               target="_blank"
                               rel="noreferrer"
                               className="text-indigo-600 hover:underline flex items-center gap-1"
@@ -695,7 +696,7 @@ export default function Scholarships() {
                           <span className="text-slate-400">Og image:</span>
                           {item.og_image_path ? (
                             <a
-                              href={item.og_image_path}
+                              href={getStorageUrl(item.og_image_path)}
                               target="_blank"
                               rel="noreferrer"
                               className="text-indigo-600 hover:underline flex items-center gap-1"

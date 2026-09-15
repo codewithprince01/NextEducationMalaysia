@@ -1,7 +1,7 @@
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import { slugify } from '@/lib/utils';
+import { writeFile, mkdir, unlink } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
+import { slugify } from "@/lib/utils";
 
 export interface UploadedFileResult {
   file_name: string;
@@ -17,29 +17,34 @@ export async function saveUploadedFile(
   originalName: string,
   folder: string,
   oldFilePath?: string | null,
-  useDateFolders: boolean = false
+  useDateFolders: boolean = false,
 ): Promise<UploadedFileResult> {
   if (oldFilePath) {
     await deleteUploadedFile(oldFilePath);
   }
 
-  const ext = path.extname(originalName) || '.bin';
+  const ext = path.extname(originalName) || ".bin";
   const rawBase = path.basename(originalName, ext);
-  const fileSlug = slugify(rawBase) || 'file';
+  const fileSlug = slugify(rawBase) || "file";
   const fileName = `${fileSlug}_${Date.now()}${ext.toLowerCase()}`;
 
-  const cleanFolder = folder.replace(/^\/+|\/+$/g, '');
+  const cleanFolder = folder.replace(/^\/+|\/+$/g, "");
 
   let relativeSubDir = `uploads/${cleanFolder}`;
   if (useDateFolders) {
     const now = new Date();
     const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
     relativeSubDir = `uploads/${cleanFolder}/${yyyy}/${mm}/${dd}`;
   }
 
-  const absoluteDir = path.join(process.cwd(), 'public', 'storage', relativeSubDir);
+  const absoluteDir = path.join(
+    process.cwd(),
+    "public",
+    "storage",
+    relativeSubDir,
+  );
   await mkdir(absoluteDir, { recursive: true });
 
   const absoluteFilePath = path.join(absoluteDir, fileName);
@@ -58,21 +63,23 @@ export async function saveUploadedFile(
 /**
  * Delete a file from local `public/storage` if it exists.
  */
-export async function deleteUploadedFile(filePath?: string | null): Promise<boolean> {
+export async function deleteUploadedFile(
+  filePath?: string | null,
+): Promise<boolean> {
   if (!filePath) return false;
   try {
-    const cleanPath = filePath.replace(/^\/+/, '');
+    const cleanPath = filePath.replace(/^\/+/, "");
 
     // Check under public/storage/ first
     let absolutePath = path.join(
       process.cwd(),
-      'public',
-      'storage',
-      cleanPath.replace(/^storage\//, '')
+      "public",
+      "storage",
+      cleanPath.replace(/^storage\//, ""),
     );
 
     if (!existsSync(absolutePath)) {
-      absolutePath = path.join(process.cwd(), 'public', cleanPath);
+      absolutePath = path.join(process.cwd(), "public", cleanPath);
     }
 
     if (existsSync(absolutePath)) {
@@ -80,7 +87,7 @@ export async function deleteUploadedFile(filePath?: string | null): Promise<bool
       return true;
     }
   } catch (err) {
-    console.warn('Could not delete file:', filePath, err);
+    console.warn("Could not delete file:", filePath, err);
   }
   return false;
 }

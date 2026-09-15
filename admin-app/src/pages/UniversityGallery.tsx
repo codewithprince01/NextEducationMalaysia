@@ -251,9 +251,8 @@ export default function UniversityGallery() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all ${
-            toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -347,22 +346,20 @@ export default function UniversityGallery() {
           <div className="flex items-center bg-slate-100 p-1 rounded-lg shrink-0">
             <button
               onClick={() => setActiveTab('photos')}
-              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${
-                activeTab === 'photos'
+              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${activeTab === 'photos'
                   ? 'bg-white text-indigo-600 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <ImageIcon className="w-3.5 h-3.5" />
               <span>Photos ({photos.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('videos')}
-              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${
-                activeTab === 'videos'
+              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${activeTab === 'videos'
                   ? 'bg-white text-purple-600 shadow-xs'
                   : 'text-slate-600 hover:text-slate-900'
-              }`}
+                }`}
             >
               <VideoIcon className="w-3.5 h-3.5" />
               <span>Videos ({videos.length})</span>
@@ -478,44 +475,44 @@ export default function UniversityGallery() {
                   {videos.map((item) => {
                     const vUrl = item.video_url || item.video_link || '';
                     return (
-                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-6 font-bold text-slate-400">#{item.id}</td>
-                      <td className="py-4 px-6 font-extrabold text-slate-900 text-xs">
-                        {item.title || <span className="text-slate-400 italic">No Title</span>}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
+                      <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="py-4 px-6 font-bold text-slate-400">#{item.id}</td>
+                        <td className="py-4 px-6 font-extrabold text-slate-900 text-xs">
+                          {item.title || <span className="text-slate-400 italic">No Title</span>}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setPreviewMedia({ type: 'video', url: vUrl })}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-600 border border-purple-500 hover:bg-purple-50 rounded-md transition-colors"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> View Video
+                            </button>
+                            <button
+                              onClick={() => handleDownload(vUrl)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-md transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" /> Download
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-[11px] text-slate-500 font-medium">
+                          <div>Created: <b className="text-slate-700">{item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</b></div>
+                          {item.updated_at && (
+                            <div>Updated: <b className="text-slate-700">{new Date(item.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</b></div>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 text-right">
                           <button
-                            onClick={() => setPreviewMedia({ type: 'video', url: vUrl })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-600 border border-purple-500 hover:bg-purple-50 rounded-md transition-colors"
+                            onClick={() => handleDeleteVideo(item)}
+                            className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-colors cursor-pointer"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View Video
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            onClick={() => handleDownload(vUrl)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-md transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" /> Download
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-[11px] text-slate-500 font-medium">
-                        <div>Created: <b className="text-slate-700">{item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</b></div>
-                        {item.updated_at && (
-                          <div>Updated: <b className="text-slate-700">{new Date(item.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</b></div>
-                        )}
-                      </td>
-                      <td className="py-4 px-6 text-right">
-                        <button
-                          onClick={() => handleDeleteVideo(item)}
-                          className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   BookOpen,
   Search,
@@ -549,7 +550,7 @@ export default function Exams() {
                 </tr>
               ) : (
                 paginated.map((item, index) => {
-                  const thumb = item.thumbnail_path || item.imgpath;
+                  const thumb = getStorageUrl(item.thumbnail_path || item.imgpath);
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3.5 px-4 font-medium text-slate-500">

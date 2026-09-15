@@ -445,9 +445,8 @@ export default function CourseSpecializations() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -780,33 +779,30 @@ export default function CourseSpecializations() {
               <button
                 type="button"
                 onClick={() => setActiveTab('basic')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'basic'
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'basic'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 Basic Information
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('seo')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'seo'
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'seo'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 SEO Metadata
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('images')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'images'
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'images'
                     ? 'border-indigo-600 text-indigo-600'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                  }`}
               >
                 Media Assets
               </button>

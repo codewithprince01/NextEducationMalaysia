@@ -1,51 +1,57 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { serializeBigInt } from '@/lib/utils';
-import { uploadToRemoteStorage, getRemoteFileUrl } from '@/lib/remoteStorage';
-import { saveUploadedFile } from '@/lib/fileStorage';
-import path from 'path';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { serializeBigInt } from "@/lib/utils";
+import { uploadToRemoteStorage, getRemoteFileUrl } from "@/lib/remoteStorage";
+import { saveUploadedFile } from "@/lib/fileStorage";
+import path from "path";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const university_id = searchParams.get('university_id');
-    const category_id = searchParams.get('category_id');
-    const file_type = searchParams.get('file_type');
-    const search = searchParams.get('search');
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '15', 10);
+    const university_id = searchParams.get("university_id");
+    const category_id = searchParams.get("category_id");
+    const file_type = searchParams.get("file_type");
+    const search = searchParams.get("search");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "15", 10);
     const offset = (page - 1) * limit;
 
-    const whereConditions: string[] = ['1=1'];
+    const whereConditions: string[] = ["1=1"];
     const params: any[] = [];
 
     if (university_id) {
-      whereConditions.push('d.university_id = ?');
+      whereConditions.push("d.university_id = ?");
       params.push(parseInt(university_id, 10));
     }
 
     if (category_id) {
-      whereConditions.push('d.category_id = ?');
+      whereConditions.push("d.category_id = ?");
       params.push(parseInt(category_id, 10));
     }
 
     if (file_type) {
-      if (file_type === 'image') {
-        whereConditions.push("LOWER(d.extension) IN ('jpg', 'jpeg', 'png', 'webp', 'gif')");
-      } else if (file_type === 'video') {
-        whereConditions.push("LOWER(d.extension) IN ('mp4', 'webm', 'mkv', 'avi', 'mov')");
-      } else if (file_type === 'pdf') {
+      if (file_type === "image") {
+        whereConditions.push(
+          "LOWER(d.extension) IN ('jpg', 'jpeg', 'png', 'webp', 'gif')",
+        );
+      } else if (file_type === "video") {
+        whereConditions.push(
+          "LOWER(d.extension) IN ('mp4', 'webm', 'mkv', 'avi', 'mov')",
+        );
+      } else if (file_type === "pdf") {
         whereConditions.push("LOWER(d.extension) = 'pdf'");
       }
     }
 
     if (search && search.trim()) {
-      whereConditions.push('(d.title LIKE ? OR d.original_name LIKE ? OR u.name LIKE ?)');
+      whereConditions.push(
+        "(d.title LIKE ? OR d.original_name LIKE ? OR u.name LIKE ?)",
+      );
       const s = `%${search.trim()}%`;
       params.push(s, s, s);
     }
 
-    const whereClause = whereConditions.join(' AND ');
+    const whereClause = whereConditions.join(" AND ");
 
     // Total Count
     const [countResult]: any[] = await prisma.$queryRawUnsafe(
@@ -53,7 +59,7 @@ export async function GET(request: Request) {
        FROM university_documents d
        LEFT JOIN universities u ON d.university_id = u.id
        WHERE ${whereClause}`,
-      ...params
+      ...params,
     );
 
     const total = Number(countResult?.total || 0);
@@ -75,7 +81,7 @@ export async function GET(request: Request) {
        LIMIT ? OFFSET ?`,
       ...params,
       limit,
-      offset
+      offset,
     );
 
     // Summary Stats
@@ -91,25 +97,25 @@ export async function GET(request: Request) {
 
     // Fetch Universities for filter
     const universities: any[] = await prisma.$queryRawUnsafe(
-      `SELECT id, name FROM universities ORDER BY name ASC`
+      `SELECT id, name FROM universities ORDER BY name ASC`,
     );
 
     const filterUniversities: any[] = await prisma.$queryRawUnsafe(
       `SELECT DISTINCT u.id, u.name 
        FROM universities u 
        INNER JOIN university_documents d ON d.university_id = u.id 
-       ORDER BY u.name ASC`
+       ORDER BY u.name ASC`,
     );
 
     const categories: any[] = await prisma.$queryRawUnsafe(
-      `SELECT id, name, icon, slug FROM university_document_categories WHERE status = 1 ORDER BY position ASC`
+      `SELECT id, name, icon, slug FROM university_document_categories WHERE status = 1 ORDER BY position ASC`,
     );
 
     const processedRows = rows.map((doc) => {
-      const ext = (doc.extension || '').toLowerCase();
-      const is_image = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
-      const is_video = ['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(ext);
-      const is_pdf = ext === 'pdf';
+      const ext = (doc.extension || "").toLowerCase();
+      const is_image = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
+      const is_video = ["mp4", "webm", "mkv", "avi", "mov"].includes(ext);
+      const is_pdf = ext === "pdf";
       const file_url = getRemoteFileUrl(doc.file_path);
 
       return {
@@ -143,46 +149,56 @@ export async function GET(request: Request) {
       categories: serializeBigInt(categories),
     });
   } catch (error: any) {
-    console.error('Error fetching university documents:', error);
+    console.error("Error fetching university documents:", error);
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch university documents', error: error.message },
-      { status: 500 }
+      {
+        success: false,
+        message: "Failed to fetch university documents",
+        error: error.message,
+      },
+      { status: 500 },
     );
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const contentType = request.headers.get('content-type') || '';
+    const contentType = request.headers.get("content-type") || "";
     let university_id: number;
     let category_id: number;
     let title: string | null = null;
     let description: string | null = null;
-    let visibility: string = 'all';
-    let fileEntries: { buffer?: Buffer; original_name: string; mime_type?: string; file_size?: number; manualPath?: string }[] = [];
+    let visibility: string = "all";
+    let fileEntries: {
+      buffer?: Buffer;
+      original_name: string;
+      mime_type?: string;
+      file_size?: number;
+      manualPath?: string;
+    }[] = [];
 
-    if (contentType.includes('multipart/form-data')) {
+    if (contentType.includes("multipart/form-data")) {
       const formData = await request.formData();
-      university_id = parseInt(formData.get('university_id') as string, 10);
-      category_id = parseInt(formData.get('category_id') as string, 10);
-      title = (formData.get('title') as string) || null;
-      description = (formData.get('description') as string) || null;
-      visibility = (formData.get('visibility') as string) || 'all';
+      university_id = parseInt(formData.get("university_id") as string, 10);
+      category_id = parseInt(formData.get("category_id") as string, 10);
+      title = (formData.get("title") as string) || null;
+      description = (formData.get("description") as string) || null;
+      visibility = (formData.get("visibility") as string) || "all";
 
-      const files = formData.getAll('documents') as (File | string)[];
-      const singleFile = formData.get('document_file') as File | string | null;
+      const files = formData.getAll("documents") as (File | string)[];
+      const singleFile = formData.get("document_file") as File | string | null;
       const allFiles = [...files, ...(singleFile ? [singleFile] : [])];
 
       for (const item of allFiles) {
-        if (typeof item === 'object' && item && item.name) {
+        if (typeof item === "object" && item && item.name) {
           const buffer = Buffer.from(await item.arrayBuffer());
           fileEntries.push({
             buffer,
             original_name: item.name,
-            mime_type: item.type || 'application/octet-stream',
+            mime_type: item.type || "application/octet-stream",
             file_size: item.size,
           });
-        } else if (typeof item === 'string' && item.trim()) {
+        } else if (typeof item === "string" && item.trim()) {
           fileEntries.push({
             original_name: path.basename(item),
             manualPath: item.trim(),
@@ -190,7 +206,7 @@ export async function POST(request: Request) {
         }
       }
 
-      const manualFilePath = formData.get('file_path') as string | null;
+      const manualFilePath = formData.get("file_path") as string | null;
       if (manualFilePath && fileEntries.length === 0) {
         fileEntries.push({
           original_name: path.basename(manualFilePath),
@@ -203,7 +219,7 @@ export async function POST(request: Request) {
       category_id = parseInt(body.category_id, 10);
       title = body.title || null;
       description = body.description || null;
-      visibility = body.visibility || 'all';
+      visibility = body.visibility || "all";
 
       if (body.file_path) {
         fileEntries.push({
@@ -217,42 +233,46 @@ export async function POST(request: Request) {
 
     if (!university_id || isNaN(university_id)) {
       return NextResponse.json(
-        { success: false, message: 'Select a valid university' },
-        { status: 400 }
+        { success: false, message: "Select a valid university" },
+        { status: 400 },
       );
     }
 
     if (!category_id || isNaN(category_id)) {
       return NextResponse.json(
-        { success: false, message: 'Select a valid document category' },
-        { status: 400 }
+        { success: false, message: "Select a valid document category" },
+        { status: 400 },
       );
     }
 
     if (fileEntries.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Please select or provide at least one document file' },
-        { status: 400 }
+        {
+          success: false,
+          message: "Please select or provide at least one document file",
+        },
+        { status: 400 },
       );
     }
 
     // Get category slug
     const [cat]: any[] = await prisma.$queryRawUnsafe(
       `SELECT slug FROM university_document_categories WHERE id = ?`,
-      category_id
+      category_id,
     );
-    const categorySlug = cat?.slug || 'general';
+    const categorySlug = cat?.slug || "general";
 
     const now = new Date();
     let uploadedCount = 0;
 
     for (const entry of fileEntries) {
-      let finalFilePath = '';
-      let originalName = entry.original_name || 'document';
-      let extension = path.extname(originalName).replace('.', '').toLowerCase() || 'file';
+      let finalFilePath = "";
+      let originalName = entry.original_name || "document";
+      let extension =
+        path.extname(originalName).replace(".", "").toLowerCase() || "file";
       let fileSize = entry.file_size || 0;
-      let mimeType = entry.mime_type || 'application/octet-stream';
-      let storageDriver = 'remote_ftp';
+      let mimeType = entry.mime_type || "application/octet-stream";
+      let storageDriver = "remote_ftp";
 
       if (entry.buffer) {
         const folder = `university_docs/${university_id}/${categorySlug}`;
@@ -261,14 +281,22 @@ export async function POST(request: Request) {
         finalFilePath = localRes.file_path;
 
         try {
-          const remoteRes = await uploadToRemoteStorage(entry.buffer, folder, originalName, mimeType);
+          const remoteRes = await uploadToRemoteStorage(
+            entry.buffer,
+            folder,
+            originalName,
+            mimeType,
+          );
           if (remoteRes && remoteRes.file_path) {
             finalFilePath = remoteRes.file_path;
             storageDriver = remoteRes.storage_driver;
           }
         } catch (e) {
-          console.warn('Remote storage upload warning (falling back to local file):', e);
-          storageDriver = 'local';
+          console.warn(
+            "Remote storage upload warning (falling back to local file):",
+            e,
+          );
+          storageDriver = "local";
         }
       } else if (entry.manualPath) {
         finalFilePath = entry.manualPath;
@@ -277,7 +305,9 @@ export async function POST(request: Request) {
       let docTitle = title;
       if (!docTitle || fileEntries.length > 1) {
         docTitle = path.basename(originalName, path.extname(originalName));
-        docTitle = docTitle.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        docTitle = docTitle
+          .replace(/[-_]/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
       }
 
       await prisma.$executeRawUnsafe(
@@ -298,7 +328,7 @@ export async function POST(request: Request) {
         null,
         1,
         now,
-        now
+        now,
       );
 
       uploadedCount++;
@@ -309,17 +339,21 @@ export async function POST(request: Request) {
       message: `${uploadedCount} document(s) uploaded successfully to remote storage (images.britannicaoverseas.com).`,
     });
   } catch (error: any) {
-    console.error('Error uploading university documents:', error);
+    console.error("Error uploading university documents:", error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Failed to upload document', error: error.message },
-      { status: 500 }
+      {
+        success: false,
+        message: error.message || "Failed to upload document",
+        error: error.message,
+      },
+      { status: 500 },
     );
   }
 }
 
 function formatBytes(bytes: number): string {
-  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + ' GB';
-  if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + ' MB';
-  if (bytes >= 1024) return (bytes / 1024).toFixed(2) + ' KB';
-  return bytes + ' bytes';
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(2) + " GB";
+  if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + " MB";
+  if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB";
+  return bytes + " bytes";
 }

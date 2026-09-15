@@ -828,8 +828,8 @@ export default function CourseCategories() {
                 type="button"
                 onClick={() => setActiveTab('basic')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'basic'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 Basic Information
@@ -838,8 +838,8 @@ export default function CourseCategories() {
                 type="button"
                 onClick={() => setActiveTab('seo')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'seo'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 SEO Metadata
@@ -848,8 +848,8 @@ export default function CourseCategories() {
                 type="button"
                 onClick={() => setActiveTab('images')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'images'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 Media Assets

@@ -5,15 +5,15 @@
  */
 export async function uploadFileToStorage(
   file: File,
-  folder: string = 'files'
+  folder: string = "files",
 ): Promise<{ file_path: string; file_url: string }> {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('folder', folder);
-  formData.append('title', file.name);
+  formData.append("file", file);
+  formData.append("folder", folder);
+  formData.append("title", file.name);
 
-  const res = await fetch('/api/v1/admin/upload-files', {
-    method: 'POST',
+  const res = await fetch("/api/v1/admin/upload-files", {
+    method: "POST",
     body: formData,
   });
 
@@ -25,5 +25,23 @@ export async function uploadFileToStorage(
     };
   }
 
-  throw new Error(json.message || json.error || 'Failed to upload file');
+  throw new Error(json.message || json.error || "Failed to upload file");
 }
+
+/**
+ * Helper to convert any DB image/file path into a clean, working URL.
+ * Handles relative paths like "uploads/blogs/..." -> "/storage/uploads/blogs/...".
+ */
+export function getStorageUrl(path?: string | null): string {
+  if (!path) return '';
+  const cleaned = String(path).trim();
+  if (!cleaned) return '';
+  if (/^https?:\/\//i.test(cleaned)) return cleaned;
+
+  const relative = cleaned
+    .replace(/^\/+/, '')
+    .replace(/^(public\/|storage\/)+/, '');
+
+  return `/storage/${relative}`;
+}
+

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -723,7 +724,7 @@ export default function Internships() {
                       <td className="py-3.5 px-4">
                         {item.thumbnail_path ? (
                           <a
-                            href={item.thumbnail_path}
+                            href={getStorageUrl(item.thumbnail_path)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold"

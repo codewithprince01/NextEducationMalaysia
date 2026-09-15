@@ -1,21 +1,21 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { serializeBigInt } from '@/lib/utils';
-import { saveUploadedFile } from '@/lib/fileStorage';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { serializeBigInt } from "@/lib/utils";
+import { saveUploadedFile } from "@/lib/fileStorage";
 
 export async function GET() {
   try {
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM upload_files ORDER BY id DESC`
+      `SELECT * FROM upload_files ORDER BY id DESC`,
     );
 
     const data = rows.map((item) => ({
       ...item,
       file_path: item.file_path
-        ? item.file_path.startsWith('/')
+        ? item.file_path.startsWith("/")
           ? item.file_path
           : `/${item.file_path}`
-        : '',
+        : "",
     }));
 
     return NextResponse.json({
@@ -23,31 +23,43 @@ export async function GET() {
       data: serializeBigInt(data),
     });
   } catch (error: any) {
-    console.error('Error fetching upload_files:', error);
-    return NextResponse.json({ status: false, message: 'Failed to fetch upload files', error: error.message }, { status: 500 });
+    console.error("Error fetching upload_files:", error);
+    return NextResponse.json(
+      {
+        status: false,
+        message: "Failed to fetch upload files",
+        error: error.message,
+      },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const title = (formData.get('title') as string) || '';
-    const file = formData.get('file') as File | null;
-    const manualFilePath = formData.get('file_path') as string | null;
-    const targetFolder = (formData.get('folder') as string) || 'files';
+    const title = (formData.get("title") as string) || "";
+    const file = formData.get("file") as File | null;
+    const manualFilePath = formData.get("file_path") as string | null;
+    const targetFolder = (formData.get("folder") as string) || "files";
 
-    let fileName = '';
-    let filePath = '';
+    let fileName = "";
+    let filePath = "";
 
-    if (file && typeof file === 'object' && file.name) {
+    if (file && typeof file === "object" && file.name) {
       const res = await saveUploadedFile(file, file.name, targetFolder);
       fileName = res.file_name;
       filePath = res.file_path;
     } else if (manualFilePath) {
-      filePath = manualFilePath.startsWith('/') ? manualFilePath.slice(1) : manualFilePath;
-      fileName = filePath.split('/').pop() || filePath;
+      filePath = manualFilePath.startsWith("/")
+        ? manualFilePath.slice(1)
+        : manualFilePath;
+      fileName = filePath.split("/").pop() || filePath;
     } else {
-      return NextResponse.json({ status: false, message: 'File is required' }, { status: 400 });
+      return NextResponse.json(
+        { status: false, message: "File is required" },
+        { status: 400 },
+      );
     }
 
     const docTitle = title || file?.name || fileName;
@@ -61,19 +73,22 @@ export async function POST(req: Request) {
       fileName,
       filePath,
       now,
-      now
+      now,
     );
 
     return NextResponse.json({
       status: true,
       success: true,
-      message: 'File uploaded successfully',
+      message: "File uploaded successfully",
       file_name: fileName,
       file_path: filePath,
-      file_url: `/storage/${filePath.replace(/^\//, '')}`,
+      file_url: `/storage/${filePath.replace(/^\//, "")}`,
     });
   } catch (error: any) {
-    console.error('Error uploading file:', error);
-    return NextResponse.json({ status: false, message: 'Failed to upload file', error: error.message }, { status: 500 });
+    console.error("Error uploading file:", error);
+    return NextResponse.json(
+      { status: false, message: "Failed to upload file", error: error.message },
+      { status: 500 },
+    );
   }
 }
