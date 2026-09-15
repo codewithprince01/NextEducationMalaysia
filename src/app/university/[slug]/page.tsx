@@ -67,8 +67,11 @@ export default async function UniversityPage({ params }: Props) {
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3">
+      {/* 11:4 rather than the old 3:1 — it widens the sidebar by ~41px and takes
+          the same off the content column, and staying in `fr` keeps that split
+          proportional at every screen width. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,11fr)_minmax(0,4fr)] gap-8">
+        <div className="min-w-0">
           <UniversityOverview
             overviews={overviews}
             universityName={university.name}
