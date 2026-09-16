@@ -649,7 +649,7 @@ export default function Blogs() {
                   <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Section Description</label>
                   <RichTextEditor
                     value={contentFormData.description}
-                    onChange={(val) => setContentFormData({ ...contentFormData, description: val })}
+                    onChange={(val) => setContentFormData(prev => ({ ...prev, description: val }))}
                     placeholder="Detailed section content..."
                   />
                 </div>
