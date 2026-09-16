@@ -63,15 +63,23 @@ export async function POST(req: Request) {
     }
 
     const docTitle = title || file?.name || fileName;
+    const fileType = file?.type || fileName.split('.').pop() || 'image';
     const now = new Date();
+
+    const [maxRes]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT IFNULL(MAX(id), 0) + 1 AS next_id FROM upload_files`
+    );
+    const nextId = Number(maxRes?.next_id || 1);
 
     // Insert record into upload_files if title or file was uploaded
     await prisma.$executeRawUnsafe(
-      `INSERT INTO upload_files (title, file_name, file_path, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO upload_files (id, website, title, file_name, file_path, file_type, created_at, updated_at)
+       VALUES (?, 'MYS', ?, ?, ?, ?, ?, ?)`,
+      nextId,
       docTitle,
       fileName,
       filePath,
+      fileType,
       now,
       now,
     );
