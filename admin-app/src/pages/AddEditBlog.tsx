@@ -66,8 +66,8 @@ export default function AddEditBlog() {
       const catJson = await catRes.json();
       const authorJson = await authorRes.json();
 
-      if (catRes.ok && catJson.success) setCategories(catJson.data || []);
-      if (authorRes.ok && authorJson.success) setAuthors(authorJson.data || []);
+      if (catRes.ok && (catJson.success || catJson.status || catJson.data)) setCategories(catJson.data || []);
+      if (authorRes.ok && (authorJson.success || authorJson.status || authorJson.data)) setAuthors(authorJson.data || []);
     } catch {
       console.error('Error fetching categories or authors');
     }
