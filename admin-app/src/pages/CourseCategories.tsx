@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
-import { uploadFileToStorage } from '@/lib/uploadHelper';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import {
   GraduationCap,
   Plus,
@@ -1509,14 +1509,21 @@ export default function CourseCategories() {
             </div>
             <div className="p-4 flex flex-col items-center justify-center bg-slate-900/5">
               <img
-                src={previewImage.url.startsWith('http') ? previewImage.url : `/${previewImage.url}`}
+                src={getStorageUrl(previewImage.url)}
                 alt={previewImage.title}
-                className="max-h-64 object-contain rounded-lg shadow-md"
+                className="max-h-64 object-contain rounded-lg shadow-md bg-white p-1"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
-              <span className="text-[11px] font-mono text-slate-500 mt-3 break-all">{previewImage.url}</span>
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-mono text-indigo-600 hover:underline mt-3 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

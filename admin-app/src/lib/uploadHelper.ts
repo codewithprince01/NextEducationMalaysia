@@ -36,7 +36,7 @@ export function getStorageUrl(path?: string | null): string {
   if (!path) return '';
   const cleaned = String(path).trim();
   if (!cleaned) return '';
-  if (/^https?:\/\//i.test(cleaned)) return cleaned;
+  if (/^(https?:\/\/|data:)/i.test(cleaned)) return cleaned;
 
   const relative = cleaned
     .replace(/^\/+/, '')

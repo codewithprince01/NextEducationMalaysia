@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
-import { uploadFileToStorage } from '@/lib/uploadHelper';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import {
   GraduationCap,
   Plus,
@@ -811,8 +811,8 @@ export default function CourseSpecializations() {
                 type="button"
                 onClick={() => setActiveTab('basic')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'basic'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 Basic Information
@@ -821,8 +821,8 @@ export default function CourseSpecializations() {
                 type="button"
                 onClick={() => setActiveTab('seo')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'seo'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 SEO Metadata
@@ -831,8 +831,8 @@ export default function CourseSpecializations() {
                 type="button"
                 onClick={() => setActiveTab('images')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'images'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 Media Assets
@@ -1294,7 +1294,7 @@ export default function CourseSpecializations() {
             <div className="p-6 flex flex-col items-center">
               <div className="bg-slate-100 p-2 rounded-xl border border-slate-200 mb-3 w-full flex justify-center">
                 <img
-                  src={previewImage.url.startsWith('http') ? previewImage.url : `/${previewImage.url}`}
+                  src={getStorageUrl(previewImage.url)}
                   alt={previewImage.title}
                   className="max-h-80 object-contain rounded-lg shadow-xs"
                   onError={(e) => {
@@ -1302,7 +1302,14 @@ export default function CourseSpecializations() {
                   }}
                 />
               </div>
-              <p className="text-xs font-mono text-slate-600 break-all text-center">{previewImage.url}</p>
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline break-all text-center flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
-import { uploadFileToStorage } from '@/lib/uploadHelper';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -242,9 +242,7 @@ export default function Services() {
   );
 
   const getImageUrl = (path?: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    return `/${path.replace(/^\/+/, '')}`;
+    return getStorageUrl(path);
   };
 
   return (

@@ -15,7 +15,7 @@ import {
   Eye,
   Download
 } from 'lucide-react';
-import { uploadFileToStorage } from '@/lib/uploadHelper';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 
 interface PhotoItem {
   id: number;
@@ -360,8 +360,8 @@ export default function UniversityGallery() {
             <button
               onClick={() => setActiveTab('photos')}
               className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${activeTab === 'photos'
-                  ? 'bg-white text-indigo-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-indigo-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <ImageIcon className="w-3.5 h-3.5" />
@@ -370,8 +370,8 @@ export default function UniversityGallery() {
             <button
               onClick={() => setActiveTab('videos')}
               className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${activeTab === 'videos'
-                  ? 'bg-white text-purple-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-purple-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
                 }`}
             >
               <VideoIcon className="w-3.5 h-3.5" />
@@ -551,11 +551,7 @@ export default function UniversityGallery() {
             <div className="p-6 flex items-center justify-center bg-slate-950 min-h-[300px]">
               {previewMedia.type === 'photo' ? (
                 <img
-                  src={
-                    previewMedia.url.startsWith('http')
-                      ? previewMedia.url
-                      : `/${previewMedia.url.replace(/^\//, '')}`
-                  }
+                  src={getStorageUrl(previewMedia.url)}
                   alt="Gallery Preview"
                   className="max-h-[70vh] max-w-full object-contain rounded-lg shadow-lg"
                   onError={(e) => {
