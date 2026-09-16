@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
-import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 import Pagination from '@/components/common/Pagination';
 import {
   Layers,
@@ -70,6 +70,7 @@ export default function SpecializationLevels() {
   const [bulkUpdating, setBulkUpdating] = useState(false);
 
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     specialization_id: paramSpecId || '',
     level: '',
@@ -138,6 +139,7 @@ export default function SpecializationLevels() {
 
   const handleResetForm = () => {
     setEditingId(null);
+    setOgImageFile(null);
     setFormData({
       specialization_id: paramSpecId || (specializations.length > 0 ? String(specializations[0].id) : ''),
       level: '',
@@ -157,6 +159,7 @@ export default function SpecializationLevels() {
 
   const handleOpenEdit = (item: SpecializationLevelItem) => {
     setEditingId(item.id);
+    setOgImageFile(null);
     setFormData({
       specialization_id: item.specialization_id ? String(item.specialization_id) : (paramSpecId || ''),
       level: item.level || item.level_name || '',
@@ -185,6 +188,12 @@ export default function SpecializationLevels() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/specialization-levels/${editingId}`
         : '/api/v1/admin/specialization-levels';
@@ -194,8 +203,8 @@ export default function SpecializationLevels() {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          specialization_id: formData.specialization_id || paramSpecId
+          ...currentFormData,
+          specialization_id: currentFormData.specialization_id || paramSpecId
         })
       });
 
@@ -366,9 +375,8 @@ export default function SpecializationLevels() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -673,27 +681,16 @@ export default function SpecializationLevels() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        try {
-                          const res = await uploadFileToStorage(file, 'seo');
-                          setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                          showToast('success', 'OG Image uploaded successfully');
-                        } catch (err: any) {
-                          showToast('error', err.message || 'Error uploading image');
-                        }
-                      }
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setOgImageFile(file);
                     }}
                     className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                   />
-                  {formData.og_image_path && (
-                    <div className="mt-1 flex items-center gap-2">
-                      <img src={getStorageUrl(formData.og_image_path)} alt="OG Preview" className="h-6 w-6 object-cover rounded border" />
-                      <span className="text-[11px] text-slate-500 block truncate font-mono">
-                        {formData.og_image_path}
-                      </span>
-                    </div>
+                  {(ogImageFile || formData.og_image_path) && (
+                    <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
+                      {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
+                    </span>
                   )}
                 </div>
               </div>

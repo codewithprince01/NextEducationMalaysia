@@ -111,6 +111,11 @@ export default function CourseSpecializations() {
     status: 1,
   });
 
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [contentImageFile, setContentImageFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
+
   // Preview Modals
   const [previewSeo, setPreviewSeo] = useState<SpecializationItem | null>(null);
   const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
@@ -240,6 +245,10 @@ export default function CourseSpecializations() {
   const handleOpenAddModal = () => {
     setEditingId(null);
     setActiveTab('basic');
+    setThumbnailFile(null);
+    setBannerFile(null);
+    setContentImageFile(null);
+    setOgImageFile(null);
     setFormData({
       name: '',
       course_category_id: categories.length > 0 ? String(categories[0].id) : '',
@@ -266,6 +275,10 @@ export default function CourseSpecializations() {
   const handleOpenEditModal = (item: SpecializationItem) => {
     setEditingId(item.id);
     setActiveTab('basic');
+    setThumbnailFile(null);
+    setBannerFile(null);
+    setContentImageFile(null);
+    setOgImageFile(null);
     setFormData({
       name: item.name || '',
       course_category_id: item.course_category_id ? String(item.course_category_id) : '',
@@ -298,6 +311,24 @@ export default function CourseSpecializations() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'specializations');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (bannerFile) {
+        const res = await uploadFileToStorage(bannerFile, 'specializations');
+        currentFormData.banner_path = res.file_path;
+      }
+      if (contentImageFile) {
+        const res = await uploadFileToStorage(contentImageFile, 'specializations');
+        currentFormData.content_image_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/course-specializations/${editingId}`
         : '/api/v1/admin/course-specializations';
@@ -306,7 +337,7 @@ export default function CourseSpecializations() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -970,23 +1001,12 @@ export default function CourseSpecializations() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            try {
-                              const res = await uploadFileToStorage(file, 'seo');
-                              setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                              showToast('success', 'OG image uploaded successfully');
-                            } catch (err: any) {
-                              showToast('error', err.message || 'Failed to upload OG image');
-                            }
-                          }
-                        }}
+                        onChange={(e) => setOgImageFile(e.target.files?.[0] || null)}
                         className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                       />
-                      {formData.og_image_path && (
+                      {(ogImageFile?.name || formData.og_image_path) && (
                         <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                          Current / Selected: {formData.og_image_path}
+                          {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                         </span>
                       )}
                     </div>
@@ -1001,23 +1021,12 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'specializations');
-                            setFormData((prev) => ({ ...prev, thumbnail_path: res.file_path }));
-                            showToast('success', 'Thumbnail uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload thumbnail');
-                          }
-                        }
-                      }}
+                      onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.thumbnail_path && (
+                    {(thumbnailFile?.name || formData.thumbnail_path) && (
                       <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.thumbnail_path}
+                        {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                       </span>
                     )}
                   </div>
@@ -1027,23 +1036,12 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'specializations');
-                            setFormData((prev) => ({ ...prev, banner_path: res.file_path }));
-                            showToast('success', 'Banner uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload banner');
-                          }
-                        }
-                      }}
+                      onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.banner_path && (
+                    {(bannerFile?.name || formData.banner_path) && (
                       <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.banner_path}
+                        {bannerFile ? `Selected: ${bannerFile.name}` : `Current: ${formData.banner_path}`}
                       </span>
                     )}
                   </div>
@@ -1053,23 +1051,12 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'specializations');
-                            setFormData((prev) => ({ ...prev, content_image_path: res.file_path }));
-                            showToast('success', 'Content image uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload content image');
-                          }
-                        }
-                      }}
+                      onChange={(e) => setContentImageFile(e.target.files?.[0] || null)}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.content_image_path && (
+                    {(contentImageFile?.name || formData.content_image_path) && (
                       <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.content_image_path}
+                        {contentImageFile ? `Selected: ${contentImageFile.name}` : `Current: ${formData.content_image_path}`}
                       </span>
                     )}
                   </div>

@@ -31,6 +31,9 @@ export default function AddEditBlog() {
   const [authors, setAuthors] = useState<AuthorOption[]>([]);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -141,6 +144,16 @@ export default function AddEditBlog() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'blogs');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'blogs');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = isEdit ? `/api/v1/admin/blogs/${id}` : '/api/v1/admin/blogs';
       const method = isEdit ? 'PUT' : 'POST';
 
@@ -148,8 +161,8 @@ export default function AddEditBlog() {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          headline: formData.title,
-          ...formData,
+          headline: currentFormData.title,
+          ...currentFormData,
         }),
       });
       const json = await res.json();
@@ -291,23 +304,15 @@ export default function AddEditBlog() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const res = await uploadFileToStorage(file, 'blogs');
-                        setFormData((prev) => ({ ...prev, thumbnail_path: res.file_path }));
-                        showToast('success', 'Thumbnail uploaded successfully');
-                      } catch (err: any) {
-                        showToast('error', err.message || 'Failed to upload thumbnail');
-                      }
-                    }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setThumbnailFile(file);
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
-                {formData.thumbnail_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                    Current / Selected: {formData.thumbnail_path}
+                {(thumbnailFile || formData.thumbnail_path) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                    {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                   </span>
                 )}
               </div>
@@ -419,23 +424,15 @@ export default function AddEditBlog() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        try {
-                          const res = await uploadFileToStorage(file, 'blogs');
-                          setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                          showToast('success', 'OG Image uploaded successfully');
-                        } catch (err: any) {
-                          showToast('error', err.message || 'Failed to upload OG image');
-                        }
-                      }
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setOgImageFile(file);
                     }}
                     className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                   />
-                  {formData.og_image_path && (
-                    <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                      Current / Selected: {formData.og_image_path}
+                  {(ogImageFile || formData.og_image_path) && (
+                    <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                      {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                     </span>
                   )}
                 </div>

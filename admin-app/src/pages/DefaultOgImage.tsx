@@ -42,6 +42,7 @@ export default function DefaultOgImage() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     page: '',
     file_path: '',
@@ -74,7 +75,7 @@ export default function DefaultOgImage() {
         showToast('error', json.message || 'Failed to fetch default OG images');
       }
     } catch {
-      showToast('error', 'Network error while fetching default OG images');
+      showToast('error', 'Network error while fetching data');
     } finally {
       setLoading(false);
     }
@@ -86,6 +87,7 @@ export default function DefaultOgImage() {
 
   const populateForm = (item: DefaultOgImageItem) => {
     setEditingId(item.id);
+    setSelectedFile(null);
     setFormData({
       page: item.page || '',
       file_path: item.file_path || item.og_image_path || '',
@@ -95,6 +97,7 @@ export default function DefaultOgImage() {
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setSelectedFile(null);
     setFormData({
       page: '',
       file_path: '',
@@ -112,11 +115,12 @@ export default function DefaultOgImage() {
   const handleCancelForm = () => {
     setShowForm(false);
     setEditingId(null);
+    setSelectedFile(null);
     setSearchParams({}, { replace: true });
   };
 
   const handleDelete = async (id: number) => {
-    const isConfirmed = await confirmDelete('Are you sure you want to delete this OG image record?');
+    const isConfirmed = await confirmDelete('Are you sure you want to delete this default OG image?');
     if (!isConfirmed) return;
 
     try {
@@ -143,13 +147,21 @@ export default function DefaultOgImage() {
       showToast('error', 'Enter Page Name is required');
       return;
     }
-    if (!formData.file_path.trim() && !editingId) {
-      showToast('error', 'Upload File is required');
-      return;
-    }
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (selectedFile) {
+        const res = await uploadFileToStorage(selectedFile, 'seo');
+        currentFormData.file_path = res.file_path;
+      }
+
+      if (!currentFormData.file_path.trim() && !editingId) {
+        showToast('error', 'Upload File is required');
+        setSubmitting(false);
+        return;
+      }
+
       const url = editingId
         ? `/api/v1/admin/default-og-image/${editingId}`
         : '/api/v1/admin/default-og-image';
@@ -158,7 +170,7 @@ export default function DefaultOgImage() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -285,23 +297,15 @@ export default function DefaultOgImage() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const res = await uploadFileToStorage(file, 'seo');
-                        setFormData((prev) => ({ ...prev, file_path: res.file_path }));
-                        showToast('success', 'Image uploaded successfully');
-                      } catch (err: any) {
-                        showToast('error', err.message || 'Failed to upload image');
-                      }
-                    }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setSelectedFile(file);
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
-                {formData.file_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate font-mono">
-                    Selected File: {formData.file_path}
+                {(selectedFile || formData.file_path) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
+                    {selectedFile ? `Selected: ${selectedFile.name}` : `Current: ${formData.file_path}`}
                   </span>
                 )}
               </div>

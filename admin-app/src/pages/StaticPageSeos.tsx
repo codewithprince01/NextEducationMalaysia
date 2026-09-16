@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
-import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 import Pagination from '@/components/common/Pagination';
 import {
   Plus,
@@ -35,7 +35,7 @@ interface StaticPageSeoItem {
 }
 
 export default function StaticPageSeos() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const [items, setItems] = useState<StaticPageSeoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,6 +49,7 @@ export default function StaticPageSeos() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     page: '',
     meta_title: '',
@@ -78,18 +79,7 @@ export default function StaticPageSeos() {
       const res = await fetch('/api/v1/admin/static-page-seos');
       const json = await res.json();
       if (res.ok && json.status) {
-        const fetchedItems: StaticPageSeoItem[] = json.data || [];
-        setItems(fetchedItems);
-
-        // Check if there is an edit param in URL
-        const editIdParam = searchParams.get('edit');
-        if (editIdParam) {
-          const targetId = parseInt(editIdParam, 10);
-          const found = fetchedItems.find((i) => i.id === targetId);
-          if (found) {
-            populateForm(found);
-          }
-        }
+        setItems(json.data || []);
       } else {
         showToast('error', json.message || 'Failed to fetch static page SEOs');
       }
@@ -106,6 +96,7 @@ export default function StaticPageSeos() {
 
   const populateForm = (item: StaticPageSeoItem) => {
     setEditingId(item.id);
+    setOgImageFile(null);
     setFormData({
       page: item.page || '',
       meta_title: item.meta_title || '',
@@ -121,6 +112,7 @@ export default function StaticPageSeos() {
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setOgImageFile(null);
     setFormData({
       page: '',
       meta_title: '',
@@ -144,6 +136,7 @@ export default function StaticPageSeos() {
   const handleCancelForm = () => {
     setShowForm(false);
     setEditingId(null);
+    setOgImageFile(null);
     setSearchParams({}, { replace: true });
   };
 
@@ -178,6 +171,12 @@ export default function StaticPageSeos() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/static-page-seos/${editingId}`
         : '/api/v1/admin/static-page-seos';
@@ -186,7 +185,7 @@ export default function StaticPageSeos() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -399,27 +398,16 @@ export default function StaticPageSeos() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const res = await uploadFileToStorage(file, 'seo');
-                        setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                        showToast('success', 'OG Image uploaded successfully');
-                      } catch (err: any) {
-                        showToast('error', err.message || 'Error uploading image');
-                      }
-                    }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setOgImageFile(file);
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
-                {formData.og_image_path && (
-                  <div className="mt-1 flex items-center gap-2">
-                    <img src={getStorageUrl(formData.og_image_path)} alt="OG Preview" className="h-6 w-6 object-cover rounded border" />
-                    <span className="text-[11px] text-slate-500 block truncate font-mono">
-                      {formData.og_image_path}
-                    </span>
-                  </div>
+                {(ogImageFile || formData.og_image_path) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
+                    {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
+                  </span>
                 )}
               </div>
             </div>

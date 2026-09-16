@@ -64,16 +64,17 @@ export default function UniversityGallery() {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const [photoForm, setPhotoForm] = useState({
-    university_id: '',
+    university_id: queryUnivId,
     title: '',
     photo_path: '',
-    is_featured: false,
+    is_featured: 0,
   });
 
   const [videoForm, setVideoForm] = useState({
-    university_id: '',
+    university_id: queryUnivId,
     title: '',
     video_url: '',
   });
@@ -91,7 +92,7 @@ export default function UniversityGallery() {
         setUniversities(json.data || []);
       }
     } catch {
-      console.error('Failed to fetch universities');
+      console.error('Failed to fetch universities list');
     }
   };
 
@@ -106,18 +107,22 @@ export default function UniversityGallery() {
 
     setLoading(true);
     try {
-      const [photoRes, videoRes] = await Promise.all([
+      const [photosRes, videosRes] = await Promise.all([
         fetch(`/api/v1/admin/university-photos?university_id=${univId}`),
         fetch(`/api/v1/admin/university-videos?university_id=${univId}`),
       ]);
 
-      const photoJson = await photoRes.json();
-      const videoJson = await videoRes.json();
+      const photosJson = await photosRes.json();
+      const videosJson = await videosRes.json();
 
-      if (photoRes.ok && photoJson.success) setPhotos(photoJson.data || []);
-      if (videoRes.ok && videoJson.success) setVideos(videoJson.data || []);
+      if (photosRes.ok && photosJson.success) {
+        setPhotos(photosJson.data || []);
+      }
+      if (videosRes.ok && videosJson.success) {
+        setVideos(videosJson.data || []);
+      }
     } catch {
-      showToast('error', 'Error loading gallery items');
+      showToast('error', 'Failed to fetch gallery items');
     } finally {
       setLoading(false);
     }
@@ -125,40 +130,48 @@ export default function UniversityGallery() {
 
   useEffect(() => {
     fetchUniversities();
-    if (queryUnivId) {
-      setSelectedUnivId(queryUnivId);
-      fetchGallery(queryUnivId);
+    if (selectedUnivId) {
+      fetchGallery(selectedUnivId);
     }
-  }, [queryUnivId]);
+  }, []);
 
-  const handleUniversityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleUnivChange = (val: string) => {
     setSelectedUnivId(val);
+    setPhotoForm((prev) => ({ ...prev, university_id: val }));
+    setVideoForm((prev) => ({ ...prev, university_id: val }));
     if (val) {
-      navigate(`/university-gallery?university_id=${val}`);
+      navigate(`/photos-and-videos-gallery?university_id=${val}`);
     }
     fetchGallery(val);
   };
 
   const handleAddPhotoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoForm.university_id || !photoForm.photo_path.trim()) {
-      showToast('error', 'University and photo URL/path are required');
-      return;
-    }
-
     setSubmitting(true);
     try {
+      const currentPhotoForm = { ...photoForm };
+      if (photoFile) {
+        const res = await uploadFileToStorage(photoFile, 'university-photos');
+        currentPhotoForm.photo_path = res.file_path;
+      }
+
+      if (!currentPhotoForm.university_id || !currentPhotoForm.photo_path.trim()) {
+        showToast('error', 'University and photo file are required');
+        setSubmitting(false);
+        return;
+      }
+
       const res = await fetch('/api/v1/admin/university-photos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(photoForm),
+        body: JSON.stringify(currentPhotoForm),
       });
       const json = await res.json();
 
       if (res.ok && json.success) {
         showToast('success', 'Photo added successfully');
         setIsPhotoModalOpen(false);
+        setPhotoFile(null);
         fetchGallery();
       } else {
         showToast('error', json.error || 'Failed to add photo');
@@ -292,7 +305,7 @@ export default function UniversityGallery() {
                   university_id: selectedUnivId || (universities[0]?.id.toString() || ''),
                   title: '',
                   photo_path: '',
-                  is_featured: false,
+                  is_featured: 0,
                 });
                 setIsPhotoModalOpen(true);
               }}
@@ -331,7 +344,7 @@ export default function UniversityGallery() {
             </label>
             <select
               value={selectedUnivId}
-              onChange={handleUniversityChange}
+              onChange={(e) => handleUnivChange(e.target.value)}
               className="w-full sm:w-80 px-3 py-1 rounded-lg border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:border-indigo-600 bg-slate-50"
             >
               <option value="">-- Select a University --</option>
@@ -631,17 +644,9 @@ export default function UniversityGallery() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const res = await uploadFileToStorage(file, 'university-photos');
-                        setPhotoForm((prev) => ({ ...prev, photo_path: res.file_path }));
-                        showToast('success', 'Photo uploaded successfully');
-                      } catch (err: any) {
-                        showToast('error', err.message || 'Upload failed');
-                      }
-                    }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setPhotoFile(file);
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                 />
@@ -656,8 +661,8 @@ export default function UniversityGallery() {
                 <input
                   type="checkbox"
                   id="is_featured"
-                  checked={photoForm.is_featured}
-                  onChange={(e) => setPhotoForm({ ...photoForm, is_featured: e.target.checked })}
+                  checked={Boolean(photoForm.is_featured)}
+                  onChange={(e) => setPhotoForm({ ...photoForm, is_featured: e.target.checked ? 1 : 0 })}
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
                 <label htmlFor="is_featured" className="text-xs font-bold text-slate-700">

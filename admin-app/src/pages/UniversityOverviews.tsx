@@ -62,6 +62,7 @@ export default function UniversityOverviews() {
   // Form State
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     university_id: '',
     title: '',
@@ -136,6 +137,7 @@ export default function UniversityOverviews() {
 
   const handleResetForm = () => {
     setEditingId(null);
+    setThumbnailFile(null);
     setFormData({
       university_id: selectedUnivId,
       title: '',
@@ -147,6 +149,7 @@ export default function UniversityOverviews() {
 
   const handleEditClick = (item: UniversityOverviewItem) => {
     setEditingId(item.id);
+    setThumbnailFile(null);
     setFormData({
       university_id: item.university_id.toString(),
       title: item.title || item.tab || '',
@@ -171,6 +174,12 @@ export default function UniversityOverviews() {
 
     setSubmitting(true);
     try {
+      let thumbnailPath = formData.thumbnail_path;
+      if (thumbnailFile) {
+        const uploadRes = await uploadFileToStorage(thumbnailFile, 'university');
+        thumbnailPath = uploadRes.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/university-overviews/${editingId}`
         : '/api/v1/admin/university-overviews';
@@ -185,6 +194,7 @@ export default function UniversityOverviews() {
           tab: formData.title,
           description: formData.description,
           position: formData.position,
+          thumbnail_path: thumbnailPath,
         }),
       });
       const json = await res.json();
@@ -254,9 +264,8 @@ export default function UniversityOverviews() {
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium text-white transition-all ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium text-white transition-all ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -387,23 +396,15 @@ export default function UniversityOverviews() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'university');
-                            setFormData((prev) => ({ ...prev, thumbnail_path: res.file_path }));
-                            showToast('success', 'Thumbnail uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload thumbnail');
-                          }
-                        }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setThumbnailFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-300 rounded-md bg-slate-50"
                     />
-                    {formData.thumbnail_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Selected: {formData.thumbnail_path}
+                    {(thumbnailFile || formData.thumbnail_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                       </span>
                     )}
                   </div>

@@ -71,6 +71,10 @@ export default function AddUniversity() {
     status: 1
   });
 
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
+
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
@@ -172,13 +176,27 @@ export default function AddUniversity() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (logoFile) {
+        const res = await uploadFileToStorage(logoFile, 'university');
+        currentFormData.logo_path = res.file_path;
+      }
+      if (bannerFile) {
+        const res = await uploadFileToStorage(bannerFile, 'university');
+        currentFormData.banner_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'university');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = isEdit ? `/api/v1/admin/universities/${id}` : '/api/v1/admin/universities';
       const method = isEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(currentFormData)
       });
 
       const json = await res.json();
@@ -630,23 +648,12 @@ export default function AddUniversity() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    try {
-                      const res = await uploadFileToStorage(file, 'university');
-                      setFormData((prev) => ({ ...prev, logo_path: res.file_path }));
-                      showToast('success', 'Logo uploaded successfully');
-                    } catch (err: any) {
-                      showToast('error', err.message || 'Failed to upload logo');
-                    }
-                  }
-                }}
+                onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
                 className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
-              {formData.logo_path && (
+              {(logoFile?.name || formData.logo_path) && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                  Current: {formData.logo_path}
+                  {logoFile ? `Selected: ${logoFile.name}` : `Current: ${formData.logo_path}`}
                 </span>
               )}
             </div>
@@ -656,23 +663,12 @@ export default function AddUniversity() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    try {
-                      const res = await uploadFileToStorage(file, 'university');
-                      setFormData((prev) => ({ ...prev, banner_path: res.file_path }));
-                      showToast('success', 'Banner uploaded successfully');
-                    } catch (err: any) {
-                      showToast('error', err.message || 'Failed to upload banner');
-                    }
-                  }
-                }}
+                onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
                 className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
-              {formData.banner_path && (
+              {(bannerFile?.name || formData.banner_path) && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                  Current: {formData.banner_path}
+                  {bannerFile ? `Selected: ${bannerFile.name}` : `Current: ${formData.banner_path}`}
                 </span>
               )}
             </div>
@@ -682,23 +678,12 @@ export default function AddUniversity() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    try {
-                      const res = await uploadFileToStorage(file, 'university');
-                      setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                      showToast('success', 'OG Image uploaded successfully');
-                    } catch (err: any) {
-                      showToast('error', err.message || 'Failed to upload OG image');
-                    }
-                  }
-                }}
+                onChange={(e) => setOgImageFile(e.target.files?.[0] || null)}
                 className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
-              {formData.og_image_path && (
+              {(ogImageFile?.name || formData.og_image_path) && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                  Current: {formData.og_image_path}
+                  {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                 </span>
               )}
             </div>

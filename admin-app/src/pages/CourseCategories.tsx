@@ -106,6 +106,11 @@ export default function CourseCategories() {
     status: 1,
   });
 
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [contentImageFile, setContentImageFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
+
   // Preview Modals
   const [previewSeo, setPreviewSeo] = useState<CategoryItem | null>(null);
   const [previewShortnote, setPreviewShortnote] = useState<CategoryItem | null>(null);
@@ -181,25 +186,25 @@ export default function CourseCategories() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [catRes, authRes] = await Promise.all([
+      const [catRes, authorRes] = await Promise.all([
         fetch('/api/v1/admin/course-categories'),
         fetch('/api/v1/admin/authors'),
       ]);
 
       const catJson = await catRes.json();
-      const authJson = await authRes.json();
+      const authorJson = await authorRes.json();
 
       if (catRes.ok && catJson.status) {
         setCategories(catJson.data || []);
       } else {
-        showToast('error', catJson.message || 'Failed to fetch categories');
+        showToast('error', catJson.message || 'Failed to load course categories');
       }
 
-      if (authRes.ok && authJson.data) {
-        setAuthors(authJson.data || []);
+      if (authorRes.ok && authorJson.status) {
+        setAuthors(authorJson.data || []);
       }
     } catch {
-      showToast('error', 'Connection error while loading data');
+      showToast('error', 'Connection error while fetching data');
     } finally {
       setLoading(false);
     }
@@ -209,11 +214,11 @@ export default function CourseCategories() {
     fetchData();
   }, []);
 
-  // Export to CSV
+  // Export to CSV Function
   const handleExportCSV = () => {
     if (categories.length === 0) return;
 
-    const headers = ['ID', 'Name', 'Slug', 'Author', 'Shortnote', 'Status', 'Contents Count', 'FAQs Count'];
+    const headers = ['ID', 'Category Name', 'Author', 'Shortnote', 'Status', 'Contents Count', 'FAQs Count'];
     const rows = categories.map((c) => [
       c.id,
       `"${(c.name || '').replace(/"/g, '""')}"`,
@@ -235,10 +240,18 @@ export default function CourseCategories() {
     document.body.removeChild(link);
   };
 
+  const resetFileStates = () => {
+    setOgImageFile(null);
+    setThumbnailFile(null);
+    setBannerFile(null);
+    setContentImageFile(null);
+  };
+
   // Open Add Modal
   const handleOpenAdd = () => {
     setEditingId(null);
     setActiveTab('basic');
+    resetFileStates();
     setFormData({
       name: '',
       author_id: authors.length > 0 ? String(authors[0].id) : '',
@@ -264,6 +277,7 @@ export default function CourseCategories() {
   const handleOpenEdit = (item: CategoryItem) => {
     setEditingId(item.id);
     setActiveTab('basic');
+    resetFileStates();
     setFormData({
       name: item.name || '',
       author_id: item.author_id ? String(item.author_id) : '',
@@ -295,6 +309,24 @@ export default function CourseCategories() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'categories');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (bannerFile) {
+        const res = await uploadFileToStorage(bannerFile, 'categories');
+        currentFormData.banner_path = res.file_path;
+      }
+      if (contentImageFile) {
+        const res = await uploadFileToStorage(contentImageFile, 'categories');
+        currentFormData.content_image_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/course-categories/${editingId}`
         : '/api/v1/admin/course-categories';
@@ -303,7 +335,7 @@ export default function CourseCategories() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -1017,23 +1049,15 @@ export default function CourseCategories() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            try {
-                              const res = await uploadFileToStorage(file, 'seo');
-                              setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                              showToast('success', 'OG image uploaded successfully');
-                            } catch (err: any) {
-                              showToast('error', err.message || 'Failed to upload OG image');
-                            }
-                          }
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setOgImageFile(file);
                         }}
                         className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                       />
-                      {formData.og_image_path && (
-                        <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                          Current / Selected: {formData.og_image_path}
+                      {(ogImageFile || formData.og_image_path) && (
+                        <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                          {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                         </span>
                       )}
                     </div>
@@ -1048,23 +1072,15 @@ export default function CourseCategories() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'categories');
-                            setFormData((prev) => ({ ...prev, thumbnail_path: res.file_path }));
-                            showToast('success', 'Thumbnail uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload thumbnail');
-                          }
-                        }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setThumbnailFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.thumbnail_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.thumbnail_path}
+                    {(thumbnailFile || formData.thumbnail_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                       </span>
                     )}
                   </div>
@@ -1074,23 +1090,15 @@ export default function CourseCategories() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'categories');
-                            setFormData((prev) => ({ ...prev, banner_path: res.file_path }));
-                            showToast('success', 'Banner uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload banner');
-                          }
-                        }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setBannerFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.banner_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.banner_path}
+                    {(bannerFile || formData.banner_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {bannerFile ? `Selected: ${bannerFile.name}` : `Current: ${formData.banner_path}`}
                       </span>
                     )}
                   </div>
@@ -1100,23 +1108,15 @@ export default function CourseCategories() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'categories');
-                            setFormData((prev) => ({ ...prev, content_image_path: res.file_path }));
-                            showToast('success', 'Content image uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload content image');
-                          }
-                        }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setContentImageFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.content_image_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.content_image_path}
+                    {(contentImageFile || formData.content_image_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {contentImageFile ? `Selected: ${contentImageFile.name}` : `Current: ${formData.content_image_path}`}
                       </span>
                     )}
                   </div>
@@ -1126,23 +1126,15 @@ export default function CourseCategories() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          try {
-                            const res = await uploadFileToStorage(file, 'seo');
-                            setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                            showToast('success', 'OG image uploaded successfully');
-                          } catch (err: any) {
-                            showToast('error', err.message || 'Failed to upload OG image');
-                          }
-                        }
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setOgImageFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.og_image_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.og_image_path}
+                    {(ogImageFile || formData.og_image_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                       </span>
                     )}
                   </div>

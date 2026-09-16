@@ -47,6 +47,7 @@ export default function DynamicPageSeos() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     url: '',
     meta_title: '',
@@ -104,6 +105,7 @@ export default function DynamicPageSeos() {
 
   const populateForm = (item: DynamicPageSeoItem) => {
     setEditingId(item.id);
+    setOgImageFile(null);
     setFormData({
       url: item.url || '',
       meta_title: item.meta_title || '',
@@ -119,6 +121,7 @@ export default function DynamicPageSeos() {
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setOgImageFile(null);
     setFormData({
       url: '',
       meta_title: '',
@@ -142,6 +145,7 @@ export default function DynamicPageSeos() {
   const handleCancelForm = () => {
     setShowForm(false);
     setEditingId(null);
+    setOgImageFile(null);
     setSearchParams({}, { replace: true });
   };
 
@@ -176,6 +180,12 @@ export default function DynamicPageSeos() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/dynamic-page-seos/${editingId}`
         : '/api/v1/admin/dynamic-page-seos';
@@ -184,7 +194,7 @@ export default function DynamicPageSeos() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -397,23 +407,15 @@ export default function DynamicPageSeos() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const res = await uploadFileToStorage(file, 'seo');
-                        setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
-                        showToast('success', 'OG image uploaded successfully');
-                      } catch (err: any) {
-                        showToast('error', err.message || 'Failed to upload OG image');
-                      }
-                    }
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setOgImageFile(file);
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
-                {formData.og_image_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate font-mono">
-                    Selected: {formData.og_image_path}
+                {(ogImageFile || formData.og_image_path) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
+                    {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                   </span>
                 )}
               </div>
