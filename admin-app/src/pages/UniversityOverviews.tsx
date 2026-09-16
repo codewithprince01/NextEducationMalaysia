@@ -384,7 +384,7 @@ export default function UniversityOverviews() {
                       required
                       placeholder="Title"
                       value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                       className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -399,6 +399,13 @@ export default function UniversityOverviews() {
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
                         setThumbnailFile(file);
+                        if (file) {
+                          const autoTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                          setFormData((prev) => ({
+                            ...prev,
+                            title: prev.title.trim() ? prev.title : autoTitle,
+                          }));
+                        }
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-300 rounded-md bg-slate-50"
                     />
@@ -416,7 +423,7 @@ export default function UniversityOverviews() {
                     <input
                       type="number"
                       value={formData.position}
-                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, position: e.target.value }))}
                       className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                     />
                   </div>
@@ -428,7 +435,7 @@ export default function UniversityOverviews() {
                   </label>
                   <RichTextEditor
                     value={formData.description}
-                    onChange={(val) => setFormData({ ...formData, description: val })}
+                    onChange={(val) => setFormData((prev) => ({ ...prev, description: val }))}
                     placeholder="Enter description content..."
                   />
                 </div>

@@ -222,9 +222,8 @@ export default function Universities() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>

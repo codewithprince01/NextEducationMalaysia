@@ -307,6 +307,13 @@ export default function AddEditBlog() {
                   onChange={(e) => {
                     const file = e.target.files?.[0] || null;
                     setThumbnailFile(file);
+                    if (file) {
+                      const autoTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                      setFormData((prev) => ({
+                        ...prev,
+                        title: prev.title.trim() ? prev.title : autoTitle,
+                      }));
+                    }
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />

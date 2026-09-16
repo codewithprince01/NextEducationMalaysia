@@ -33,15 +33,14 @@ export async function uploadFileToStorage(
  * Handles relative paths like "uploads/blogs/..." -> "/storage/uploads/blogs/...".
  */
 export function getStorageUrl(path?: string | null): string {
-  if (!path) return '';
+  if (!path) return "";
   const cleaned = String(path).trim();
-  if (!cleaned) return '';
+  if (!cleaned) return "";
   if (/^(https?:\/\/|data:)/i.test(cleaned)) return cleaned;
 
   const relative = cleaned
-    .replace(/^\/+/, '')
-    .replace(/^(public\/|storage\/)+/, '');
+    .replace(/^\/+/, "")
+    .replace(/^(public\/|storage\/)+/, "");
 
   return `/storage/${relative}`;
 }
-
