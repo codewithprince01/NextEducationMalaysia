@@ -63,11 +63,11 @@ export async function POST(req: Request) {
     }
 
     const docTitle = title || file?.name || fileName;
-    const fileType = file?.type || fileName.split('.').pop() || 'image';
+    const fileType = file?.type || fileName.split(".").pop() || "image";
     const now = new Date();
 
     const [maxRes]: any[] = await prisma.$queryRawUnsafe(
-      `SELECT IFNULL(MAX(id), 0) + 1 AS next_id FROM upload_files`
+      `SELECT IFNULL(MAX(id), 0) + 1 AS next_id FROM upload_files`,
     );
     const nextId = Number(maxRes?.next_id || 1);
 

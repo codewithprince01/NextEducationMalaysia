@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import Pagination from '@/components/common/Pagination';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 import {
   Building2,
   Plus,
@@ -385,9 +386,26 @@ export default function UniversityOverviews() {
                     </label>
                     <input
                       type="file"
-                      disabled
-                      className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 border border-slate-300 rounded-md bg-slate-50 cursor-not-allowed"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          try {
+                            const res = await uploadFileToStorage(file, 'university');
+                            setFormData((prev) => ({ ...prev, thumbnail_path: res.file_path }));
+                            showToast('success', 'Thumbnail uploaded successfully');
+                          } catch (err: any) {
+                            showToast('error', err.message || 'Failed to upload thumbnail');
+                          }
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-300 rounded-md bg-slate-50"
                     />
+                    {formData.thumbnail_path && (
+                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                        Selected: {formData.thumbnail_path}
+                      </span>
+                    )}
                   </div>
 
                   <div className="sm:col-span-2">

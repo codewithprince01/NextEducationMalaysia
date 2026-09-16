@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import Pagination from '@/components/common/Pagination';
 import {
   Plus,
@@ -398,18 +399,27 @@ export default function StaticPageSeos() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
-                      setFormData({ ...formData, og_image_path: file.name });
+                      try {
+                        const res = await uploadFileToStorage(file, 'seo');
+                        setFormData((prev) => ({ ...prev, og_image_path: res.file_path }));
+                        showToast('success', 'OG Image uploaded successfully');
+                      } catch (err: any) {
+                        showToast('error', err.message || 'Error uploading image');
+                      }
                     }
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
                 {formData.og_image_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate font-mono">
-                    Selected: {formData.og_image_path}
-                  </span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <img src={getStorageUrl(formData.og_image_path)} alt="OG Preview" className="h-6 w-6 object-cover rounded border" />
+                    <span className="text-[11px] text-slate-500 block truncate font-mono">
+                      {formData.og_image_path}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
