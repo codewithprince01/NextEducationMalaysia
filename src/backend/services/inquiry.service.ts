@@ -31,6 +31,7 @@ export class InquiryService {
     nationality?: string;
     university_id?: string;
     university?: string;
+    intrested_university?: string;
     interested_program?: string;
     interested_course_category?: string;
     interest?: string;
@@ -43,12 +44,13 @@ export class InquiryService {
     extra_fields?: Record<string, unknown>;
   }) {
     const universityId = data.university_id ? Number(data.university_id) : null;
+    const interestedUni = data.intrested_university || data.university || null;
 
     await prisma.$executeRawUnsafe(
       `
       INSERT INTO leads
-      (name, email, country_code, mobile, source, source_path, nationality, university_id, interested_program, interested_course_category, highest_qualification, message, dayslot, timeslot, time_zone, brochure_status, website, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+      (name, email, country_code, mobile, source, source_path, nationality, university_id, intrested_university, interested_program, interested_course_category, highest_qualification, message, dayslot, timeslot, time_zone, brochure_status, website, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
       `,
       data.name,
       data.email,
@@ -58,6 +60,7 @@ export class InquiryService {
       data.source_path,
       data.nationality || null,
       universityId,
+      interestedUni,
       data.interested_program || null,
       data.interested_course_category || null,
       data.highest_qualification || null,

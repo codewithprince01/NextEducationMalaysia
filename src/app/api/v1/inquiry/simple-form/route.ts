@@ -18,6 +18,7 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       sourcePath: body.source_path,
     });
     const nationality = String(body.nationality || '').trim().slice(0, 100);
+    const intrested_university = String(body.intrested_university || body.interested_university || body.university || '').trim().slice(0, 120);
     const interestedProgram = String(body.interested_program || body.program || '').trim().slice(0, 160);
     const interestedCourseCategory = String(body.interested_course_category || body.interest || '').trim().slice(0, 160);
     const message = String(body.message || '').trim();
@@ -34,6 +35,8 @@ export const POST = withMiddleware()(async (req: NextRequest) => {
       source: sourceMeta.source,
       source_path: sourceMeta.source_path,
       nationality: nationality || undefined,
+      intrested_university: intrested_university || undefined,
+      university: intrested_university || undefined,
       interested_program: interestedProgram || undefined,
       interested_course_category: interestedCourseCategory || undefined,
       interest: interestedCourseCategory || undefined,
