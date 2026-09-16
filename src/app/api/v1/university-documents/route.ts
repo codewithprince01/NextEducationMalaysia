@@ -50,17 +50,15 @@ export async function GET(request: Request) {
       }
     }
 
-    // Filter by Visibility
+    // Filter by Visibility if explicitly passed, otherwise show all data (public and admin only both)
     if (visibility === 'all') {
       whereConditions.push("d.visibility = 'all'");
     } else if (visibility === 'agents_only') {
-      whereConditions.push("d.visibility IN ('all', 'agents_only')");
+      whereConditions.push("d.visibility = 'agents_only'");
     } else if (visibility === 'counsellors_only') {
-      whereConditions.push("d.visibility IN ('all', 'counsellors_only')");
+      whereConditions.push("d.visibility = 'counsellors_only'");
     } else if (visibility === 'admin_only') {
-      whereConditions.push("d.visibility IN ('all', 'agents_only', 'counsellors_only', 'admin_only')");
-    } else {
-      whereConditions.push("d.visibility IN ('all', 'agents_only', 'counsellors_only')");
+      whereConditions.push("d.visibility = 'admin_only'");
     }
 
     // Search query keyword
