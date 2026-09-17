@@ -161,7 +161,7 @@ export default function Programs() {
 
   // Form Visibility & Sub-Tabs
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'overview' | 'intl_fees' | 'local_fees' | 'seo'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'overview' | 'intl_fees' | 'local_fees' | 'other_fees' | 'seo'>('basic');
 
   // Pagination & Sorting
   const [currentPage, setCurrentPage] = useState(1);
@@ -578,6 +578,7 @@ export default function Programs() {
       'duration', 'study_mode', 'intake', 'application_deadline', 'campus',
       'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction',
       'scholarship_info', 'is_local', 'is_international', 'accreditations',
+      'tution_fee',
 
       // Local Fees
       'total_fee_local',
@@ -602,7 +603,6 @@ export default function Programs() {
       'tution_fee_after_scholarship_international',
 
       // Untouched other fees
-      'tution_fee',
       'registration_fee',
       'laboratory_fee',
       'library_fee',
@@ -632,12 +632,13 @@ export default function Programs() {
       'Comprehensive IT program covering software engineering and cybersecurity.',
       'STPM with min 2 Principal passes or equivalent.', 'IELTS 5.5', 'English',
       'Up to 30% merit scholarship available', 1, 1, 'MQA Approved',
+      '48000',
       // Local Fees sample
       '35000', '32000', '11000', '11000', '10000', '0', '11000', '5000', '27000',
       // International Fees sample
       '52000', '48000', '16000', '16000', '16000', '16000', '16000', '6000', '42000',
       // Untouched other fees sample
-      '48000', '1500', '', '', '', '', '', '', '500', '2500', '2000', '1000', '', '1500', '', '', '', '', '', '', '', 'MYR', ''
+      '1500', '', '', '', '', '', '', '500', '2500', '2000', '1000', '', '1500', '', '', '', '', '', '', '', 'MYR', ''
     ];
     downloadCSV('university-programs-import-format.csv', headers, [sampleRow]);
     showToast('success', 'Import template format downloaded.');
@@ -722,7 +723,8 @@ export default function Programs() {
       'id', 'course_name', 'course_category_id', 'specialization_id', 'level',
       'duration', 'study_mode', 'intake', 'application_deadline', 'campus',
       'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction',
-      'scholarship_info', 'is_local', 'is_international', 'accreditations'
+      'scholarship_info', 'is_local', 'is_international', 'accreditations',
+      'tution_fee'
     ];
 
     const rows = sorted.map((item) => [
@@ -743,7 +745,8 @@ export default function Programs() {
       item.scholarship_info || '',
       item.is_local ? 1 : 0,
       item.is_international ? 1 : 0,
-      item.accreditations || ''
+      item.accreditations || '',
+      item.tution_fee || ''
     ]);
 
     const univName = selectedUniv?.name ? selectedUniv.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'all';
@@ -783,7 +786,6 @@ export default function Programs() {
       'tution_fee_after_scholarship_international',
 
       // Untouched other fees
-      'tution_fee',
       'registration_fee',
       'laboratory_fee',
       'library_fee',
@@ -835,7 +837,6 @@ export default function Programs() {
       item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
 
       // Untouched other fees
-      item.tution_fee || '',
       item.registration_fee || '',
       item.laboratory_fee || '',
       item.library_fee || '',
@@ -1088,6 +1089,15 @@ export default function Programs() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveFormTab('other_fees')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'other_fees' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" /> Other Fees
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveFormTab('seo')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeFormTab === 'seo' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -1239,7 +1249,18 @@ export default function Programs() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                  <div className="sm:col-span-8">
+                  <div className="sm:col-span-4">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Tuition Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.tution_fee}
+                      onChange={(e) => setFormData({ ...formData, tution_fee: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-5">
                     <label className="block text-xs font-bold text-slate-700 mb-1">Accreditations (Separated by |)</label>
                     <input
                       type="text"
@@ -1250,8 +1271,8 @@ export default function Programs() {
                     />
                   </div>
 
-                  <div className="sm:col-span-4 flex items-center gap-6 pt-5">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                  <div className="sm:col-span-3 flex items-center gap-4 pt-5">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
                       <input
                         type="checkbox"
                         checked={formData.is_local}
@@ -1261,7 +1282,7 @@ export default function Programs() {
                       Is Local
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
                       <input
                         type="checkbox"
                         checked={formData.is_international}
@@ -1443,265 +1464,6 @@ export default function Programs() {
                     />
                   </div>
                 </div>
-
-                {/* Untouched Additional Fee Components */}
-                <div className="pt-2 border-t border-slate-100 space-y-3">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Other Fee Components (Untouched)</span>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Tuition Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.tution_fee}
-                        onChange={(e) => setFormData({ ...formData, tution_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Registration Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.registration_fee}
-                        onChange={(e) => setFormData({ ...formData, registration_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Laboratory Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.laboratory_fee}
-                        onChange={(e) => setFormData({ ...formData, laboratory_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Library Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.library_fee}
-                        onChange={(e) => setFormData({ ...formData, library_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Technology Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.technology_fee}
-                        onChange={(e) => setFormData({ ...formData, technology_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Student Activity Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.student_activity_fee}
-                        onChange={(e) => setFormData({ ...formData, student_activity_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Insurance Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.insurance_fee}
-                        onChange={(e) => setFormData({ ...formData, insurance_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Examination Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.examination_fee}
-                        onChange={(e) => setFormData({ ...formData, examination_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Application Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.application_fee}
-                        onChange={(e) => setFormData({ ...formData, application_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">EMGS Processing Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.emgs_processing_fee}
-                        onChange={(e) => setFormData({ ...formData, emgs_processing_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.international_student_fee}
-                        onChange={(e) => setFormData({ ...formData, international_student_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Security Deposit</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.international_security_deposit}
-                        onChange={(e) => setFormData({ ...formData, international_security_deposit: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Charge</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.international_student_charge}
-                        onChange={(e) => setFormData({ ...formData, international_student_charge: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Admin Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.international_administration_fee}
-                        onChange={(e) => setFormData({ ...formData, international_administration_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Personal Bond Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.personal_bond_fee}
-                        onChange={(e) => setFormData({ ...formData, personal_bond_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Resources Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.resources_fee}
-                        onChange={(e) => setFormData({ ...formData, resources_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Commitment Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.commitment_fee}
-                        onChange={(e) => setFormData({ ...formData, commitment_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Facilities Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.facilities_fee}
-                        onChange={(e) => setFormData({ ...formData, facilities_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Accommodation Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.accommodation_fee}
-                        onChange={(e) => setFormData({ ...formData, accommodation_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Airport Pickup Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.airport_pickup_fee}
-                        onChange={(e) => setFormData({ ...formData, airport_pickup_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Other Fee</label>
-                      <input
-                        type="number"
-                        placeholder="0.00"
-                        value={formData.other_fee}
-                        onChange={(e) => setFormData({ ...formData, other_fee: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Currency</label>
-                      <input
-                        type="text"
-                        placeholder="MYR, USD..."
-                        value={formData.currency}
-                        onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-bold uppercase border border-slate-200 rounded-lg"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Additional Note</label>
-                      <input
-                        type="text"
-                        placeholder="Extra fee notes..."
-                        value={formData.additional_note}
-                        onChange={(e) => setFormData({ ...formData, additional_note: e.target.value })}
-                        className="w-full px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -1817,7 +1579,256 @@ export default function Programs() {
               </div>
             )}
 
-            {/* TAB 5: SEO SETTINGS */}
+            {/* TAB 5: OTHER FEES */}
+            {activeFormTab === 'other_fees' && (
+              <div className="space-y-4 animate-in fade-in-50 duration-150">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Registration Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.registration_fee}
+                      onChange={(e) => setFormData({ ...formData, registration_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Laboratory Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.laboratory_fee}
+                      onChange={(e) => setFormData({ ...formData, laboratory_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Library Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.library_fee}
+                      onChange={(e) => setFormData({ ...formData, library_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Technology Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.technology_fee}
+                      onChange={(e) => setFormData({ ...formData, technology_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Student Activity Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.student_activity_fee}
+                      onChange={(e) => setFormData({ ...formData, student_activity_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Insurance Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.insurance_fee}
+                      onChange={(e) => setFormData({ ...formData, insurance_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Examination Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.examination_fee}
+                      onChange={(e) => setFormData({ ...formData, examination_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Application Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.application_fee}
+                      onChange={(e) => setFormData({ ...formData, application_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">EMGS Processing Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.emgs_processing_fee}
+                      onChange={(e) => setFormData({ ...formData, emgs_processing_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.international_student_fee}
+                      onChange={(e) => setFormData({ ...formData, international_student_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Security Deposit</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.international_security_deposit}
+                      onChange={(e) => setFormData({ ...formData, international_security_deposit: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Charge</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.international_student_charge}
+                      onChange={(e) => setFormData({ ...formData, international_student_charge: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Admin Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.international_administration_fee}
+                      onChange={(e) => setFormData({ ...formData, international_administration_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Personal Bond Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.personal_bond_fee}
+                      onChange={(e) => setFormData({ ...formData, personal_bond_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Resources Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.resources_fee}
+                      onChange={(e) => setFormData({ ...formData, resources_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Commitment Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.commitment_fee}
+                      onChange={(e) => setFormData({ ...formData, commitment_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Facilities Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.facilities_fee}
+                      onChange={(e) => setFormData({ ...formData, facilities_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Accommodation Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.accommodation_fee}
+                      onChange={(e) => setFormData({ ...formData, accommodation_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Airport Pickup Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.airport_pickup_fee}
+                      onChange={(e) => setFormData({ ...formData, airport_pickup_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Other Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.other_fee}
+                      onChange={(e) => setFormData({ ...formData, other_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Currency</label>
+                    <input
+                      type="text"
+                      placeholder="MYR, USD..."
+                      value={formData.currency}
+                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-bold uppercase border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Additional Note</label>
+                    <input
+                      type="text"
+                      placeholder="Extra fee notes..."
+                      value={formData.additional_note}
+                      onChange={(e) => setFormData({ ...formData, additional_note: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 6: SEO SETTINGS */}
             {activeFormTab === 'seo' && (
               <div className="space-y-4 animate-in fade-in-50 duration-150">
                 <div>
