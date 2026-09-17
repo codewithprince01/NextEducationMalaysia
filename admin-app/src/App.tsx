@@ -24,6 +24,7 @@ import StudyModes from '@/pages/StudyModes';
 import UniversityDocuments from '@/pages/UniversityDocuments';
 import DocumentCategories from '@/pages/DocumentCategories';
 import Programs from '@/pages/Programs';
+import UniversityProgramContents from '@/pages/UniversityProgramContents';
 import BlogCategories from '@/pages/BlogCategories';
 import Blogs from '@/pages/Blogs';
 import AddEditBlog from '@/pages/AddEditBlog';
@@ -132,6 +133,8 @@ export default function App() {
               <Route path="/specialization-level-contents" element={<SpecializationLevelContents />} />
               <Route path="/specialization-level-contents/:id" element={<SpecializationLevelContents />} />
               <Route path="/programs" element={<Programs />} />
+              <Route path="/university-program-contents" element={<UniversityProgramContents />} />
+              <Route path="/university-program-contents/:id" element={<UniversityProgramContents />} />
               <Route path="/blog-category" element={<BlogCategories />} />
               <Route path="/blog-categories" element={<BlogCategories />} />
               <Route path="/blogs" element={<Blogs />} />

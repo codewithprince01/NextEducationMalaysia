@@ -248,7 +248,6 @@ export default function Programs() {
     tution_fee_after_scholarship: '',
 
     // Untouched other fees
-    tution_fee: '',
     registration_fee: '',
     laboratory_fee: '',
     library_fee: '',
@@ -479,7 +478,6 @@ export default function Programs() {
       tution_fee_after_scholarship: item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
 
       // Untouched other fees
-      tution_fee: item.tution_fee || '',
       registration_fee: item.registration_fee || '',
       laboratory_fee: item.laboratory_fee || '',
       library_fee: item.library_fee || '',
@@ -685,7 +683,6 @@ export default function Programs() {
       'duration', 'study_mode', 'intake', 'application_deadline', 'campus',
       'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction',
       'scholarship_info', 'is_local', 'is_international', 'accreditations',
-      'tution_fee',
 
       // Local Fees
       'total_fee_local',
@@ -739,7 +736,6 @@ export default function Programs() {
       'Comprehensive IT program covering software engineering and cybersecurity.',
       'STPM with min 2 Principal passes or equivalent.', 'IELTS 5.5', 'English',
       'Up to 30% merit scholarship available', 1, 1, 'MQA Approved',
-      '48000',
       // Local Fees sample
       '35000', '32000', '11000', '11000', '10000', '0', '11000', '5000', '27000',
       // International Fees sample
@@ -830,8 +826,7 @@ export default function Programs() {
       'id', 'course_name', 'course_category_id', 'specialization_id', 'level',
       'duration', 'study_mode', 'intake', 'application_deadline', 'campus',
       'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction',
-      'scholarship_info', 'is_local', 'is_international', 'accreditations',
-      'tution_fee'
+      'scholarship_info', 'is_local', 'is_international', 'accreditations'
     ];
 
     const rows = sorted.map((item) => [
@@ -852,8 +847,7 @@ export default function Programs() {
       item.scholarship_info || '',
       item.is_local ? 1 : 0,
       item.is_international ? 1 : 0,
-      item.accreditations || '',
-      item.tution_fee || ''
+      item.accreditations || ''
     ]);
 
     const univName = selectedUniv?.name ? selectedUniv.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'all';
@@ -868,7 +862,7 @@ export default function Programs() {
       return;
     }
     const headers = [
-      'id', 'course_name',
+      'id', 'course_name', 'duration', 'intake',
 
       // Local Fees
       'total_fee_local',
@@ -920,6 +914,8 @@ export default function Programs() {
     const rows = sorted.map((item) => [
       item.id,
       item.course_name || '',
+      item.duration || '',
+      item.intake || '',
 
       // Local Fees
       item.total_fee_local || '',
@@ -1396,20 +1392,9 @@ export default function Programs() {
                   </div>
                 </div>
 
-                {/* ROW 4: Tuition Fee, Accreditations, Checkboxes */}
+                {/* ROW 4: Accreditations, Checkboxes */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                  <div className="sm:col-span-4">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Tuition Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.tution_fee}
-                      onChange={(e) => setFormData({ ...formData, tution_fee: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-5">
+                  <div className="sm:col-span-8">
                     <label className="block text-xs font-bold text-slate-700 mb-1">Accreditations (Separated by |)</label>
                     <input
                       type="text"
@@ -1420,7 +1405,7 @@ export default function Programs() {
                     />
                   </div>
 
-                  <div className="sm:col-span-3 flex items-center gap-4 pt-5">
+                  <div className="sm:col-span-4 flex items-center gap-6 pt-5">
                     <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
                       <input
                         type="checkbox"
@@ -2246,7 +2231,7 @@ export default function Programs() {
                       </td>
                       <td className="py-3 px-3 space-y-0.5">
                         <div className="flex items-center gap-1 text-xs font-bold text-slate-800 font-mono">
-                          <DollarSign className="w-3 h-3 text-emerald-600" /> {item.tution_fee || '-'}
+                          <DollarSign className="w-3 h-3 text-emerald-600" /> {item.total_fee_international || item.total_tuition_fee_international || item.total_fee || '-'}
                         </div>
                         <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400">
                           <Calendar className="w-2.5 h-2.5" /> {item.intake || '-'}
@@ -2280,7 +2265,7 @@ export default function Programs() {
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => navigate(`/course-category-contents?program_id=${item.id}`)}
+                            onClick={() => navigate(`/university-program-contents/${item.id}`)}
                             className="px-2 py-1 bg-violet-50 hover:bg-violet-600 text-violet-700 hover:text-white text-[10px] font-bold rounded-lg border border-violet-200/80 transition-all cursor-pointer"
                             title="Manage Detailed Content"
                           >

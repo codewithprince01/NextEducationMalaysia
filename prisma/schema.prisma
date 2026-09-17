@@ -506,9 +506,12 @@ model UniversityScholarshipContent {
 model UniversityProgramContent {
   id          Int       @id @default(autoincrement())
   c_id        Int?
-  tab         String?
+  tab_title   String?   @db.VarChar(100)
+  heading     String?   @db.VarChar(100)
   description String?   @db.LongText
-  position    Int?      @default(0)
+  imgpath     String?   @db.VarChar(100)
+  imgname     String?   @db.VarChar(100)
+  status      Int?      @default(1)
   created_at  DateTime? @default(now())
   updated_at  DateTime? @updatedAt
 
