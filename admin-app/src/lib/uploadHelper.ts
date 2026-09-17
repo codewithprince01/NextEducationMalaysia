@@ -40,7 +40,8 @@ export function getStorageUrl(path?: string | null): string {
 
   const relative = cleaned
     .replace(/^\/+/, "")
-    .replace(/^(public\/|storage\/)+/, "");
+    .replace(/^(admin\/)?(public\/|storage\/)+/, "")
+    .replace(/^admin\/uploads\//, "uploads/");
 
   return `/storage/${relative}`;
 }

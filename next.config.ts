@@ -131,6 +131,20 @@ const nextConfig: NextConfig = {
           ];
 
     return {
+      beforeFiles: [
+        {
+          source: "/admin/uploads/:path*",
+          destination: "/storage/uploads/:path*",
+        },
+        {
+          source: "/uploads/:path*",
+          destination: "/storage/uploads/:path*",
+        },
+        {
+          source: "/admin/storage/:path*",
+          destination: "/storage/:path*",
+        },
+      ],
       // Real files in public/admin (assets, favicon) are matched by the
       // filesystem before these run, so only unknown paths reach index.html.
       afterFiles: [

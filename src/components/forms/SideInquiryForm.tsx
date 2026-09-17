@@ -76,7 +76,6 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
   }, [])
 
   const universitySlug = contextSlug || urlUniversity.slug
-  const interestedUniversity = contextUniversityName || urlUniversity.name
 
   useEffect(() => {
     if (universityName) {
@@ -249,6 +248,7 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
           country_code: form.phoneCode.replace(/^\+/, ''),
           mobile: form.phone,
           nationality: form.country,
+          intrested_university: interestedUniversity,
           interested_university: interestedUniversity,
           university_slug: universitySlug,
           source: getSource(),
@@ -293,6 +293,7 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
         className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden"
       >
         {/* Carries the university the visitor is looking at through to the CRM. */}
+        <input type="hidden" name="intrested_university" value={interestedUniversity} readOnly />
         <input type="hidden" name="interested_university" value={interestedUniversity} readOnly />
         <input type="hidden" name="university_slug" value={universitySlug} readOnly />
 

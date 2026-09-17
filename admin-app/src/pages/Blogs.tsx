@@ -19,7 +19,8 @@ import {
   Layers,
   Image as ImageIcon,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 
 interface BlogItem {
@@ -83,6 +84,9 @@ export default function Blogs() {
 
   // Description Modal State
   const [descriptionModalItem, setDescriptionModalItem] = useState<BlogItem | null>(null);
+
+  // Image Preview Modal
+  const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
 
   // Blog Contents Manager Modal
   const [contentManagerItem, setContentManagerItem] = useState<BlogItem | null>(null);
@@ -443,14 +447,18 @@ export default function Blogs() {
                       </td>
                       <td className="py-3.5 px-4">
                         {item.thumbnail_path ? (
-                          <a
-                            href={getStorageUrl(item.thumbnail_path)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold"
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewImage({
+                                title: item.title || item.headline || 'Blog Thumbnail',
+                                url: item.thumbnail_path!,
+                              })
+                            }
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold cursor-pointer transition-colors"
                           >
                             <ImageIcon className="w-3 h-3" /> View Image
-                          </a>
+                          </button>
                         ) : (
                           <span className="text-slate-400">N/A</span>
                         )}
@@ -879,6 +887,49 @@ export default function Blogs() {
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title} Preview</h3>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center bg-slate-50/50 min-h-[220px]">
+              <img
+                src={getStorageUrl(previewImage.url)}
+                alt={previewImage.title}
+                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain bg-white p-1"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                  const parent = (e.target as HTMLElement).parentElement;
+                  if (parent && !parent.querySelector('.img-error-msg')) {
+                    const msg = document.createElement('div');
+                    msg.className = 'img-error-msg text-xs text-rose-500 font-medium py-4 text-center';
+                    msg.innerText = 'Unable to load image from storage.';
+                    parent.appendChild(msg);
+                  }
+                }}
+              />
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline mt-4 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>
