@@ -119,7 +119,6 @@ function aggregateRatingFrom(entity: {
     ratingValue: String(Math.min(scaleMax, Math.max(1, Math.round(ratingValue * 10) / 10))),
     ratingCount: String(Math.round(reviewCount)),
     bestRating: String(scaleMax),
-    worstRating: '1',
   }
 }
 
@@ -248,11 +247,13 @@ export function universityRatingJsonLd(uni: {
  */
 export function courseJsonLd(program: {
   course_name?: string | null
+  slug?: string | null
+  university?: { uname?: string | null } | null
   // The rating the admin panel holds against this programme.
   seo_rating?: string | number | null
   review_number?: string | number | null
   best_rating?: string | number | null
-}): JsonLd | null {
+}, options?: { url?: string; path?: string }): JsonLd | null {
   const aggregateRating = aggregateRatingFrom(program)
 
   // No rating, no node. A name on its own tells Google nothing it cannot read
@@ -260,12 +261,26 @@ export function courseJsonLd(program: {
   // report to complain about.
   if (!aggregateRating) return null
 
-  return {
+  const courseUrl =
+    options?.url ||
+    (options?.path ? `${SITE_URL}${options.path.startsWith('/') ? options.path : `/${options.path}`}` : null) ||
+    (program.slug && program.university?.uname
+      ? `${SITE_URL}/university/${program.university.uname}/courses/${program.slug}`
+      : null)
+
+  const data: JsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Course',
     name: program.course_name,
-    aggregateRating,
   }
+
+  if (courseUrl) {
+    data.url = courseUrl
+  }
+
+  data.aggregateRating = aggregateRating
+
+  return data
 }
 
 export function courseDiscoveryJsonLd(input: {
@@ -551,11 +566,19 @@ export function globalBreadcrumbJsonLd(pathname: string): JsonLd | null {
   const segments = pathOnly.split('/').filter(Boolean)
   const items: { name: string; url: string }[] = [{ name: 'Home', url: SITE_URL }]
   let currentPath = ''
-  for (const raw of segments) {
-    const name = toBreadcrumbLabel(raw)
+  for (let i = 0; i < segments.length; i++) {
+    const raw = segments[i]
+    let name = toBreadcrumbLabel(raw)
     if (!name) continue
     currentPath += `/${raw}`
-    items.push({ name, url: `${SITE_URL}${currentPath}` })
+
+    let itemUrl = `${SITE_URL}${currentPath}`
+    if (i === 0 && raw.toLowerCase() === 'university') {
+      name = 'Universities'
+      itemUrl = `${SITE_URL}/universities`
+    }
+
+    items.push({ name, url: itemUrl })
   }
 
   return breadcrumbJsonLd(items)

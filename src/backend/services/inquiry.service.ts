@@ -3,11 +3,16 @@ import { SITE_VAR } from '../utils/constants';
 import type { InquiryPayload } from '../types';
 import { sendLeadEmail } from '../email/send-lead-email';
 
+// Columns that only exist on CRM databases which have added them. They are
+// skipped instead of breaking the insert everywhere else.
+const OPTIONAL_LEAD_COLUMNS = new Set(['interested_university']);
+
 /**
  * Enterprise Inquiry Service (Singleton)
  */
 export class InquiryService {
   private static instance: InquiryService;
+  private leadColumnsPromise: Promise<Set<string>> | null = null;
 
   private constructor() {}
 
@@ -31,7 +36,7 @@ export class InquiryService {
     nationality?: string;
     university_id?: string;
     university?: string;
-    intrested_university?: string;
+    university_slug?: string;
     interested_program?: string;
     interested_course_category?: string;
     interest?: string;
@@ -43,33 +48,43 @@ export class InquiryService {
     brochure_status?: string;
     extra_fields?: Record<string, unknown>;
   }) {
-    const universityId = data.university_id ? Number(data.university_id) : null;
-    const interestedUni = data.intrested_university || data.university || null;
+    const [university, leadColumns] = await Promise.all([
+      this.resolveUniversity(data),
+      this.getLeadColumns(),
+    ]);
+
+    const fields: Array<[string, unknown]> = [
+      ['name', data.name],
+      ['email', data.email],
+      ['country_code', data.country_code],
+      ['mobile', data.mobile],
+      ['source', data.source],
+      ['source_path', data.source_path],
+      ['nationality', data.nationality || null],
+      ['university_id', university.id],
+      ['interested_university', university.name],
+      ['interested_program', data.interested_program || null],
+      ['interested_course_category', data.interested_course_category || null],
+      ['highest_qualification', data.highest_qualification || null],
+      ['message', data.message || null],
+      ['dayslot', data.dayslot || null],
+      ['timeslot', data.timeslot || null],
+      ['time_zone', data.time_zone || null],
+      ['brochure_status', data.brochure_status || null],
+      ['website', SITE_VAR],
+    ];
+
+    const usable = fields.filter(
+      ([column]) => !OPTIONAL_LEAD_COLUMNS.has(column) || leadColumns.has(column)
+    );
 
     await prisma.$executeRawUnsafe(
       `
       INSERT INTO leads
-      (name, email, country_code, mobile, source, source_path, nationality, university_id, intrested_university, interested_program, interested_course_category, highest_qualification, message, dayslot, timeslot, time_zone, brochure_status, website, status, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+      (${usable.map(([column]) => column).join(', ')}, status, created_at, updated_at)
+      VALUES (${usable.map(() => '?').join(', ')}, 1, NOW(), NOW())
       `,
-      data.name,
-      data.email,
-      data.country_code,
-      data.mobile,
-      data.source,
-      data.source_path,
-      data.nationality || null,
-      universityId,
-      interestedUni,
-      data.interested_program || null,
-      data.interested_course_category || null,
-      data.highest_qualification || null,
-      data.message || null,
-      data.dayslot || null,
-      data.timeslot || null,
-      data.time_zone || null,
-      data.brochure_status || null,
-      SITE_VAR
+      ...usable.map(([, value]) => value)
     );
 
     const insertedIdRows = await prisma.$queryRawUnsafe(`SELECT LAST_INSERT_ID() AS id`) as any[];
@@ -88,7 +103,7 @@ export class InquiryService {
       source: data.source,
       source_path: data.source_path,
       nationality: data.nationality,
-      university: data.university || null,
+      university: university.name,
       program: data.interested_program || null,
       interest: data.interest || data.interested_course_category || null
     };
@@ -99,6 +114,63 @@ export class InquiryService {
     });
 
     return lead;
+  }
+
+  /**
+   * Works out which university a lead is about. Forms send the slug taken from
+   * the page URL, which is the only identifier a public form can be trusted to
+   * know; the id and the exact name come from the database so the CRM record
+   * matches the university record instead of a prettified slug.
+   */
+  private async resolveUniversity(data: {
+    university_id?: string;
+    university?: string;
+    university_slug?: string;
+  }): Promise<{ id: number | null; name: string | null }> {
+    const explicitId = Number(data.university_id);
+    let id = Number.isFinite(explicitId) && explicitId > 0 ? explicitId : null;
+    let name = String(data.university || '').trim() || null;
+
+    const slug = String(data.university_slug || '').trim();
+    if (!slug && !id) return { id, name };
+
+    try {
+      const rows = (await (slug
+        ? prisma.$queryRawUnsafe(`SELECT id, name FROM universities WHERE uname = ? LIMIT 1`, slug)
+        : prisma.$queryRawUnsafe(`SELECT id, name FROM universities WHERE id = ? LIMIT 1`, id))) as any[];
+
+      const row = rows?.[0];
+      if (row) {
+        id = id || Number(row.id) || null;
+        name = String(row.name || '').trim() || name;
+      }
+    } catch (error) {
+      // A lookup failure must never cost us the lead — fall back to whatever
+      // the form sent.
+      console.error('[InquiryService] University lookup failed:', error);
+    }
+
+    return { id, name: name ? name.slice(0, 190) : null };
+  }
+
+  /**
+   * Cached list of columns the leads table actually has, so optional CRM
+   * columns can be written where they exist without breaking installs missing them.
+   */
+  private async getLeadColumns(): Promise<Set<string>> {
+    if (!this.leadColumnsPromise) {
+      this.leadColumnsPromise = prisma
+        .$queryRawUnsafe(`SHOW COLUMNS FROM leads`)
+        .then((rows) => new Set((rows as any[]).map((row) => String(row.Field))))
+        .catch((error) => {
+          // Do not cache a failed probe: a transient blip would otherwise drop
+          // the optional columns for the rest of the process lifetime.
+          this.leadColumnsPromise = null;
+          console.error('[InquiryService] Unable to read leads columns:', error);
+          return new Set<string>();
+        });
+    }
+    return this.leadColumnsPromise;
   }
 
   private async autoAssign(leadId: number) {

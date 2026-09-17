@@ -98,7 +98,7 @@ function buildUserSubject(data: LeadEmailData): string {
 
 function adminTemplate(data: LeadEmailData): string {
   const headline = buildAdminSubject(data);
-  const excludedKeys = new Set(['university_id', 'requestfor']);
+  const excludedKeys = new Set(['university_id', 'requestfor', 'university_slug']);
   const labelMap: Record<string, string> = {
     name: 'Name',
     email: 'Email',
@@ -109,6 +109,8 @@ function adminTemplate(data: LeadEmailData): string {
     nationality: 'Nationality',
     university: 'University',
     university_name: 'University',
+    // Same row as `university` so the hidden field does not duplicate it.
+    interested_university: 'University',
     university_id: 'University Id',
     formType: 'Form Type',
     requestfor: 'Requestfor',

@@ -10,6 +10,24 @@ type CountryRow = {
   phonecode?: string | number
 }
 
+const UNIVERSITY_PATH = /^\/university\/([^/]+)/
+const SLUG_MINOR_WORDS = new Set(['of', 'and', 'the', 'in', 'for', 'at'])
+
+/**
+ * Turns "international-islamic-university-of-malaysia" into a readable name.
+ * Only a fallback — the server replaces it with the real university name once
+ * it resolves the slug, so the CRM never stores a prettified guess.
+ */
+function titleizeSlug(slug: string): string {
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((word, index) =>
+      index > 0 && SLUG_MINOR_WORDS.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1)
+    )
+    .join(' ')
+}
+
 function createSecurityCheck() {
   const first = Math.floor(Math.random() * 10) + 5
   const second = Math.floor(Math.random() * 5)
@@ -43,6 +61,22 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [countriesData, setCountriesData] = useState<CountryRow[]>([])
   const [phoneValid, setPhoneValid] = useState(false)
+  const [urlUniversity, setUrlUniversity] = useState({ slug: '', name: '' })
+
+  const contextSlug = typeof context === 'string' ? '' : String(context?.slug || '')
+  const contextUniversityName = typeof context === 'string' ? '' : String(context?.universityName || '')
+
+  // The form also renders on university pages that pass no context (course
+  // detail, for one), so the university is read off the URL as well.
+  useEffect(() => {
+    const match = window.location.pathname.match(UNIVERSITY_PATH)
+    if (!match) return
+    const slug = decodeURIComponent(match[1])
+    setUrlUniversity({ slug, name: titleizeSlug(slug) })
+  }, [])
+
+  const universitySlug = contextSlug || urlUniversity.slug
+  const interestedUniversity = contextUniversityName || urlUniversity.name
 
   useEffect(() => {
     if (universityName) {
@@ -215,7 +249,8 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
           country_code: form.phoneCode.replace(/^\+/, ''),
           mobile: form.phone,
           nationality: form.country,
-          intrested_university: interestedUniversity,
+          interested_university: interestedUniversity,
+          university_slug: universitySlug,
           source: getSource(),
           formType: title || 'Get In Touch Form',
           sourceUrl: window.location.href,
@@ -257,12 +292,9 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
         onSubmit={handleSubmit}
         className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden"
       >
-        {/* Hidden input field for intrested_university */}
-        <input
-          type="hidden"
-          name="intrested_university"
-          value={interestedUniversity}
-        />
+        {/* Carries the university the visitor is looking at through to the CRM. */}
+        <input type="hidden" name="interested_university" value={interestedUniversity} readOnly />
+        <input type="hidden" name="university_slug" value={universitySlug} readOnly />
 
         {/* Header matching sidebar style */}
         <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100">
