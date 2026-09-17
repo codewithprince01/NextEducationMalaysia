@@ -70,18 +70,46 @@ export async function POST(req: Request) {
 
     const now = new Date();
 
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO university_program_contents (c_id, tab_title, heading, description, imgpath, imgname, status, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
-      Number(c_id),
-      tab_title.trim(),
-      heading?.trim() || null,
-      description || null,
-      imgpath || null,
-      imgname || null,
-      now,
-      now
-    );
+    let nextId: number | null = null;
+    try {
+      const maxRows: any[] = await prisma.$queryRawUnsafe(
+        `SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM university_program_contents`
+      );
+      if (maxRows.length > 0 && maxRows[0].next_id) {
+        nextId = Number(maxRows[0].next_id);
+      }
+    } catch {
+      nextId = null;
+    }
+
+    if (nextId) {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO university_program_contents (id, c_id, tab_title, heading, description, imgpath, imgname, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+        nextId,
+        Number(c_id),
+        tab_title.trim(),
+        heading?.trim() || null,
+        description || null,
+        imgpath || null,
+        imgname || null,
+        now,
+        now
+      );
+    } else {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO university_program_contents (c_id, tab_title, heading, description, imgpath, imgname, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+        Number(c_id),
+        tab_title.trim(),
+        heading?.trim() || null,
+        description || null,
+        imgpath || null,
+        imgname || null,
+        now,
+        now
+      );
+    }
 
     return NextResponse.json({
       status: true,
@@ -90,7 +118,11 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('Error creating university program content:', error);
     return NextResponse.json(
-      { status: false, message: 'Failed to create program content', error: error.message },
+      {
+        status: false,
+        message: error?.message || 'Failed to create program content',
+        error: String(error),
+      },
       { status: 500 }
     );
   }
