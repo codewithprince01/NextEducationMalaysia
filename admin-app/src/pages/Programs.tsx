@@ -28,7 +28,8 @@ import {
   DollarSign,
   Tag,
   Globe,
-  Info
+  Info,
+  Upload
 } from 'lucide-react';
 
 interface UniversityItem {
@@ -152,6 +153,14 @@ export default function Programs() {
   // Form State
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+
+  // Bulk Import & Update States
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const importInputRef = React.useRef<HTMLInputElement>(null);
+  const bulkInputRef = React.useRef<HTMLInputElement>(null);
 
   const initialFormState = {
     university_id: '',
@@ -483,6 +492,100 @@ export default function Programs() {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadFormat = () => {
+    if (sorted.length > 0) {
+      handleExportDetails();
+      return;
+    }
+    const headers = [
+      'course_name', 'course_category_id', 'specialization_id', 'level',
+      'duration', 'study_mode', 'intake', 'application_deadline', 'campus',
+      'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction',
+      'scholarship_info', 'is_local', 'is_international', 'accreditations',
+      'tution_fee', 'total_fee', 'currency'
+    ];
+    const sampleRow = [
+      'Bachelor of Information Technology (Hons)', '1', '1', 'Bachelor',
+      '3 Years', 'BY COURSEWORK, FULL TIME', 'Jan, Mar, Sep', 'Dec, Feb, Aug', 'Main Campus',
+      'Comprehensive IT program covering software engineering and cybersecurity.',
+      'STPM with min 2 Principal passes or equivalent.', 'IELTS 5.5', 'English',
+      'Up to 30% merit scholarship available', 1, 1, 'MQA Approved',
+      '45000', '52000', 'MYR'
+    ];
+    downloadCSV('university-programs-import-format.csv', headers, [sampleRow]);
+    showToast('success', 'Import template format downloaded.');
+  };
+
+  const handleImport = async () => {
+    if (!importFile) {
+      showToast('error', 'Please choose an Excel or CSV file to import.');
+      return;
+    }
+    if (!selectedUnivId) {
+      showToast('error', 'Please select a University before importing data.');
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const data = new FormData();
+      data.append('file', importFile);
+      data.append('university_id', selectedUnivId);
+
+      const res = await fetch('/api/v1/admin/programs/import', {
+        method: 'POST',
+        body: data,
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.status) {
+        showToast('success', json.message || 'Programs imported successfully!');
+        setImportFile(null);
+        if (importInputRef.current) importInputRef.current.value = '';
+        fetchPrograms(selectedUnivId);
+      } else {
+        showToast('error', json.message || 'Failed to import programs');
+      }
+    } catch {
+      showToast('error', 'Network error during import');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleBulkUpdate = async () => {
+    if (!bulkFile) {
+      showToast('error', 'Please choose a CSV or Excel file for bulk update.');
+      return;
+    }
+    setIsBulkUpdating(true);
+    try {
+      const data = new FormData();
+      data.append('file', bulkFile);
+      if (selectedUnivId) {
+        data.append('university_id', selectedUnivId);
+      }
+
+      const res = await fetch('/api/v1/admin/programs/bulk-update', {
+        method: 'POST',
+        body: data,
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.status) {
+        showToast('success', json.message || 'Bulk update completed successfully!');
+        setBulkFile(null);
+        if (bulkInputRef.current) bulkInputRef.current.value = '';
+        fetchPrograms(selectedUnivId);
+      } else {
+        showToast('error', json.message || 'Failed to update bulk program data');
+      }
+    } catch {
+      showToast('error', 'Network error during bulk update');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   const handleExportDetails = () => {
     if (sorted.length === 0) {
       showToast('error', 'No program records available to export.');
@@ -698,19 +801,30 @@ export default function Programs() {
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Import New Data</h3>
             </div>
             <button
-              onClick={handleExportDetails}
+              type="button"
+              onClick={handleDownloadFormat}
               className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-md hover:bg-indigo-100 transition-colors cursor-pointer"
+              title="Download CSV Template Format"
             >
               <Download className="w-3 h-3" /> Formats
             </button>
           </div>
           <div className="flex items-center gap-2">
             <input
+              ref={importInputRef}
               type="file"
+              accept=".csv, .xlsx, .xls"
+              onChange={(e) => setImportFile(e.target.files?.[0] || null)}
               className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 border border-slate-200 rounded-lg bg-slate-50 p-0.5 cursor-pointer"
             />
-            <button className="px-4 py-1.5 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 shadow-xs cursor-pointer">
-              Import
+            <button
+              type="button"
+              onClick={handleImport}
+              disabled={isImporting || !importFile}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors shrink-0"
+            >
+              {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>Import</span>
             </button>
           </div>
         </div>
@@ -722,11 +836,20 @@ export default function Programs() {
           </div>
           <div className="flex items-center gap-2">
             <input
+              ref={bulkInputRef}
               type="file"
+              accept=".csv, .xlsx, .xls"
+              onChange={(e) => setBulkFile(e.target.files?.[0] || null)}
               className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 border border-slate-200 rounded-lg bg-slate-50 p-0.5 cursor-pointer"
             />
-            <button className="px-4 py-1.5 bg-violet-600 text-white text-xs font-bold rounded-lg hover:bg-violet-700 shadow-xs cursor-pointer">
-              Update
+            <button
+              type="button"
+              onClick={handleBulkUpdate}
+              disabled={isBulkUpdating || !bulkFile}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors shrink-0"
+            >
+              {isBulkUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>Update</span>
             </button>
           </div>
         </div>
