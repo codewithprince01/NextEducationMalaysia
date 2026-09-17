@@ -216,6 +216,10 @@ export class SearchApplyService {
    *   ->where('course_category_id', ...)
    *   ->where('specialization_id', ...)
    *   ->orderBy('id', 'desc')->paginate($perPage)
+   *
+   * NOTE: website filter is optional (via filters.country); no hardcoded website condition.
+   * Hidden fields: all fee columns, meta_title, meta_description, meta_keyword,
+   *                og_image_path, page_content (programs & nested university).
    */
   async getPrograms(filters: any, page = 1, perPage = 10) {
     const where: any = {};
@@ -226,6 +230,7 @@ export class SearchApplyService {
       where.course_category_id = Number(filters.course_category_id);
     if (filters.specialization_id)
       where.specialization_id = Number(filters.specialization_id);
+    // Optional website/country filter — NOT hardcoded
     if (filters.country) where.website = filters.country;
 
     const [total, items] = await Promise.all([
@@ -241,21 +246,57 @@ export class SearchApplyService {
           study_mode: true,
           intake: true,
           duration: true,
-          tution_fee: true,
           application_deadline: true,
           accreditations: true,
           course_category_id: true,
           specialization_id: true,
           status: true,
-          meta_title: true,
-          meta_description: true,
-          meta_keyword: true,
-          og_image_path: true,
           overview: true,
           website: true,
           created_at: true,
           updated_at: true,
-          university: true,
+          // University relation — exclude SEO & content fields
+          university: {
+            select: {
+              id: true,
+              name: true,
+              uname: true,
+              views: true,
+              click: true,
+              city: true,
+              state: true,
+              qs_rank: true,
+              times_rank: true,
+              qs_asia_rank: true,
+              shortnote: true,
+              established_year: true,
+              local_students: true,
+              international_students: true,
+              accredited_by: true,
+              approved_by: true,
+              latitude_longitude: true,
+              featured: true,
+              rating: true,
+              logo_path: true,
+              banner_path: true,
+              institute_type: true,
+              is_local: true,
+              is_international: true,
+              scholarship_available: true,
+              status: true,
+              homeview: true,
+              email: true,
+              cc: true,
+              contact_number1: true,
+              contact_number2: true,
+              hostel_facility: true,
+              website: true,
+              created_at: true,
+              updated_at: true,
+              // Excluded: meta_title, meta_description, meta_keyword,
+              //           og_image_path, page_content
+            },
+          },
           courseCategory: {
             select: {
               id: true,
@@ -270,6 +311,13 @@ export class SearchApplyService {
               slug: true,
             },
           },
+          // Excluded fee fields:
+          //   tution_fee, exam_fee, tutions_fee,
+          //   total_fee, total_tuition_fee, annual_tuition_fee,
+          //   scholarship_amount, tution_fee_after_scholarship,
+          //   year1_tuition_fee, year2_tuition_fee, year3_tuition_fee, year4_tuition_fee
+          // Excluded SEO fields:
+          //   meta_title, meta_description, meta_keyword, og_image_path, page_content
         },
         orderBy: {
           id: "desc",
