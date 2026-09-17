@@ -122,6 +122,10 @@ model UniversityProgram {
   meta_description  String?   @db.Text
   meta_keyword      String?   @db.Text
   og_image_path     String?
+  page_content      String?   @db.LongText
+  seo_rating        Decimal?  @db.Decimal(2, 1)
+  best_rating       Decimal?  @db.Decimal(2, 1)
+  review_number     Int?
   overview          String?   @db.LongText
   website           String?   @default("MYS")
   created_at        DateTime? @default(now())

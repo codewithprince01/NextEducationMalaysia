@@ -127,6 +127,10 @@ export async function POST(req: Request) {
       meta_keyword,
       meta_description,
       page_content,
+      seo_rating,
+      best_rating,
+      review_number,
+      og_image_path,
       status,
     } = body;
 
@@ -180,6 +184,7 @@ export async function POST(req: Request) {
       'scholarship_amount_local', 'tution_fee_after_scholarship_local',
 
       'meta_title', 'meta_keyword', 'meta_description', 'page_content',
+      'seo_rating', 'best_rating', 'review_number', 'og_image_path',
       'status', 'website', 'created_at', 'updated_at'
     ];
 
@@ -271,6 +276,10 @@ export async function POST(req: Request) {
       meta_keyword || null,
       meta_description || null,
       page_content || null,
+      seo_rating !== undefined && seo_rating !== '' && seo_rating !== null ? parseFloat(String(seo_rating)) : null,
+      best_rating !== undefined && best_rating !== '' && best_rating !== null ? parseFloat(String(best_rating)) : null,
+      review_number !== undefined && review_number !== '' && review_number !== null ? parseInt(String(review_number), 10) : null,
+      og_image_path || null,
       status !== undefined ? Number(status) : 1,
       'MYS',
       now,

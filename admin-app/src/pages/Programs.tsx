@@ -29,8 +29,10 @@ import {
   Tag,
   Globe,
   Info,
-  Upload
+  Upload,
+  Check
 } from 'lucide-react';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 
 interface UniversityItem {
   id: number;
@@ -46,6 +48,17 @@ interface SpecializationItem {
   id: number;
   name: string;
   course_category_id?: number;
+}
+
+interface LevelItem {
+  id: number;
+  level: string;
+  slug?: string;
+}
+
+interface StudyModeItem {
+  id: number;
+  study_mode: string;
 }
 
 interface ProgramItem {
@@ -132,6 +145,10 @@ interface ProgramItem {
   meta_keyword?: string;
   meta_description?: string;
   page_content?: string;
+  seo_rating?: string | number;
+  best_rating?: string | number;
+  review_number?: string | number;
+  og_image_path?: string;
 
   university_id?: number;
   university_name?: string;
@@ -143,6 +160,8 @@ interface ProgramItem {
   created_at?: string;
 }
 
+const ALL_MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
 export default function Programs() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -153,6 +172,8 @@ export default function Programs() {
   const [universities, setUniversities] = useState<UniversityItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [specializations, setSpecializations] = useState<SpecializationItem[]>([]);
+  const [levels, setLevels] = useState<LevelItem[]>([]);
+  const [studyModes, setStudyModes] = useState<StudyModeItem[]>([]);
   const [selectedUnivId, setSelectedUnivId] = useState<string>(queryUnivId);
 
   const [loading, setLoading] = useState(true);
@@ -172,6 +193,7 @@ export default function Programs() {
   // Form State
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
 
   // Bulk Import & Update States
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -189,7 +211,7 @@ export default function Programs() {
     level: 'Bachelor',
     duration: '',
     study_mode: 'BY COURSEWORK, FULL TIME',
-    intake: 'Jan, Mar, Sep',
+    intake: 'JAN, MAR, SEP',
     application_deadline: 'Dec, Feb, Aug',
     campus: '',
     accreditations: 'N/A',
@@ -266,6 +288,10 @@ export default function Programs() {
     meta_keyword: '',
     meta_description: '',
     page_content: '',
+    seo_rating: '',
+    best_rating: '',
+    review_number: '',
+    og_image_path: '',
     status: 1,
   };
 
@@ -278,17 +304,27 @@ export default function Programs() {
 
   const fetchDropdownData = async () => {
     try {
-      const [uRes, cRes, sRes] = await Promise.all([
+      const [uRes, cRes, sRes, lRes, smRes] = await Promise.all([
         fetch('/api/v1/admin/universities'),
         fetch('/api/v1/admin/course-categories'),
         fetch('/api/v1/admin/course-specializations'),
+        fetch('/api/v1/admin/levels'),
+        fetch('/api/v1/admin/study-modes'),
       ]);
 
-      const [uJson, cJson, sJson] = await Promise.all([uRes.json(), cRes.json(), sRes.json()]);
+      const [uJson, cJson, sJson, lJson, smJson] = await Promise.all([
+        uRes.json(),
+        cRes.json(),
+        sRes.json(),
+        lRes.json(),
+        smRes.json(),
+      ]);
 
       if (uRes.ok && (uJson.status || uJson.success)) setUniversities(uJson.data || []);
       if (cRes.ok && (cJson.status || cJson.success)) setCategories(cJson.data || []);
       if (sRes.ok && (sJson.status || sJson.success)) setSpecializations(sJson.data || []);
+      if (lRes.ok && (lJson.status || lJson.success)) setLevels(lJson.data || []);
+      if (smRes.ok && (smJson.status || smJson.success)) setStudyModes(smJson.data || []);
     } catch {
       console.error('Failed to fetch dropdown datasets');
     }
@@ -336,17 +372,67 @@ export default function Programs() {
     }
   };
 
+  const filteredSpecializations = formData.course_category_id
+    ? specializations.filter((s) => String(s.course_category_id) === String(formData.course_category_id))
+    : [];
+
+  const selectedStudyModes = (formData.study_mode || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const toggleStudyMode = (modeName: string) => {
+    const isSelected = selectedStudyModes.some(
+      (m) => m.toLowerCase() === modeName.toLowerCase()
+    );
+    let next: string[];
+    if (isSelected) {
+      next = selectedStudyModes.filter(
+        (m) => m.toLowerCase() !== modeName.toLowerCase()
+      );
+    } else {
+      next = [...selectedStudyModes, modeName];
+    }
+    setFormData({ ...formData, study_mode: next.join(', ') });
+  };
+
+  const selectedIntakes = (formData.intake || '')
+    .split(',')
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
+
+  const toggleIntake = (month: string) => {
+    const isSelected = selectedIntakes.includes(month);
+    let next: string[];
+    if (isSelected) {
+      next = selectedIntakes.filter((m) => m !== month);
+    } else {
+      next = ALL_MONTHS.filter((m) => selectedIntakes.includes(m) || m === month);
+    }
+    setFormData({ ...formData, intake: next.join(', ') });
+  };
+
   const handleResetForm = () => {
     setEditingId(null);
+    setOgImageFile(null);
+    const defaultUniv = selectedUnivId || (universities[0]?.id ? String(universities[0].id) : '');
+    const defaultCat = categories[0]?.id ? String(categories[0].id) : '';
+    const filteredSpecs = defaultCat
+      ? specializations.filter((s) => String(s.course_category_id) === defaultCat)
+      : [];
     setFormData({
       ...initialFormState,
-      university_id: selectedUnivId,
-      course_category_id: categories[0]?.id ? String(categories[0].id) : '',
-      specialization_id: specializations[0]?.id ? String(specializations[0].id) : '',
+      university_id: defaultUniv,
+      course_category_id: defaultCat,
+      specialization_id: filteredSpecs[0]?.id ? String(filteredSpecs[0].id) : '',
+      level: levels[0]?.level || 'Bachelor',
+      study_mode: studyModes[0]?.study_mode || '',
+      intake: 'JAN, MAR, SEP',
     });
   };
 
   const handleOpenEdit = (item: ProgramItem) => {
+    setOgImageFile(null);
     setEditingId(item.id);
     setFormData({
       university_id: item.university_id ? String(item.university_id) : selectedUnivId,
@@ -433,6 +519,10 @@ export default function Programs() {
       meta_keyword: item.meta_keyword || '',
       meta_description: item.meta_description || '',
       page_content: item.page_content || '',
+      seo_rating: item.seo_rating !== undefined && item.seo_rating !== null ? String(item.seo_rating) : '',
+      best_rating: item.best_rating !== undefined && item.best_rating !== null ? String(item.best_rating) : '',
+      review_number: item.review_number !== undefined && item.review_number !== null ? String(item.review_number) : '',
+      og_image_path: item.og_image_path || '',
       status: item.status !== undefined ? item.status : 1,
     });
     setIsFormOpen(true);
@@ -449,6 +539,18 @@ export default function Programs() {
 
     setSubmitting(true);
     try {
+      let finalOgImagePath = formData.og_image_path;
+      if (ogImageFile) {
+        try {
+          const upRes = await uploadFileToStorage(ogImageFile, 'programs');
+          finalOgImagePath = upRes.file_path;
+        } catch (err: any) {
+          showToast('error', err.message || 'Failed to upload OG image');
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const url = editingId ? `/api/v1/admin/programs/${editingId}` : '/api/v1/admin/programs';
       const method = editingId ? 'PUT' : 'POST';
 
@@ -458,6 +560,10 @@ export default function Programs() {
         body: JSON.stringify({
           ...formData,
           university_id: formData.university_id || selectedUnivId,
+          og_image_path: finalOgImagePath,
+          seo_rating: formData.seo_rating || null,
+          best_rating: formData.best_rating || null,
+          review_number: formData.review_number || null,
           // Sync international fees
           total_fee: formData.total_fee_international || formData.total_fee,
           total_tuition_fee: formData.total_tuition_fee_international || formData.total_tuition_fee,
@@ -488,6 +594,7 @@ export default function Programs() {
       if (res.ok && json.status) {
         showToast('success', json.message || (editingId ? 'Program updated!' : 'Program created!'));
         handleResetForm();
+        setOgImageFile(null);
         setIsFormOpen(false);
         fetchPrograms(selectedUnivId);
       } else {
@@ -1110,56 +1217,7 @@ export default function Programs() {
             {/* TAB 1: BASIC INFO */}
             {activeFormTab === 'basic' && (
               <div className="space-y-4 animate-in fade-in-50 duration-150">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">University</label>
-                    <select
-                      value={formData.university_id}
-                      onChange={(e) => setFormData({ ...formData, university_id: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="">-- Select University --</option>
-                      {universities.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Course Category <span className="text-rose-500">*</span></label>
-                    <select
-                      value={formData.course_category_id}
-                      onChange={(e) => setFormData({ ...formData, course_category_id: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="">-- Select Category --</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Specialization <span className="text-rose-500">*</span></label>
-                    <select
-                      value={formData.specialization_id}
-                      onChange={(e) => setFormData({ ...formData, specialization_id: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="">-- Select Specialization --</option>
-                      {specializations.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
+                {/* ROW 1: Course / Program Name * (First Place), Category *, Specialization * */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                   <div className="sm:col-span-6">
                     <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -1176,51 +1234,81 @@ export default function Programs() {
                   </div>
 
                   <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Course Category <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.course_category_id}
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        setFormData({
+                          ...formData,
+                          course_category_id: newCat,
+                          specialization_id: '',
+                        });
+                      }}
+                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
+                    >
+                      <option value="">-- Select Category --</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Specialization <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.specialization_id}
+                      onChange={(e) => setFormData({ ...formData, specialization_id: e.target.value })}
+                      disabled={!formData.course_category_id}
+                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400"
+                    >
+                      <option value="">
+                        {!formData.course_category_id
+                          ? '-- Select Category First --'
+                          : filteredSpecializations.length === 0
+                          ? '-- No Specializations Found --'
+                          : '-- Select Specialization --'}
+                      </option>
+                      {filteredSpecializations.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* ROW 2: Level, Duration, Application Deadline, Campus */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Level</label>
                     <select
                       value={formData.level}
                       onChange={(e) => setFormData({ ...formData, level: e.target.value })}
                       className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
                     >
-                      <option value="Pre-University">Pre-University</option>
-                      <option value="DIPLOMA">DIPLOMA</option>
-                      <option value="Bachelor">Bachelor</option>
-                      <option value="Master">Master</option>
-                      <option value="PhD">PhD</option>
+                      <option value="">-- Select Level --</option>
+                      {levels.map((lvl) => (
+                        <option key={lvl.id} value={lvl.level}>
+                          {lvl.level}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
-                  <div className="sm:col-span-3">
+                  <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Duration</label>
                     <input
                       type="text"
                       placeholder="e.g. 1 Year, 3.5 Years"
                       value={formData.duration}
                       onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Study Mode</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. BY COURSEWORK, FULL TIME"
-                      value={formData.study_mode}
-                      onChange={(e) => setFormData({ ...formData, study_mode: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Intake Months</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Jan, Mar, Sep"
-                      value={formData.intake}
-                      onChange={(e) => setFormData({ ...formData, intake: e.target.value })}
                       className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg"
                     />
                   </div>
@@ -1248,6 +1336,67 @@ export default function Programs() {
                   </div>
                 </div>
 
+                {/* ROW 3: Study Modes (Multi-select) & Intake Months (Multi-select 3-letter) */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                  <div className="sm:col-span-6">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Study Mode {selectedStudyModes.length > 0 && <span className="text-[11px] font-normal text-indigo-600">({selectedStudyModes.length} selected)</span>}
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-lg min-h-[42px] items-center">
+                      {studyModes.length === 0 ? (
+                        <span className="text-xs text-slate-400">Loading study modes...</span>
+                      ) : (
+                        studyModes.map((sm) => {
+                          const isSelected = selectedStudyModes.some(
+                            (m) => m.toLowerCase() === sm.study_mode.toLowerCase()
+                          );
+                          return (
+                            <button
+                              type="button"
+                              key={sm.id}
+                              onClick={() => toggleStudyMode(sm.study_mode)}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                                isSelected
+                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
+                              }`}
+                            >
+                              {isSelected ? <Check className="w-3.5 h-3.5 text-white" /> : <Plus className="w-3 h-3 text-slate-400" />}
+                              {sm.study_mode}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Intake Months {selectedIntakes.length > 0 && <span className="text-[11px] font-normal text-indigo-600">({selectedIntakes.length} selected)</span>}
+                    </label>
+                    <div className="flex flex-wrap gap-1 p-2 bg-slate-50 border border-slate-200 rounded-lg min-h-[42px] items-center">
+                      {ALL_MONTHS.map((m) => {
+                        const isSelected = selectedIntakes.includes(m);
+                        return (
+                          <button
+                            type="button"
+                            key={m}
+                            onClick={() => toggleIntake(m)}
+                            className={`px-2 py-1 rounded-md text-xs font-bold transition-all cursor-pointer border ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROW 4: Tuition Fee, Accreditations, Checkboxes */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
                   <div className="sm:col-span-4">
                     <label className="block text-xs font-bold text-slate-700 mb-1">Tuition Fee</label>
@@ -1305,6 +1454,7 @@ export default function Programs() {
                     value={formData.overview}
                     onChange={(val) => setFormData({ ...formData, overview: val })}
                     placeholder="General program overview..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -1314,6 +1464,7 @@ export default function Programs() {
                     value={formData.entry_requirement}
                     onChange={(val) => setFormData({ ...formData, entry_requirement: val })}
                     placeholder="Academic and language entry criteria..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -1323,6 +1474,7 @@ export default function Programs() {
                     value={formData.exam_required}
                     onChange={(val) => setFormData({ ...formData, exam_required: val })}
                     placeholder="IELTS, TOEFL, MUET, SAT details..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -1332,6 +1484,7 @@ export default function Programs() {
                     value={formData.mode_of_instruction}
                     onChange={(val) => setFormData({ ...formData, mode_of_instruction: val })}
                     placeholder="Lecture, lab, online sessions info..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -1341,15 +1494,7 @@ export default function Programs() {
                     value={formData.scholarship_info}
                     onChange={(val) => setFormData({ ...formData, scholarship_info: val })}
                     placeholder="Available waivers, bursaries, and merit scholarships..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Full Course Description</label>
-                  <RichTextEditor
-                    value={formData.courses_description}
-                    onChange={(val) => setFormData({ ...formData, courses_description: val })}
-                    placeholder="Detailed program structure, modules, career pathways..."
+                    minHeight={120}
                   />
                 </div>
               </div>
@@ -1864,13 +2009,82 @@ export default function Programs() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Page SEO Content / Extra Body HTML</label>
-                  <RichTextEditor
-                    value={formData.page_content}
-                    onChange={(val) => setFormData({ ...formData, page_content: val })}
-                    placeholder="Bottom page SEO text content..."
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Seo Rating
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 4.8"
+                      value={formData.seo_rating}
+                      onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Best Rating
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 5.0"
+                      value={formData.best_rating}
+                      onChange={(e) => setFormData({ ...formData, best_rating: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Number of Review
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 150"
+                      value={formData.review_number}
+                      onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Upload OG Image
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setOgImageFile(file);
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                    />
+                    {(ogImageFile || formData.og_image_path) && (
+                      <div className="flex items-center gap-2 mt-2 p-1.5 bg-slate-50 border border-slate-200 rounded-lg">
+                        <img
+                          src={ogImageFile ? URL.createObjectURL(ogImageFile) : getStorageUrl(formData.og_image_path)}
+                          alt="OG Preview"
+                          className="w-9 h-9 object-cover rounded border border-slate-200 shrink-0"
+                        />
+                        <span className="text-[11px] text-slate-600 truncate flex-1">
+                          {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOgImageFile(null);
+                            setFormData({ ...formData, og_image_path: '' });
+                          }}
+                          className="text-rose-500 hover:text-rose-700 text-xs font-semibold px-2 py-1 hover:bg-rose-50 rounded cursor-pointer shrink-0"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
