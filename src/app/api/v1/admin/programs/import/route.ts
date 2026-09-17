@@ -30,6 +30,31 @@ const COLUMN_MAP: Record<string, string> = {
   mode_of_instruction: 'mode_of_instruction',
   scholarship_info: 'scholarship_info',
   courses_description: 'courses_description',
+
+  // Local Fees
+  total_fee_local: 'total_fee_local',
+  total_tuition_fee_local: 'total_tuition_fee_local',
+  annual_tuition_fee_local: 'annual_tuition_fee_local',
+  anual_tuition_fee_local: 'annual_tuition_fee_local',
+  year1_tuition_fee_local: 'year1_tuition_fee_local',
+  year2_tuition_fee_local: 'year2_tuition_fee_local',
+  year3_tuition_fee_local: 'year3_tuition_fee_local',
+  year4_tuition_fee_local: 'year4_tuition_fee_local',
+  scholarship_amount_local: 'scholarship_amount_local',
+  tution_fee_after_scholarship_local: 'tution_fee_after_scholarship_local',
+
+  // International Fees
+  total_fee_international: 'total_fee_international',
+  total_tuition_fee_international: 'total_tuition_fee_international',
+  annual_tuition_fee_international: 'annual_tuition_fee_international',
+  year1_tuition_fee_international: 'year1_tuition_fee_international',
+  year2_tuition_fee_international: 'year2_tuition_fee_international',
+  year3_tuition_fee_international: 'year3_tuition_fee_international',
+  year4_tuition_fee_international: 'year4_tuition_fee_international',
+  scholarship_amount_international: 'scholarship_amount_international',
+  tution_fee_after_scholarship_international: 'tution_fee_after_scholarship_international',
+
+  // Legacy mappings for international
   tution_fee: 'tution_fee',
   tuition_fee: 'tution_fee',
   total_fee: 'total_fee',
@@ -39,6 +64,10 @@ const COLUMN_MAP: Record<string, string> = {
   year2_tuition_fee: 'year2_tuition_fee',
   year3_tuition_fee: 'year3_tuition_fee',
   year4_tuition_fee: 'year4_tuition_fee',
+  scholarship_amount: 'scholarship_amount',
+  tution_fee_after_scholarship: 'tution_fee_after_scholarship',
+
+  // Untouched additional fees
   registration_fee: 'registration_fee',
   laboratory_fee: 'laboratory_fee',
   library_fee: 'library_fee',
@@ -59,17 +88,9 @@ const COLUMN_MAP: Record<string, string> = {
   accommodation_fee: 'accommodation_fee',
   airport_pickup_fee: 'airport_pickup_fee',
   other_fee: 'other_fee',
-  scholarship_amount: 'scholarship_amount',
-  tution_fee_after_scholarship: 'tution_fee_after_scholarship',
   currency: 'currency',
   additional_note: 'additional_note',
-  anual_tuition_fee_local: 'anual_tuition_fee_local',
-  annual_tuition_fee_local: 'anual_tuition_fee_local',
-  year1_tuition_fee_local: 'year1_tuition_fee_local',
-  year2_tuition_fee_local: 'year2_tuition_fee_local',
-  year3_tuition_fee_local: 'year3_tuition_fee_local',
-  year4_tuition_fee_local: 'year4_tuition_fee_local',
-  total_tuition_fee_local: 'total_tuition_fee_local',
+
   meta_title: 'meta_title',
   meta_keyword: 'meta_keyword',
   meta_description: 'meta_description',
@@ -145,22 +166,48 @@ export async function POST(req: Request) {
         }
       }
 
+      // Reconcile international fees
+      const totalFeeIntl = cleanNumeric(row['total_fee_international'] !== undefined ? row['total_fee_international'] : row['total_fee']);
+      const totalTuitionFeeIntl = cleanNumeric(row['total_tuition_fee_international'] !== undefined ? row['total_tuition_fee_international'] : row['total_tuition_fee']);
+      const annualTuitionFeeIntl = cleanNumeric(row['annual_tuition_fee_international'] !== undefined ? row['annual_tuition_fee_international'] : row['annual_tuition_fee']);
+      const year1TuitionFeeIntl = cleanNumeric(row['year1_tuition_fee_international'] !== undefined ? row['year1_tuition_fee_international'] : row['year1_tuition_fee']);
+      const year2TuitionFeeIntl = cleanNumeric(row['year2_tuition_fee_international'] !== undefined ? row['year2_tuition_fee_international'] : row['year2_tuition_fee']);
+      const year3TuitionFeeIntl = cleanNumeric(row['year3_tuition_fee_international'] !== undefined ? row['year3_tuition_fee_international'] : row['year3_tuition_fee']);
+      const year4TuitionFeeIntl = cleanNumeric(row['year4_tuition_fee_international'] !== undefined ? row['year4_tuition_fee_international'] : row['year4_tuition_fee']);
+      const scholarshipAmountIntl = cleanNumeric(row['scholarship_amount_international'] !== undefined ? row['scholarship_amount_international'] : row['scholarship_amount']);
+      const feeAfterScholarshipIntl = cleanNumeric(row['tution_fee_after_scholarship_international'] !== undefined ? row['tution_fee_after_scholarship_international'] : row['tution_fee_after_scholarship']);
+
+      // Reconcile local annual fee
+      const annualTuitionFeeLocal = cleanNumeric(row['annual_tuition_fee_local'] !== undefined ? row['annual_tuition_fee_local'] : row['anual_tuition_fee_local']);
+
       const fields = [
         'university_id', 'course_category_id', 'specialization_id', 'course_name', 'slug',
         'level', 'duration', 'study_mode', 'intake', 'application_deadline',
         'campus', 'accreditations', 'is_local', 'is_international',
         'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction', 'scholarship_info', 'courses_description',
-        'tution_fee', 'total_fee', 'total_tuition_fee', 'annual_tuition_fee',
+        'tution_fee',
+
+        // International legacy + explicit
+        'total_fee', 'total_tuition_fee', 'annual_tuition_fee',
         'year1_tuition_fee', 'year2_tuition_fee', 'year3_tuition_fee', 'year4_tuition_fee',
+        'scholarship_amount', 'tution_fee_after_scholarship',
+        'total_fee_international', 'total_tuition_fee_international', 'annual_tuition_fee_international',
+        'year1_tuition_fee_international', 'year2_tuition_fee_international', 'year3_tuition_fee_international', 'year4_tuition_fee_international',
+        'scholarship_amount_international', 'tution_fee_after_scholarship_international',
+
+        // Untouched other fees
         'registration_fee', 'laboratory_fee', 'library_fee', 'technology_fee',
         'student_activity_fee', 'insurance_fee', 'examination_fee', 'application_fee',
         'emgs_processing_fee', 'international_student_fee', 'international_security_deposit',
         'international_student_charge', 'international_administration_fee', 'personal_bond_fee',
         'resources_fee', 'commitment_fee', 'facilities_fee', 'accommodation_fee',
-        'airport_pickup_fee', 'other_fee', 'scholarship_amount', 'tution_fee_after_scholarship',
-        'currency', 'additional_note',
-        'anual_tuition_fee_local', 'year1_tuition_fee_local', 'year2_tuition_fee_local',
-        'year3_tuition_fee_local', 'year4_tuition_fee_local', 'total_tuition_fee_local',
+        'airport_pickup_fee', 'other_fee', 'currency', 'additional_note',
+
+        // Local
+        'total_fee_local', 'total_tuition_fee_local', 'annual_tuition_fee_local', 'anual_tuition_fee_local',
+        'year1_tuition_fee_local', 'year2_tuition_fee_local', 'year3_tuition_fee_local', 'year4_tuition_fee_local',
+        'scholarship_amount_local', 'tution_fee_after_scholarship_local',
+
         'meta_title', 'meta_keyword', 'meta_description', 'page_content',
         'status', 'website', 'created_at', 'updated_at'
       ];
@@ -193,13 +240,30 @@ export async function POST(req: Request) {
         row['scholarship_info'] ? String(row['scholarship_info']).trim() : null,
         row['courses_description'] ? String(row['courses_description']).trim() : null,
         cleanNumeric(row['tution_fee']),
-        cleanNumeric(row['total_fee']),
-        cleanNumeric(row['total_tuition_fee']),
-        cleanNumeric(row['annual_tuition_fee']),
-        cleanNumeric(row['year1_tuition_fee']),
-        cleanNumeric(row['year2_tuition_fee']),
-        cleanNumeric(row['year3_tuition_fee']),
-        cleanNumeric(row['year4_tuition_fee']),
+
+        // International legacy
+        totalFeeIntl,
+        totalTuitionFeeIntl,
+        annualTuitionFeeIntl,
+        year1TuitionFeeIntl,
+        year2TuitionFeeIntl,
+        year3TuitionFeeIntl,
+        year4TuitionFeeIntl,
+        scholarshipAmountIntl,
+        feeAfterScholarshipIntl,
+
+        // International explicit
+        totalFeeIntl,
+        totalTuitionFeeIntl,
+        annualTuitionFeeIntl,
+        year1TuitionFeeIntl,
+        year2TuitionFeeIntl,
+        year3TuitionFeeIntl,
+        year4TuitionFeeIntl,
+        scholarshipAmountIntl,
+        feeAfterScholarshipIntl,
+
+        // Untouched other fees
         cleanNumeric(row['registration_fee']),
         cleanNumeric(row['laboratory_fee']),
         cleanNumeric(row['library_fee']),
@@ -220,16 +284,21 @@ export async function POST(req: Request) {
         cleanNumeric(row['accommodation_fee']),
         cleanNumeric(row['airport_pickup_fee']),
         cleanNumeric(row['other_fee']),
-        cleanNumeric(row['scholarship_amount']),
-        cleanNumeric(row['tution_fee_after_scholarship']),
         row['currency'] ? String(row['currency']).trim() : 'MYR',
         row['additional_note'] ? String(row['additional_note']).trim() : null,
-        cleanNumeric(row['anual_tuition_fee_local']),
+
+        // Local
+        cleanNumeric(row['total_fee_local']),
+        cleanNumeric(row['total_tuition_fee_local']),
+        annualTuitionFeeLocal,
+        annualTuitionFeeLocal,
         cleanNumeric(row['year1_tuition_fee_local']),
         cleanNumeric(row['year2_tuition_fee_local']),
         cleanNumeric(row['year3_tuition_fee_local']),
         cleanNumeric(row['year4_tuition_fee_local']),
-        cleanNumeric(row['total_tuition_fee_local']),
+        cleanNumeric(row['scholarship_amount_local']),
+        cleanNumeric(row['tution_fee_after_scholarship_local']),
+
         row['meta_title'] ? String(row['meta_title']).trim() : null,
         row['meta_keyword'] ? String(row['meta_keyword']).trim() : null,
         row['meta_description'] ? String(row['meta_description']).trim() : null,

@@ -28,6 +28,31 @@ const COLUMN_MAP: Record<string, string> = {
   mode_of_instruction: 'mode_of_instruction',
   scholarship_info: 'scholarship_info',
   courses_description: 'courses_description',
+
+  // Local Fees
+  total_fee_local: 'total_fee_local',
+  total_tuition_fee_local: 'total_tuition_fee_local',
+  annual_tuition_fee_local: 'annual_tuition_fee_local',
+  anual_tuition_fee_local: 'annual_tuition_fee_local',
+  year1_tuition_fee_local: 'year1_tuition_fee_local',
+  year2_tuition_fee_local: 'year2_tuition_fee_local',
+  year3_tuition_fee_local: 'year3_tuition_fee_local',
+  year4_tuition_fee_local: 'year4_tuition_fee_local',
+  scholarship_amount_local: 'scholarship_amount_local',
+  tution_fee_after_scholarship_local: 'tution_fee_after_scholarship_local',
+
+  // International Fees
+  total_fee_international: 'total_fee_international',
+  total_tuition_fee_international: 'total_tuition_fee_international',
+  annual_tuition_fee_international: 'annual_tuition_fee_international',
+  year1_tuition_fee_international: 'year1_tuition_fee_international',
+  year2_tuition_fee_international: 'year2_tuition_fee_international',
+  year3_tuition_fee_international: 'year3_tuition_fee_international',
+  year4_tuition_fee_international: 'year4_tuition_fee_international',
+  scholarship_amount_international: 'scholarship_amount_international',
+  tution_fee_after_scholarship_international: 'tution_fee_after_scholarship_international',
+
+  // Legacy mappings for international
   tution_fee: 'tution_fee',
   tuition_fee: 'tution_fee',
   total_fee: 'total_fee',
@@ -37,6 +62,10 @@ const COLUMN_MAP: Record<string, string> = {
   year2_tuition_fee: 'year2_tuition_fee',
   year3_tuition_fee: 'year3_tuition_fee',
   year4_tuition_fee: 'year4_tuition_fee',
+  scholarship_amount: 'scholarship_amount',
+  tution_fee_after_scholarship: 'tution_fee_after_scholarship',
+
+  // Untouched additional fees
   registration_fee: 'registration_fee',
   laboratory_fee: 'laboratory_fee',
   library_fee: 'library_fee',
@@ -57,17 +86,9 @@ const COLUMN_MAP: Record<string, string> = {
   accommodation_fee: 'accommodation_fee',
   airport_pickup_fee: 'airport_pickup_fee',
   other_fee: 'other_fee',
-  scholarship_amount: 'scholarship_amount',
-  tution_fee_after_scholarship: 'tution_fee_after_scholarship',
   currency: 'currency',
   additional_note: 'additional_note',
-  anual_tuition_fee_local: 'anual_tuition_fee_local',
-  annual_tuition_fee_local: 'anual_tuition_fee_local',
-  year1_tuition_fee_local: 'year1_tuition_fee_local',
-  year2_tuition_fee_local: 'year2_tuition_fee_local',
-  year3_tuition_fee_local: 'year3_tuition_fee_local',
-  year4_tuition_fee_local: 'year4_tuition_fee_local',
-  total_tuition_fee_local: 'total_tuition_fee_local',
+
   meta_title: 'meta_title',
   meta_keyword: 'meta_keyword',
   meta_description: 'meta_description',
@@ -79,19 +100,54 @@ const NUMERIC_COLS = new Set([
   'university_id', 'course_category_id', 'specialization_id',
   'tution_fee', 'total_fee', 'total_tuition_fee', 'annual_tuition_fee',
   'year1_tuition_fee', 'year2_tuition_fee', 'year3_tuition_fee', 'year4_tuition_fee',
+  'scholarship_amount', 'tution_fee_after_scholarship',
+
+  // Local
+  'total_fee_local', 'total_tuition_fee_local', 'annual_tuition_fee_local', 'anual_tuition_fee_local',
+  'year1_tuition_fee_local', 'year2_tuition_fee_local', 'year3_tuition_fee_local', 'year4_tuition_fee_local',
+  'scholarship_amount_local', 'tution_fee_after_scholarship_local',
+
+  // International
+  'total_fee_international', 'total_tuition_fee_international', 'annual_tuition_fee_international',
+  'year1_tuition_fee_international', 'year2_tuition_fee_international', 'year3_tuition_fee_international',
+  'year4_tuition_fee_international', 'scholarship_amount_international', 'tution_fee_after_scholarship_international',
+
+  // Untouched additional fees
   'registration_fee', 'laboratory_fee', 'library_fee', 'technology_fee',
   'student_activity_fee', 'insurance_fee', 'examination_fee', 'application_fee',
   'emgs_processing_fee', 'international_student_fee', 'international_security_deposit',
   'international_student_charge', 'international_administration_fee', 'personal_bond_fee',
   'resources_fee', 'commitment_fee', 'facilities_fee', 'accommodation_fee',
-  'airport_pickup_fee', 'other_fee', 'scholarship_amount', 'tution_fee_after_scholarship',
-  'anual_tuition_fee_local', 'year1_tuition_fee_local', 'year2_tuition_fee_local',
-  'year3_tuition_fee_local', 'year4_tuition_fee_local', 'total_tuition_fee_local'
+  'airport_pickup_fee', 'other_fee'
 ]);
 
 const BOOLEAN_COLS = new Set([
   'is_local', 'is_international', 'status'
 ]);
+
+// Mirrored column pairs to ensure both legacy and explicit columns stay in sync
+const MIRRORED_PAIRS: Record<string, string[]> = {
+  total_fee_international: ['total_fee'],
+  total_fee: ['total_fee_international'],
+  total_tuition_fee_international: ['total_tuition_fee'],
+  total_tuition_fee: ['total_tuition_fee_international'],
+  annual_tuition_fee_international: ['annual_tuition_fee'],
+  annual_tuition_fee: ['annual_tuition_fee_international'],
+  year1_tuition_fee_international: ['year1_tuition_fee'],
+  year1_tuition_fee: ['year1_tuition_fee_international'],
+  year2_tuition_fee_international: ['year2_tuition_fee'],
+  year2_tuition_fee: ['year2_tuition_fee_international'],
+  year3_tuition_fee_international: ['year3_tuition_fee'],
+  year3_tuition_fee: ['year3_tuition_fee_international'],
+  year4_tuition_fee_international: ['year4_tuition_fee'],
+  year4_tuition_fee: ['year4_tuition_fee_international'],
+  scholarship_amount_international: ['scholarship_amount'],
+  scholarship_amount: ['scholarship_amount_international'],
+  tution_fee_after_scholarship_international: ['tution_fee_after_scholarship'],
+  tution_fee_after_scholarship: ['tution_fee_after_scholarship_international'],
+  annual_tuition_fee_local: ['anual_tuition_fee_local'],
+  anual_tuition_fee_local: ['annual_tuition_fee_local'],
+};
 
 function normalizeKey(key: string): string {
   return String(key)
@@ -177,9 +233,8 @@ export async function POST(req: Request) {
       );
       if (existing.length === 0) continue;
 
-      // Build dynamic UPDATE statement with only columns present in row (excluding 'id')
-      const updateFields: string[] = [];
-      const updateParams: any[] = [];
+      // Build dynamic UPDATE statement with columns present in row
+      const updateFieldsMap = new Map<string, any>();
 
       for (const [col, val] of Object.entries(row)) {
         if (col === 'id') continue;
@@ -204,11 +259,28 @@ export async function POST(req: Request) {
           if (formattedVal === '') formattedVal = null;
         }
 
-        updateFields.push(`${col} = ?`);
-        updateParams.push(formattedVal);
+        updateFieldsMap.set(col, formattedVal);
+
+        // Also update mirrored columns
+        const mirrors = MIRRORED_PAIRS[col];
+        if (mirrors) {
+          for (const m of mirrors) {
+            if (!updateFieldsMap.has(m)) {
+              updateFieldsMap.set(m, formattedVal);
+            }
+          }
+        }
       }
 
-      if (updateFields.length === 0) continue;
+      if (updateFieldsMap.size === 0) continue;
+
+      const updateFields: string[] = [];
+      const updateParams: any[] = [];
+
+      for (const [col, val] of updateFieldsMap.entries()) {
+        updateFields.push(`${col} = ?`);
+        updateParams.push(val);
+      }
 
       updateFields.push('updated_at = ?');
       updateParams.push(now);

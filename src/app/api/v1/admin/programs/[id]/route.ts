@@ -58,6 +58,18 @@ export async function PUT(
       scholarship_info,
       courses_description,
       tution_fee,
+
+      // International Fees (new + legacy)
+      total_fee_international,
+      total_tuition_fee_international,
+      annual_tuition_fee_international,
+      year1_tuition_fee_international,
+      year2_tuition_fee_international,
+      year3_tuition_fee_international,
+      year4_tuition_fee_international,
+      scholarship_amount_international,
+      tution_fee_after_scholarship_international,
+
       total_fee,
       total_tuition_fee,
       annual_tuition_fee,
@@ -65,6 +77,10 @@ export async function PUT(
       year2_tuition_fee,
       year3_tuition_fee,
       year4_tuition_fee,
+      scholarship_amount,
+      tution_fee_after_scholarship,
+
+      // Untouched other fees
       registration_fee,
       laboratory_fee,
       library_fee,
@@ -85,16 +101,21 @@ export async function PUT(
       accommodation_fee,
       airport_pickup_fee,
       other_fee,
-      scholarship_amount,
-      tution_fee_after_scholarship,
       currency,
       additional_note,
+
+      // Local Fees (new + legacy)
+      total_fee_local,
+      total_tuition_fee_local,
+      annual_tuition_fee_local,
       anual_tuition_fee_local,
       year1_tuition_fee_local,
       year2_tuition_fee_local,
       year3_tuition_fee_local,
       year4_tuition_fee_local,
-      total_tuition_fee_local,
+      scholarship_amount_local,
+      tution_fee_after_scholarship_local,
+
       meta_title,
       meta_keyword,
       meta_description,
@@ -109,22 +130,50 @@ export async function PUT(
     const slug = slugify(course_name);
     const now = new Date();
 
+    // Reconcile international fees
+    const finalTotalFeeIntl = total_fee_international !== undefined && total_fee_international !== '' ? total_fee_international : total_fee;
+    const finalTotalTuitionFeeIntl = total_tuition_fee_international !== undefined && total_tuition_fee_international !== '' ? total_tuition_fee_international : total_tuition_fee;
+    const finalAnnualTuitionFeeIntl = annual_tuition_fee_international !== undefined && annual_tuition_fee_international !== '' ? annual_tuition_fee_international : annual_tuition_fee;
+    const finalYear1TuitionFeeIntl = year1_tuition_fee_international !== undefined && year1_tuition_fee_international !== '' ? year1_tuition_fee_international : year1_tuition_fee;
+    const finalYear2TuitionFeeIntl = year2_tuition_fee_international !== undefined && year2_tuition_fee_international !== '' ? year2_tuition_fee_international : year2_tuition_fee;
+    const finalYear3TuitionFeeIntl = year3_tuition_fee_international !== undefined && year3_tuition_fee_international !== '' ? year3_tuition_fee_international : year3_tuition_fee;
+    const finalYear4TuitionFeeIntl = year4_tuition_fee_international !== undefined && year4_tuition_fee_international !== '' ? year4_tuition_fee_international : year4_tuition_fee;
+    const finalScholarshipAmountIntl = scholarship_amount_international !== undefined && scholarship_amount_international !== '' ? scholarship_amount_international : scholarship_amount;
+    const finalFeeAfterScholarshipIntl = tution_fee_after_scholarship_international !== undefined && tution_fee_after_scholarship_international !== '' ? tution_fee_after_scholarship_international : tution_fee_after_scholarship;
+
+    // Reconcile local annual fee
+    const finalAnnualTuitionFeeLocal = annual_tuition_fee_local !== undefined && annual_tuition_fee_local !== '' ? annual_tuition_fee_local : anual_tuition_fee_local;
+
     const fields = [
       'university_id = ?', 'course_category_id = ?', 'specialization_id = ?', 'course_name = ?', 'slug = ?',
       'level = ?', 'duration = ?', 'study_mode = ?', 'intake = ?', 'application_deadline = ?',
       'campus = ?', 'accreditations = ?', 'is_local = ?', 'is_international = ?',
       'overview = ?', 'entry_requirement = ?', 'exam_required = ?', 'mode_of_instruction = ?', 'scholarship_info = ?', 'courses_description = ?',
-      'tution_fee = ?', 'total_fee = ?', 'total_tuition_fee = ?', 'annual_tuition_fee = ?',
+      'tution_fee = ?',
+
+      // International legacy
+      'total_fee = ?', 'total_tuition_fee = ?', 'annual_tuition_fee = ?',
       'year1_tuition_fee = ?', 'year2_tuition_fee = ?', 'year3_tuition_fee = ?', 'year4_tuition_fee = ?',
+      'scholarship_amount = ?', 'tution_fee_after_scholarship = ?',
+
+      // International new explicit
+      'total_fee_international = ?', 'total_tuition_fee_international = ?', 'annual_tuition_fee_international = ?',
+      'year1_tuition_fee_international = ?', 'year2_tuition_fee_international = ?', 'year3_tuition_fee_international = ?', 'year4_tuition_fee_international = ?',
+      'scholarship_amount_international = ?', 'tution_fee_after_scholarship_international = ?',
+
+      // Untouched other fees
       'registration_fee = ?', 'laboratory_fee = ?', 'library_fee = ?', 'technology_fee = ?',
       'student_activity_fee = ?', 'insurance_fee = ?', 'examination_fee = ?', 'application_fee = ?',
       'emgs_processing_fee = ?', 'international_student_fee = ?', 'international_security_deposit = ?',
       'international_student_charge = ?', 'international_administration_fee = ?', 'personal_bond_fee = ?',
       'resources_fee = ?', 'commitment_fee = ?', 'facilities_fee = ?', 'accommodation_fee = ?',
-      'airport_pickup_fee = ?', 'other_fee = ?', 'scholarship_amount = ?', 'tution_fee_after_scholarship = ?',
-      'currency = ?', 'additional_note = ?',
-      'anual_tuition_fee_local = ?', 'year1_tuition_fee_local = ?', 'year2_tuition_fee_local = ?',
-      'year3_tuition_fee_local = ?', 'year4_tuition_fee_local = ?', 'total_tuition_fee_local = ?',
+      'airport_pickup_fee = ?', 'other_fee = ?', 'currency = ?', 'additional_note = ?',
+
+      // Local
+      'total_fee_local = ?', 'total_tuition_fee_local = ?', 'annual_tuition_fee_local = ?', 'anual_tuition_fee_local = ?',
+      'year1_tuition_fee_local = ?', 'year2_tuition_fee_local = ?', 'year3_tuition_fee_local = ?', 'year4_tuition_fee_local = ?',
+      'scholarship_amount_local = ?', 'tution_fee_after_scholarship_local = ?',
+
       'meta_title = ?', 'meta_keyword = ?', 'meta_description = ?', 'page_content = ?',
       'status = ?', 'updated_at = ?'
     ];
@@ -153,13 +202,30 @@ export async function PUT(
       scholarship_info || null,
       courses_description || null,
       tution_fee ? String(tution_fee) : null,
-      total_fee ? String(total_fee) : null,
-      total_tuition_fee ? String(total_tuition_fee) : null,
-      annual_tuition_fee ? String(annual_tuition_fee) : null,
-      year1_tuition_fee ? String(year1_tuition_fee) : null,
-      year2_tuition_fee ? String(year2_tuition_fee) : null,
-      year3_tuition_fee ? String(year3_tuition_fee) : null,
-      year4_tuition_fee ? String(year4_tuition_fee) : null,
+
+      // International legacy
+      finalTotalFeeIntl ? String(finalTotalFeeIntl) : null,
+      finalTotalTuitionFeeIntl ? String(finalTotalTuitionFeeIntl) : null,
+      finalAnnualTuitionFeeIntl ? String(finalAnnualTuitionFeeIntl) : null,
+      finalYear1TuitionFeeIntl ? String(finalYear1TuitionFeeIntl) : null,
+      finalYear2TuitionFeeIntl ? String(finalYear2TuitionFeeIntl) : null,
+      finalYear3TuitionFeeIntl ? String(finalYear3TuitionFeeIntl) : null,
+      finalYear4TuitionFeeIntl ? String(finalYear4TuitionFeeIntl) : null,
+      finalScholarshipAmountIntl ? String(finalScholarshipAmountIntl) : null,
+      finalFeeAfterScholarshipIntl ? String(finalFeeAfterScholarshipIntl) : null,
+
+      // International new explicit
+      finalTotalFeeIntl ? String(finalTotalFeeIntl) : null,
+      finalTotalTuitionFeeIntl ? String(finalTotalTuitionFeeIntl) : null,
+      finalAnnualTuitionFeeIntl ? String(finalAnnualTuitionFeeIntl) : null,
+      finalYear1TuitionFeeIntl ? String(finalYear1TuitionFeeIntl) : null,
+      finalYear2TuitionFeeIntl ? String(finalYear2TuitionFeeIntl) : null,
+      finalYear3TuitionFeeIntl ? String(finalYear3TuitionFeeIntl) : null,
+      finalYear4TuitionFeeIntl ? String(finalYear4TuitionFeeIntl) : null,
+      finalScholarshipAmountIntl ? String(finalScholarshipAmountIntl) : null,
+      finalFeeAfterScholarshipIntl ? String(finalFeeAfterScholarshipIntl) : null,
+
+      // Untouched other fees
       registration_fee ? String(registration_fee) : null,
       laboratory_fee ? String(laboratory_fee) : null,
       library_fee ? String(library_fee) : null,
@@ -180,16 +246,21 @@ export async function PUT(
       accommodation_fee ? String(accommodation_fee) : null,
       airport_pickup_fee ? String(airport_pickup_fee) : null,
       other_fee ? String(other_fee) : null,
-      scholarship_amount ? String(scholarship_amount) : null,
-      tution_fee_after_scholarship ? String(tution_fee_after_scholarship) : null,
       currency || 'MYR',
       additional_note || null,
-      anual_tuition_fee_local ? String(anual_tuition_fee_local) : null,
+
+      // Local
+      total_fee_local ? String(total_fee_local) : null,
+      total_tuition_fee_local ? String(total_tuition_fee_local) : null,
+      finalAnnualTuitionFeeLocal ? String(finalAnnualTuitionFeeLocal) : null,
+      finalAnnualTuitionFeeLocal ? String(finalAnnualTuitionFeeLocal) : null,
       year1_tuition_fee_local ? String(year1_tuition_fee_local) : null,
       year2_tuition_fee_local ? String(year2_tuition_fee_local) : null,
       year3_tuition_fee_local ? String(year3_tuition_fee_local) : null,
       year4_tuition_fee_local ? String(year4_tuition_fee_local) : null,
-      total_tuition_fee_local ? String(total_tuition_fee_local) : null,
+      scholarship_amount_local ? String(scholarship_amount_local) : null,
+      tution_fee_after_scholarship_local ? String(tution_fee_after_scholarship_local) : null,
+
       meta_title || null,
       meta_keyword || null,
       meta_description || null,

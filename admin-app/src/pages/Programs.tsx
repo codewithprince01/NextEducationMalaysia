@@ -69,7 +69,18 @@ interface ProgramItem {
   scholarship_info?: string;
   courses_description?: string;
 
-  tution_fee?: string;
+  // International Fees
+  total_fee_international?: string;
+  total_tuition_fee_international?: string;
+  annual_tuition_fee_international?: string;
+  year1_tuition_fee_international?: string;
+  year2_tuition_fee_international?: string;
+  year3_tuition_fee_international?: string;
+  year4_tuition_fee_international?: string;
+  scholarship_amount_international?: string;
+  tution_fee_after_scholarship_international?: string;
+
+  // Legacy mappings for international
   total_fee?: string;
   total_tuition_fee?: string;
   annual_tuition_fee?: string;
@@ -77,6 +88,11 @@ interface ProgramItem {
   year2_tuition_fee?: string;
   year3_tuition_fee?: string;
   year4_tuition_fee?: string;
+  scholarship_amount?: string;
+  tution_fee_after_scholarship?: string;
+
+  // Untouched other fees
+  tution_fee?: string;
   registration_fee?: string;
   laboratory_fee?: string;
   library_fee?: string;
@@ -97,17 +113,20 @@ interface ProgramItem {
   accommodation_fee?: string;
   airport_pickup_fee?: string;
   other_fee?: string;
-  scholarship_amount?: string;
-  tution_fee_after_scholarship?: string;
   currency?: string;
   additional_note?: string;
 
+  // Local Fees
+  total_fee_local?: string;
+  total_tuition_fee_local?: string;
+  annual_tuition_fee_local?: string;
   anual_tuition_fee_local?: string;
   year1_tuition_fee_local?: string;
   year2_tuition_fee_local?: string;
   year3_tuition_fee_local?: string;
   year4_tuition_fee_local?: string;
-  total_tuition_fee_local?: string;
+  scholarship_amount_local?: string;
+  tution_fee_after_scholarship_local?: string;
 
   meta_title?: string;
   meta_keyword?: string;
@@ -184,7 +203,18 @@ export default function Programs() {
     scholarship_info: '',
     courses_description: '',
 
-    tution_fee: '',
+    // International Fees
+    total_fee_international: '',
+    total_tuition_fee_international: '',
+    annual_tuition_fee_international: '',
+    year1_tuition_fee_international: '',
+    year2_tuition_fee_international: '',
+    year3_tuition_fee_international: '',
+    year4_tuition_fee_international: '',
+    scholarship_amount_international: '',
+    tution_fee_after_scholarship_international: '',
+
+    // Legacy international mappings
     total_fee: '',
     total_tuition_fee: '',
     annual_tuition_fee: '',
@@ -192,6 +222,11 @@ export default function Programs() {
     year2_tuition_fee: '',
     year3_tuition_fee: '',
     year4_tuition_fee: '',
+    scholarship_amount: '',
+    tution_fee_after_scholarship: '',
+
+    // Untouched other fees
+    tution_fee: '',
     registration_fee: '',
     laboratory_fee: '',
     library_fee: '',
@@ -212,17 +247,20 @@ export default function Programs() {
     accommodation_fee: '',
     airport_pickup_fee: '',
     other_fee: '',
-    scholarship_amount: '',
-    tution_fee_after_scholarship: '',
     currency: 'MYR',
     additional_note: '',
 
+    // Local Fees
+    total_fee_local: '',
+    total_tuition_fee_local: '',
+    annual_tuition_fee_local: '',
     anual_tuition_fee_local: '',
     year1_tuition_fee_local: '',
     year2_tuition_fee_local: '',
     year3_tuition_fee_local: '',
     year4_tuition_fee_local: '',
-    total_tuition_fee_local: '',
+    scholarship_amount_local: '',
+    tution_fee_after_scholarship_local: '',
 
     meta_title: '',
     meta_keyword: '',
@@ -332,14 +370,30 @@ export default function Programs() {
       scholarship_info: item.scholarship_info || '',
       courses_description: item.courses_description || '',
 
+      // International Fees (new + legacy fallbacks)
+      total_fee_international: item.total_fee_international || item.total_fee || '',
+      total_tuition_fee_international: item.total_tuition_fee_international || item.total_tuition_fee || '',
+      annual_tuition_fee_international: item.annual_tuition_fee_international || item.annual_tuition_fee || '',
+      year1_tuition_fee_international: item.year1_tuition_fee_international || item.year1_tuition_fee || '',
+      year2_tuition_fee_international: item.year2_tuition_fee_international || item.year2_tuition_fee || '',
+      year3_tuition_fee_international: item.year3_tuition_fee_international || item.year3_tuition_fee || '',
+      year4_tuition_fee_international: item.year4_tuition_fee_international || item.year4_tuition_fee || '',
+      scholarship_amount_international: item.scholarship_amount_international || item.scholarship_amount || '',
+      tution_fee_after_scholarship_international: item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
+
+      // Legacy international mappings
+      total_fee: item.total_fee_international || item.total_fee || '',
+      total_tuition_fee: item.total_tuition_fee_international || item.total_tuition_fee || '',
+      annual_tuition_fee: item.annual_tuition_fee_international || item.annual_tuition_fee || '',
+      year1_tuition_fee: item.year1_tuition_fee_international || item.year1_tuition_fee || '',
+      year2_tuition_fee: item.year2_tuition_fee_international || item.year2_tuition_fee || '',
+      year3_tuition_fee: item.year3_tuition_fee_international || item.year3_tuition_fee || '',
+      year4_tuition_fee: item.year4_tuition_fee_international || item.year4_tuition_fee || '',
+      scholarship_amount: item.scholarship_amount_international || item.scholarship_amount || '',
+      tution_fee_after_scholarship: item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
+
+      // Untouched other fees
       tution_fee: item.tution_fee || '',
-      total_fee: item.total_fee || '',
-      total_tuition_fee: item.total_tuition_fee || '',
-      annual_tuition_fee: item.annual_tuition_fee || '',
-      year1_tuition_fee: item.year1_tuition_fee || '',
-      year2_tuition_fee: item.year2_tuition_fee || '',
-      year3_tuition_fee: item.year3_tuition_fee || '',
-      year4_tuition_fee: item.year4_tuition_fee || '',
       registration_fee: item.registration_fee || '',
       laboratory_fee: item.laboratory_fee || '',
       library_fee: item.library_fee || '',
@@ -360,17 +414,20 @@ export default function Programs() {
       accommodation_fee: item.accommodation_fee || '',
       airport_pickup_fee: item.airport_pickup_fee || '',
       other_fee: item.other_fee || '',
-      scholarship_amount: item.scholarship_amount || '',
-      tution_fee_after_scholarship: item.tution_fee_after_scholarship || '',
       currency: item.currency || 'MYR',
       additional_note: item.additional_note || '',
 
-      anual_tuition_fee_local: item.anual_tuition_fee_local || '',
+      // Local Fees
+      total_fee_local: item.total_fee_local || '',
+      total_tuition_fee_local: item.total_tuition_fee_local || '',
+      annual_tuition_fee_local: item.annual_tuition_fee_local || item.anual_tuition_fee_local || '',
+      anual_tuition_fee_local: item.anual_tuition_fee_local || item.annual_tuition_fee_local || '',
       year1_tuition_fee_local: item.year1_tuition_fee_local || '',
       year2_tuition_fee_local: item.year2_tuition_fee_local || '',
       year3_tuition_fee_local: item.year3_tuition_fee_local || '',
       year4_tuition_fee_local: item.year4_tuition_fee_local || '',
-      total_tuition_fee_local: item.total_tuition_fee_local || '',
+      scholarship_amount_local: item.scholarship_amount_local || '',
+      tution_fee_after_scholarship_local: item.tution_fee_after_scholarship_local || '',
 
       meta_title: item.meta_title || '',
       meta_keyword: item.meta_keyword || '',
@@ -401,6 +458,29 @@ export default function Programs() {
         body: JSON.stringify({
           ...formData,
           university_id: formData.university_id || selectedUnivId,
+          // Sync international fees
+          total_fee: formData.total_fee_international || formData.total_fee,
+          total_tuition_fee: formData.total_tuition_fee_international || formData.total_tuition_fee,
+          annual_tuition_fee: formData.annual_tuition_fee_international || formData.annual_tuition_fee,
+          year1_tuition_fee: formData.year1_tuition_fee_international || formData.year1_tuition_fee,
+          year2_tuition_fee: formData.year2_tuition_fee_international || formData.year2_tuition_fee,
+          year3_tuition_fee: formData.year3_tuition_fee_international || formData.year3_tuition_fee,
+          year4_tuition_fee: formData.year4_tuition_fee_international || formData.year4_tuition_fee,
+          scholarship_amount: formData.scholarship_amount_international || formData.scholarship_amount,
+          tution_fee_after_scholarship: formData.tution_fee_after_scholarship_international || formData.tution_fee_after_scholarship,
+          total_fee_international: formData.total_fee_international || formData.total_fee,
+          total_tuition_fee_international: formData.total_tuition_fee_international || formData.total_tuition_fee,
+          annual_tuition_fee_international: formData.annual_tuition_fee_international || formData.annual_tuition_fee,
+          year1_tuition_fee_international: formData.year1_tuition_fee_international || formData.year1_tuition_fee,
+          year2_tuition_fee_international: formData.year2_tuition_fee_international || formData.year2_tuition_fee,
+          year3_tuition_fee_international: formData.year3_tuition_fee_international || formData.year3_tuition_fee,
+          year4_tuition_fee_international: formData.year4_tuition_fee_international || formData.year4_tuition_fee,
+          scholarship_amount_international: formData.scholarship_amount_international || formData.scholarship_amount,
+          tution_fee_after_scholarship_international: formData.tution_fee_after_scholarship_international || formData.tution_fee_after_scholarship,
+
+          // Sync local fees
+          annual_tuition_fee_local: formData.annual_tuition_fee_local || formData.anual_tuition_fee_local,
+          anual_tuition_fee_local: formData.annual_tuition_fee_local || formData.anual_tuition_fee_local,
         }),
       });
 
@@ -493,16 +573,58 @@ export default function Programs() {
   };
 
   const handleDownloadFormat = () => {
-    if (sorted.length > 0) {
-      handleExportDetails();
-      return;
-    }
     const headers = [
       'course_name', 'course_category_id', 'specialization_id', 'level',
       'duration', 'study_mode', 'intake', 'application_deadline', 'campus',
       'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction',
       'scholarship_info', 'is_local', 'is_international', 'accreditations',
-      'tution_fee', 'total_fee', 'currency'
+
+      // Local Fees
+      'total_fee_local',
+      'total_tuition_fee_local',
+      'year1_tuition_fee_local',
+      'year2_tuition_fee_local',
+      'year3_tuition_fee_local',
+      'year4_tuition_fee_local',
+      'annual_tuition_fee_local',
+      'scholarship_amount_local',
+      'tution_fee_after_scholarship_local',
+
+      // International Fees
+      'total_fee_international',
+      'total_tuition_fee_international',
+      'annual_tuition_fee_international',
+      'year1_tuition_fee_international',
+      'year2_tuition_fee_international',
+      'year3_tuition_fee_international',
+      'year4_tuition_fee_international',
+      'scholarship_amount_international',
+      'tution_fee_after_scholarship_international',
+
+      // Untouched other fees
+      'tution_fee',
+      'registration_fee',
+      'laboratory_fee',
+      'library_fee',
+      'technology_fee',
+      'student_activity_fee',
+      'insurance_fee',
+      'examination_fee',
+      'application_fee',
+      'emgs_processing_fee',
+      'international_student_fee',
+      'international_security_deposit',
+      'international_student_charge',
+      'international_administration_fee',
+      'personal_bond_fee',
+      'resources_fee',
+      'commitment_fee',
+      'facilities_fee',
+      'accommodation_fee',
+      'airport_pickup_fee',
+      'other_fee',
+      'currency',
+      'additional_note'
     ];
     const sampleRow = [
       'Bachelor of Information Technology (Hons)', '1', '1', 'Bachelor',
@@ -510,7 +632,12 @@ export default function Programs() {
       'Comprehensive IT program covering software engineering and cybersecurity.',
       'STPM with min 2 Principal passes or equivalent.', 'IELTS 5.5', 'English',
       'Up to 30% merit scholarship available', 1, 1, 'MQA Approved',
-      '45000', '52000', 'MYR'
+      // Local Fees sample
+      '35000', '32000', '11000', '11000', '10000', '0', '11000', '5000', '27000',
+      // International Fees sample
+      '52000', '48000', '16000', '16000', '16000', '16000', '16000', '6000', '42000',
+      // Untouched other fees sample
+      '48000', '1500', '', '', '', '', '', '', '500', '2500', '2000', '1000', '', '1500', '', '', '', '', '', '', '', 'MYR', ''
     ];
     downloadCSV('university-programs-import-format.csv', headers, [sampleRow]);
     showToast('success', 'Import template format downloaded.');
@@ -631,31 +758,84 @@ export default function Programs() {
       return;
     }
     const headers = [
-      'id', 'course_name', 'tution_fee', 'total_fee', 'total_tuition_fee',
-      'annual_tuition_fee', 'year1_tuition_fee', 'year2_tuition_fee', 'year3_tuition_fee',
-      'year4_tuition_fee', 'registration_fee', 'laboratory_fee', 'library_fee',
-      'technology_fee', 'student_activity_fee', 'insurance_fee', 'examination_fee',
-      'application_fee', 'emgs_processing_fee', 'international_student_fee',
-      'international_security_deposit', 'international_student_charge',
-      'international_administration_fee', 'personal_bond_fee', 'resources_fee',
-      'commitment_fee', 'facilities_fee', 'accommodation_fee', 'airport_pickup_fee',
-      'other_fee', 'scholarship_amount', 'tution_fee_after_scholarship', 'currency',
-      'additional_note', 'anual_tuition_fee_local', 'year1_tuition_fee_local',
-      'year2_tuition_fee_local', 'year3_tuition_fee_local', 'year4_tuition_fee_local',
-      'total_tuition_fee_local'
+      'id', 'course_name',
+
+      // Local Fees
+      'total_fee_local',
+      'total_tuition_fee_local',
+      'year1_tuition_fee_local',
+      'year2_tuition_fee_local',
+      'year3_tuition_fee_local',
+      'year4_tuition_fee_local',
+      'annual_tuition_fee_local',
+      'scholarship_amount_local',
+      'tution_fee_after_scholarship_local',
+
+      // International Fees
+      'total_fee_international',
+      'total_tuition_fee_international',
+      'annual_tuition_fee_international',
+      'year1_tuition_fee_international',
+      'year2_tuition_fee_international',
+      'year3_tuition_fee_international',
+      'year4_tuition_fee_international',
+      'scholarship_amount_international',
+      'tution_fee_after_scholarship_international',
+
+      // Untouched other fees
+      'tution_fee',
+      'registration_fee',
+      'laboratory_fee',
+      'library_fee',
+      'technology_fee',
+      'student_activity_fee',
+      'insurance_fee',
+      'examination_fee',
+      'application_fee',
+      'emgs_processing_fee',
+      'international_student_fee',
+      'international_security_deposit',
+      'international_student_charge',
+      'international_administration_fee',
+      'personal_bond_fee',
+      'resources_fee',
+      'commitment_fee',
+      'facilities_fee',
+      'accommodation_fee',
+      'airport_pickup_fee',
+      'other_fee',
+      'currency',
+      'additional_note'
     ];
 
     const rows = sorted.map((item) => [
       item.id,
       item.course_name || '',
+
+      // Local Fees
+      item.total_fee_local || '',
+      item.total_tuition_fee_local || '',
+      item.year1_tuition_fee_local || '',
+      item.year2_tuition_fee_local || '',
+      item.year3_tuition_fee_local || '',
+      item.year4_tuition_fee_local || '',
+      item.annual_tuition_fee_local || item.anual_tuition_fee_local || '',
+      item.scholarship_amount_local || '',
+      item.tution_fee_after_scholarship_local || '',
+
+      // International Fees
+      item.total_fee_international || item.total_fee || '',
+      item.total_tuition_fee_international || item.total_tuition_fee || '',
+      item.annual_tuition_fee_international || item.annual_tuition_fee || '',
+      item.year1_tuition_fee_international || item.year1_tuition_fee || '',
+      item.year2_tuition_fee_international || item.year2_tuition_fee || '',
+      item.year3_tuition_fee_international || item.year3_tuition_fee || '',
+      item.year4_tuition_fee_international || item.year4_tuition_fee || '',
+      item.scholarship_amount_international || item.scholarship_amount || '',
+      item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
+
+      // Untouched other fees
       item.tution_fee || '',
-      item.total_fee || '',
-      item.total_tuition_fee || '',
-      item.annual_tuition_fee || '',
-      item.year1_tuition_fee || '',
-      item.year2_tuition_fee || '',
-      item.year3_tuition_fee || '',
-      item.year4_tuition_fee || '',
       item.registration_fee || '',
       item.laboratory_fee || '',
       item.library_fee || '',
@@ -676,16 +856,8 @@ export default function Programs() {
       item.accommodation_fee || '',
       item.airport_pickup_fee || '',
       item.other_fee || '',
-      item.scholarship_amount || '',
-      item.tution_fee_after_scholarship || '',
       item.currency || '',
-      item.additional_note || '',
-      item.anual_tuition_fee_local || '',
-      item.year1_tuition_fee_local || '',
-      item.year2_tuition_fee_local || '',
-      item.year3_tuition_fee_local || '',
-      item.year4_tuition_fee_local || '',
-      item.total_tuition_fee_local || ''
+      item.additional_note || ''
     ]);
 
     const univName = selectedUniv?.name ? selectedUniv.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'all';
@@ -1165,47 +1337,36 @@ export default function Programs() {
             {/* TAB 3: INTERNATIONAL FEES */}
             {activeFormTab === 'intl_fees' && (
               <div className="space-y-4 animate-in fade-in-50 duration-150">
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Fee (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.tution_fee}
-                      onChange={(e) => setFormData({ ...formData, tution_fee: e.target.value })}
+                      value={formData.total_fee_international}
+                      onChange={(e) => setFormData({ ...formData, total_fee_international: e.target.value, total_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Tuition Fee (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.total_fee}
-                      onChange={(e) => setFormData({ ...formData, total_fee: e.target.value })}
+                      value={formData.total_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, total_tuition_fee_international: e.target.value, total_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Annual Tuition Fee (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.total_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, total_tuition_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Annual Tuition Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.annual_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, annual_tuition_fee: e.target.value })}
+                      value={formData.annual_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, annual_tuition_fee_international: e.target.value, annual_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
@@ -1214,228 +1375,331 @@ export default function Programs() {
                 {/* Yearly Breakdown */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year1_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year1_tuition_fee: e.target.value })}
+                      value={formData.year1_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year1_tuition_fee_international: e.target.value, year1_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year2_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year2_tuition_fee: e.target.value })}
+                      value={formData.year2_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year2_tuition_fee_international: e.target.value, year2_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year3_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year3_tuition_fee: e.target.value })}
+                      value={formData.year3_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year3_tuition_fee_international: e.target.value, year3_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year4_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year4_tuition_fee: e.target.value })}
+                      value={formData.year4_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year4_tuition_fee_international: e.target.value, year4_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
                 </div>
 
-                {/* Additional Fee Component Breakdown */}
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                {/* Scholarship Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-100/70">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Registration Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Scholarship Amount (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.registration_fee}
-                      onChange={(e) => setFormData({ ...formData, registration_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      value={formData.scholarship_amount_international}
+                      onChange={(e) => setFormData({ ...formData, scholarship_amount_international: e.target.value, scholarship_amount: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Laboratory Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Fee After Scholarship (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.laboratory_fee}
-                      onChange={(e) => setFormData({ ...formData, laboratory_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Library Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.library_fee}
-                      onChange={(e) => setFormData({ ...formData, library_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Technology Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.technology_fee}
-                      onChange={(e) => setFormData({ ...formData, technology_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Student Activity Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.student_activity_fee}
-                      onChange={(e) => setFormData({ ...formData, student_activity_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Insurance Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.insurance_fee}
-                      onChange={(e) => setFormData({ ...formData, insurance_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Examination Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.examination_fee}
-                      onChange={(e) => setFormData({ ...formData, examination_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Application Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.application_fee}
-                      onChange={(e) => setFormData({ ...formData, application_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">EMGS Processing Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.emgs_processing_fee}
-                      onChange={(e) => setFormData({ ...formData, emgs_processing_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.international_student_fee}
-                      onChange={(e) => setFormData({ ...formData, international_student_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Security Deposit</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.international_security_deposit}
-                      onChange={(e) => setFormData({ ...formData, international_security_deposit: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Admin Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.international_administration_fee}
-                      onChange={(e) => setFormData({ ...formData, international_administration_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      value={formData.tution_fee_after_scholarship_international}
+                      onChange={(e) => setFormData({ ...formData, tution_fee_after_scholarship_international: e.target.value, tution_fee_after_scholarship: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Scholarship Amount</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.scholarship_amount}
-                      onChange={(e) => setFormData({ ...formData, scholarship_amount: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
+                {/* Untouched Additional Fee Components */}
+                <div className="pt-2 border-t border-slate-100 space-y-3">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Other Fee Components (Untouched)</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Tuition Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.tution_fee}
+                        onChange={(e) => setFormData({ ...formData, tution_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Fee After Scholarship</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.tution_fee_after_scholarship}
-                      onChange={(e) => setFormData({ ...formData, tution_fee_after_scholarship: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Registration Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.registration_fee}
+                        onChange={(e) => setFormData({ ...formData, registration_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Currency</label>
-                    <input
-                      type="text"
-                      placeholder="MYR, USD..."
-                      value={formData.currency}
-                      onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-bold uppercase border border-slate-200 rounded-lg"
-                    />
-                  </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Laboratory Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.laboratory_fee}
+                        onChange={(e) => setFormData({ ...formData, laboratory_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Additional Note</label>
-                    <input
-                      type="text"
-                      placeholder="Extra fee notes..."
-                      value={formData.additional_note}
-                      onChange={(e) => setFormData({ ...formData, additional_note: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg"
-                    />
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Library Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.library_fee}
+                        onChange={(e) => setFormData({ ...formData, library_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Technology Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.technology_fee}
+                        onChange={(e) => setFormData({ ...formData, technology_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Student Activity Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.student_activity_fee}
+                        onChange={(e) => setFormData({ ...formData, student_activity_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Insurance Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.insurance_fee}
+                        onChange={(e) => setFormData({ ...formData, insurance_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Examination Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.examination_fee}
+                        onChange={(e) => setFormData({ ...formData, examination_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Application Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.application_fee}
+                        onChange={(e) => setFormData({ ...formData, application_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">EMGS Processing Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.emgs_processing_fee}
+                        onChange={(e) => setFormData({ ...formData, emgs_processing_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.international_student_fee}
+                        onChange={(e) => setFormData({ ...formData, international_student_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Security Deposit</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.international_security_deposit}
+                        onChange={(e) => setFormData({ ...formData, international_security_deposit: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Charge</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.international_student_charge}
+                        onChange={(e) => setFormData({ ...formData, international_student_charge: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Admin Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.international_administration_fee}
+                        onChange={(e) => setFormData({ ...formData, international_administration_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Personal Bond Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.personal_bond_fee}
+                        onChange={(e) => setFormData({ ...formData, personal_bond_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Resources Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.resources_fee}
+                        onChange={(e) => setFormData({ ...formData, resources_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Commitment Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.commitment_fee}
+                        onChange={(e) => setFormData({ ...formData, commitment_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Facilities Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.facilities_fee}
+                        onChange={(e) => setFormData({ ...formData, facilities_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Accommodation Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.accommodation_fee}
+                        onChange={(e) => setFormData({ ...formData, accommodation_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Airport Pickup Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.airport_pickup_fee}
+                        onChange={(e) => setFormData({ ...formData, airport_pickup_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Other Fee</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={formData.other_fee}
+                        onChange={(e) => setFormData({ ...formData, other_fee: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Currency</label>
+                      <input
+                        type="text"
+                        placeholder="MYR, USD..."
+                        value={formData.currency}
+                        onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-bold uppercase border border-slate-200 rounded-lg"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Additional Note</label>
+                      <input
+                        type="text"
+                        placeholder="Extra fee notes..."
+                        value={formData.additional_note}
+                        onChange={(e) => setFormData({ ...formData, additional_note: e.target.value })}
+                        className="w-full px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1444,33 +1708,45 @@ export default function Programs() {
             {/* TAB 4: LOCAL FEES */}
             {activeFormTab === 'local_fees' && (
               <div className="space-y-4 animate-in fade-in-50 duration-150">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Annual Tuition Fee (Local)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Fee (Local)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.anual_tuition_fee_local}
-                      onChange={(e) => setFormData({ ...formData, anual_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg"
+                      value={formData.total_fee_local}
+                      onChange={(e) => setFormData({ ...formData, total_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Total Tuition Fee (Local)</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Tuition Fee (Local)</label>
                     <input
                       type="number"
                       placeholder="0.00"
                       value={formData.total_tuition_fee_local}
                       onChange={(e) => setFormData({ ...formData, total_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg"
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Annual Tuition Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.annual_tuition_fee_local}
+                      onChange={(e) => setFormData({ ...formData, annual_tuition_fee_local: e.target.value, anual_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                {/* Yearly Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee Local</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee (Local)</label>
                     <input
                       type="number"
                       placeholder="0.00"
@@ -1481,7 +1757,7 @@ export default function Programs() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee Local</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee (Local)</label>
                     <input
                       type="number"
                       placeholder="0.00"
@@ -1492,7 +1768,7 @@ export default function Programs() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee Local</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee (Local)</label>
                     <input
                       type="number"
                       placeholder="0.00"
@@ -1503,12 +1779,37 @@ export default function Programs() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee Local</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee (Local)</label>
                     <input
                       type="number"
                       placeholder="0.00"
                       value={formData.year4_tuition_fee_local}
                       onChange={(e) => setFormData({ ...formData, year4_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Scholarship Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/70">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Scholarship Amount (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.scholarship_amount_local}
+                      onChange={(e) => setFormData({ ...formData, scholarship_amount_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Fee After Scholarship (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.tution_fee_after_scholarship_local}
+                      onChange={(e) => setFormData({ ...formData, tution_fee_after_scholarship_local: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
