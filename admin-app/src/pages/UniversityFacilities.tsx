@@ -72,7 +72,7 @@ export default function UniversityFacilities() {
 
   const fetchUniversities = async () => {
     try {
-      const res = await fetch('/api/v1/admin/universities');
+      const res = await fetch('/api/v1/admin/universities?minimal=true');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setUniversities(json.data || []);
@@ -82,7 +82,7 @@ export default function UniversityFacilities() {
     }
   };
 
-  const fetchFacilities = async (targetUnivId?: string) => {
+  const fetchFacilities = async (targetUnivId?: string, showLoading = true) => {
     const univId = targetUnivId !== undefined ? targetUnivId : selectedUnivId;
     if (!univId) {
       setFacilities([]);
@@ -90,7 +90,7 @@ export default function UniversityFacilities() {
       return;
     }
 
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch(`/api/v1/admin/university-facilities?university_id=${univId}`);
       const json = await res.json();
@@ -102,7 +102,7 @@ export default function UniversityFacilities() {
     } catch {
       showToast('error', 'Network error');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -191,6 +191,9 @@ export default function UniversityFacilities() {
     const confirmed = await confirmDelete(item.title || item.facility || 'Facility');
     if (!confirmed) return;
 
+    // Optimistic UI update
+    setFacilities((prev) => prev.filter((f) => f.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-facilities/${item.id}`, {
         method: 'DELETE',
@@ -198,12 +201,14 @@ export default function UniversityFacilities() {
       const json = await res.json();
       if (res.ok && json.success) {
         showToast('success', 'Facility deleted successfully');
-        fetchFacilities(selectedUnivId);
+        fetchFacilities(selectedUnivId, false);
       } else {
         showToast('error', json.error || 'Failed to delete facility');
+        fetchFacilities(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Error deleting facility');
+      fetchFacilities(selectedUnivId, false);
     }
   };
 

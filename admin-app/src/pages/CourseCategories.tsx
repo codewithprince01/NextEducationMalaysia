@@ -183,8 +183,8 @@ export default function CourseCategories() {
     }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const [catRes, authorRes] = await Promise.all([
         fetch('/api/v1/admin/course-categories'),
@@ -197,16 +197,16 @@ export default function CourseCategories() {
       if (catRes.ok && catJson.status) {
         setCategories(catJson.data || []);
       } else {
-        showToast('error', catJson.message || 'Failed to load course categories');
+        if (showLoading) showToast('error', catJson.message || 'Failed to load course categories');
       }
 
       if (authorRes.ok && authorJson.status) {
         setAuthors(authorJson.data || []);
       }
     } catch {
-      showToast('error', 'Connection error while fetching data');
+      if (showLoading) showToast('error', 'Connection error while fetching data');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -361,17 +361,22 @@ export default function CourseCategories() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic UI update
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/course-categories/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', `Category "${name}" deleted successfully`);
-        fetchData();
+        fetchData(false);
       } else {
         showToast('error', json.message || 'Failed to delete category');
+        fetchData(false);
       }
     } catch {
       showToast('error', 'Connection error while deleting category');
+      fetchData(false);
     }
   };
 

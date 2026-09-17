@@ -122,8 +122,8 @@ export default function Blogs() {
     }
   };
 
-  const fetchBlogs = async () => {
-    setLoading(true);
+  const fetchBlogs = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const query = selectedCategory ? `?category_id=${selectedCategory}` : '';
       const res = await fetch(`/api/v1/admin/blogs${query}`);
@@ -131,12 +131,12 @@ export default function Blogs() {
       if (res.ok && json.success) {
         setBlogs(json.data || []);
       } else {
-        showToast('error', json.error || 'Failed to fetch blogs');
+        if (showLoading) showToast('error', json.error || 'Failed to fetch blogs');
       }
     } catch {
-      showToast('error', 'Network error while fetching blogs');
+      if (showLoading) showToast('error', 'Network error while fetching blogs');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -153,6 +153,9 @@ export default function Blogs() {
     const confirmed = await confirmDelete(item.title || 'this blog post');
     if (!confirmed) return;
 
+    // Optimistic UI update
+    setBlogs((prev) => prev.filter((b) => b.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/blogs/${item.id}`, {
         method: 'DELETE',
@@ -160,12 +163,14 @@ export default function Blogs() {
       const json = await res.json();
       if (res.ok && json.success) {
         showToast('success', 'Blog deleted successfully');
-        setBlogs((prev) => prev.filter((b) => b.id !== item.id));
+        fetchBlogs(false);
       } else {
         showToast('error', json.error || 'Failed to delete blog');
+        fetchBlogs(false);
       }
     } catch {
       showToast('error', 'Error deleting blog');
+      fetchBlogs(false);
     }
   };
 

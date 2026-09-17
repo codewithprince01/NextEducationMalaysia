@@ -6,9 +6,11 @@ export async function GET(req: Request) {
   try {
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT i.*,
-        (SELECT COUNT(*) FROM internship_contents WHERE internship_id = i.id) as contents_count,
-        (SELECT COUNT(*) FROM internship_faqs WHERE internship_id = i.id) as faqs_count
+        COALESCE(ic.cnt, 0) as contents_count,
+        COALESCE(ifq.cnt, 0) as faqs_count
        FROM internships i 
+       LEFT JOIN (SELECT internship_id, COUNT(*) as cnt FROM internship_contents GROUP BY internship_id) ic ON ic.internship_id = i.id
+       LEFT JOIN (SELECT internship_id, COUNT(*) as cnt FROM internship_faqs GROUP BY internship_id) ifq ON ifq.internship_id = i.id
        ORDER BY i.id DESC`
     );
 

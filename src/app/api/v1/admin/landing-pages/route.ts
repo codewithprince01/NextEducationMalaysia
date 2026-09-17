@@ -7,10 +7,13 @@ export async function GET() {
   try {
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT lp.*,
-              (SELECT COUNT(*) FROM landing_page_banners lpb WHERE lpb.landing_page_id = lp.id) AS banners_count,
-              (SELECT COUNT(*) FROM landing_page_universities lpu WHERE lpu.landing_page_id = lp.id) AS universities_count,
-              (SELECT COUNT(*) FROM landing_page_faqs lpf WHERE lpf.landing_page_id = lp.id) AS faqs_count
+              COALESCE(lpb.cnt, 0) AS banners_count,
+              COALESCE(lpu.cnt, 0) AS universities_count,
+              COALESCE(lpf.cnt, 0) AS faqs_count
        FROM landing_pages lp 
+       LEFT JOIN (SELECT landing_page_id, COUNT(*) as cnt FROM landing_page_banners GROUP BY landing_page_id) lpb ON lpb.landing_page_id = lp.id
+       LEFT JOIN (SELECT landing_page_id, COUNT(*) as cnt FROM landing_page_universities GROUP BY landing_page_id) lpu ON lpu.landing_page_id = lp.id
+       LEFT JOIN (SELECT landing_page_id, COUNT(*) as cnt FROM landing_page_faqs GROUP BY landing_page_id) lpf ON lpf.landing_page_id = lp.id
        WHERE lp.website = 'MYS' 
        ORDER BY lp.id DESC`,
     );

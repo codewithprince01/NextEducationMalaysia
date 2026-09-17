@@ -12,10 +12,12 @@ export async function GET(req: Request) {
     const categories: any[] = await prisma.$queryRawUnsafe(
       `SELECT cc.*, cc.name AS category, 
               a.name as author_name,
-              (SELECT COUNT(*) FROM course_category_contents ccc WHERE ccc.course_category_id = cc.id) as contents_count,
-              (SELECT COUNT(*) FROM course_category_faqs ccf WHERE ccf.course_category_id = cc.id) as faqs_count
+              COALESCE(ccc.cnt, 0) as contents_count,
+              COALESCE(ccf.cnt, 0) as faqs_count
        FROM course_categories cc
        LEFT JOIN authors a ON cc.author_id = a.id
+       LEFT JOIN (SELECT course_category_id, COUNT(*) as cnt FROM course_category_contents GROUP BY course_category_id) ccc ON ccc.course_category_id = cc.id
+       LEFT JOIN (SELECT course_category_id, COUNT(*) as cnt FROM course_category_faqs GROUP BY course_category_id) ccf ON ccf.course_category_id = cc.id
        WHERE cc.website = ?
        ORDER BY cc.name ASC`,
       website

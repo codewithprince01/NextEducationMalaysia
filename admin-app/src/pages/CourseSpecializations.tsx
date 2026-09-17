@@ -181,8 +181,8 @@ export default function CourseSpecializations() {
     }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const [specRes, catRes, authRes] = await Promise.all([
         fetch('/api/v1/admin/course-specializations'),
@@ -204,9 +204,9 @@ export default function CourseSpecializations() {
         setAuthors(authJson.data || []);
       }
     } catch {
-      showToast('error', 'Connection error while fetching specializations');
+      if (showLoading) showToast('error', 'Connection error while fetching specializations');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -363,17 +363,22 @@ export default function CourseSpecializations() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic UI update
+    setSpecializations((prev) => prev.filter((s) => s.id !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/course-specializations/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', `Specialization "${name}" deleted successfully`);
-        fetchData();
+        fetchData(false);
       } else {
         showToast('error', json.message || 'Failed to delete specialization');
+        fetchData(false);
       }
     } catch {
       showToast('error', 'Connection error while deleting specialization');
+      fetchData(false);
     }
   };
 

@@ -6,8 +6,9 @@ export async function GET(req: Request) {
   try {
     const services: any[] = await prisma.$queryRawUnsafe(`
       SELECT sp.*, 
-        (SELECT COUNT(*) FROM site_page_tabs spt WHERE spt.page_id = sp.id) AS content_count
+        COALESCE(spt.cnt, 0) AS content_count
       FROM site_pages sp
+      LEFT JOIN (SELECT page_id, COUNT(*) as cnt FROM site_page_tabs GROUP BY page_id) spt ON spt.page_id = sp.id
       WHERE sp.website = 'MYS'
       ORDER BY sp.id DESC
     `);

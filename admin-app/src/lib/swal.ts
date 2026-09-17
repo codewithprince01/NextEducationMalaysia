@@ -13,6 +13,8 @@ export async function confirmDelete(title = 'Are you sure?', text = 'This action
     cancelButtonColor: '#64748b',  // Tailwind slate-500
     confirmButtonText: 'Yes, delete it!',
     cancelButtonText: 'Cancel',
+    heightAuto: false,
+    scrollbarPadding: false,
     customClass: {
       popup: 'rounded-2xl font-sans',
       confirmButton: 'px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-rose-600/20',

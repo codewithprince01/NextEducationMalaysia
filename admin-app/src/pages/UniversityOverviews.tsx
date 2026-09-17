@@ -80,7 +80,7 @@ export default function UniversityOverviews() {
 
   const fetchUniversities = async () => {
     try {
-      const res = await fetch('/api/v1/admin/universities');
+      const res = await fetch('/api/v1/admin/universities?minimal=true');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setUniversities(json.data || []);
@@ -90,15 +90,15 @@ export default function UniversityOverviews() {
     }
   };
 
-  const fetchOverviews = async (targetUnivId?: string) => {
+  const fetchOverviews = async (targetUnivId?: string, showLoading = true) => {
     const univId = targetUnivId !== undefined ? targetUnivId : selectedUnivId;
     if (!univId) {
       setOverviews([]);
-      setLoading(false);
+      if (showLoading) setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch(`/api/v1/admin/university-overviews?university_id=${univId}`);
       const json = await res.json();
@@ -116,7 +116,7 @@ export default function UniversityOverviews() {
     } catch {
       showToast('error', 'Network error while fetching overviews');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -219,6 +219,9 @@ export default function UniversityOverviews() {
     const confirmed = await confirmDelete(item.title || item.tab || 'Overview Record');
     if (!confirmed) return;
 
+    // Optimistic removal: instantly vanishes from UI
+    setOverviews((prev) => prev.filter((o) => o.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-overviews/${item.id}`, {
         method: 'DELETE',
@@ -226,12 +229,14 @@ export default function UniversityOverviews() {
       const json = await res.json();
       if (res.ok && json.success) {
         showToast('success', 'Overview deleted successfully');
-        fetchOverviews(selectedUnivId);
+        fetchOverviews(selectedUnivId, false);
       } else {
         showToast('error', json.error || 'Failed to delete overview');
+        fetchOverviews(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Error deleting overview');
+      fetchOverviews(selectedUnivId, false);
     }
   };
 

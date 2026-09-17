@@ -83,12 +83,12 @@ export default function UniversityProgramContents() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchContents = async () => {
+  const fetchContents = async (showLoading = true) => {
     if (!cId) {
-      setLoading(false);
+      if (showLoading) setLoading(false);
       return;
     }
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch(`/api/v1/admin/university-program-contents?c_id=${cId}`);
       const json = await res.json();
@@ -101,7 +101,7 @@ export default function UniversityProgramContents() {
     } catch {
       showToast('error', 'Connection error while fetching program contents');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -199,6 +199,9 @@ export default function UniversityProgramContents() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic removal: instantly vanishes from UI
+    setContents((prev) => prev.filter((c) => c.id !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-program-contents/${id}`, {
         method: 'DELETE',
@@ -206,12 +209,14 @@ export default function UniversityProgramContents() {
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', 'Program content deleted successfully');
-        fetchContents();
+        fetchContents(false);
       } else {
         showToast('error', json.message || 'Failed to delete record');
+        fetchContents(false);
       }
     } catch {
       showToast('error', 'Connection error while deleting record');
+      fetchContents(false);
     }
   };
 

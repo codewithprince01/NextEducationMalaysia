@@ -306,7 +306,7 @@ export default function Programs() {
   const fetchDropdownData = async () => {
     try {
       const [uRes, cRes, sRes, lRes, smRes] = await Promise.all([
-        fetch('/api/v1/admin/universities'),
+        fetch('/api/v1/admin/universities?minimal=true'),
         fetch('/api/v1/admin/course-categories?website=MYS'),
         fetch('/api/v1/admin/course-specializations?website=MYS'),
         fetch('/api/v1/admin/levels'),
@@ -318,7 +318,7 @@ export default function Programs() {
         cRes.json(),
         sRes.json(),
         lRes.json(),
-        smRes.json(),
+        smJson.json(),
       ]);
 
       if (uRes.ok && (uJson.status || uJson.success)) setUniversities(uJson.data || []);
@@ -331,9 +331,9 @@ export default function Programs() {
     }
   };
 
-  const fetchPrograms = async (univId?: string) => {
+  const fetchPrograms = async (univId?: string, showLoading = true) => {
     const targetId = univId !== undefined ? univId : selectedUnivId;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const url = targetId
         ? `/api/v1/admin/programs?university_id=${targetId}`
@@ -348,7 +348,7 @@ export default function Programs() {
     } catch {
       showToast('error', 'Connection error while fetching programs');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -620,17 +620,22 @@ export default function Programs() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic removal: instantly vanishes from UI with 0ms delay
+    setPrograms((prev) => prev.filter((item) => item.id !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/programs/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', `Program "${name}" deleted successfully`);
-        fetchPrograms(selectedUnivId);
+        fetchPrograms(selectedUnivId, false);
       } else {
         showToast('error', json.message || 'Failed to delete program');
+        fetchPrograms(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Connection error while deleting program');
+      fetchPrograms(selectedUnivId, false);
     }
   };
 

@@ -5,8 +5,9 @@ import { serializeBigInt, slugify } from '@/lib/utils';
 export async function GET(req: Request) {
   try {
     const types: any[] = await prisma.$queryRawUnsafe(
-      `SELECT it.*, (SELECT COUNT(*) FROM universities u WHERE u.institute_type = it.id) AS university_count
+      `SELECT it.*, COALESCE(u.cnt, 0) AS university_count
        FROM institute_types it
+       LEFT JOIN (SELECT institute_type, COUNT(*) as cnt FROM universities GROUP BY institute_type) u ON u.institute_type = it.id
        WHERE it.website = 'MYS'
        ORDER BY it.id DESC`
     );

@@ -86,7 +86,7 @@ export default function UniversityGallery() {
 
   const fetchUniversities = async () => {
     try {
-      const res = await fetch('/api/v1/admin/universities');
+      const res = await fetch('/api/v1/admin/universities?minimal=true');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setUniversities(json.data || []);
@@ -96,7 +96,7 @@ export default function UniversityGallery() {
     }
   };
 
-  const fetchGallery = async (targetUnivId?: string) => {
+  const fetchGallery = async (targetUnivId?: string, showLoading = true) => {
     const univId = targetUnivId !== undefined ? targetUnivId : selectedUnivId;
     if (!univId) {
       setPhotos([]);
@@ -105,7 +105,7 @@ export default function UniversityGallery() {
       return;
     }
 
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const [photosRes, videosRes] = await Promise.all([
         fetch(`/api/v1/admin/university-photos?university_id=${univId}`),
@@ -124,7 +124,7 @@ export default function UniversityGallery() {
     } catch {
       showToast('error', 'Failed to fetch gallery items');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -217,16 +217,21 @@ export default function UniversityGallery() {
     const confirmed = await confirmDelete('this photo');
     if (!confirmed) return;
 
+    setPhotos((prev) => prev.filter((p) => p.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-photos/${item.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
         showToast('success', 'Photo deleted');
-        setPhotos((prev) => prev.filter((p) => p.id !== item.id));
+      } else {
+        showToast('error', 'Failed to delete photo');
+        fetchGallery(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Failed to delete photo');
+      fetchGallery(selectedUnivId, false);
     }
   };
 
@@ -234,16 +239,21 @@ export default function UniversityGallery() {
     const confirmed = await confirmDelete('this video');
     if (!confirmed) return;
 
+    setVideos((prev) => prev.filter((v) => v.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-videos/${item.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
         showToast('success', 'Video deleted');
-        setVideos((prev) => prev.filter((v) => v.id !== item.id));
+      } else {
+        showToast('error', 'Failed to delete video');
+        fetchGallery(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Failed to delete video');
+      fetchGallery(selectedUnivId, false);
     }
   };
 

@@ -5,19 +5,35 @@ import { serializeBigInt, slugify } from '@/lib/utils';
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
+    const minimal = searchParams.get('minimal') === 'true';
     const search = searchParams.get('search') || '';
     const state = searchParams.get('state') || '';
     const city = searchParams.get('city') || '';
 
+    if (minimal) {
+      const minimalRows: any[] = await prisma.$queryRawUnsafe(
+        `SELECT id, name, uname FROM universities WHERE website = 'MYS' ORDER BY name ASC`
+      );
+      return NextResponse.json({
+        status: true,
+        data: serializeBigInt(minimalRows),
+      });
+    }
+
     let sql = `
       SELECT u.*, it.type as institute_type_name,
-             (SELECT COUNT(*) FROM university_programs up WHERE up.university_id = u.id) AS programs_count,
-             (SELECT COUNT(*) FROM university_overviews uo WHERE uo.university_id = u.id) AS overviews_count,
-             (SELECT COUNT(*) FROM university_photos uph WHERE uph.university_id = u.id) AS photos_count,
-             (SELECT COUNT(*) FROM university_videos uv WHERE uv.university_id = u.id) AS videos_count,
-             (SELECT COUNT(*) FROM university_facilities uf WHERE uf.u_id = u.id) AS facilities_count
+             COALESCE(up.cnt, 0) AS programs_count,
+             COALESCE(uo.cnt, 0) AS overviews_count,
+             COALESCE(uph.cnt, 0) AS photos_count,
+             COALESCE(uv.cnt, 0) AS videos_count,
+             COALESCE(uf.cnt, 0) AS facilities_count
       FROM universities u
       LEFT JOIN institute_types it ON u.institute_type = it.id
+      LEFT JOIN (SELECT university_id, COUNT(*) as cnt FROM university_programs GROUP BY university_id) up ON up.university_id = u.id
+      LEFT JOIN (SELECT university_id, COUNT(*) as cnt FROM university_overviews GROUP BY university_id) uo ON uo.university_id = u.id
+      LEFT JOIN (SELECT university_id, COUNT(*) as cnt FROM university_photos GROUP BY university_id) uph ON uph.university_id = u.id
+      LEFT JOIN (SELECT university_id, COUNT(*) as cnt FROM university_videos GROUP BY university_id) uv ON uv.university_id = u.id
+      LEFT JOIN (SELECT u_id, COUNT(*) as cnt FROM university_facilities GROUP BY u_id) uf ON uf.u_id = u.id
       WHERE u.website = 'MYS'
     `;
     const params: any[] = [];

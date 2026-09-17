@@ -9,9 +9,10 @@ export async function GET(req: Request) {
 
     let sql = `
       SELECT sl.*, sl.level as level_name, cs.name as specialization_name,
-             (SELECT COUNT(*) FROM specialization_level_contents slc WHERE slc.specialization_level_id = sl.id) as contents_count
+             COALESCE(slc.cnt, 0) as contents_count
       FROM specialization_levels sl
       LEFT JOIN course_specializations cs ON sl.specialization_id = cs.id
+      LEFT JOIN (SELECT specialization_level_id, COUNT(*) as cnt FROM specialization_level_contents GROUP BY specialization_level_id) slc ON slc.specialization_level_id = sl.id
     `;
     const params: any[] = [];
 
