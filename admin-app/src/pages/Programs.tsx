@@ -42,12 +42,14 @@ interface UniversityItem {
 interface CategoryItem {
   id: number;
   name: string;
+  website?: string;
 }
 
 interface SpecializationItem {
   id: number;
   name: string;
   course_category_id?: number;
+  website?: string;
 }
 
 interface LevelItem {
@@ -305,8 +307,8 @@ export default function Programs() {
     try {
       const [uRes, cRes, sRes, lRes, smRes] = await Promise.all([
         fetch('/api/v1/admin/universities'),
-        fetch('/api/v1/admin/course-categories'),
-        fetch('/api/v1/admin/course-specializations'),
+        fetch('/api/v1/admin/course-categories?website=MYS'),
+        fetch('/api/v1/admin/course-specializations?website=MYS'),
         fetch('/api/v1/admin/levels'),
         fetch('/api/v1/admin/study-modes'),
       ]);
@@ -372,7 +374,13 @@ export default function Programs() {
   };
 
   const filteredSpecializations = formData.course_category_id
-    ? specializations.filter((s) => String(s.course_category_id) === String(formData.course_category_id))
+    ? specializations
+        .filter(
+          (s) =>
+            String(s.course_category_id) === String(formData.course_category_id) &&
+            (!s.website || s.website === 'MYS')
+        )
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     : [];
 
   const selectedStudyModes = (formData.study_mode || '')
@@ -1246,11 +1254,14 @@ export default function Programs() {
                       className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
                     >
                       <option value="">-- Select Category --</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
+                      {categories
+                        .filter((c) => !c.website || c.website === 'MYS')
+                        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
 

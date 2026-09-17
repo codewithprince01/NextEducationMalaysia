@@ -325,7 +325,7 @@ export default function UniversityRankings() {
                 </div>
                 <div>
                   <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Position / Rank
+                    Position
                   </label>
                   <input
                     type="number"

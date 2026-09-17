@@ -4,8 +4,11 @@ import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
 
 // GET /api/v1/admin/course-categories
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const website = searchParams.get('website') || 'MYS';
+
     const categories: any[] = await prisma.$queryRawUnsafe(
       `SELECT cc.*, cc.name AS category, 
               a.name as author_name,
@@ -13,8 +16,9 @@ export async function GET() {
               (SELECT COUNT(*) FROM course_category_faqs ccf WHERE ccf.course_category_id = cc.id) as faqs_count
        FROM course_categories cc
        LEFT JOIN authors a ON cc.author_id = a.id
-       WHERE cc.website = 'MYS'
-       ORDER BY cc.id DESC`
+       WHERE cc.website = ?
+       ORDER BY cc.name ASC`,
+      website
     );
 
     return NextResponse.json({
