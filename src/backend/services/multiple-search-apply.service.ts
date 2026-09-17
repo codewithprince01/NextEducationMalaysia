@@ -168,136 +168,262 @@ export class MultipleSearchApplyService {
   /**
    * 4. GET /programs
    * Match: MultipleSearchAndApplyApiController::programs
+   * Returns all fields from university_programs table EXCEPT:
+   *   - Fee fields (tution_fee, exam_fee, tutions_fee, total_fee, total_tuition_fee,
+   *     annual_tuition_fee, scholarship_amount, tution_fee_after_scholarship,
+   *     year1-4 tuition fees, and local/international variants)
+   *   - SEO fields (meta_title, meta_description, meta_keyword, og_image_path, page_content)
+   * And includes nested university with all fields EXCEPT SEO fields.
    */
   async getPrograms(filters: any, page = 1, perPage = 10) {
-    const where: any = {};
+    const SELECTED_PROGRAM_COLS = [
+      'id',
+      'course_name',
+      'university_id',
+      'author_id',
+      'u_status',
+      'uname',
+      'program_id',
+      'slug',
+      'course_category_id',
+      'course_category_slug',
+      'specialization_id',
+      'specialization_slug',
+      'level',
+      'duration',
+      'study_mode',
+      'intake',
+      'application_deadline',
+      'language',
+      'scholarship',
+      'overview',
+      'status',
+      'feefilename',
+      'feefilepath',
+      'application_fee',
+      'viza_fee',
+      'international_student_fee',
+      'medical_insurance_fee',
+      'personal_bond_fee',
+      'library_fee',
+      'admin_fee',
+      'icard_fee',
+      'fee_type',
+      'fee_number',
+      'other_fees',
+      'discount',
+      'commission',
+      'seo_rating',
+      'best_rating',
+      'review_number',
+      'entry_requirement',
+      'exam_required',
+      'mode_of_instruction',
+      'scholarship_info',
+      'avrg_tution_fees_per_year',
+      'avrg_cost_living_per_year',
+      'application_fees',
+      'intake_deadline',
+      'international_student_fees',
+      'fees_remark',
+      'domestic_discount',
+      'international_discount',
+      'saarc_discount',
+      'website',
+      'nri_discount',
+      'registration_fee',
+      'laboratory_fee',
+      'technology_fee',
+      'student_activity_fee',
+      'insurance_fee',
+      'examination_fee',
+      'emgs_processing_fee',
+      'international_security_deposit',
+      'international_student_charge',
+      'international_administration_fee',
+      'resources_fee',
+      'commitment_fee',
+      'facilities_fee',
+      'other_fee',
+      'last_update',
+      'currency',
+      'additional_note',
+      'accommodation_fee',
+      'airport_pickup_fee',
+      'campus',
+      'accreditations',
+      'is_local',
+      'is_international',
+      'created_at',
+      'updated_at',
+    ];
+
+    const SELECTED_UNIVERSITY_COLS = [
+      'id',
+      'name',
+      'uname',
+      'author_id',
+      'website',
+      'code',
+      'views',
+      'state',
+      'city',
+      'rank',
+      'qs_asia_rank',
+      'qs_rank',
+      'times_rank',
+      'shortnote',
+      'overview',
+      'institute_type',
+      'established_year',
+      'email',
+      'cc',
+      'bcc',
+      'loginid',
+      'mobile',
+      'ip',
+      'login_count',
+      'click',
+      'status',
+      'homeview',
+      'logo_path',
+      'banner_path',
+      'seo_rating',
+      'best_rating',
+      'review_number',
+      'last_login',
+      'ogimgname',
+      'ogimgpath',
+      'inst_type',
+      'imgname',
+      'imgpath',
+      'bannername',
+      'bannerpath',
+      'rating',
+      'partner',
+      'featured',
+      'latitude_longitude',
+      'approved_by',
+      'accredited_by',
+      'hostel_facility',
+      'malaysia_rank',
+      'local_students',
+      'international_students',
+      'contact_number1',
+      'contact_number2',
+      'is_local',
+      'is_international',
+      'scholarship_available',
+      'study_options',
+      'created_at',
+      'updated_at',
+    ];
+
+    const whereClauses: string[] = [];
+    const params: any[] = [];
 
     const websites = this.normalize(filters.website || filters.country);
-    if (websites.length > 0) where.website = { in: websites };
+    if (websites.length > 0) {
+      whereClauses.push(`up.website IN (${websites.map(() => '?').join(',')})`);
+      params.push(...websites);
+    }
 
     const universityIds = this.normalize(filters.university_id)
       .map((id) => Number(id))
       .filter((id) => !Number.isNaN(id));
-    if (universityIds.length > 0) where.university_id = { in: universityIds };
+    if (universityIds.length > 0) {
+      whereClauses.push(`up.university_id IN (${universityIds.map(() => '?').join(',')})`);
+      params.push(...universityIds);
+    }
 
     const levels = this.normalize(filters.level);
-    if (levels.length > 0) where.level = { in: levels };
+    if (levels.length > 0) {
+      whereClauses.push(`up.level IN (${levels.map(() => '?').join(',')})`);
+      params.push(...levels);
+    }
 
     const categoryIds = this.normalize(filters.course_category_id)
       .map((id) => Number(id))
       .filter((id) => !Number.isNaN(id));
-    if (categoryIds.length > 0) where.course_category_id = { in: categoryIds };
+    if (categoryIds.length > 0) {
+      whereClauses.push(`up.course_category_id IN (${categoryIds.map(() => '?').join(',')})`);
+      params.push(...categoryIds);
+    }
 
     const specializationIds = this.normalize(filters.specialization_id)
       .map((id) => Number(id))
       .filter((id) => !Number.isNaN(id));
-    if (specializationIds.length > 0)
-      where.specialization_id = { in: specializationIds };
+    if (specializationIds.length > 0) {
+      whereClauses.push(`up.specialization_id IN (${specializationIds.map(() => '?').join(',')})`);
+      params.push(...specializationIds);
+    }
 
-    const [total, items] = await Promise.all([
-      prisma.universityProgram.count({ where }),
-      prisma.universityProgram.findMany({
-        where,
-        select: {
-          id: true,
-          university_id: true,
-          course_name: true,
-          slug: true,
-          level: true,
-          study_mode: true,
-          intake: true,
-          duration: true,
-          application_deadline: true,
-          accreditations: true,
-          course_category_id: true,
-          specialization_id: true,
-          commission: true,
-          status: true,
-          seo_rating: true,
-          best_rating: true,
-          review_number: true,
-          overview: true,
-          website: true,
-          created_at: true,
-          updated_at: true,
-          university: {
-            select: {
-              id: true,
-              name: true,
-              uname: true,
-              views: true,
-              click: true,
-              city: true,
-              state: true,
-              qs_rank: true,
-              times_rank: true,
-              qs_asia_rank: true,
-              shortnote: true,
-              established_year: true,
-              local_students: true,
-              international_students: true,
-              accredited_by: true,
-              approved_by: true,
-              latitude_longitude: true,
-              featured: true,
-              rating: true,
-              logo_path: true,
-              banner_path: true,
-              institute_type: true,
-              is_local: true,
-              is_international: true,
-              scholarship_available: true,
-              status: true,
-              homeview: true,
-              email: true,
-              cc: true,
-              contact_number1: true,
-              contact_number2: true,
-              hostel_facility: true,
-              website: true,
-              created_at: true,
-              updated_at: true,
-              // Excluded: meta_title, meta_description, meta_keyword, og_image_path, page_content
-            },
-          },
-          courseCategory: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          courseSpecialization: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          // Excluded fee fields:
-          //   tution_fee, exam_fee, tutions_fee,
-          //   total_fee, total_tuition_fee, annual_tuition_fee,
-          //   scholarship_amount, tution_fee_after_scholarship,
-          //   year1_tuition_fee, year2_tuition_fee, year3_tuition_fee, year4_tuition_fee
-          // Excluded SEO fields:
-          //   meta_title, meta_description, meta_keyword, og_image_path, page_content
-        },
-        orderBy: {
-          id: "desc",
-        },
-        skip: (page - 1) * perPage,
-        take: perPage,
-      }),
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const countQuery = `SELECT COUNT(*) as total FROM university_programs up ${whereSql}`;
+    const dataQuery = `
+      SELECT ${SELECTED_PROGRAM_COLS.map((c) => 'up.`' + c + '`').join(', ')}
+      FROM university_programs up
+      ${whereSql}
+      ORDER BY up.id DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const offset = (page - 1) * perPage;
+    const [countResult, programs] = await Promise.all([
+      prisma.$queryRawUnsafe(countQuery, ...params) as Promise<any[]>,
+      prisma.$queryRawUnsafe(dataQuery, ...params, perPage, offset) as Promise<any[]>,
     ]);
 
-    const formattedItems = items.map((item: any) => {
-      const { courseCategory, courseSpecialization, ...rest } = item;
+    const total = Number(countResult[0]?.total || 0);
+
+    if (programs.length === 0) {
       return {
-        ...rest,
-        course_category: courseCategory,
-        course_specialization: courseSpecialization,
+        items: [],
+        pagination: {
+          current_page: page,
+          last_page: Math.ceil(total / perPage) || 0,
+          per_page: perPage,
+          total,
+        },
       };
-    });
+    }
+
+    const uniIds = [...new Set(programs.map((p) => p.university_id).filter(Boolean))];
+    const catIds = [...new Set(programs.map((p) => p.course_category_id).filter(Boolean))];
+    const specIds = [...new Set(programs.map((p) => p.specialization_id).filter(Boolean))];
+
+    const [universities, categories, specializations] = await Promise.all([
+      uniIds.length > 0
+        ? (prisma.$queryRawUnsafe(
+            `SELECT ${SELECTED_UNIVERSITY_COLS.map((c) => 'u.`' + c + '`').join(', ')} FROM universities u WHERE u.id IN (${uniIds.map(() => '?').join(',')})`,
+            ...uniIds
+          ) as Promise<any[]>)
+        : Promise.resolve([]),
+      catIds.length > 0
+        ? (prisma.$queryRawUnsafe(
+            `SELECT id, name, slug FROM course_categories WHERE id IN (${catIds.map(() => '?').join(',')})`,
+            ...catIds
+          ) as Promise<any[]>)
+        : Promise.resolve([]),
+      specIds.length > 0
+        ? (prisma.$queryRawUnsafe(
+            `SELECT id, name, slug FROM course_specializations WHERE id IN (${specIds.map(() => '?').join(',')})`,
+            ...specIds
+          ) as Promise<any[]>)
+        : Promise.resolve([]),
+    ]);
+
+    const uniMap = new Map(universities.map((u) => [Number(u.id), u]));
+    const catMap = new Map(categories.map((c) => [Number(c.id), c]));
+    const specMap = new Map(specializations.map((s) => [Number(s.id), s]));
+
+    const formattedItems = programs.map((p) => ({
+      ...p,
+      university: uniMap.get(Number(p.university_id)) || null,
+      course_category: catMap.get(Number(p.course_category_id)) || null,
+      course_specialization: specMap.get(Number(p.specialization_id)) || null,
+    }));
 
     return {
       items: serializeBigInt(formattedItems),
