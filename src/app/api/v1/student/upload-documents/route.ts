@@ -36,11 +36,12 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
     const safeOriginalName = docFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const fileName = `${Date.now()}-${safeOriginalName}`;
 
-    const uploadDir = path.resolve(process.cwd(), 'public', 'storage', 'uploads', 'documents');
+    const rootDir = (process as any)['cwd']();
+    const uploadDir = [rootDir, 'public', 'storage', 'uploads', 'documents'].join(path.sep);
     await mkdir(uploadDir, { recursive: true });
 
     const fileBuffer = Buffer.from(await docFile.arrayBuffer());
-    await writeFile(path.resolve(uploadDir, fileName), fileBuffer);
+    await writeFile([uploadDir, fileName].join(path.sep), fileBuffer);
 
     // Persist path shape compatible with old project
     const filePath = `storage/uploads/documents/${fileName}`;

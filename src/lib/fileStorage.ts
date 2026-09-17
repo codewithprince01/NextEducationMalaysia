@@ -12,15 +12,12 @@ export interface UploadedFileResult {
  * Save an uploaded file to `public/storage/uploads/{folder}`.
  * Returns relative path `uploads/{folder}/{fileName}` (or with YYYY/MM/DD).
  */
-// Runtime path resolution to prevent Next.js / Webpack from treating public/storage as dynamic module bundles
-function getStorageRoot(): string {
-  const cwd = process.cwd();
-  return path.resolve(cwd, "public", "storage");
-}
-
-function getPublicRoot(): string {
-  const cwd = process.cwd();
-  return path.resolve(cwd, "public");
+// Dynamic path builder to prevent Turbopack from scanning and bundling public/storage static assets
+function getFilePath(baseSubDir: string, relativePath: string): string {
+  const root = (process as any)["cwd"]();
+  const sep = path.sep;
+  const parts = [root, "public", baseSubDir, ...relativePath.split(/[\\/]/).filter(Boolean)];
+  return parts.join(sep);
 }
 
 export async function saveUploadedFile(
@@ -50,11 +47,10 @@ export async function saveUploadedFile(
     relativeSubDir = `uploads/${cleanFolder}/${yyyy}/${mm}/${dd}`;
   }
 
-  const storageRoot = getStorageRoot();
-  const absoluteDir = path.resolve(storageRoot, relativeSubDir);
+  const absoluteDir = getFilePath("storage", relativeSubDir);
   await mkdir(absoluteDir, { recursive: true });
 
-  const absoluteFilePath = path.resolve(absoluteDir, fileName);
+  const absoluteFilePath = [absoluteDir, fileName].join(path.sep);
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   await writeFile(absoluteFilePath, buffer);
@@ -77,12 +73,11 @@ export async function deleteUploadedFile(
   try {
     const cleanPath = filePath.replace(/^\/+/, "");
     const subPath = cleanPath.replace(/^storage[\\/]/, "");
-    const storageRoot = getStorageRoot();
-    let absolutePath = path.resolve(storageRoot, subPath);
+    let absolutePath = getFilePath("storage", subPath);
 
     if (!existsSync(absolutePath)) {
-      const publicRoot = getPublicRoot();
-      absolutePath = path.resolve(publicRoot, cleanPath);
+      const root = (process as any)["cwd"]();
+      absolutePath = [root, "public", ...cleanPath.split(/[\\/]/).filter(Boolean)].join(path.sep);
     }
 
     if (existsSync(absolutePath)) {
