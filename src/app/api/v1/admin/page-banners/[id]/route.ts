@@ -1,31 +1,33 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { serializeBigInt } from '@/lib/utils';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import path from 'path';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { serializeBigInt } from "@/lib/utils";
+import { saveUploadedFile, deleteUploadedFile } from "@/lib/fileStorage";
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
     const rows: any[] = await prisma.$queryRawUnsafe(
       `SELECT * FROM page_banners WHERE id = ? LIMIT 1`,
-      id
+      id,
     );
 
     if (!rows || rows.length === 0) {
-      return NextResponse.json({ status: false, message: 'Record not found' }, { status: 404 });
+      return NextResponse.json(
+        { status: false, message: "Record not found" },
+        { status: 404 },
+      );
     }
 
     const row = rows[0];
     row.banner_path = row.banner_path
-      ? row.banner_path.startsWith('/')
+      ? row.banner_path.startsWith("/")
         ? row.banner_path
         : `/${row.banner_path}`
-      : '';
+      : "";
 
     return NextResponse.json({
       status: true,
@@ -33,15 +35,19 @@ export async function GET(
     });
   } catch (error: any) {
     return NextResponse.json(
-      { status: false, message: 'Failed to fetch record', error: error.message },
-      { status: 500 }
+      {
+        status: false,
+        message: "Failed to fetch record",
+        error: error.message,
+      },
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: rawId } = await params;
@@ -49,43 +55,47 @@ export async function PUT(
 
     const existingRows: any[] = await prisma.$queryRawUnsafe(
       `SELECT * FROM page_banners WHERE id = ? LIMIT 1`,
-      id
+      id,
     );
 
     if (!existingRows || existingRows.length === 0) {
-      return NextResponse.json({ status: false, message: 'Record not found' }, { status: 404 });
+      return NextResponse.json(
+        { status: false, message: "Record not found" },
+        { status: 404 },
+      );
     }
 
     const existing = existingRows[0];
-    const contentType = req.headers.get('content-type') || '';
+    const contentType = req.headers.get("content-type") || "";
 
-    let page = existing.page || 'home';
-    let alt_text = existing.alt_text || '';
-    let title = existing.title || '';
-    let description = existing.description || '';
-    let banner_name = existing.banner_name || '';
-    let banner_path = existing.banner_path || '';
+    let page = existing.page || "home";
+    let alt_text = existing.alt_text || "";
+    let title = existing.title || "";
+    let description = existing.description || "";
+    let banner_name = existing.banner_name || "";
+    let banner_path = existing.banner_path || "";
 
-    if (contentType.includes('multipart/form-data')) {
+    if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
-      if (formData.has('page')) page = (formData.get('page') as string) || 'home';
-      if (formData.has('alt_text')) alt_text = (formData.get('alt_text') as string) || '';
-      if (formData.has('title')) title = (formData.get('title') as string) || '';
-      if (formData.has('description')) description = (formData.get('description') as string) || '';
+      if (formData.has("page"))
+        page = (formData.get("page") as string) || "home";
+      if (formData.has("alt_text"))
+        alt_text = (formData.get("alt_text") as string) || "";
+      if (formData.has("title"))
+        title = (formData.get("title") as string) || "";
+      if (formData.has("description"))
+        description = (formData.get("description") as string) || "";
 
-      const file = formData.get('banner') as File | null;
-      if (file && typeof file === 'object' && file.name) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = path.extname(file.name);
-        const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'banners');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        banner_name = fileName;
-        banner_path = `uploads/banners/${fileName}`;
+      const file = formData.get("banner") as File | null;
+      if (file && typeof file === "object" && file.name) {
+        const saved = await saveUploadedFile(
+          file,
+          file.name,
+          "page-banners",
+          existing.banner_path,
+        );
+        banner_name = saved.file_name;
+        banner_path = saved.file_path;
       }
     } else {
       const body = await req.json();
@@ -104,25 +114,29 @@ export async function PUT(
       description,
       banner_name,
       banner_path,
-      id
+      id,
     );
 
     return NextResponse.json({
       status: true,
-      message: 'Page banner updated successfully',
+      message: "Page banner updated successfully",
     });
   } catch (error: any) {
-    console.error('Error updating page banner:', error);
+    console.error("Error updating page banner:", error);
     return NextResponse.json(
-      { status: false, message: 'Failed to update page banner', error: error.message },
-      { status: 500 }
+      {
+        status: false,
+        message: "Failed to update page banner",
+        error: error.message,
+      },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id: rawId } = await params;
@@ -130,31 +144,36 @@ export async function DELETE(
 
     const existingRows: any[] = await prisma.$queryRawUnsafe(
       `SELECT * FROM page_banners WHERE id = ? LIMIT 1`,
-      id
+      id,
     );
 
     if (!existingRows || existingRows.length === 0) {
-      return NextResponse.json({ status: false, message: 'Record not found' }, { status: 404 });
+      return NextResponse.json(
+        { status: false, message: "Record not found" },
+        { status: 404 },
+      );
     }
 
     const row = existingRows[0];
     if (row.banner_path) {
-      const fullPath = path.join(process.cwd(), 'public', row.banner_path.replace(/^\//, ''));
-      await unlink(fullPath).catch(() => {});
+      await deleteUploadedFile(row.banner_path);
     }
 
     await prisma.$executeRawUnsafe(`DELETE FROM page_banners WHERE id = ?`, id);
 
     return NextResponse.json({
       status: true,
-      message: 'Page banner deleted successfully',
+      message: "Page banner deleted successfully",
     });
   } catch (error: any) {
-    console.error('Error deleting page banner:', error);
+    console.error("Error deleting page banner:", error);
     return NextResponse.json(
-      { status: false, message: 'Failed to delete page banner', error: error.message },
-      { status: 500 }
+      {
+        status: false,
+        message: "Failed to delete page banner",
+        error: error.message,
+      },
+      { status: 500 },
     );
   }
 }
-

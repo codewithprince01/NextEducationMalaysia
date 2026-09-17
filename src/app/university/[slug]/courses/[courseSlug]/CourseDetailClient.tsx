@@ -316,7 +316,13 @@ export default function CourseDetailClient({ slug, courseSlug, program }: Course
 
             {/* Sidebar — 32% approx */}
             <div className="w-full lg:w-[25%] space-y-4 sticky top-24">
-              <SideInquiryForm />
+              <SideInquiryForm 
+                type="university" 
+                context={{ 
+                  slug, 
+                  universityName: courseDetails?.university_name || courseDetails?.university?.name 
+                }} 
+              />
               <FeaturedUniversities variant="sidebar" excludeSlug={slug} />
               <UniversityCoursesCard />
             </div>

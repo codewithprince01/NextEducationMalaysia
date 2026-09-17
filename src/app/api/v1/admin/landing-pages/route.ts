@@ -1,8 +1,7 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { serializeBigInt, slugify } from '@/lib/utils';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { serializeBigInt, slugify } from "@/lib/utils";
+import { saveUploadedFile } from "@/lib/fileStorage";
 
 export async function GET() {
   try {
@@ -13,7 +12,7 @@ export async function GET() {
               (SELECT COUNT(*) FROM landing_page_faqs lpf WHERE lpf.landing_page_id = lp.id) AS faqs_count
        FROM landing_pages lp 
        WHERE lp.website = 'MYS' 
-       ORDER BY lp.id DESC`
+       ORDER BY lp.id DESC`,
     );
 
     const formatted = rows.map((r) => ({
@@ -22,10 +21,10 @@ export async function GET() {
       universities_count: Number(r.universities_count || 0),
       faqs_count: Number(r.faqs_count || 0),
       date_and_address_image: r.date_and_address_image
-        ? r.date_and_address_image.startsWith('/')
+        ? r.date_and_address_image.startsWith("/")
           ? r.date_and_address_image
           : `/${r.date_and_address_image}`
-        : '',
+        : "",
     }));
 
     return NextResponse.json({
@@ -33,48 +32,50 @@ export async function GET() {
       data: serializeBigInt(formatted),
     });
   } catch (error: any) {
-    console.error('Error fetching landing_pages:', error);
-    return NextResponse.json({ status: false, message: 'Failed to fetch landing pages', error: error.message }, { status: 500 });
+    console.error("Error fetching landing_pages:", error);
+    return NextResponse.json(
+      {
+        status: false,
+        message: "Failed to fetch landing pages",
+        error: error.message,
+      },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const contentType = req.headers.get('content-type') || '';
-    let page_name = '';
-    let page_slug = '';
-    let date_and_address = '';
-    let date_and_address_image_path = '';
+    const contentType = req.headers.get("content-type") || "";
+    let page_name = "";
+    let page_slug = "";
+    let date_and_address = "";
+    let date_and_address_image_path = "";
 
-    if (contentType.includes('multipart/form-data')) {
+    if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
-      page_name = (formData.get('page_name') as string) || '';
-      page_slug = (formData.get('page_slug') as string) || '';
-      date_and_address = (formData.get('date_and_address') as string) || '';
-      const file = formData.get('date_and_address_image') as File | null;
+      page_name = (formData.get("page_name") as string) || "";
+      page_slug = (formData.get("page_slug") as string) || "";
+      date_and_address = (formData.get("date_and_address") as string) || "";
+      const file = formData.get("date_and_address_image") as File | null;
 
-      if (file && typeof file === 'object' && file.name) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = path.extname(file.name);
-        const baseName = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const fileName = `${Date.now()}_${baseName}${ext}`;
-
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'scholarship');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, fileName), buffer);
-
-        date_and_address_image_path = `uploads/scholarship/${fileName}`;
+      if (file && typeof file === "object" && file.name) {
+        const saved = await saveUploadedFile(file, file.name, "landingpage");
+        date_and_address_image_path = saved.file_path;
       }
     } else {
       const body = await req.json();
-      page_name = body.page_name || '';
-      page_slug = body.page_slug || '';
-      date_and_address = body.date_and_address || '';
-      date_and_address_image_path = body.date_and_address_image || '';
+      page_name = body.page_name || "";
+      page_slug = body.page_slug || "";
+      date_and_address = body.date_and_address || "";
+      date_and_address_image_path = body.date_and_address_image || "";
     }
 
     if (!page_name) {
-      return NextResponse.json({ status: false, message: 'Page name is required' }, { status: 400 });
+      return NextResponse.json(
+        { status: false, message: "Page name is required" },
+        { status: 400 },
+      );
     }
 
     const slugVal = page_slug ? slugify(page_slug) : slugify(page_name);
@@ -88,13 +89,22 @@ export async function POST(req: Request) {
       date_and_address || null,
       date_and_address_image_path || null,
       now,
-      now
+      now,
     );
 
-    return NextResponse.json({ status: true, message: 'Record has been added successfully.' });
+    return NextResponse.json({
+      status: true,
+      message: "Record has been added successfully.",
+    });
   } catch (error: any) {
-    console.error('Error creating landing_page:', error);
-    return NextResponse.json({ status: false, message: 'Failed to create landing page', error: error.message }, { status: 500 });
+    console.error("Error creating landing_page:", error);
+    return NextResponse.json(
+      {
+        status: false,
+        message: "Failed to create landing page",
+        error: error.message,
+      },
+      { status: 500 },
+    );
   }
 }
-

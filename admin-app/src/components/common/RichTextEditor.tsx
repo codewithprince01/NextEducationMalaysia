@@ -24,6 +24,11 @@ export default function RichTextEditor({
   const instanceRef = useRef<any>(null);
   const [loading, setLoading] = useState(!window.CKEDITOR);
 
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -62,7 +67,7 @@ export default function RichTextEditor({
       editor.on('change', () => {
         if (isMounted) {
           const data = editor.getData();
-          onChange(data);
+          onChangeRef.current(data);
         }
       });
     };

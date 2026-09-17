@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   Image as ImageIcon,
   Search,
@@ -407,7 +408,7 @@ export default function PageBanners() {
                     <td className="py-3.5 px-4">
                       {item.banner_path ? (
                         <a
-                          href={item.banner_path}
+                          href={getStorageUrl(item.banner_path)}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-indigo-600 rounded text-xs font-medium transition-colors"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -52,6 +53,8 @@ export default function Services() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     page_name: '',
     headline: '',
@@ -110,10 +113,12 @@ export default function Services() {
 
   const populateForm = (item: ServiceItem) => {
     setEditingId(item.id);
+    setThumbnailFile(null);
+    setOgImageFile(null);
     setFormData({
       page_name: item.page_name || '',
       headline: item.headline || '',
-      thumbnail_path: item.thumbnail_path || item.imgpath || '',
+      thumbnail_path: item.thumbnail_path || '',
       meta_title: item.meta_title || '',
       meta_keyword: item.meta_keyword || '',
       meta_description: item.meta_description || '',
@@ -127,6 +132,8 @@ export default function Services() {
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setThumbnailFile(null);
+    setOgImageFile(null);
     setFormData({
       page_name: '',
       headline: '',
@@ -152,6 +159,8 @@ export default function Services() {
   const handleCancelForm = () => {
     setShowForm(false);
     setEditingId(null);
+    setThumbnailFile(null);
+    setOgImageFile(null);
     setSearchParams({}, { replace: true });
   };
 
@@ -186,6 +195,16 @@ export default function Services() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'services');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/services/${editingId}`
         : '/api/v1/admin/services';
@@ -194,7 +213,7 @@ export default function Services() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -223,9 +242,7 @@ export default function Services() {
   );
 
   const getImageUrl = (path?: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    return `/${path.replace(/^\/+/, '')}`;
+    return getStorageUrl(path);
   };
 
   return (
@@ -337,16 +354,14 @@ export default function Services() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData({ ...formData, thumbnail_path: file.name });
-                    }
+                    const file = e.target.files?.[0] || null;
+                    setThumbnailFile(file);
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
-                {formData.thumbnail_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate font-mono">
-                    Selected File: {formData.thumbnail_path}
+                {(thumbnailFile || formData.thumbnail_path) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
+                    {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                   </span>
                 )}
               </div>
@@ -354,8 +369,12 @@ export default function Services() {
 
             <hr className="border-slate-100 my-4" />
 
-            {/* SEO FIELD COMPONENT (<x-SeoField>) */}
+            {/* SEO Section */}
             <div className="space-y-4">
+              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                SEO Settings
+              </h4>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -363,7 +382,7 @@ export default function Services() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Enter Meta Title"
+                    placeholder="Meta Title"
                     value={formData.meta_title}
                     onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
                     className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -389,23 +408,21 @@ export default function Services() {
                   Meta Description
                 </label>
                 <textarea
-                  rows={5}
+                  rows={2}
                   placeholder="Meta Description"
                   value={formData.meta_description}
                   onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-y"
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Seo Rating
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    max="5"
                     step="0.1"
                     placeholder="Seo Rating"
                     value={formData.seo_rating}
@@ -420,8 +437,6 @@ export default function Services() {
                   </label>
                   <input
                     type="number"
-                    min="1"
-                    max="5"
                     step="0.1"
                     placeholder="Best Rating"
                     value={formData.best_rating}
@@ -436,7 +451,7 @@ export default function Services() {
                   </label>
                   <input
                     type="number"
-                    placeholder="Total Reviews"
+                    placeholder="Number of Review"
                     value={formData.review_number}
                     onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
                     className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -451,16 +466,14 @@ export default function Services() {
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setFormData({ ...formData, og_image_path: file.name });
-                      }
+                      const file = e.target.files?.[0] || null;
+                      setOgImageFile(file);
                     }}
                     className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                   />
-                  {formData.og_image_path && (
-                    <span className="text-[11px] text-slate-500 mt-1 block truncate font-mono">
-                      Selected OG: {formData.og_image_path}
+                  {(ogImageFile || formData.og_image_path) && (
+                    <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
+                      {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                     </span>
                   )}
                 </div>

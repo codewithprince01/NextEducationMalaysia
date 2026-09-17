@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -443,7 +444,7 @@ export default function Blogs() {
                       <td className="py-3.5 px-4">
                         {item.thumbnail_path ? (
                           <a
-                            href={item.thumbnail_path}
+                            href={getStorageUrl(item.thumbnail_path)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold"
@@ -648,7 +649,7 @@ export default function Blogs() {
                   <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Section Description</label>
                   <RichTextEditor
                     value={contentFormData.description}
-                    onChange={(val) => setContentFormData({ ...contentFormData, description: val })}
+                    onChange={(val) => setContentFormData(prev => ({ ...prev, description: val }))}
                     placeholder="Detailed section content..."
                   />
                 </div>

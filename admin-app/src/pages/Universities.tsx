@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import Pagination from '@/components/common/Pagination';
 import {
   Building2,
@@ -221,9 +222,8 @@ export default function Universities() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -712,21 +712,35 @@ export default function Universities() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title}</h3>
+              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title} Preview</h3>
               <button onClick={() => setPreviewImage(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 flex flex-col items-center">
+            <div className="p-6 flex flex-col items-center justify-center bg-slate-50/50 min-h-[220px]">
               <img
-                src={`/${previewImage.url}`}
+                src={getStorageUrl(previewImage.url)}
                 alt={previewImage.title}
-                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain"
+                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain bg-white p-1"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
+                  const parent = (e.target as HTMLElement).parentElement;
+                  if (parent && !parent.querySelector('.img-error-msg')) {
+                    const msg = document.createElement('div');
+                    msg.className = 'img-error-msg text-xs text-rose-500 font-medium py-4 text-center';
+                    msg.innerText = 'Unable to load image from storage.';
+                    parent.appendChild(msg);
+                  }
                 }}
               />
-              <span className="text-xs font-mono text-slate-500 mt-3">{previewImage.url}</span>
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline mt-4 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

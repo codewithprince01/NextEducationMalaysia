@@ -12,6 +12,7 @@ import {
   Search,
   Image as ImageIcon
 } from 'lucide-react';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 
 interface InstituteTypeOption {
   id: number;
@@ -69,6 +70,10 @@ export default function AddUniversity() {
     og_image_path: '',
     status: 1
   });
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
 
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
@@ -171,13 +176,27 @@ export default function AddUniversity() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (logoFile) {
+        const res = await uploadFileToStorage(logoFile, 'university');
+        currentFormData.logo_path = res.file_path;
+      }
+      if (bannerFile) {
+        const res = await uploadFileToStorage(bannerFile, 'university');
+        currentFormData.banner_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'university');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = isEdit ? `/api/v1/admin/universities/${id}` : '/api/v1/admin/universities';
       const method = isEdit ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(currentFormData)
       });
 
       const json = await res.json();
@@ -209,9 +228,8 @@ export default function AddUniversity() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white font-semibold text-sm transition-all ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white font-semibold text-sm transition-all ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {toast.message}
@@ -626,27 +644,33 @@ export default function AddUniversity() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Logo Path / URL</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Upload Logo</label>
               <input
-                type="text"
-                name="logo_path"
-                value={formData.logo_path}
-                onChange={handleChange}
-                placeholder="uploads/university/logo.png"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
+              {(logoFile?.name || formData.logo_path) && (
+                <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                  {logoFile ? `Selected: ${logoFile.name}` : `Current: ${formData.logo_path}`}
+                </span>
+              )}
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Banner Path / URL</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Upload Banner</label>
               <input
-                type="text"
-                name="banner_path"
-                value={formData.banner_path}
-                onChange={handleChange}
-                placeholder="uploads/university/banner.jpg"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
+              {(bannerFile?.name || formData.banner_path) && (
+                <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                  {bannerFile ? `Selected: ${bannerFile.name}` : `Current: ${formData.banner_path}`}
+                </span>
+              )}
             </div>
 
             <div>
@@ -654,17 +678,12 @@ export default function AddUniversity() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setFormData((prev) => ({ ...prev, og_image_path: file.name }));
-                  }
-                }}
+                onChange={(e) => setOgImageFile(e.target.files?.[0] || null)}
                 className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
-              {formData.og_image_path && (
+              {(ogImageFile?.name || formData.og_image_path) && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                  Current / Selected: {formData.og_image_path}
+                  {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                 </span>
               )}
             </div>

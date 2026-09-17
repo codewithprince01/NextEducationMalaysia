@@ -25,8 +25,7 @@ import {
   HardDrive,
   BookOpen,
   Lock,
-  Users,
-  UserCheck
+  Users
 } from 'lucide-react';
 
 interface UniversityOption {
@@ -648,21 +647,13 @@ export default function UniversityDocuments() {
 
                     {/* Visibility */}
                     <td className="py-3 px-4 text-center">
-                      {doc.visibility === 'all' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
-                          <Users className="w-3 h-3" /> All
-                        </span>
-                      ) : doc.visibility === 'agents_only' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
-                          <UserCheck className="w-3 h-3" /> Agents
-                        </span>
-                      ) : doc.visibility === 'counsellors_only' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
-                          <BookOpen className="w-3 h-3" /> Counsellors
+                      {doc.visibility === 'admin_only' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                          <Lock className="w-3 h-3" /> Admin Only
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                          <Lock className="w-3 h-3" /> Admin
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          <Users className="w-3 h-3" /> Public
                         </span>
                       )}
                     </td>
@@ -822,10 +813,8 @@ export default function UniversityDocuments() {
                     onChange={(e) => setUploadForm({ ...uploadForm, visibility: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
-                    <option value="all">Shared to All (Agents & Counsellors)</option>
-                    <option value="agents_only">Agents Only</option>
-                    <option value="counsellors_only">Counsellors Only</option>
-                    <option value="admin_only">Admin Internal Only</option>
+                    <option value="all">Public</option>
+                    <option value="admin_only">Admin Only</option>
                   </select>
                 </div>
               </div>
@@ -985,10 +974,8 @@ export default function UniversityDocuments() {
                   onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value as any })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
-                  <option value="all">Shared to All (Agents & Counsellors)</option>
-                  <option value="agents_only">Agents Only</option>
-                  <option value="counsellors_only">Counsellors Only</option>
-                  <option value="admin_only">Admin Internal Only</option>
+                  <option value="all">Public</option>
+                  <option value="admin_only">Admin Only</option>
                 </select>
               </div>
 
