@@ -36,17 +36,14 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
     const safeOriginalName = docFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const fileName = `${Date.now()}-${safeOriginalName}`;
 
-    // Save in Next public dir so it is directly reachable:
-    // http://localhost:3000/storage/uploads/documents/<file>
-    const relativeDir = path.join('storage', 'uploads', 'documents');
-    const uploadDir = path.join(process.cwd(), 'public', relativeDir);
+    const uploadDir = path.resolve(process.cwd(), 'public', 'storage', 'uploads', 'documents');
     await mkdir(uploadDir, { recursive: true });
 
     const fileBuffer = Buffer.from(await docFile.arrayBuffer());
-    await writeFile(path.join(uploadDir, fileName), fileBuffer);
+    await writeFile(path.resolve(uploadDir, fileName), fileBuffer);
 
     // Persist path shape compatible with old project
-    const filePath = `${relativeDir}/${fileName}`;
+    const filePath = `storage/uploads/documents/${fileName}`;
     
     const requestOrigin = (() => {
       try {

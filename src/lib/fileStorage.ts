@@ -12,6 +12,17 @@ export interface UploadedFileResult {
  * Save an uploaded file to `public/storage/uploads/{folder}`.
  * Returns relative path `uploads/{folder}/{fileName}` (or with YYYY/MM/DD).
  */
+// Runtime path resolution to prevent Next.js / Webpack from treating public/storage as dynamic module bundles
+function getStorageRoot(): string {
+  const cwd = process.cwd();
+  return path.resolve(cwd, "public", "storage");
+}
+
+function getPublicRoot(): string {
+  const cwd = process.cwd();
+  return path.resolve(cwd, "public");
+}
+
 export async function saveUploadedFile(
   file: File | Blob,
   originalName: string,
@@ -39,15 +50,11 @@ export async function saveUploadedFile(
     relativeSubDir = `uploads/${cleanFolder}/${yyyy}/${mm}/${dd}`;
   }
 
-  const absoluteDir = path.join(
-    process.cwd(),
-    "public",
-    "storage",
-    relativeSubDir,
-  );
+  const storageRoot = getStorageRoot();
+  const absoluteDir = path.resolve(storageRoot, relativeSubDir);
   await mkdir(absoluteDir, { recursive: true });
 
-  const absoluteFilePath = path.join(absoluteDir, fileName);
+  const absoluteFilePath = path.resolve(absoluteDir, fileName);
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   await writeFile(absoluteFilePath, buffer);
@@ -69,17 +76,13 @@ export async function deleteUploadedFile(
   if (!filePath) return false;
   try {
     const cleanPath = filePath.replace(/^\/+/, "");
-
-    // Check under public/storage/ first
-    let absolutePath = path.join(
-      process.cwd(),
-      "public",
-      "storage",
-      cleanPath.replace(/^storage\//, ""),
-    );
+    const subPath = cleanPath.replace(/^storage[\\/]/, "");
+    const storageRoot = getStorageRoot();
+    let absolutePath = path.resolve(storageRoot, subPath);
 
     if (!existsSync(absolutePath)) {
-      absolutePath = path.join(process.cwd(), "public", cleanPath);
+      const publicRoot = getPublicRoot();
+      absolutePath = path.resolve(publicRoot, cleanPath);
     }
 
     if (existsSync(absolutePath)) {
