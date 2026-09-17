@@ -172,7 +172,7 @@ export class MultipleSearchApplyService {
   async getPrograms(filters: any, page = 1, perPage = 10) {
     const where: any = {};
 
-    const websites = this.normalize(filters.website);
+    const websites = this.normalize(filters.website || filters.country);
     if (websites.length > 0) where.website = { in: websites };
 
     const universityIds = this.normalize(filters.university_id)
@@ -200,28 +200,64 @@ export class MultipleSearchApplyService {
         where,
         select: {
           id: true,
-          website: true,
           university_id: true,
-          course_category_id: true,
-          specialization_id: true,
-          level: true,
           course_name: true,
-          intake: true,
+          slug: true,
+          level: true,
           study_mode: true,
+          intake: true,
           duration: true,
           application_deadline: true,
-          tution_fee: true,
-          total_fee: true,
-          total_tuition_fee: true,
+          accreditations: true,
+          course_category_id: true,
+          specialization_id: true,
           commission: true,
+          status: true,
+          seo_rating: true,
+          best_rating: true,
+          review_number: true,
+          overview: true,
+          website: true,
+          created_at: true,
+          updated_at: true,
           university: {
             select: {
               id: true,
               name: true,
               uname: true,
+              views: true,
+              click: true,
+              city: true,
+              state: true,
+              qs_rank: true,
+              times_rank: true,
+              qs_asia_rank: true,
+              shortnote: true,
+              established_year: true,
+              local_students: true,
+              international_students: true,
+              accredited_by: true,
+              approved_by: true,
+              latitude_longitude: true,
+              featured: true,
+              rating: true,
+              logo_path: true,
+              banner_path: true,
+              institute_type: true,
+              is_local: true,
+              is_international: true,
+              scholarship_available: true,
+              status: true,
+              homeview: true,
               email: true,
               cc: true,
-              logo_path: true,
+              contact_number1: true,
+              contact_number2: true,
+              hostel_facility: true,
+              website: true,
+              created_at: true,
+              updated_at: true,
+              // Excluded: meta_title, meta_description, meta_keyword, og_image_path, page_content
             },
           },
           courseCategory: {
@@ -238,6 +274,13 @@ export class MultipleSearchApplyService {
               slug: true,
             },
           },
+          // Excluded fee fields:
+          //   tution_fee, exam_fee, tutions_fee,
+          //   total_fee, total_tuition_fee, annual_tuition_fee,
+          //   scholarship_amount, tution_fee_after_scholarship,
+          //   year1_tuition_fee, year2_tuition_fee, year3_tuition_fee, year4_tuition_fee
+          // Excluded SEO fields:
+          //   meta_title, meta_description, meta_keyword, og_image_path, page_content
         },
         orderBy: {
           id: "desc",
@@ -247,36 +290,14 @@ export class MultipleSearchApplyService {
       }),
     ]);
 
-    const formattedItems = items.map((item: any) => ({
-      id: item.id,
-      website: item.website,
-      university_id: item.university_id,
-      course_category_id: item.course_category_id,
-      specialization_id: item.specialization_id,
-      level: item.level,
-      course_name: item.course_name,
-      intake: item.intake,
-      study_mode: item.study_mode,
-      duration: item.duration,
-      application_deadline: item.application_deadline,
-      tution_fee: item.tution_fee != null ? String(item.tution_fee) : null,
-      total_fee: item.total_fee != null ? String(item.total_fee) : null,
-      total_tuition_fee:
-        item.total_tuition_fee != null ? String(item.total_tuition_fee) : null,
-      commission: item.commission != null ? item.commission : null,
-      university: item.university
-        ? {
-            id: item.university.id,
-            name: item.university.name,
-            uname: item.university.uname,
-            email: item.university.email ?? null,
-            cc: item.university.cc ?? null,
-            logo_path: item.university.logo_path ?? null,
-          }
-        : null,
-      course_category: item.courseCategory,
-      course_specialization: item.courseSpecialization,
-    }));
+    const formattedItems = items.map((item: any) => {
+      const { courseCategory, courseSpecialization, ...rest } = item;
+      return {
+        ...rest,
+        course_category: courseCategory,
+        course_specialization: courseSpecialization,
+      };
+    });
 
     return {
       items: serializeBigInt(formattedItems),
