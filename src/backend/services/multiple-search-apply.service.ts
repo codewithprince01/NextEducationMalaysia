@@ -311,23 +311,109 @@ export class MultipleSearchApplyService {
     const catMap = new Map(categories.map((c) => [Number(c.id), c]));
     const specMap = new Map(specializations.map((s) => [Number(s.id), s]));
 
+    const FEE_FIELDS_ORDER = [
+      'fee_type',
+      'fee_number',
+      'feefilename',
+      'feefilepath',
+      'fees_remark',
+      'currency',
+      'application_fee',
+      'application_fees',
+      'registration_fee',
+      'admin_fee',
+      'viza_fee',
+      'emgs_processing_fee',
+      'medical_insurance_fee',
+      'insurance_fee',
+      'personal_bond_fee',
+      'library_fee',
+      'icard_fee',
+      'examination_fee',
+      'laboratory_fee',
+      'technology_fee',
+      'student_activity_fee',
+      'resources_fee',
+      'facilities_fee',
+      'commitment_fee',
+      'international_student_fee',
+      'international_student_fees',
+      'international_student_charge',
+      'international_administration_fee',
+      'international_security_deposit',
+      'accommodation_fee',
+      'airport_pickup_fee',
+      'other_fee',
+      'other_fees',
+      'discount',
+      'domestic_discount',
+      'international_discount',
+      'saarc_discount',
+      'nri_discount',
+      'commission',
+      'avrg_tution_fees_per_year',
+      'avrg_cost_living_per_year',
+      // Local Fees
+      'total_fee_local',
+      'total_tuition_fee_local',
+      'anual_tuition_fee_local',
+      'annual_tuition_fee_local',
+      'year1_tuition_fee_local',
+      'year2_tuition_fee_local',
+      'year3_tuition_fee_local',
+      'year4_tuition_fee_local',
+      'scholarship_amount_local',
+      'tution_fee_after_scholarship_local',
+      // International Fees
+      'total_fee_international',
+      'total_tuition_fee_international',
+      'annual_tuition_fee_international',
+      'year1_tuition_fee_international',
+      'year2_tuition_fee_international',
+      'year3_tuition_fee_international',
+      'year4_tuition_fee_international',
+      'scholarship_amount_international',
+      'tution_fee_after_scholarship_international',
+    ];
+
+    const feeSet = new Set(FEE_FIELDS_ORDER);
+    const excludedSet = new Set(EXCLUDED_PROGRAM_FIELDS);
+
     const formattedItems = programs.map((p) => {
-      // Strip excluded fields from program
-      for (const f of EXCLUDED_PROGRAM_FIELDS) {
-        delete p[f];
+      const organizedProg: any = {};
+
+      // 1. General & basic course fields first (non-fee, non-excluded)
+      for (const [key, value] of Object.entries(p)) {
+        if (!excludedSet.has(key) && !feeSet.has(key)) {
+          organizedProg[key] = value;
+        }
+      }
+
+      // 2. All fee fields placed together in contiguous block
+      for (const feeKey of FEE_FIELDS_ORDER) {
+        if (feeKey in p && !excludedSet.has(feeKey)) {
+          organizedProg[feeKey] = p[feeKey];
+        }
+      }
+
+      // 3. Fallback for any remaining unexcluded field
+      for (const [key, value] of Object.entries(p)) {
+        if (!excludedSet.has(key) && !(key in organizedProg)) {
+          organizedProg[key] = value;
+        }
       }
 
       const cat = catMap.get(Number(p.course_category_id)) || null;
       const spec = specMap.get(Number(p.specialization_id)) || null;
 
-      return {
-        ...p,
-        university: uniMap.get(Number(p.university_id)) || null,
-        courseCategory: cat,
-        courseSpecialization: spec,
-        course_category: cat || p.course_category,
-        course_specialization: spec || p.specialization,
-      };
+      // 4. Attached relations
+      organizedProg.university = uniMap.get(Number(p.university_id)) || null;
+      organizedProg.courseCategory = cat;
+      organizedProg.courseSpecialization = spec;
+      organizedProg.course_category = cat || p.course_category;
+      organizedProg.course_specialization = spec || p.specialization;
+
+      return organizedProg;
     });
 
     return {
