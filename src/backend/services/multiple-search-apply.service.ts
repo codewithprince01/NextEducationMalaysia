@@ -178,18 +178,6 @@ export class MultipleSearchApplyService {
    */
   async getPrograms(filters: any, page = 1, perPage = 10) {
     const EXCLUDED_PROGRAM_FIELDS = [
-      'tution_fee',
-      'exam_fee',
-      'tutions_fee',
-      'total_fee',
-      'total_tuition_fee',
-      'annual_tuition_fee',
-      'scholarship_amount',
-      'tution_fee_after_scholarship',
-      'year1_tuition_fee',
-      'year2_tuition_fee',
-      'year3_tuition_fee',
-      'year4_tuition_fee',
       'meta_title',
       'meta_description',
       'meta_keyword',
@@ -300,7 +288,7 @@ export class MultipleSearchApplyService {
         : Promise.resolve([]),
     ]);
 
-    // Strip excluded fields from universities
+    // Strip excluded SEO fields from universities
     for (const uni of universities) {
       for (const f of EXCLUDED_UNIVERSITY_FIELDS) {
         delete uni[f];
@@ -312,12 +300,55 @@ export class MultipleSearchApplyService {
     const specMap = new Map(specializations.map((s) => [Number(s.id), s]));
 
     const FEE_FIELDS_ORDER = [
+      // Fee Metadata & Currency
+      'currency',
       'fee_type',
       'fee_number',
       'feefilename',
       'feefilepath',
       'fees_remark',
-      'currency',
+      'discount',
+      'domestic_discount',
+      'international_discount',
+      'saarc_discount',
+      'nri_discount',
+      'commission',
+      'avrg_tution_fees_per_year',
+      'avrg_cost_living_per_year',
+
+      // Tab 1: International Fees
+      'total_fee_international',
+      'total_tuition_fee_international',
+      'annual_tuition_fee_international',
+      'year1_tuition_fee_international',
+      'year2_tuition_fee_international',
+      'year3_tuition_fee_international',
+      'year4_tuition_fee_international',
+      'scholarship_amount_international',
+      'tution_fee_after_scholarship_international',
+      'total_fee',
+      'total_tuition_fee',
+      'annual_tuition_fee',
+      'year1_tuition_fee',
+      'year2_tuition_fee',
+      'year3_tuition_fee',
+      'year4_tuition_fee',
+      'scholarship_amount',
+      'tution_fee_after_scholarship',
+
+      // Tab 2: Local Fees
+      'total_fee_local',
+      'total_tuition_fee_local',
+      'annual_tuition_fee_local',
+      'anual_tuition_fee_local',
+      'year1_tuition_fee_local',
+      'year2_tuition_fee_local',
+      'year3_tuition_fee_local',
+      'year4_tuition_fee_local',
+      'scholarship_amount_local',
+      'tution_fee_after_scholarship_local',
+
+      // Tab 3: Other Fees
       'application_fee',
       'application_fees',
       'registration_fee',
@@ -345,41 +376,34 @@ export class MultipleSearchApplyService {
       'airport_pickup_fee',
       'other_fee',
       'other_fees',
-      'discount',
-      'domestic_discount',
-      'international_discount',
-      'saarc_discount',
-      'nri_discount',
-      'commission',
-      'avrg_tution_fees_per_year',
-      'avrg_cost_living_per_year',
-      // Local Fees
-      'total_fee_local',
-      'total_tuition_fee_local',
-      'anual_tuition_fee_local',
-      'annual_tuition_fee_local',
-      'year1_tuition_fee_local',
-      'year2_tuition_fee_local',
-      'year3_tuition_fee_local',
-      'year4_tuition_fee_local',
-      'scholarship_amount_local',
-      'tution_fee_after_scholarship_local',
-      // International Fees
-      'total_fee_international',
-      'total_tuition_fee_international',
-      'annual_tuition_fee_international',
-      'year1_tuition_fee_international',
-      'year2_tuition_fee_international',
-      'year3_tuition_fee_international',
-      'year4_tuition_fee_international',
-      'scholarship_amount_international',
-      'tution_fee_after_scholarship_international',
+      'additional_note',
     ];
 
     const feeSet = new Set(FEE_FIELDS_ORDER);
     const excludedSet = new Set(EXCLUDED_PROGRAM_FIELDS);
 
     const formattedItems = programs.map((p) => {
+      // Sync international and legacy fee aliases so both are available
+      p.total_fee_international = p.total_fee_international ?? p.total_fee ?? null;
+      p.total_fee = p.total_fee ?? p.total_fee_international ?? null;
+      p.total_tuition_fee_international = p.total_tuition_fee_international ?? p.total_tuition_fee ?? null;
+      p.total_tuition_fee = p.total_tuition_fee ?? p.total_tuition_fee_international ?? null;
+      p.annual_tuition_fee_international = p.annual_tuition_fee_international ?? p.annual_tuition_fee ?? null;
+      p.annual_tuition_fee = p.annual_tuition_fee ?? p.annual_tuition_fee_international ?? null;
+      p.year1_tuition_fee_international = p.year1_tuition_fee_international ?? p.year1_tuition_fee ?? null;
+      p.year1_tuition_fee = p.year1_tuition_fee ?? p.year1_tuition_fee_international ?? null;
+      p.year2_tuition_fee_international = p.year2_tuition_fee_international ?? p.year2_tuition_fee ?? null;
+      p.year2_tuition_fee = p.year2_tuition_fee ?? p.year2_tuition_fee_international ?? null;
+      p.year3_tuition_fee_international = p.year3_tuition_fee_international ?? p.year3_tuition_fee ?? null;
+      p.year3_tuition_fee = p.year3_tuition_fee ?? p.year3_tuition_fee_international ?? null;
+      p.year4_tuition_fee_international = p.year4_tuition_fee_international ?? p.year4_tuition_fee ?? null;
+      p.year4_tuition_fee = p.year4_tuition_fee ?? p.year4_tuition_fee_international ?? null;
+      p.scholarship_amount_international = p.scholarship_amount_international ?? p.scholarship_amount ?? null;
+      p.scholarship_amount = p.scholarship_amount ?? p.scholarship_amount_international ?? null;
+      p.tution_fee_after_scholarship_international = p.tution_fee_after_scholarship_international ?? p.tution_fee_after_scholarship ?? null;
+      p.tution_fee_after_scholarship = p.tution_fee_after_scholarship ?? p.tution_fee_after_scholarship_international ?? null;
+      p.annual_tuition_fee_local = p.annual_tuition_fee_local ?? p.anual_tuition_fee_local ?? null;
+
       const organizedProg: any = {};
 
       // 1. General & basic course fields first (non-fee, non-excluded)
