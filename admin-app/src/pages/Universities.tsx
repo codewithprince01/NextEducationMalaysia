@@ -256,7 +256,7 @@ export default function Universities() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             title="Refresh list"
           >
@@ -287,7 +287,7 @@ export default function Universities() {
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
             <button
-              onClick={handleImport}
+              onClick={handleBulkImport}
               disabled={importing || !importFile}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
             >

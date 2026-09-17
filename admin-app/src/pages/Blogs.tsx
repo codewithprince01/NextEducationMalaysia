@@ -347,7 +347,7 @@ export default function Blogs() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={fetchBlogs}
+            onClick={() => fetchBlogs()}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all cursor-pointer"
             title="Refresh Data"
           >

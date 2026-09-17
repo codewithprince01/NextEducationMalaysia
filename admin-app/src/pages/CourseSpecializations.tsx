@@ -510,7 +510,7 @@ export default function CourseSpecializations() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             title="Refresh list"
           >

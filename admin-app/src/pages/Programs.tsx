@@ -318,7 +318,7 @@ export default function Programs() {
         cRes.json(),
         sRes.json(),
         lRes.json(),
-        smJson.json(),
+        smRes.json(),
       ]);
 
       if (uRes.ok && (uJson.status || uJson.success)) setUniversities(uJson.data || []);
