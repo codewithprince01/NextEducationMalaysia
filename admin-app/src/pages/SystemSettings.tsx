@@ -7,7 +7,14 @@ import {
   AlertCircle,
   RefreshCw,
   Send,
-  SlidersHorizontal
+  SlidersHorizontal,
+  ShieldCheck,
+  Server,
+  Zap,
+  Check,
+  AtSign,
+  User,
+  Radio
 } from 'lucide-react';
 
 export default function SystemSettings() {
@@ -39,6 +46,8 @@ export default function SystemSettings() {
     testing_bcc_name: 'Test BCC',
   });
 
+  const [totalKeys, setTotalKeys] = useState<number>(13);
+
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
@@ -53,9 +62,10 @@ export default function SystemSettings() {
         if (json.emailMode) setEmailMode(json.emailMode);
         if (json.mainSettings) setMainSettings(json.mainSettings);
         if (json.testingSettings) setTestingSettings(json.testingSettings);
+        if (json.totalCount !== undefined) setTotalKeys(json.totalCount);
       }
     } catch {
-      // Keep default values if standalone
+      // Keep fallback state
     } finally {
       setLoading(false);
     }
@@ -76,12 +86,12 @@ export default function SystemSettings() {
       });
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
-        showToast('success', `Email mode updated to ${emailMode.toUpperCase()}`);
+        showToast('success', `Email dispatch mode switched to ${emailMode.toUpperCase()} successfully.`);
       } else {
-        showToast('success', `Email mode switched to ${emailMode.toUpperCase()}`);
+        showToast('error', json.message || 'Failed to update email mode');
       }
     } catch {
-      showToast('success', `Email mode switched to ${emailMode.toUpperCase()} (local)`);
+      showToast('error', 'Network error while updating email mode');
     } finally {
       setSubmittingMode(false);
     }
@@ -98,12 +108,12 @@ export default function SystemSettings() {
       });
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
-        showToast('success', 'Main email settings updated successfully');
+        showToast('success', 'Production email recipient configuration saved successfully.');
       } else {
-        showToast('success', 'Main email settings saved');
+        showToast('error', json.message || 'Failed to save main email settings');
       }
     } catch {
-      showToast('success', 'Main email settings saved (local)');
+      showToast('error', 'Network error while saving main email settings');
     } finally {
       setSubmittingMain(false);
     }
@@ -120,162 +130,315 @@ export default function SystemSettings() {
       });
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
-        showToast('success', 'Testing email settings updated successfully');
+        showToast('success', 'Testing email recipient configuration saved successfully.');
       } else {
-        showToast('success', 'Testing email settings saved');
+        showToast('error', json.message || 'Failed to save testing email settings');
       }
     } catch {
-      showToast('success', 'Testing email settings saved (local)');
+      showToast('error', 'Network error while saving testing email settings');
     } finally {
       setSubmittingTesting(false);
     }
   };
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-2xl text-white text-sm font-medium transition-all duration-300 border ${
+            toast.type === 'success'
+              ? 'bg-emerald-900/95 border-emerald-700/50 backdrop-blur-md'
+              : 'bg-rose-900/95 border-rose-700/50 backdrop-blur-md'
+          }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+          )}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Settings className="w-6 h-6 text-indigo-600" /> System &amp; Email Settings
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Configure SMTP dispatch modes, lead notification recipients, CC/BCC targets, and system defaults.
-          </p>
+      {/* Classic Editorial Header Card */}
+      <div className="relative overflow-hidden bg-white/95 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-6 md:p-8 shadow-sm">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-amber-500/5 via-stone-500/5 to-transparent rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+        <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-xs font-semibold tracking-wide uppercase">
+              <Settings className="w-3.5 h-3.5" />
+              Institutional Core Settings
+            </div>
+            <h1 className="text-2xl md:text-3xl font-serif font-black text-stone-900 tracking-tight">
+              System &amp; Email Settings
+            </h1>
+            <p className="text-stone-600 text-sm max-w-2xl font-light leading-relaxed">
+              Configure SMTP dispatch routing modes, lead notification recipients, CC/BCC targets, and system defaults across Next Education Malaysia.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 self-start md:self-auto">
+            <button
+              onClick={fetchSettings}
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
+              title="Refresh Settings"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-amber-600' : ''}`} />
+              <span>Refresh</span>
+            </button>
+          </div>
         </div>
-        <button
-          onClick={fetchSettings}
-          className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors self-start sm:self-auto"
-          title="Refresh"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-100 bg-slate-50/50 text-sm font-semibold">
+      {/* KPI Stat Overview Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Active Dispatch Mode */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+              Active Mode
+            </span>
+            <span
+              className={`p-2 rounded-xl ${
+                emailMode === 'main'
+                  ? 'bg-emerald-500/10 text-emerald-700'
+                  : 'bg-amber-500/10 text-amber-700'
+              }`}
+            >
+              <Radio className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl font-serif font-bold text-stone-900 capitalize">
+              {emailMode === 'main' ? 'Main Production' : 'Testing Sandbox'}
+            </span>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  emailMode === 'main' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                }`}
+              />
+              <span className="text-xs text-stone-500">
+                {emailMode === 'main' ? 'Live student inquiries' : 'Redirected to QA testboxes'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Main Primary Recipient */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+              Main Lead Target
+            </span>
+            <span className="p-2 rounded-xl bg-blue-500/10 text-blue-700">
+              <Mail className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3">
+            <span className="text-sm font-mono font-semibold text-stone-900 truncate block" title={mainSettings.main_to_email}>
+              {mainSettings.main_to_email || 'Not configured'}
+            </span>
+            <span className="text-xs text-stone-500 mt-1 block truncate">
+              {mainSettings.main_to_name || 'Primary Counselor'}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 3: Testing Sandbox Target */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+              Testing Recipient
+            </span>
+            <span className="p-2 rounded-xl bg-purple-500/10 text-purple-700">
+              <Send className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3">
+            <span className="text-sm font-mono font-semibold text-stone-900 truncate block" title={testingSettings.testing_to_email}>
+              {testingSettings.testing_to_email || 'Not configured'}
+            </span>
+            <span className="text-xs text-stone-500 mt-1 block truncate">
+              {testingSettings.testing_to_name || 'QA / Dev Mailbox'}
+            </span>
+          </div>
+        </div>
+
+        {/* Card 4: System Parameters */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
+              System Parameters
+            </span>
+            <span className="p-2 rounded-xl bg-stone-500/10 text-stone-700">
+              <Server className="w-4 h-4" />
+            </span>
+          </div>
+          <div className="mt-3">
+            <span className="text-xl font-serif font-bold text-stone-900">
+              {totalKeys} Key Pairs
+            </span>
+            <span className="text-xs text-stone-500 mt-1 flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" /> MySQL Backed &amp; Audited
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Settings Tabs & Forms Container */}
+      <div className="bg-white rounded-2xl border border-stone-200/80 shadow-sm overflow-hidden">
+        {/* Navigation Tabs Bar */}
+        <div className="flex border-b border-stone-200 bg-stone-50/70 p-2 gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('mode')}
-            className={`py-3 px-5 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'mode'
-              ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+              activeTab === 'mode'
+                ? 'bg-stone-900 text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+            }`}
           >
-            <SlidersHorizontal className="w-4 h-4" /> Email Mode Switcher
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Email Mode Switcher</span>
           </button>
           <button
             onClick={() => setActiveTab('main')}
-            className={`py-3 px-5 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'main'
-              ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+              activeTab === 'main'
+                ? 'bg-stone-900 text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+            }`}
           >
-            <Mail className="w-4 h-4" /> Main Email Recipients
+            <Mail className="w-3.5 h-3.5" />
+            <span>Main Recipients (Production)</span>
           </button>
           <button
             onClick={() => setActiveTab('testing')}
-            className={`py-3 px-5 flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'testing'
-              ? 'border-indigo-600 text-indigo-600 font-bold bg-white'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
+            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+              activeTab === 'testing'
+                ? 'bg-stone-900 text-white shadow-sm'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+            }`}
           >
-            <Send className="w-4 h-4" /> Testing Email Recipients
+            <Send className="w-3.5 h-3.5" />
+            <span>Testing Recipients (Sandbox)</span>
           </button>
         </div>
 
-        <div className="p-6">
+        {/* Tab Content Panes */}
+        <div className="p-6 md:p-8">
+          {/* TAB 1: Mode Switcher */}
           {activeTab === 'mode' && (
-            <form onSubmit={handleUpdateMode} className="space-y-6 max-w-xl">
+            <form onSubmit={handleUpdateMode} className="space-y-6 max-w-2xl">
               <div>
-                <h3 className="text-base font-bold text-slate-800 mb-1">Select Active Email Dispatch Mode</h3>
-                <p className="text-xs text-slate-500 mb-4">
-                  Controls whether student applications and website contact form emails are routed to main production counselors or testing mailboxes.
+                <h3 className="text-lg font-serif font-bold text-stone-900 mb-1">
+                  Active Dispatch Mode Routing
+                </h3>
+                <p className="text-xs text-stone-500 leading-relaxed mb-6">
+                  Select which destination mailbox group receives inbound student applications, brochure downloads, document submissions, and contact inquiries.
                 </p>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <label
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Option 1: Main Mode */}
+                  <div
                     onClick={() => setEmailMode('main')}
-                    className={`p-4 rounded-xl border-2 cursor-pointer flex flex-col justify-between transition-all ${emailMode === 'main'
-                      ? 'border-indigo-600 bg-indigo-50/50 shadow-sm'
-                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/30'
-                      }`}
+                    className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      emailMode === 'main'
+                        ? 'border-stone-900 bg-stone-50/90 shadow-md ring-1 ring-stone-900/10'
+                        : 'border-stone-200 hover:border-stone-300 bg-white'
+                    }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-sm text-slate-800">Main Production Mode</span>
-                      <input
-                        type="radio"
-                        name="email_mode"
-                        checked={emailMode === 'main'}
-                        onChange={() => setEmailMode('main')}
-                        className="text-indigo-600 focus:ring-indigo-500"
-                      />
+                    <div className="flex items-start justify-between">
+                      <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-800 mb-3">
+                        <Zap className="w-5 h-5" />
+                      </div>
+                      <div
+                        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                          emailMode === 'main'
+                            ? 'border-stone-900 bg-stone-900 text-white'
+                            : 'border-stone-300 bg-white'
+                        }`}
+                      >
+                        {emailMode === 'main' && <Check className="w-3 h-3" />}
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      Dispatches lead emails directly to official admissions counselors (Main Recipients).
+                    <h4 className="text-sm font-bold text-stone-900">Main Production Mode</h4>
+                    <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
+                      Sends student leads directly to official admissions counselors and verified staff mailboxes.
                     </p>
-                  </label>
+                  </div>
 
-                  <label
+                  {/* Option 2: Testing Mode */}
+                  <div
                     onClick={() => setEmailMode('testing')}
-                    className={`p-4 rounded-xl border-2 cursor-pointer flex flex-col justify-between transition-all ${emailMode === 'testing'
-                      ? 'border-amber-600 bg-amber-50/50 shadow-sm'
-                      : 'border-slate-200 hover:border-slate-300 bg-slate-50/30'
-                      }`}
+                    className={`relative p-5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      emailMode === 'testing'
+                        ? 'border-amber-600 bg-amber-50/50 shadow-md ring-1 ring-amber-600/10'
+                        : 'border-stone-200 hover:border-stone-300 bg-white'
+                    }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-sm text-slate-800">Testing Mode</span>
-                      <input
-                        type="radio"
-                        name="email_mode"
-                        checked={emailMode === 'testing'}
-                        onChange={() => setEmailMode('testing')}
-                        className="text-amber-600 focus:ring-amber-500"
-                      />
+                    <div className="flex items-start justify-between">
+                      <div className="p-2 rounded-xl bg-amber-500/10 text-amber-800 mb-3">
+                        <SlidersHorizontal className="w-5 h-5" />
+                      </div>
+                      <div
+                        className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                          emailMode === 'testing'
+                            ? 'border-amber-600 bg-amber-600 text-white'
+                            : 'border-stone-300 bg-white'
+                        }`}
+                      >
+                        {emailMode === 'testing' && <Check className="w-3 h-3" />}
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-500">
-                      Routes all outbound test emails exclusively to QA &amp; Developer testing mailboxes.
+                    <h4 className="text-sm font-bold text-stone-900">Testing Sandbox Mode</h4>
+                    <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
+                      Intercepts outbound emails and forwards them strictly to developer/QA test addresses.
                     </p>
-                  </label>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+              <div className="pt-6 border-t border-stone-100 flex items-center justify-end">
                 <button
                   type="submit"
                   disabled={submittingMode}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
                 >
-                  {submittingMode && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Save Email Mode
+                  {submittingMode ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  Save Mode Changes
                 </button>
               </div>
             </form>
           )}
 
+          {/* TAB 2: Main Production Recipients */}
           {activeTab === 'main' && (
-            <form onSubmit={handleUpdateMain} className="space-y-6 max-w-3xl">
+            <form onSubmit={handleUpdateMain} className="space-y-6 max-w-4xl">
               <div>
-                <h3 className="text-base font-bold text-slate-800 mb-1">Main Production Recipients</h3>
-                <p className="text-xs text-slate-500 mb-4">
-                  Default email addresses that receive primary student applications, CC copies, and BCC archives.
+                <h3 className="text-lg font-serif font-bold text-stone-900 mb-1">
+                  Main Production Email Configuration
+                </h3>
+                <p className="text-xs text-stone-500 leading-relaxed mb-6">
+                  Set the primary destination, CC monitoring, and BCC archiving email addresses for live production student leads.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Primary Recipient Group */}
+                  <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
+                      <AtSign className="w-4 h-4 text-amber-600" />
+                      <span>Primary Destination (TO)</span>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
                         Main To Email <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -283,99 +446,144 @@ export default function SystemSettings() {
                         required
                         value={mainSettings.main_to_email}
                         onChange={(e) => setMainSettings({ ...mainSettings, main_to_email: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        placeholder="admissions@tutelage.edu.my"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Main To Name
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                        Main To Display Name
                       </label>
-                      <input
-                        type="text"
-                        value={mainSettings.main_to_name}
-                        onChange={(e) => setMainSettings({ ...mainSettings, main_to_name: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                      />
+                      <div className="relative">
+                        <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <input
+                          type="text"
+                          value={mainSettings.main_to_name}
+                          onChange={(e) => setMainSettings({ ...mainSettings, main_to_name: e.target.value })}
+                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          placeholder="Admissions Office"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  {/* Carbon Copy (CC) Group */}
+                  <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
+                      <Mail className="w-4 h-4 text-blue-600" />
+                      <span>Carbon Copy (CC)</span>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
                         Main CC Email
                       </label>
                       <input
                         type="email"
                         value={mainSettings.main_cc_email}
                         onChange={(e) => setMainSettings({ ...mainSettings, main_cc_email: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        placeholder="counselor@tutelage.edu.my"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Main CC Name
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                        Main CC Display Name
                       </label>
-                      <input
-                        type="text"
-                        value={mainSettings.main_cc_name}
-                        onChange={(e) => setMainSettings({ ...mainSettings, main_cc_name: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                      />
+                      <div className="relative">
+                        <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <input
+                          type="text"
+                          value={mainSettings.main_cc_name}
+                          onChange={(e) => setMainSettings({ ...mainSettings, main_cc_name: e.target.value })}
+                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          placeholder="Lead Counselor"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Main BCC Email
-                      </label>
-                      <input
-                        type="email"
-                        value={mainSettings.main_bcc_email}
-                        onChange={(e) => setMainSettings({ ...mainSettings, main_bcc_email: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
-                      />
+                  {/* Blind Carbon Copy (BCC) Group */}
+                  <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4 md:col-span-2">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
+                      <ShieldCheck className="w-4 h-4 text-purple-600" />
+                      <span>Blind Carbon Copy (BCC Archiving)</span>
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Main BCC Name
-                      </label>
-                      <input
-                        type="text"
-                        value={mainSettings.main_bcc_name}
-                        onChange={(e) => setMainSettings({ ...mainSettings, main_bcc_name: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                      />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                          Main BCC Email
+                        </label>
+                        <input
+                          type="email"
+                          value={mainSettings.main_bcc_email}
+                          onChange={(e) => setMainSettings({ ...mainSettings, main_bcc_email: e.target.value })}
+                          className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          placeholder="archive@tutelage.edu.my"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                          Main BCC Display Name
+                        </label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                          <input
+                            type="text"
+                            value={mainSettings.main_bcc_name}
+                            onChange={(e) => setMainSettings({ ...mainSettings, main_bcc_name: e.target.value })}
+                            className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                            placeholder="Compliance Archive"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+              <div className="pt-6 border-t border-stone-100 flex items-center justify-end">
                 <button
                   type="submit"
                   disabled={submittingMain}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
                 >
-                  {submittingMain && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Save Main Email Configuration
+                  {submittingMain ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  Save Production Settings
                 </button>
               </div>
             </form>
           )}
 
+          {/* TAB 3: Testing Recipients */}
           {activeTab === 'testing' && (
-            <form onSubmit={handleUpdateTesting} className="space-y-6 max-w-3xl">
+            <form onSubmit={handleUpdateTesting} className="space-y-6 max-w-4xl">
               <div>
-                <h3 className="text-base font-bold text-slate-800 mb-1">Testing Email Recipients</h3>
-                <p className="text-xs text-slate-500 mb-4">
-                  Configured recipients when System Email Mode is switched to Testing.
+                <h3 className="text-lg font-serif font-bold text-stone-900 mb-1">
+                  Testing Sandbox Email Configuration
+                </h3>
+                <p className="text-xs text-stone-500 leading-relaxed mb-6">
+                  Recipients designated to receive trial form submissions when the system is in Sandbox/Testing mode.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Testing Primary */}
+                  <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
+                      <AtSign className="w-4 h-4 text-purple-600" />
+                      <span>Testing Primary Target (TO)</span>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
                         Testing To Email <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -383,82 +591,118 @@ export default function SystemSettings() {
                         required
                         value={testingSettings.testing_to_email}
                         onChange={(e) => setTestingSettings({ ...testingSettings, testing_to_email: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        placeholder="test@example.com"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Testing To Name
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                        Testing To Display Name
                       </label>
-                      <input
-                        type="text"
-                        value={testingSettings.testing_to_name}
-                        onChange={(e) => setTestingSettings({ ...testingSettings, testing_to_name: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                      />
+                      <div className="relative">
+                        <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <input
+                          type="text"
+                          value={testingSettings.testing_to_name}
+                          onChange={(e) => setTestingSettings({ ...testingSettings, testing_to_name: e.target.value })}
+                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          placeholder="QA Engineer"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  {/* Testing CC */}
+                  <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
+                      <Mail className="w-4 h-4 text-blue-600" />
+                      <span>Testing Carbon Copy (CC)</span>
+                    </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
                         Testing CC Email
                       </label>
                       <input
                         type="email"
                         value={testingSettings.testing_cc_email}
                         onChange={(e) => setTestingSettings({ ...testingSettings, testing_cc_email: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        placeholder="test-cc@example.com"
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Testing CC Name
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                        Testing CC Display Name
                       </label>
-                      <input
-                        type="text"
-                        value={testingSettings.testing_cc_name}
-                        onChange={(e) => setTestingSettings({ ...testingSettings, testing_cc_name: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                      />
+                      <div className="relative">
+                        <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                        <input
+                          type="text"
+                          value={testingSettings.testing_cc_name}
+                          onChange={(e) => setTestingSettings({ ...testingSettings, testing_cc_name: e.target.value })}
+                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          placeholder="Dev QA Team"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Testing BCC Email
-                      </label>
-                      <input
-                        type="email"
-                        value={testingSettings.testing_bcc_email}
-                        onChange={(e) => setTestingSettings({ ...testingSettings, testing_bcc_email: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
-                      />
+                  {/* Testing BCC */}
+                  <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4 md:col-span-2">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
+                      <ShieldCheck className="w-4 h-4 text-purple-600" />
+                      <span>Testing Blind Carbon Copy (BCC)</span>
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                        Testing BCC Name
-                      </label>
-                      <input
-                        type="text"
-                        value={testingSettings.testing_bcc_name}
-                        onChange={(e) => setTestingSettings({ ...testingSettings, testing_bcc_name: e.target.value })}
-                        className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                      />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                          Testing BCC Email
+                        </label>
+                        <input
+                          type="email"
+                          value={testingSettings.testing_bcc_email}
+                          onChange={(e) => setTestingSettings({ ...testingSettings, testing_bcc_email: e.target.value })}
+                          className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          placeholder="test-bcc@example.com"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-600 mb-1.5">
+                          Testing BCC Display Name
+                        </label>
+                        <div className="relative">
+                          <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                          <input
+                            type="text"
+                            value={testingSettings.testing_bcc_name}
+                            onChange={(e) => setTestingSettings({ ...testingSettings, testing_bcc_name: e.target.value })}
+                            className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                            placeholder="Audit Logger"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+              <div className="pt-6 border-t border-stone-100 flex items-center justify-end">
                 <button
                   type="submit"
                   disabled={submittingTesting}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
                 >
-                  {submittingTesting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Save Testing Email Configuration
+                  {submittingTesting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  Save Testing Settings
                 </button>
               </div>
             </form>
@@ -468,4 +712,3 @@ export default function SystemSettings() {
     </div>
   );
 }
-
