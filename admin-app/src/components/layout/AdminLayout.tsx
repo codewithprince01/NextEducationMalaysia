@@ -375,7 +375,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#eef2f6] text-slate-800 flex font-sans selection:bg-indigo-600 selection:text-white">
+    <div className="min-h-screen bg-[#f7f5ee] text-slate-800 flex font-sans selection:bg-indigo-600 selection:text-white">
       {/* Mobile Sidebar Backdrop */}
       {mobileSidebarOpen && (
         <div
