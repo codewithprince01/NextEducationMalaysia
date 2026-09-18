@@ -14,7 +14,6 @@ import {
   LogOut,
   ChevronDown,
   Award,
-  BookOpen,
   PenTool,
   MessageSquare,
   Menu,
@@ -22,16 +21,15 @@ import {
   Bell,
   Pin,
   Settings,
-  Handshake,
   FileCheck,
   UploadCloud,
   ArrowLeftRight,
   MapPin,
   Layout,
-  Image as ImageIcon,
   User as UserIcon,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from 'lucide-react';
 
 type NavLinkItem = {
@@ -39,6 +37,7 @@ type NavLinkItem = {
   href: string;
   icon: React.ElementType;
   module?: string | string[];
+  badge?: string;
 };
 
 type NavGroupChild = {
@@ -67,19 +66,19 @@ const navigationConfig: NavSection[] = [
     ],
   },
   {
-    section: 'ACADEMICS & UNIVERSITIES',
+    section: 'ACADEMICS & INSTITUTIONS',
     items: [
       {
         label: 'Universities',
         icon: Building2,
+        module: 'university',
         children: [
           { label: 'All Universities', href: '/university', module: 'university' },
           { label: 'Add University', href: '/university/add', module: 'university' },
           { label: 'University Overviews', href: '/university-overviews', module: 'university-overview' },
           { label: 'Photos & Videos Gallery', href: '/university-gallery', module: ['university-photos', 'university-videos'] },
-          { label: 'University Facilities', href: '/university-facilities', module: 'university-facilities' },
-          { label: 'University Reviews', href: '/university-reviews', module: 'university-reviews' },
-          { label: 'University Rankings', href: '/university-rankings', module: 'university-ranking' },
+          { label: 'Campus Facilities', href: '/university-facilities', module: 'university-facilities' },
+          { label: 'Rankings & Accreditations', href: '/university-rankings', module: 'university-ranking' },
           { label: 'Institute Types', href: '/institute-types', module: 'institute-types' },
           { label: 'Study Modes', href: '/study-modes', module: 'study-modes' },
           { label: 'University Documents', href: '/university-documents', module: 'university-documents' },
@@ -89,97 +88,113 @@ const navigationConfig: NavSection[] = [
       {
         label: 'Programs & Courses',
         icon: GraduationCap,
+        module: 'programs',
         children: [
-          { label: 'Programs', href: '/programs', module: 'programs' },
-          { label: 'Levels', href: '/levels', module: 'levels' },
+          { label: 'Degree Programs', href: '/programs', module: 'programs' },
+          { label: 'Academic Levels', href: '/levels', module: 'levels' },
           { label: 'Course Categories', href: '/course-category', module: 'course-category' },
           { label: 'Category Contents', href: '/course-category-contents', module: 'course-category-contents' },
           { label: 'Specializations', href: '/course-specializations', module: 'course-specializations' },
+          { label: 'Specialization Contents', href: '/course-specialization-contents', module: 'course-specialization-contents' },
           { label: 'Specialization Levels', href: '/specialization-levels', module: 'specialization-levels' },
           { label: 'Specialization Level Contents', href: '/specialization-level-contents', module: 'specialization-level-contents' },
           { label: 'Program Contents', href: '/university-program-contents', module: 'university-program-contents' },
         ],
       },
+      { label: 'Scholarships & Grants', href: '/scholarships', icon: Award, module: 'scholarships' },
     ],
   },
   {
-    section: 'STUDENT DATA & APPLICATIONS',
+    section: 'ADMISSIONS & STUDENTS',
     items: [
       {
-        label: 'Applications Data',
+        label: 'Student Applications',
         icon: FileCheck,
+        module: 'malaysia-applications',
         children: [
-          { label: 'Course Categories', href: '/malaysia-application-categories', module: 'malaysia-application-categories' },
-          { label: 'Course Applications (Malaysia)', href: '/malaysia-applications', module: 'malaysia-applications' },
-          { label: 'Countries', href: '/international-student-data-countries', module: 'international-student-data-countries' },
-          { label: 'Country Applications (International)', href: '/international-student-data', module: 'international-student-data' },
+          { label: 'Malaysia Course Applications', href: '/malaysia-applications', module: 'malaysia-applications' },
+          { label: 'Malaysia App Categories', href: '/malaysia-application-categories', module: 'malaysia-application-categories' },
+          { label: 'International Student Leads', href: '/international-student-data', module: 'international-student-data' },
+          { label: 'International Countries', href: '/international-student-data-countries', module: 'international-student-data-countries' },
         ],
       },
+      { label: 'University Reviews', href: '/university-reviews', icon: MessageSquare, module: 'university-reviews' },
+      { label: 'Student Testimonials', href: '/testimonials', icon: Sparkles, module: 'testimonials' },
     ],
   },
   {
-    section: 'CONTENT & MEDIA',
+    section: 'EDITORIAL & CONTENT',
     items: [
       {
-        label: 'Blogs',
+        label: 'Articles & Blogs',
         icon: FileText,
+        module: 'blogs',
         children: [
-          { label: 'All Blogs', href: '/blogs', module: 'blogs' },
-          { label: 'Create Blog', href: '/blogs/create', module: 'blogs' },
+          { label: 'All Articles', href: '/blogs', module: 'blogs' },
+          { label: 'Create New Article', href: '/blogs/create', module: 'blogs' },
           { label: 'Blog Categories', href: '/blog-category', module: 'blog-category' },
-          { label: 'Blog Contents', href: '/blog-contents', module: 'blog-contents' },
-          { label: 'Blog FAQs', href: '/blog-faqs', module: 'blog-faqs' },
+          { label: 'Article Section Contents', href: '/blog-contents', module: 'blog-contents' },
+          { label: 'Article FAQs', href: '/blog-faqs', module: 'blog-faqs' },
         ],
       },
+      { label: 'Authors & Contributors', href: '/authors', icon: PenTool, module: 'authors' },
       {
-        label: 'FAQs',
+        label: 'Help Center FAQs',
         icon: HelpCircle,
+        module: 'faqs',
         children: [
-          { label: 'FAQ List', href: '/faqs', module: 'faqs' },
+          { label: 'All FAQs', href: '/faqs', module: 'faqs' },
           { label: 'FAQ Categories', href: '/faq-categories', module: 'faq-categories' },
         ],
       },
-      { label: 'Services', href: '/services', icon: Briefcase, module: 'services' },
-      { label: 'Service Contents', href: '/service-contents', icon: FileText, module: 'service-content' },
-      { label: 'Exams', href: '/exams', icon: BookOpen, module: 'exams' },
-      { label: 'Home Page Contents', href: '/page-contents', icon: FileText, module: 'page-contents' },
-      { label: 'University Page Contents', href: '/static-page-contents', icon: FileText, module: 'static-page-contents' },
-      { label: 'Internships', href: '/internships', icon: Award, module: 'internships' },
-      { label: 'Partners', href: '/our-partners', icon: Handshake, module: 'our-partners' },
-    ],
-  },
-  {
-    section: 'SEO & METADATA',
-    items: [
       {
-        label: 'SEO Settings',
-        icon: Search,
+        label: 'Services & Careers',
+        icon: Briefcase,
+        module: 'services',
         children: [
-          { label: 'Static Page SEO', href: '/static-page-seos', module: 'static-page-seos' },
-          { label: 'Dynamic Page SEO', href: '/dynamic-page-seos', module: 'dynamic-page-seos' },
-          { label: 'Default OG Image', href: '/default-og-image', module: 'default-og-image' },
+          { label: 'Services List', href: '/services', module: 'services' },
+          { label: 'Service Contents', href: '/service-contents', module: 'service-content' },
+          { label: 'Exams & Tests', href: '/exams', module: 'exams' },
+          { label: 'Internships', href: '/internships', module: 'internships' },
+          { label: 'Partner Network', href: '/our-partners', module: 'our-partners' },
         ],
       },
     ],
   },
   {
-    section: 'ADMINISTRATION',
+    section: 'WEBSITE & MARKETING',
     items: [
-      { label: 'Admin Users', href: '/users', icon: Users, module: 'users' },
-      { label: 'Authors', href: '/authors', icon: PenTool, module: 'authors' },
-      { label: 'Testimonials', href: '/testimonials', icon: MessageSquare, module: 'testimonials' },
+      {
+        label: 'Page Contents',
+        icon: Layout,
+        module: 'page-contents',
+        children: [
+          { label: 'Home Page Contents', href: '/page-contents', module: 'page-contents' },
+          { label: 'Static Page Contents', href: '/static-page-contents', module: 'static-page-contents' },
+          { label: 'Landing Pages', href: '/landing-pages', module: 'landing-pages' },
+          { label: 'Page Banners & Hero', href: '/page-banners', module: 'page-banners' },
+        ],
+      },
+      {
+        label: 'SEO & Metadata',
+        icon: Search,
+        module: 'static-page-seos',
+        children: [
+          { label: 'Static Pages SEO', href: '/static-page-seos', module: 'static-page-seos' },
+          { label: 'Dynamic Pages SEO', href: '/dynamic-page-seos', module: 'dynamic-page-seos' },
+          { label: 'Default Social OG Image', href: '/default-og-image', module: 'default-og-image' },
+        ],
+      },
     ],
   },
   {
-    section: 'MORE 2 / SYSTEM & UTILITIES',
+    section: 'SYSTEM & SETTINGS',
     items: [
-      { label: 'Upload Files', href: '/upload-files', icon: UploadCloud, module: 'upload-files' },
+      { label: 'Admin Users & Roles', href: '/users', icon: Users, module: 'users' },
+      { label: 'Media & File Storage', href: '/upload-files', icon: UploadCloud, module: 'upload-files' },
       { label: 'URL Redirections', href: '/url-redirections', icon: ArrowLeftRight, module: 'url-redirections' },
-      { label: 'Addresses', href: '/addresses', icon: MapPin, module: 'addresses' },
-      { label: 'Email & System Settings', href: '/system-settings', icon: Settings, module: 'email-settings' },
-      { label: 'Landing Pages', href: '/landing-pages', icon: Layout, module: 'landing-pages' },
-      { label: 'Scholarships', href: '/scholarships', icon: GraduationCap, module: 'scholarships' },
-      { label: 'Page Banners', href: '/page-banners', icon: ImageIcon, module: 'page-banners' },
+      { label: 'Branch Addresses', href: '/addresses', icon: MapPin, module: 'addresses' },
+      { label: 'System & Email Settings', href: '/system-settings', icon: Settings, module: 'email-settings' },
     ],
   },
 ];
@@ -200,7 +215,21 @@ export default function AdminLayout() {
 
   const pathname = location.pathname;
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcut (Ctrl+K or Cmd+K) to focus sidebar search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -237,7 +266,7 @@ export default function AdminLayout() {
   }, [pathname]);
 
   // Filter sections and items dynamically according to user permissions
-  const filteredNavigationConfig = useMemo(() => {
+  const permittedNavigationConfig = useMemo(() => {
     return navigationConfig
       .map((sec) => {
         const allowedItems = sec.items
@@ -259,6 +288,55 @@ export default function AdminLayout() {
       .filter(Boolean) as NavSection[];
   }, [canAccess]);
 
+  // Filter navigation items based on search query
+  const filteredNavigationConfig = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return permittedNavigationConfig;
+
+    return permittedNavigationConfig
+      .map((sec) => {
+        const matchingItems = sec.items
+          .map((item) => {
+            if ('children' in item) {
+              const parentMatches = item.label.toLowerCase().includes(query);
+              if (parentMatches) {
+                return item; // Keep all children if parent group matches
+              }
+              const matchingChildren = item.children.filter((child) =>
+                child.label.toLowerCase().includes(query)
+              );
+              if (matchingChildren.length > 0) {
+                return { ...item, children: matchingChildren };
+              }
+              return null;
+            } else {
+              return item.label.toLowerCase().includes(query) ? item : null;
+            }
+          })
+          .filter(Boolean) as (NavLinkItem | NavGroupItem)[];
+
+        if (matchingItems.length === 0) return null;
+        return { ...sec, items: matchingItems };
+      })
+      .filter(Boolean) as NavSection[];
+  }, [permittedNavigationConfig, searchQuery]);
+
+  // Count total matching items when searching
+  const totalResultsCount = useMemo(() => {
+    if (!searchQuery.trim()) return 0;
+    let count = 0;
+    filteredNavigationConfig.forEach((sec) => {
+      sec.items.forEach((item) => {
+        if ('children' in item) {
+          count += item.children.length;
+        } else {
+          count += 1;
+        }
+      });
+    });
+    return count;
+  }, [filteredNavigationConfig, searchQuery]);
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     navigationConfig.forEach((sec) => {
@@ -276,7 +354,7 @@ export default function AdminLayout() {
     return initial;
   });
 
-  // Automatically expand group containing active route
+  // Automatically expand group containing active route or search matches
   useEffect(() => {
     filteredNavigationConfig.forEach((sec) => {
       sec.items.forEach((item) => {
@@ -284,13 +362,13 @@ export default function AdminLayout() {
           const isChildActive = item.children.some(
             (c) => pathname === c.href || (c.href !== '/' && pathname.startsWith(c.href))
           );
-          if (isChildActive) {
+          if (isChildActive || searchQuery.trim() !== '') {
             setOpenGroups((prev) => ({ ...prev, [item.label]: true }));
           }
         }
       });
     });
-  }, [pathname, filteredNavigationConfig]);
+  }, [pathname, filteredNavigationConfig, searchQuery]);
 
   const toggleGroup = (groupName: string) => {
     setOpenGroups((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
@@ -302,12 +380,12 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f7fe] text-slate-800 flex font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex font-sans selection:bg-indigo-600 selection:text-white">
       {/* Mobile Sidebar Backdrop */}
       {mobileSidebarOpen && (
         <div
           onClick={closeMobile}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
         />
       )}
 
@@ -315,28 +393,31 @@ export default function AdminLayout() {
       <aside
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-slate-200/80 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 shadow-sm ${
-          mobileSidebarOpen ? 'translate-x-0 w-60' : '-translate-x-full lg:translate-x-0'
-        } ${!isExpanded ? 'lg:w-[68px]' : 'lg:w-60'}`}
+        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-slate-200/90 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 shadow-sm ${
+          mobileSidebarOpen ? 'translate-x-0 w-[270px]' : '-translate-x-full lg:translate-x-0'
+        } ${!isExpanded ? 'lg:w-[70px]' : 'lg:w-[270px]'}`}
       >
         <div className="flex flex-col min-h-0 flex-1">
-          {/* Header Logo & Pin */}
-          <div className="h-[72px] px-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+          {/* Header Brand Logo & Pin Toggle */}
+          <div className="h-[68px] px-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
             <Link
               to="/dashboard"
               className={`flex items-center gap-3 group min-w-0 ${!isExpanded && !mobileSidebarOpen ? 'mx-auto' : ''}`}
             >
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center text-white font-black text-lg shadow-md shadow-blue-900/25 group-hover:scale-105 transition-transform shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-800 flex items-center justify-center text-white font-black text-lg shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-all duration-200 shrink-0">
                 EM
               </div>
               {(isExpanded || mobileSidebarOpen) && (
                 <div className="flex flex-col min-w-0">
-                  <span className="font-extrabold text-slate-900 text-sm leading-tight truncate">
+                  <span className="font-black text-slate-900 text-sm leading-tight tracking-tight truncate">
                     Education Malaysia
                   </span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                    Admin Panel
-                  </span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Control Hub
+                    </span>
+                  </div>
                 </div>
               )}
             </Link>
@@ -346,176 +427,290 @@ export default function AdminLayout() {
               <button
                 type="button"
                 onClick={togglePin}
-                className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-all cursor-pointer shrink-0"
-                title={isPinned ? 'Unpin sidebar (collapse on mouse leave)' : 'Pin sidebar (keep expanded)'}
+                className="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all cursor-pointer shrink-0"
+                title={isPinned ? 'Unpin sidebar (auto-collapse)' : 'Pin sidebar (keep expanded)'}
               >
-                <Pin className={`w-4 h-4 transition-transform duration-200 ${isPinned ? 'rotate-45 text-blue-600' : ''}`} />
+                <Pin className={`w-3.5 h-3.5 transition-transform duration-200 ${isPinned ? 'rotate-45 text-indigo-600' : ''}`} />
               </button>
             )}
 
             {/* Close Button (Mobile) */}
             <button
               onClick={closeMobile}
-              className="lg:hidden text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              className="lg:hidden text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Navigation Links List */}
-          <div className={`flex-1 p-3 space-y-5 overflow-y-auto scrollbar-thin ${!isExpanded && !mobileSidebarOpen ? 'px-2' : 'px-3'}`}>
-            {filteredNavigationConfig.map((sec, secIdx) => (
-              <div key={sec.section} className="space-y-1">
-                {(isExpanded || mobileSidebarOpen) ? (
-                  <span className="px-3 text-[10.5px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
-                    {sec.section}
-                  </span>
+          {/* ── SEARCH BOX IN SIDEBAR ── */}
+          {(isExpanded || mobileSidebarOpen) ? (
+            <div className="px-3 pt-3 pb-1 shrink-0">
+              <div className="relative flex items-center">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search navigation..."
+                  className="w-full pl-8.5 pr-8 py-2 text-xs font-medium bg-slate-50 border border-slate-200/90 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-2xs"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2.5 p-0.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 transition-colors cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 ) : (
-                  secIdx > 0 && <div className="my-2 border-t border-slate-200/80 mx-2" />
+                  <kbd className="hidden sm:inline-block absolute right-2.5 text-[9.5px] font-bold text-slate-400 bg-white border border-slate-200 px-1 py-0.5 rounded shadow-2xs">
+                    ⌘K
+                  </kbd>
                 )}
+              </div>
+              {searchQuery && (
+                <div className="flex items-center justify-between px-1 mt-1.5 text-[10.5px]">
+                  <span className="text-slate-400 font-medium">
+                    Found <strong className="text-indigo-600 font-bold">{totalResultsCount}</strong> menu {totalResultsCount === 1 ? 'item' : 'items'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer"
+                  >
+                    Reset
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="px-2 pt-3 pb-1 flex justify-center shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  togglePin();
+                  setTimeout(() => searchInputRef.current?.focus(), 150);
+                }}
+                className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                title="Search menu (Ctrl+K)"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
-                {sec.items.map((item) => {
-                  if ('children' in item) {
-                    const isOpen = openGroups[item.label] || false;
+          {/* ── NAVIGATION LINKS LIST ── */}
+          <div className={`flex-1 py-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-slate-200 hover:scrollbar-thumb-slate-300 ${
+            !isExpanded && !mobileSidebarOpen ? 'px-2 space-y-3' : 'px-3 space-y-4'
+          }`}>
+            {filteredNavigationConfig.length === 0 && searchQuery ? (
+              <div className="py-8 text-center px-3">
+                <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2.5">
+                  <Search className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-bold text-slate-700">No menu items found</p>
+                <p className="text-[11px] text-slate-400 mt-1">No matching links for "{searchQuery}"</p>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors cursor-pointer"
+                >
+                  Clear search
+                </button>
+              </div>
+            ) : (
+              filteredNavigationConfig.map((sec, secIdx) => (
+                <div key={sec.section} className="space-y-1">
+                  {(isExpanded || mobileSidebarOpen) ? (
+                    <div className="flex items-center gap-2 px-2.5 pt-1.5 pb-1">
+                      <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest leading-none">
+                        {sec.section}
+                      </span>
+                      <div className="flex-1 h-px bg-slate-100" />
+                    </div>
+                  ) : (
+                    secIdx > 0 && <div className="my-2 border-t border-slate-200/80 mx-1.5" />
+                  )}
+
+                  {sec.items.map((item) => {
+                    if ('children' in item) {
+                      const isOpen = openGroups[item.label] || false;
+                      const Icon = item.icon;
+                      const isAnyChildActive = item.children.some(
+                        (c) => pathname === c.href || (c.href !== '/' && pathname.startsWith(c.href + '/'))
+                      );
+
+                      // Collapsed mode: icon only, clicking navigates to first child
+                      if (!isExpanded && !mobileSidebarOpen) {
+                        const firstChild = item.children[0];
+                        return (
+                          <Link
+                            key={item.label}
+                            to={firstChild.href}
+                            title={item.label}
+                            className={`w-10 h-10 mx-auto flex items-center justify-center rounded-xl transition-all ${
+                              isAnyChildActive
+                                ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-500/25'
+                                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            }`}
+                          >
+                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isAnyChildActive ? 'text-white' : 'text-slate-500'}`} />
+                          </Link>
+                        );
+                      }
+
+                      // Expanded mode: full group with chevron & sub-links
+                      return (
+                        <div key={item.label} className="space-y-0.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleGroup(item.label)}
+                            className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer group select-none ${
+                              isAnyChildActive
+                                ? 'text-indigo-700 bg-indigo-50/80 font-extrabold'
+                                : 'text-slate-700 hover:bg-slate-100/90 hover:text-slate-900'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                isAnyChildActive
+                                  ? 'bg-indigo-600 text-white shadow-xs'
+                                  : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
+                              }`}>
+                                <Icon className="w-3.5 h-3.5" />
+                              </div>
+                              <span className="truncate">{item.label}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <span className="text-[10px] font-bold text-slate-400 bg-slate-100/80 px-1.5 py-0.5 rounded-full">
+                                {item.children.length}
+                              </span>
+                              <ChevronDown
+                                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                                  isOpen ? 'rotate-180 text-indigo-600' : ''
+                                }`}
+                              />
+                            </div>
+                          </button>
+
+                          {isOpen && (
+                            <div className="ml-5 pl-2.5 space-y-0.5 pt-0.5 pb-1 border-l-2 border-slate-100">
+                              {item.children.map((child) => {
+                                const isActive = pathname === child.href || (child.href !== '/' && pathname.startsWith(child.href + '/'));
+                                return (
+                                  <Link
+                                    key={child.href}
+                                    to={child.href}
+                                    onClick={closeMobile}
+                                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
+                                      isActive
+                                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-bold shadow-xs shadow-indigo-500/20'
+                                        : 'text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/60 font-medium'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-white ring-2 ring-white/30' : 'bg-slate-300'}`} />
+                                    <span className="truncate">{child.label}</span>
+                                  </Link>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
                     const Icon = item.icon;
-                    const isAnyChildActive = item.children.some(
-                      (c) => pathname === c.href || (c.href !== '/' && pathname.startsWith(c.href))
-                    );
+                    const isActive = pathname === item.href;
 
-                    // Collapsed mode: icon only, clicking navigates to first child
                     if (!isExpanded && !mobileSidebarOpen) {
-                      const firstChild = item.children[0];
                       return (
                         <Link
-                          key={item.label}
-                          to={firstChild.href}
+                          key={item.href}
+                          to={item.href}
                           title={item.label}
-                          className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${
-                            isAnyChildActive
-                              ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
+                          className={`w-10 h-10 mx-auto flex items-center justify-center rounded-xl transition-all ${
+                            isActive
+                              ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-500/25'
                               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                           }`}
                         >
-                          <Icon className={`w-5 h-5 shrink-0 ${isAnyChildActive ? 'text-white' : 'text-slate-500'}`} />
+                          <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                         </Link>
                       );
                     }
 
-                    // Expanded mode: full group with chevron & sub-links
-                    return (
-                      <div key={item.label} className="space-y-1">
-                        <button
-                          onClick={() => toggleGroup(item.label)}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            isAnyChildActive
-                              ? 'text-blue-700 bg-blue-50/90'
-                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isAnyChildActive ? 'text-blue-700' : 'text-slate-500'}`} />
-                            <span>{item.label}</span>
-                          </div>
-                          <ChevronDown
-                            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                              isOpen ? 'rotate-180 text-blue-700' : ''
-                            }`}
-                          />
-                        </button>
-
-                        {isOpen && (
-                          <div className="ml-4 pl-2.5 pr-1 space-y-0.5 pt-0.5 border-l border-slate-200/80">
-                            {item.children.map((child) => {
-                              const isActive = pathname === child.href || (child.href !== '/' && pathname.startsWith(child.href + '/'));
-                              return (
-                                <Link
-                                  key={child.href}
-                                  to={child.href}
-                                  onClick={closeMobile}
-                                  className={`block px-2.5 py-1.5 rounded-lg text-xs transition-all ${
-                                    isActive
-                                      ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-extrabold shadow-md shadow-blue-600/20'
-                                      : 'text-slate-600 hover:text-blue-700 hover:bg-slate-50 font-medium'
-                                  }`}
-                                >
-                                  {child.label}
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }
-
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-
-                  if (!isExpanded && !mobileSidebarOpen) {
                     return (
                       <Link
                         key={item.href}
                         to={item.href}
-                        title={item.label}
-                        className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${
+                        onClick={closeMobile}
+                        className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all group ${
                           isActive
-                            ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-extrabold shadow-sm shadow-indigo-500/25'
+                            : 'text-slate-700 hover:bg-slate-100/90 hover:text-slate-900'
                         }`}
                       >
-                        <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                            isActive
+                              ? 'bg-white/20 text-white'
+                              : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
+                          }`}>
+                            <Icon className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
+                            isActive ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-600'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
                       </Link>
                     );
-                  }
-
-                  return (
-                    <Link
-                      key={item.href}
-                      to={item.href}
-                      onClick={closeMobile}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                        isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
-                    >
-                      <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            ))}
+                  })}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Sidebar Footer User Card */}
-        <div className="p-3 border-t border-slate-100 bg-slate-50/50 shrink-0">
+        {/* ── SIDEBAR FOOTER USER CARD ── */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/70 shrink-0">
           {(isExpanded || mobileSidebarOpen) ? (
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-200/80 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0">
+            <div className="flex items-center justify-between gap-2 bg-white p-2 rounded-xl border border-slate-200/80 shadow-2xs">
+              <Link to="/profile" className="flex items-center gap-2.5 min-w-0 group hover:opacity-80 transition-opacity">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || 'A'}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold text-slate-800 truncate">{user?.name || 'Super Admin'}</span>
-                  <span className="text-[10px] font-medium text-slate-400 truncate">{user?.email || 'admin@educationmalaysia.in'}</span>
+                  <span className="text-xs font-bold text-slate-900 truncate leading-tight group-hover:text-indigo-600 transition-colors">
+                    {user?.name || 'Administrator'}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-400 capitalize truncate">
+                    {user?.role || 'Staff'}
+                  </span>
                 </div>
-              </div>
+              </Link>
               <div className="flex items-center gap-1 shrink-0">
                 <Link
                   to="/profile"
-                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                   title="Profile Settings"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-3.5 h-3.5" />
                 </Link>
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                   title="Logout"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -523,8 +718,8 @@ export default function AdminLayout() {
             <div className="flex flex-col items-center gap-2">
               <Link
                 to="/profile"
-                className="w-9 h-9 rounded-xl bg-blue-100 border border-blue-200/80 flex items-center justify-center text-blue-700 font-bold text-sm shrink-0 hover:ring-2 hover:ring-blue-300 transition-all"
-                title={user?.name || 'Super Admin'}
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs hover:ring-2 hover:ring-indigo-300 transition-all"
+                title={user?.name || 'Administrator'}
               >
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
               </Link>
@@ -534,7 +729,7 @@ export default function AdminLayout() {
       </aside>
 
       {/* ── MAIN CONTENT AREA ── */}
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${!isExpanded ? 'lg:pl-[68px]' : 'lg:pl-60'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${!isExpanded ? 'lg:pl-[70px]' : 'lg:pl-[270px]'}`}>
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4 shadow-2xs">
           {/* Left Title & Breadcrumb */}
@@ -586,7 +781,7 @@ export default function AdminLayout() {
                     : 'border-slate-200/90 bg-white hover:bg-slate-50/80 hover:border-slate-300'
                 }`}
               >
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-700 text-white font-black flex items-center justify-center text-xs shadow-xs shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-white font-black flex items-center justify-center text-xs shadow-xs shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || 'A'}
                 </div>
                 <div className="hidden sm:flex flex-col text-left min-w-0">
@@ -610,7 +805,7 @@ export default function AdminLayout() {
                   {/* Card Header Profile Info */}
                   <div className="px-4 pb-3 pt-1 border-b border-slate-100">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-indigo-800 text-white font-black text-base flex items-center justify-center shadow-md shadow-indigo-600/20 shrink-0">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-indigo-800 text-white font-black text-base flex items-center justify-center shadow-md shadow-indigo-600/20 shrink-0">
                         {user?.name?.charAt(0).toUpperCase() || 'A'}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -698,7 +893,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content View */}
-        <main className="flex-1 p-2 sm:p-3 max-w-[1700px] w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-4 max-w-[1700px] w-full mx-auto">
           <Outlet />
         </main>
       </div>
