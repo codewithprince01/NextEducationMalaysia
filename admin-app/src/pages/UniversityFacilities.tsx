@@ -14,7 +14,15 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
-  Search
+  Search,
+  RotateCcw,
+  Sparkles,
+  Layers,
+  GraduationCap,
+  Image as ImageIcon,
+  FileText,
+  Trophy,
+  Check
 } from 'lucide-react';
 
 interface FacilityItem {
@@ -24,6 +32,8 @@ interface FacilityItem {
   title?: string;
   description?: string;
   university_name?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface UniversityItem {
@@ -120,6 +130,7 @@ export default function UniversityFacilities() {
     if (val) {
       navigate(`/university-facilities?university_id=${val}`);
     }
+    handleResetForm();
     fetchFacilities(val);
   };
 
@@ -140,7 +151,7 @@ export default function UniversityFacilities() {
       description: item.description || '',
     });
     setIsFormOpen(true);
-    window.scrollTo({ top: 200, behavior: 'smooth' });
+    window.scrollTo({ top: 320, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,7 +185,7 @@ export default function UniversityFacilities() {
       const json = await res.json();
 
       if (res.ok && json.success) {
-        showToast('success', editingId ? 'Updated successfully' : 'Created successfully');
+        showToast('success', editingId ? 'Facility updated successfully' : 'Facility created successfully');
         handleResetForm();
         fetchFacilities(selectedUnivId);
       } else {
@@ -188,7 +199,10 @@ export default function UniversityFacilities() {
   };
 
   const handleDelete = async (item: FacilityItem) => {
-    const confirmed = await confirmDelete(item.title || item.facility || 'Facility');
+    const confirmed = await confirmDelete(
+      'Delete Facility?',
+      `Are you sure you want to delete facility "${item.title || item.facility || 'Facility'}"? This action cannot be undone.`
+    );
     if (!confirmed) return;
 
     // Optimistic UI update
@@ -212,10 +226,17 @@ export default function UniversityFacilities() {
     }
   };
 
+  const getCleanSnippet = (htmlStr?: string) => {
+    if (!htmlStr) return 'No description provided';
+    const clean = htmlStr.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+    return clean.length > 100 ? clean.substring(0, 100) + '...' : clean || 'No description provided';
+  };
+
   const selectedUniv = universities.find((u) => u.id.toString() === selectedUnivId);
 
   const filtered = facilities.filter((item) =>
-    (item.title || item.facility || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.title || item.facility || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -223,224 +244,332 @@ export default function UniversityFacilities() {
     currentPage * itemsPerPage
   );
 
+  const totalWordsCount = facilities.reduce((acc, curr) => {
+    const text = (curr.description || '').replace(/<[^>]+>/g, ' ').trim();
+    return acc + (text ? text.split(/\s+/).filter(Boolean).length : 0);
+  }, 0);
+
   return (
-    <div className="space-y-2 max-w-[1600px] mx-auto text-slate-700">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-10">
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium text-white transition-all ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
+            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
           }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Unified Header, Dropdown & Navigation Bar */}
-      <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-xs space-y-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-4.5 h-4.5 text-indigo-600 shrink-0" />
-            <h1 className="text-base font-bold text-slate-800 tracking-tight">
-              University Facilities{' '}
-              <span className="text-rose-600 font-extrabold">
-                ({selectedUniv ? selectedUniv.name : 'Select a University'})
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <Building2 className="w-3 h-3 text-amber-700" />
+                <span>Campus Infrastructure & Amenities</span>
               </span>
+              {selectedUniv && (
+                <span className="text-[11px] font-bold text-stone-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
+                  {selectedUniv.name}
+                </span>
+              )}
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              University Campus Facilities
             </h1>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Manage academic laboratories, student accommodations, sports complexes, libraries, and campus infrastructure items.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700 shrink-0">
-              Select University:
-            </label>
-            <select
-              value={selectedUnivId}
-              onChange={handleUniversityChange}
-              className="w-full sm:w-80 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+            {/* Select University Dropdown */}
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-amber-800 shrink-0" />
+              <select
+                value={selectedUnivId}
+                onChange={handleUniversityChange}
+                className="w-full sm:w-72 bg-stone-50/70 border border-stone-200/90 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white cursor-pointer shadow-2xs"
+              >
+                <option value="">-- Select a University ({universities.length}) --</option>
+                {universities.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={() => fetchFacilities(selectedUnivId)}
+              disabled={loading || !selectedUnivId}
+              className="p-2.5 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-stone-700 transition-colors cursor-pointer disabled:opacity-40 shadow-2xs self-start sm:self-auto"
+              title="Refresh facilities list"
             >
-              <option value="">-- Select a University --</option>
-              {universities.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+              <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin text-stone-600' : ''}`} />
+            </button>
           </div>
         </div>
 
+        {/* University Sub-Navigation Bar */}
         {selectedUnivId && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-stone-100">
             <button
               onClick={() => navigate(`/university-overviews?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Overview
+              <FileText className="w-3.5 h-3.5 text-stone-500" />
+              <span>Overview</span>
             </button>
             <button
               onClick={() => navigate(`/programs?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Courses
+              <GraduationCap className="w-3.5 h-3.5 text-stone-500" />
+              <span>Programs</span>
             </button>
             <button
               onClick={() => navigate(`/university-gallery?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Gallery
-            </button>
-            <button
-              onClick={() => navigate(`/university-gallery?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
-            >
-              Videos
+              <ImageIcon className="w-3.5 h-3.5 text-stone-500" />
+              <span>Gallery</span>
             </button>
             <button
               onClick={() => navigate(`/university-facilities?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md bg-indigo-600 text-white text-xs font-bold shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-900 text-white shadow-xs transition-all"
             >
-              Facilities
+              <Building2 className="w-3.5 h-3.5 text-amber-300" />
+              <span>Facilities ({facilities.length})</span>
             </button>
             <button
               onClick={() => navigate(`/university-reviews?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Rankings
+              <Trophy className="w-3.5 h-3.5 text-amber-600" />
+              <span>Rankings & Reviews</span>
             </button>
+          </div>
+        )}
+
+        {/* ── KPI METRICS CARDS ── */}
+        {selectedUnivId && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Total Facilities</span>
+                <Building2 className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                {facilities.length}
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">With Details</span>
+                <Layers className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                {facilities.filter((f) => Boolean(f.description)).length}
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Word Density</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                {totalWordsCount.toLocaleString()} <span className="text-xs font-normal text-stone-500">words</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Next Entry</span>
+                <Check className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                #{facilities.length + 1}
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {!selectedUnivId ? (
-        <div className="bg-white p-16 rounded-xl border border-slate-200 text-center flex flex-col items-center justify-center text-slate-400">
-          <Building2 className="w-12 h-12 mb-3 text-slate-300 animate-bounce" />
-          <h3 className="text-base font-bold text-slate-700">No University Selected</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-md">
-            Please select a university from the dropdown list above to manage its facilities.
+        /* Empty State */
+        <div className="bg-white rounded-3xl p-16 border border-stone-200/90 text-center flex flex-col items-center justify-center max-w-2xl mx-auto shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-800 mb-4 shadow-inner">
+            <Building2 className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-black text-stone-900 font-serif">Select an Institution</h3>
+          <p className="text-xs sm:text-sm text-stone-500 mt-1.5 max-w-md font-medium leading-relaxed">
+            Please choose a university from the dropdown header above to manage its campus facilities and student amenities.
           </p>
         </div>
       ) : (
         <>
-          {/* Card 1: Add New Record / Edit Record Form */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          {/* ── CARD 1: ADD / EDIT FACILITY FORM ── */}
+          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
             <div
-              className="flex items-center justify-between p-4 bg-slate-50/80 border-b border-slate-200 cursor-pointer select-none"
+              className="flex items-center justify-between p-5 sm:p-6 bg-[#faf8f4] border-b border-stone-200/90 cursor-pointer select-none"
               onClick={() => setIsFormOpen(!isFormOpen)}
             >
-              <h2 className="text-sm font-bold text-slate-800">
-                {editingId ? 'Edit Record' : 'Add New Record'}
-              </h2>
+              <div className="flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-center justify-center">
+                  {editingId ? <Edit2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                </span>
+                <div>
+                  <h2 className="text-base font-black text-stone-900 font-serif">
+                    {editingId ? 'Edit Facility Record' : 'Add New Campus Facility'}
+                  </h2>
+                  <p className="text-[11px] text-stone-500 font-medium">
+                    {editingId ? 'Update facility title or detailed description' : 'Add a new facility or infrastructure highlight to this institution'}
+                  </p>
+                </div>
+              </div>
+
               <button
                 type="button"
-                className="p-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors"
+                title={isFormOpen ? 'Collapse form' : 'Expand form'}
               >
                 {isFormOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
               </button>
             </div>
 
             {isFormOpen && (
-              <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Enter Title
+                  <label className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider font-serif">
+                    Facility Name / Title <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Enter Title"
+                    placeholder="e.g. Olympic-Sized Swimming Pool, High-Performance Computing Lab, 24/7 Library..."
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-white border border-emerald-500 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800"
+                    className="w-full px-4 py-2.5 text-xs sm:text-sm bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-600 focus:bg-white transition-all text-stone-800 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Enter Description
+                  <label className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider font-serif">
+                    Facility Description & Amenities
                   </label>
-                  <RichTextEditor
-                    value={formData.description}
-                    onChange={(val) => setFormData({ ...formData, description: val })}
-                    placeholder="Enter description..."
-                  />
+                  <div className="border border-stone-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                    <RichTextEditor
+                      value={formData.description}
+                      onChange={(val) => setFormData({ ...formData, description: val })}
+                      placeholder="Write detailed specifications, opening hours, equipment available, accessibility features..."
+                    />
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                <div className="flex items-center justify-between pt-3 border-t border-stone-100">
                   <button
                     type="button"
                     onClick={handleResetForm}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-md shadow-xs transition-colors"
+                    className="px-5 py-2.5 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition-colors cursor-pointer"
                   >
-                    Reset
+                    Reset Form
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex items-center gap-1.5 px-5 py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-md shadow-xs transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                   >
-                    {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    <span>{editingId ? 'Update' : 'Submit'}</span>
+                    {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />}
+                    <span>{editingId ? 'Update Facility' : 'Create Facility Record'}</span>
                   </button>
                 </div>
               </form>
             )}
           </div>
 
-          {/* Card 2: Facilities List Data Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          {/* ── CARD 2: FACILITIES LIST DATA TABLE ── */}
+          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
             {/* Table Header Controls */}
-            <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <span>Show</span>
-                <span className="font-semibold text-slate-800 px-2 py-1 bg-slate-100 border border-slate-200 rounded">10</span>
-                <span>entries</span>
+            <div className="p-5 sm:p-6 bg-[#faf8f4] border-b border-stone-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-center justify-center">
+                  <Building2 className="w-3.5 h-3.5" />
+                </span>
+                <div>
+                  <h2 className="text-base font-black text-stone-900 font-serif">University Facilities Directory</h2>
+                  <p className="text-[11px] text-stone-500 font-medium">
+                    {filtered.length} facilit{filtered.length !== 1 ? 'ies' : 'y'} configured for this institution
+                  </p>
+                </div>
               </div>
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+
+              <div className="relative w-full sm:w-72">
+                <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
                   type="text"
-                  placeholder="Search title..."
+                  placeholder="Search facilities..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-amber-600 transition-all text-stone-800 placeholder-stone-400 shadow-2xs font-medium"
                 />
               </div>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase text-[11px] tracking-wider">
+              <table className="w-full text-left text-xs text-stone-600">
+                <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
                   <tr>
-                    <th className="py-3.5 px-4 w-16">Sr. No.</th>
-                    <th className="py-3.5 px-4">Title</th>
-                    <th className="py-3.5 px-4 w-32">Description</th>
-                    <th className="py-3.5 px-4 w-24 text-right">Action</th>
+                    <th className="py-4 px-5 w-16 text-center text-stone-300">#</th>
+                    <th className="py-4 px-5">Facility Title</th>
+                    <th className="py-4 px-5">Description Preview</th>
+                    <th className="py-4 px-5 w-28 text-right text-stone-100">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
                   {loading ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-slate-400">
-                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                        Loading facilities...
+                      <td colSpan={4} className="py-16 text-center text-stone-400 font-medium">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-800" />
+                        Loading campus facilities...
                       </td>
                     </tr>
                   ) : paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-slate-400">
-                        No facility entries found.
+                      <td colSpan={4} className="py-16 text-center text-stone-400 font-medium">
+                        {searchQuery ? 'No facilities matched your search.' : 'No facilities configured yet for this institution.'}
                       </td>
                     </tr>
                   ) : (
                     paginated.map((item, index) => {
                       const srNo = (currentPage - 1) * itemsPerPage + index + 1;
+                      const cleanSnippet = getCleanSnippet(item.description);
+
                       return (
-                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-medium text-slate-500">{srNo}</td>
-                          <td className="py-3.5 px-4 font-semibold text-slate-800">
-                            {item.title || item.facility}
+                        <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                          <td className="py-4 px-5 text-center font-bold text-stone-400 font-mono text-[11px]">
+                            {srNo}
                           </td>
-                          <td className="py-3.5 px-4">
+                          <td className="py-4 px-5">
+                            <div className="font-bold text-stone-900 text-xs sm:text-sm font-serif">
+                              {item.title || item.facility}
+                            </div>
+                            <div className="text-[10px] text-stone-400 font-mono mt-0.5">
+                              ID: #{item.id}
+                            </div>
+                          </td>
+                          <td className="py-4 px-5 max-w-md">
+                            <p className="text-[11px] text-stone-500 truncate leading-relaxed">
+                              {cleanSnippet}
+                            </p>
                             <button
                               onClick={() =>
                                 setViewingDescription({
@@ -448,24 +577,24 @@ export default function UniversityFacilities() {
                                   html: item.description || '<p>No description provided.</p>',
                                 })
                               }
-                              className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-sky-600 border border-sky-500 hover:bg-sky-50 rounded transition-colors"
+                              className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold text-amber-900 hover:text-amber-800 hover:underline cursor-pointer"
                             >
-                              <Eye className="w-3 h-3" /> View
+                              <Eye className="w-3 h-3" /> Read Full Details
                             </button>
                           </td>
-                          <td className="py-3.5 px-4 text-right">
+                          <td className="py-4 px-5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => handleEditClick(item)}
-                                className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded text-xs transition-colors"
-                                title="Edit"
+                                className="p-2 bg-stone-100 hover:bg-stone-900 text-stone-700 hover:text-white rounded-xl transition-all shadow-2xs cursor-pointer"
+                                title="Edit Facility"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDelete(item)}
-                                className="p-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded text-xs transition-colors"
-                                title="Delete"
+                                className="p-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-xl transition-all shadow-2xs cursor-pointer"
+                                title="Delete Facility"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -481,10 +610,11 @@ export default function UniversityFacilities() {
 
             {/* Pagination Footer */}
             {!loading && filtered.length > 0 && (
-              <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+              <div className="p-5 bg-[#faf8f4] border-t border-stone-200/90 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-stone-500 font-medium">
                 <div>
-                  Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                  {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} entries
+                  Showing <span className="font-bold text-stone-800">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                  <span className="font-bold text-stone-800">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of{' '}
+                  <span className="font-bold text-stone-800">{filtered.length}</span> facilities
                 </div>
                 <Pagination
                   currentPage={currentPage}
@@ -499,29 +629,32 @@ export default function UniversityFacilities() {
         </>
       )}
 
-      {/* Description Preview Modal */}
+      {/* ── DESCRIPTION PREVIEW MODAL ── */}
       {viewingDescription && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-4 bg-slate-50 border-b border-slate-200">
-              <h3 className="text-sm font-bold text-slate-800">{viewingDescription.title}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-stone-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-5 bg-[#faf8f4] border-b border-stone-200">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-amber-800" />
+                <h3 className="text-base font-black text-stone-900 font-serif">{viewingDescription.title}</h3>
+              </div>
               <button
                 onClick={() => setViewingDescription(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors"
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-xl hover:bg-stone-200/60 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div
-              className="p-6 overflow-y-auto prose prose-slate max-w-none text-xs leading-relaxed"
+              className="p-6 sm:p-8 overflow-y-auto prose prose-stone max-w-none text-xs sm:text-sm leading-relaxed text-stone-700"
               dangerouslySetInnerHTML={{ __html: viewingDescription.html }}
             />
-            <div className="p-3 bg-slate-50 border-t border-slate-200 text-right">
+            <div className="p-4 bg-[#faf8f4] border-t border-stone-200 text-right">
               <button
                 onClick={() => setViewingDescription(null)}
-                className="px-4 py-1.5 bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded transition-colors"
+                className="px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-xs"
               >
-                Close
+                Close Details
               </button>
             </div>
           </div>
@@ -530,3 +663,4 @@ export default function UniversityFacilities() {
     </div>
   );
 }
+
