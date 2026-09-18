@@ -183,7 +183,7 @@ const navigationConfig: NavSection[] = [
   {
     section: 'SYSTEM & SETTINGS',
     items: [
-      { label: 'Admin Users & Roles', href: '/users', icon: Users, module: 'users' },
+      { label: 'Users', href: '/users', icon: Users, module: 'users' },
       { label: 'Media & File Storage', href: '/upload-files', icon: UploadCloud, module: 'upload-files' },
       { label: 'URL Redirections', href: '/url-redirections', icon: ArrowLeftRight, module: 'url-redirections' },
       { label: 'Branch Addresses', href: '/addresses', icon: MapPin, module: 'addresses' },

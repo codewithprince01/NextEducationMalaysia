@@ -378,6 +378,7 @@ export default function Users() {
     PERMISSION_MODULES.every((mod) => Boolean(permState[mod.key]?.[action]));
 
   const filtered = items.filter((item) => {
+    const isActive = Number(item.status) === 1;
     const matchesSearch =
       (item.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -386,7 +387,7 @@ export default function Users() {
 
     const matchesRole = roleFilter === '' || (item.role || '').toLowerCase() === roleFilter.toLowerCase();
 
-    return matchesSearch && matchesRole;
+    return isActive && matchesSearch && matchesRole;
   });
 
   const paginated = filtered.slice(
@@ -415,12 +416,17 @@ export default function Users() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <UsersIcon className="w-7 h-7 text-indigo-600" />
-            Users & Module Permissions
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <UsersIcon className="w-7 h-7 text-indigo-600" />
+              Users & Module Permissions
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Active Users (Status: 1)
+            </span>
+          </div>
           <p className="text-sm text-slate-500 mt-1">
-            Manage admin users, roles, and granular access permissions for all system modules.
+            Manage active admin users, roles, and granular access permissions for all system modules.
           </p>
         </div>
 
@@ -574,10 +580,12 @@ export default function Users() {
         </div>
 
         {!loading && filtered.length > 0 && (
-          <div className="p-4 border-t border-slate-200">
+          <div className="border-t border-slate-100">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
+              totalItems={filtered.length}
+              itemsPerPage={itemsPerPage}
               onPageChange={(page) => setCurrentPage(page)}
             />
           </div>

@@ -8,6 +8,7 @@ export async function GET() {
     const users: any[] = await prisma.$queryRawUnsafe(
       `SELECT id, name, email, mobile, username, role, status, department, permissions, created_at, updated_at 
        FROM users 
+       WHERE status = 1
        ORDER BY id DESC`
     );
 
