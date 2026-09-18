@@ -504,11 +504,11 @@ export default function UniversityFacilities() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-600">
                 <thead>
-                  <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
-                    <th className="py-3.5 px-5 w-16 text-center text-blue-700">#</th>
-                    <th className="py-3.5 px-5 text-[#1e40af]">Facility Title</th>
-                    <th className="py-3.5 px-5 text-[#1e40af]">Description Preview</th>
-                    <th className="py-3.5 px-5 w-28 text-right text-[#1e40af]">Actions</th>
+                  <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-5 w-16 text-center text-emerald-700">#</th>
+                    <th className="py-3.5 px-5 text-[#14532d]">Facility Title</th>
+                    <th className="py-3.5 px-5 text-[#14532d]">Description Preview</th>
+                    <th className="py-3.5 px-5 w-28 text-right text-[#14532d]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

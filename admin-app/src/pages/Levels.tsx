@@ -292,14 +292,14 @@ export default function Levels() {
           ) : (
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[11px] font-extrabold text-[#1e40af] uppercase tracking-wider">
-                  <th className="py-3.5 px-6 w-16 text-center text-blue-700">Sr. No.</th>
-                  <th className="py-3.5 px-6 w-16 text-center text-blue-700">ID</th>
-                  <th className="py-3.5 px-6 text-[#1e40af]">Level Title</th>
-                  <th className="py-3.5 px-6 text-[#1e40af]">URL Slug</th>
-                  <th className="py-3.5 px-6 text-[#1e40af]">Short Name</th>
-                  <th className="py-3.5 px-6 text-[#1e40af]">SEO Name</th>
-                  <th className="py-3.5 px-6 text-right text-[#1e40af]">Actions</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[11px] font-extrabold text-[#14532d] uppercase tracking-wider">
+                  <th className="py-3.5 px-6 w-16 text-center text-emerald-700">Sr. No.</th>
+                  <th className="py-3.5 px-6 w-16 text-center text-emerald-700">ID</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Level Title</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">URL Slug</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Short Name</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">SEO Name</th>
+                  <th className="py-3.5 px-6 text-right text-[#14532d]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

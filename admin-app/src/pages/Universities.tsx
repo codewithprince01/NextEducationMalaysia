@@ -511,24 +511,24 @@ export default function Universities() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
                   <th className="py-3.5 px-3 w-10 text-center">
                     <input
                       type="checkbox"
                       onChange={handleSelectAll}
                       checked={selectedIds.length === paginated.length && paginated.length > 0}
-                      className="rounded border-[#cfe0fc] bg-white text-blue-600 focus:ring-blue-500"
+                      className="rounded border-[#c8ebd2] bg-white text-emerald-600 focus:ring-emerald-500"
                     />
                   </th>
-                  <th className="py-3.5 px-3 w-12 text-center text-blue-700">#</th>
-                  <th className="py-3.5 px-4 min-w-[280px] text-[#1e40af]">Institution Profile</th>
-                  <th className="py-3.5 px-4 min-w-[150px] text-[#1e40af]">Location</th>
-                  <th className="py-3.5 px-4 min-w-[170px] text-[#1e40af]">Rankings & Accreditations</th>
-                  <th className="py-3.5 px-4 min-w-[120px] text-[#1e40af]">Media</th>
-                  <th className="py-3.5 px-4 text-center min-w-[130px] text-[#1e40af]">Status</th>
-                  <th className="py-3.5 px-4 text-center min-w-[150px] text-[#1e40af]">Content Modules</th>
-                  <th className="py-3.5 px-4 min-w-[130px] text-[#1e40af]">Updated</th>
-                  <th className="py-3.5 px-4 text-right min-w-[120px] text-[#1e40af]">Actions</th>
+                  <th className="py-3.5 px-3 w-12 text-center text-emerald-700">#</th>
+                  <th className="py-3.5 px-4 min-w-[280px] text-[#14532d]">Institution Profile</th>
+                  <th className="py-3.5 px-4 min-w-[150px] text-[#14532d]">Location</th>
+                  <th className="py-3.5 px-4 min-w-[170px] text-[#14532d]">Rankings & Accreditations</th>
+                  <th className="py-3.5 px-4 min-w-[120px] text-[#14532d]">Media</th>
+                  <th className="py-3.5 px-4 text-center min-w-[130px] text-[#14532d]">Status</th>
+                  <th className="py-3.5 px-4 text-center min-w-[150px] text-[#14532d]">Content Modules</th>
+                  <th className="py-3.5 px-4 min-w-[130px] text-[#14532d]">Updated</th>
+                  <th className="py-3.5 px-4 text-right min-w-[120px] text-[#14532d]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

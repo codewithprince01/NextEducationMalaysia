@@ -375,7 +375,7 @@ export default function AdminLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f5ee] text-slate-800 flex font-sans selection:bg-blue-500/20 selection:text-blue-900">
+    <div className="min-h-screen bg-[#f7f5ee] text-slate-800 flex font-sans selection:bg-emerald-500/20 selection:text-emerald-900">
       {/* Mobile Sidebar Backdrop */}
       {mobileSidebarOpen && (
         <div
@@ -399,7 +399,7 @@ export default function AdminLayout() {
               to="/dashboard"
               className={`flex items-center gap-3 group min-w-0 ${!isExpanded && !mobileSidebarOpen ? 'mx-auto' : ''}`}
             >
-              <div className="w-10 h-10 rounded-xl bg-[#eef5ff] border border-[#cfe0fc] flex items-center justify-center text-[#1e40af] font-serif font-black text-base shadow-2xs group-hover:bg-[#dbeafe] group-hover:border-[#b9d5fb] transition-all duration-200 shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-[#effaf2] border border-[#c8ebd2] flex items-center justify-center text-[#14532d] font-serif font-black text-base shadow-2xs group-hover:bg-[#dcfce7] group-hover:border-[#bbf7d0] transition-all duration-200 shrink-0">
                 EM
               </div>
               {(isExpanded || mobileSidebarOpen) && (
@@ -422,10 +422,10 @@ export default function AdminLayout() {
               <button
                 type="button"
                 onClick={togglePin}
-                className="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-slate-400 hover:text-blue-700 hover:bg-blue-50 transition-all cursor-pointer shrink-0"
+                className="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition-all cursor-pointer shrink-0"
                 title={isPinned ? 'Unpin sidebar (auto-collapse)' : 'Pin sidebar (keep expanded)'}
               >
-                <Pin className={`w-3.5 h-3.5 transition-transform duration-200 ${isPinned ? 'rotate-45 text-blue-600' : ''}`} />
+                <Pin className={`w-3.5 h-3.5 transition-transform duration-200 ${isPinned ? 'rotate-45 text-emerald-700' : ''}`} />
               </button>
             )}
 
@@ -449,7 +449,7 @@ export default function AdminLayout() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search navigation..."
-                  className="w-full pl-8.5 pr-8 py-2 text-xs font-medium bg-slate-50 border border-slate-200/90 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all shadow-2xs"
+                  className="w-full pl-8.5 pr-8 py-2 text-xs font-medium bg-slate-50 border border-slate-200/90 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all shadow-2xs"
                 />
                 {searchQuery ? (
                   <button
@@ -469,12 +469,12 @@ export default function AdminLayout() {
               {searchQuery && (
                 <div className="flex items-center justify-between px-1 mt-1.5 text-[10.5px]">
                   <span className="text-slate-400 font-medium">
-                    Found <strong className="text-blue-700 font-bold">{totalResultsCount}</strong> menu {totalResultsCount === 1 ? 'item' : 'items'}
+                    Found <strong className="text-emerald-700 font-bold">{totalResultsCount}</strong> menu {totalResultsCount === 1 ? 'item' : 'items'}
                   </span>
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="text-blue-700 hover:text-blue-900 font-bold underline cursor-pointer"
+                    className="text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer"
                   >
                     Reset
                   </button>
@@ -489,7 +489,7 @@ export default function AdminLayout() {
                   togglePin();
                   setTimeout(() => searchInputRef.current?.focus(), 150);
                 }}
-                className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-500 hover:text-blue-700 hover:bg-[#eef5ff] flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-500 hover:text-emerald-700 hover:bg-[#effaf2] flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                 title="Search menu (Ctrl+K)"
               >
                 <Search className="w-4 h-4" />
@@ -511,7 +511,7 @@ export default function AdminLayout() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-blue-700 bg-[#eef5ff] hover:bg-[#dbeafe] border border-[#cfe0fc] transition-colors cursor-pointer"
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-emerald-700 bg-[#effaf2] hover:bg-[#dcfce7] border border-[#c8ebd2] transition-colors cursor-pointer"
                 >
                   Clear search
                 </button>
@@ -548,11 +548,11 @@ export default function AdminLayout() {
                             title={item.label}
                             className={`w-10 h-10 mx-auto flex items-center justify-center rounded-xl transition-all ${
                               isAnyChildActive
-                                ? 'bg-[#eef5ff] border border-[#cfe0fc] text-[#1e40af] shadow-xs'
+                                ? 'bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] shadow-xs'
                                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                             }`}
                           >
-                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isAnyChildActive ? 'text-[#1e40af]' : 'text-slate-500'}`} />
+                            <Icon className={`w-4.5 h-4.5 shrink-0 ${isAnyChildActive ? 'text-[#14532d]' : 'text-slate-500'}`} />
                           </Link>
                         );
                       }
@@ -565,14 +565,14 @@ export default function AdminLayout() {
                             onClick={() => toggleGroup(item.label)}
                             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer group select-none ${
                               isAnyChildActive
-                                ? 'text-[#1e40af] bg-[#f4f8fe] font-extrabold border border-[#dbe7fa] shadow-2xs'
+                                ? 'text-[#14532d] bg-[#f2faf4] font-extrabold border border-[#d6f0dd] shadow-2xs'
                                 : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                                 isAnyChildActive
-                                  ? 'bg-[#e0edfe] text-[#1e40af] border border-[#cfe0fc] shadow-2xs'
+                                  ? 'bg-[#dcfce7] text-[#14532d] border border-[#c8ebd2] shadow-2xs'
                                   : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
                               }`}>
                                 <Icon className="w-3.5 h-3.5" />
@@ -585,7 +585,7 @@ export default function AdminLayout() {
                               </span>
                               <ChevronDown
                                 className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                                  isOpen ? 'rotate-180 text-blue-700 font-bold' : ''
+                                  isOpen ? 'rotate-180 text-emerald-700 font-bold' : ''
                                 }`}
                               />
                             </div>
@@ -602,11 +602,11 @@ export default function AdminLayout() {
                                     onClick={closeMobile}
                                     className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-all ${
                                       isActive
-                                        ? 'bg-[#eef5ff] text-[#1e40af] font-bold border border-[#cfe0fc] shadow-2xs'
-                                        : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50/60 font-medium'
+                                        ? 'bg-[#effaf2] text-[#14532d] font-bold border border-[#c8ebd2] shadow-2xs'
+                                        : 'text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/60 font-medium'
                                     }`}
                                   >
-                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-blue-600 ring-2 ring-blue-300/60' : 'bg-slate-300'}`} />
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isActive ? 'bg-emerald-600 ring-2 ring-emerald-300/60' : 'bg-slate-300'}`} />
                                     <span className="truncate">{child.label}</span>
                                   </Link>
                                 );
@@ -628,11 +628,11 @@ export default function AdminLayout() {
                           title={item.label}
                           className={`w-10 h-10 mx-auto flex items-center justify-center rounded-xl transition-all ${
                             isActive
-                              ? 'bg-[#eef5ff] border border-[#cfe0fc] text-[#1e40af] shadow-xs'
+                              ? 'bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] shadow-xs'
                               : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                           }`}
                         >
-                          <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-[#1e40af]' : 'text-slate-500'}`} />
+                          <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-[#14532d]' : 'text-slate-500'}`} />
                         </Link>
                       );
                     }
@@ -644,14 +644,14 @@ export default function AdminLayout() {
                         onClick={closeMobile}
                         className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all group ${
                           isActive
-                            ? 'bg-[#eef5ff] text-[#1e40af] font-extrabold border border-[#cfe0fc] shadow-2xs'
+                            ? 'bg-[#effaf2] text-[#14532d] font-extrabold border border-[#c8ebd2] shadow-2xs'
                             : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                             isActive
-                              ? 'bg-[#dce9fe] text-[#1e40af] border border-[#cfe0fc]'
+                              ? 'bg-[#dcfce7] text-[#14532d] border border-[#c8ebd2]'
                               : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
                           }`}>
                             <Icon className="w-3.5 h-3.5" />
@@ -660,7 +660,7 @@ export default function AdminLayout() {
                         </div>
                         {item.badge && (
                           <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
-                            isActive ? 'bg-blue-100 text-blue-900 border border-blue-200' : 'bg-slate-100 text-slate-700 border border-slate-200'
+                            isActive ? 'bg-emerald-100 text-emerald-900 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'
                           }`}>
                             {item.badge}
                           </span>
@@ -679,11 +679,11 @@ export default function AdminLayout() {
           {(isExpanded || mobileSidebarOpen) ? (
             <div className="flex items-center justify-between gap-2 bg-white p-2 rounded-xl border border-slate-200/80 shadow-2xs">
               <Link to="/profile" className="flex items-center gap-2.5 min-w-0 group hover:opacity-80 transition-opacity">
-                <div className="w-8 h-8 rounded-lg bg-[#eef5ff] border border-[#cfe0fc] text-[#1e40af] font-black text-xs flex items-center justify-center shadow-2xs shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] font-black text-xs flex items-center justify-center shadow-2xs shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || 'A'}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold text-slate-900 truncate leading-tight group-hover:text-blue-700 transition-colors">
+                  <span className="text-xs font-bold text-slate-900 truncate leading-tight group-hover:text-emerald-700 transition-colors">
                     {user?.name || 'Administrator'}
                   </span>
                   <span className="text-[10px] font-semibold text-slate-400 capitalize truncate">
@@ -694,7 +694,7 @@ export default function AdminLayout() {
               <div className="flex items-center gap-1 shrink-0">
                 <Link
                   to="/profile"
-                  className="p-1.5 text-slate-400 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
                   title="Profile Settings"
                 >
                   <Settings className="w-3.5 h-3.5" />
@@ -713,7 +713,7 @@ export default function AdminLayout() {
             <div className="flex flex-col items-center gap-2">
               <Link
                 to="/profile"
-                className="w-10 h-10 rounded-xl bg-[#eef5ff] border border-[#cfe0fc] text-[#1e40af] font-black text-xs flex items-center justify-center shadow-2xs hover:bg-[#dbeafe] transition-all"
+                className="w-10 h-10 rounded-xl bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] font-black text-xs flex items-center justify-center shadow-2xs hover:bg-[#dcfce7] transition-all"
                 title={user?.name || 'Administrator'}
               >
                 {user?.name?.charAt(0).toUpperCase() || 'A'}
@@ -772,11 +772,11 @@ export default function AdminLayout() {
                 onClick={() => setProfileDropdownOpen((prev) => !prev)}
                 className={`flex items-center gap-3 pl-1.5 pr-3.5 py-1.5 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
                   profileDropdownOpen
-                    ? 'border-[#cfe0fc] bg-[#f4f8fe] ring-2 ring-blue-100'
+                    ? 'border-[#c8ebd2] bg-[#f2faf4] ring-2 ring-emerald-100'
                     : 'border-slate-200/90 bg-white hover:bg-slate-50/80 hover:border-slate-300'
                 }`}
               >
-                <div className="w-8 h-8 rounded-xl bg-[#eef5ff] border border-[#cfe0fc] text-[#1e40af] font-black flex items-center justify-center text-xs shadow-2xs shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] font-black flex items-center justify-center text-xs shadow-2xs shrink-0">
                   {user?.name?.charAt(0).toUpperCase() || 'A'}
                 </div>
                 <div className="hidden sm:flex flex-col text-left min-w-0">
@@ -789,7 +789,7 @@ export default function AdminLayout() {
                 </div>
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${
-                    profileDropdownOpen ? 'rotate-180 text-blue-700' : ''
+                    profileDropdownOpen ? 'rotate-180 text-emerald-700' : ''
                   }`}
                 />
               </button>
@@ -800,7 +800,7 @@ export default function AdminLayout() {
                   {/* Card Header Profile Info */}
                   <div className="px-4 pb-3 pt-1 border-b border-slate-100">
                     <div className="flex items-center gap-3">
-                      <div className="w-11 h-11 rounded-2xl bg-[#eef5ff] border border-[#cfe0fc] text-[#1e40af] font-serif font-black text-base flex items-center justify-center shadow-xs shrink-0">
+                      <div className="w-11 h-11 rounded-2xl bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] font-serif font-black text-base flex items-center justify-center shadow-xs shrink-0">
                         {user?.name?.charAt(0).toUpperCase() || 'A'}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -811,8 +811,8 @@ export default function AdminLayout() {
                           {user?.email || 'admin@educationmalaysia.in'}
                         </span>
                         <div className="mt-1">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#eef5ff] border border-[#cfe0fc] text-[10px] font-bold text-[#1e40af] uppercase tracking-wider">
-                            <ShieldCheck className="w-3 h-3 text-blue-600" />
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#effaf2] border border-[#c8ebd2] text-[10px] font-bold text-[#14532d] uppercase tracking-wider">
+                            <ShieldCheck className="w-3 h-3 text-emerald-600" />
                             {user?.role || 'Staff'}
                           </span>
                         </div>

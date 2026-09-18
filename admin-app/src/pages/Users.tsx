@@ -547,14 +547,14 @@ export default function Users() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
-                <th className="py-3.5 px-4 w-14 text-center text-blue-700">#</th>
-                <th className="py-3.5 px-4 text-[#1e40af]">User Profile</th>
-                <th className="py-3.5 px-4 text-[#1e40af]">Email Address</th>
-                <th className="py-3.5 px-4 text-[#1e40af]">Contact Phone</th>
-                <th className="py-3.5 px-4 text-[#1e40af]">System Role</th>
-                <th className="py-3.5 px-4 text-center text-[#1e40af]">Access Permissions</th>
-                <th className="py-3.5 px-4 text-right w-28 text-[#1e40af]">Actions</th>
+              <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                <th className="py-3.5 px-4 w-14 text-center text-emerald-700">#</th>
+                <th className="py-3.5 px-4 text-[#14532d]">User Profile</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Email Address</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Contact Phone</th>
+                <th className="py-3.5 px-4 text-[#14532d]">System Role</th>
+                <th className="py-3.5 px-4 text-center text-[#14532d]">Access Permissions</th>
+                <th className="py-3.5 px-4 text-right w-28 text-[#14532d]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

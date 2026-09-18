@@ -685,16 +685,16 @@ export default function Scholarships() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
-                <th className="py-3.5 px-4 w-12 text-center text-blue-700">#</th>
-                <th className="py-3.5 px-4 min-w-[240px] text-[#1e40af]">Scholarship Title</th>
-                <th className="py-3.5 px-4 min-w-[120px] text-[#1e40af]">Scheme Type</th>
-                <th className="py-3.5 px-4 text-center min-w-[110px] text-[#1e40af]">Active Status</th>
-                <th className="py-3.5 px-4 min-w-[130px] text-[#1e40af]">Media Assets</th>
-                <th className="py-3.5 px-4 min-w-[110px] text-[#1e40af]">Shortnote</th>
-                <th className="py-3.5 px-4 min-w-[100px] text-[#1e40af]">SEO Meta</th>
-                <th className="py-3.5 px-4 min-w-[140px] text-[#1e40af]">Content Modules</th>
-                <th className="py-3.5 px-4 text-right w-24 text-[#1e40af]">Actions</th>
+              <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                <th className="py-3.5 px-4 w-12 text-center text-emerald-700">#</th>
+                <th className="py-3.5 px-4 min-w-[240px] text-[#14532d]">Scholarship Title</th>
+                <th className="py-3.5 px-4 min-w-[120px] text-[#14532d]">Scheme Type</th>
+                <th className="py-3.5 px-4 text-center min-w-[110px] text-[#14532d]">Active Status</th>
+                <th className="py-3.5 px-4 min-w-[130px] text-[#14532d]">Media Assets</th>
+                <th className="py-3.5 px-4 min-w-[110px] text-[#14532d]">Shortnote</th>
+                <th className="py-3.5 px-4 min-w-[100px] text-[#14532d]">SEO Meta</th>
+                <th className="py-3.5 px-4 min-w-[140px] text-[#14532d]">Content Modules</th>
+                <th className="py-3.5 px-4 text-right w-24 text-[#14532d]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

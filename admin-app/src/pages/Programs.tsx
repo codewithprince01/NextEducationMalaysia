@@ -2224,14 +2224,14 @@ export default function Programs() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
             <thead>
-              <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase text-[11px] tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center text-blue-700">Sr.</th>
-                <th className="py-3.5 px-4 text-[#1e40af]">Program Name</th>
-                <th className="py-3.5 px-4 text-[#1e40af]">Category & Specialization</th>
-                <th className="py-3.5 px-4 w-32 text-[#1e40af]">Duration & Mode</th>
-                <th className="py-3.5 px-4 w-32 text-[#1e40af]">Intake / Fee</th>
-                <th className="py-3.5 px-4 w-24 text-center text-[#1e40af]">Status</th>
-                <th className="py-3.5 px-4 w-28 text-right text-[#1e40af]">Actions</th>
+              <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase text-[11px] tracking-wider">
+                <th className="py-3.5 px-4 w-12 text-center text-emerald-700">Sr.</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Program Name</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Category & Specialization</th>
+                <th className="py-3.5 px-4 w-32 text-[#14532d]">Duration & Mode</th>
+                <th className="py-3.5 px-4 w-32 text-[#14532d]">Intake / Fee</th>
+                <th className="py-3.5 px-4 w-24 text-center text-[#14532d]">Status</th>
+                <th className="py-3.5 px-4 w-28 text-right text-[#14532d]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">

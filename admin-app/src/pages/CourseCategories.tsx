@@ -709,15 +709,15 @@ export default function CourseCategories() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4 w-14 text-center text-blue-700">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center text-blue-700">ID</th>
-                  <th className="py-3.5 px-5 text-[#1e40af]">Name & Slug</th>
-                  <th className="py-3.5 px-4 text-[#1e40af]">Shortnote</th>
-                  <th className="py-3.5 px-4 text-[#1e40af]">SEO</th>
-                  <th className="py-3.5 px-5 text-[#1e40af]">Images</th>
-                  <th className="py-3.5 px-5 text-[#1e40af]">More Details</th>
-                  <th className="py-3.5 px-5 text-right text-[#1e40af]">Actions</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">Sr. No.</th>
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">ID</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">Name & Slug</th>
+                  <th className="py-3.5 px-4 text-[#14532d]">Shortnote</th>
+                  <th className="py-3.5 px-4 text-[#14532d]">SEO</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">Images</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">More Details</th>
+                  <th className="py-3.5 px-5 text-right text-[#14532d]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

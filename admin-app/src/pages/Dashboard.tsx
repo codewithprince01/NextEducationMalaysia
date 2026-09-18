@@ -165,17 +165,17 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* ── ELEGANT LIGHT HERO BANNER ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#eef5ff] via-[#f7faff] to-[#edf4fe] p-6 sm:p-8 border border-[#cfe0fc] shadow-xs">
+      {/* ── ELEGANT SOFT SAGE & MINT HERO BANNER ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#edf8f1] via-[#f5fbf7] to-[#eaf6ee] p-6 sm:p-8 border border-[#c8ebd2] shadow-xs">
         {/* Subtle ambient background glow accents */}
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl pointer-events-none" />
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-teal-400/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 border border-[#cfe0fc] text-[#1e40af] text-xs font-bold shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 border border-[#c8ebd2] text-[#14532d] text-xs font-bold shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Overview Dashboard</span>
               </span>
 
@@ -207,8 +207,8 @@ export default function Dashboard() {
 
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Live MYT Clock Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#cfe0fc] text-stone-700 text-xs font-bold shadow-2xs">
-              <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#c8ebd2] text-stone-700 text-xs font-bold shadow-2xs">
+              <Clock className="w-3.5 h-3.5 text-emerald-600" />
               <span>MYT {currentTime || '--:--:--'}</span>
             </div>
 
@@ -216,10 +216,10 @@ export default function Dashboard() {
               type="button"
               onClick={() => fetchStats(true)}
               disabled={refreshing}
-              className="p-2.5 rounded-xl bg-white hover:bg-blue-50 border border-[#cfe0fc] text-stone-700 hover:text-[#1e40af] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+              className="p-2.5 rounded-xl bg-white hover:bg-emerald-50 border border-[#c8ebd2] text-stone-700 hover:text-[#14532d] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
               title="Refresh statistics"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-blue-600' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-emerald-600' : ''}`} />
             </button>
 
             {quickActions.map((action) => {

@@ -332,7 +332,7 @@ export default function Addresses() {
         <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 relative transition-all duration-300">
           <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#eef5ff] border border-[#cfe0fc] flex items-center justify-center text-[#1e40af] shadow-2xs">
+              <div className="w-9 h-9 rounded-xl bg-[#effaf2] border border-[#c8ebd2] flex items-center justify-center text-[#14532d] shadow-2xs">
                 {editingId ? <Edit2 className="w-4.5 h-4.5" /> : <Plus className="w-4.5 h-4.5" />}
               </div>
               <div>
@@ -552,7 +552,7 @@ export default function Addresses() {
         {/* Table View */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-600">
-            <thead className="bg-[#eef5ff] border-b border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase text-[10.5px] tracking-wider">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase text-[10.5px] tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-16">Sr. No.</th>
                 <th className="py-3.5 px-4">Country</th>
@@ -600,7 +600,7 @@ export default function Addresses() {
                     <tr
                       key={item.id}
                       className={`transition-colors ${
-                        isEditingThis ? 'bg-blue-50/60' : 'hover:bg-[#faf8f4]/80'
+                        isEditingThis ? 'bg-emerald-50/60' : 'hover:bg-[#faf8f4]/80'
                       }`}
                     >
                       <td className="py-3.5 px-4 font-bold text-stone-400">{srNo}</td>
@@ -630,7 +630,7 @@ export default function Addresses() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 bg-[#eef5ff] text-[#1e40af] hover:bg-[#dbeafe] rounded-lg transition-colors cursor-pointer shadow-2xs"
+                            className="p-1.5 bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] rounded-lg transition-colors cursor-pointer shadow-2xs border border-[#c8ebd2]/60"
                             title="Edit Address"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
