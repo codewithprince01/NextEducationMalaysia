@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { useSidebar } from '@/context/SidebarContext';
@@ -20,7 +20,6 @@ import {
   Menu,
   X,
   Bell,
-  Command,
   Pin,
   Settings,
   Handshake,
@@ -29,7 +28,10 @@ import {
   ArrowLeftRight,
   MapPin,
   Layout,
-  Image as ImageIcon
+  Image as ImageIcon,
+  User as UserIcon,
+  ShieldCheck,
+  ChevronRight
 } from 'lucide-react';
 
 type NavLinkItem = {
@@ -197,11 +199,45 @@ export default function AdminLayout() {
   } = useSidebar();
 
   const pathname = location.pathname;
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    if (profileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileDropdownOpen]);
+
+  // Derive current page title and breadcrumb for clean header presentation
+  const currentTitle = useMemo(() => {
+    for (const sec of navigationConfig) {
+      for (const item of sec.items) {
+        if ('children' in item) {
+          const matchedChild = item.children.find(
+            (c) => c.href === pathname || (c.href !== '/' && pathname.startsWith(c.href + '/'))
+          );
+          if (matchedChild) {
+            return { section: sec.section, parent: item.label, title: matchedChild.label };
+          }
+        } else if (item.href === pathname || (item.href !== '/' && pathname.startsWith(item.href + '/'))) {
+          return { section: sec.section, parent: undefined, title: item.label };
+        }
+      }
+    }
+    return { section: 'ADMIN', parent: undefined, title: 'Dashboard' };
+  }, [pathname]);
 
   // Filter sections and items dynamically according to user permissions
-  const filteredNavigationConfig = React.useMemo(() => {
+  const filteredNavigationConfig = useMemo(() => {
     return navigationConfig
       .map((sec) => {
         const allowedItems = sec.items
@@ -223,28 +259,6 @@ export default function AdminLayout() {
       .filter(Boolean) as NavSection[];
   }, [canAccess]);
 
-  const searchResults = React.useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return [];
-    const results: { label: string; href: string; section: string }[] = [];
-    filteredNavigationConfig.forEach((sec) => {
-      sec.items.forEach((item) => {
-        if ('children' in item) {
-          item.children.forEach((child) => {
-            if (child.label.toLowerCase().includes(q) || item.label.toLowerCase().includes(q)) {
-              results.push({ label: `${item.label} → ${child.label}`, href: child.href, section: sec.section });
-            }
-          });
-        } else {
-          if (item.label.toLowerCase().includes(q)) {
-            results.push({ label: item.label, href: item.href, section: sec.section });
-          }
-        }
-      });
-    });
-    return results;
-  }, [searchQuery, filteredNavigationConfig]);
-
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     navigationConfig.forEach((sec) => {
@@ -263,7 +277,7 @@ export default function AdminLayout() {
   });
 
   // Automatically expand group containing active route
-  React.useEffect(() => {
+  useEffect(() => {
     filteredNavigationConfig.forEach((sec) => {
       sec.items.forEach((item) => {
         if ('children' in item) {
@@ -297,12 +311,13 @@ export default function AdminLayout() {
         />
       )}
 
-      {/* ── LEFT SIDEBAR (Innayat Medical Admin Ref Style) ── */}
+      {/* ── LEFT SIDEBAR ── */}
       <aside
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-slate-200/80 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 shadow-sm ${mobileSidebarOpen ? 'translate-x-0 w-60' : '-translate-x-full lg:translate-x-0'
-          } ${!isExpanded ? 'lg:w-[68px]' : 'lg:w-60'}`}
+        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-slate-200/80 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 shadow-sm ${
+          mobileSidebarOpen ? 'translate-x-0 w-60' : '-translate-x-full lg:translate-x-0'
+        } ${!isExpanded ? 'lg:w-[68px]' : 'lg:w-60'}`}
       >
         <div className="flex flex-col min-h-0 flex-1">
           {/* Header Logo & Pin */}
@@ -375,10 +390,11 @@ export default function AdminLayout() {
                           key={item.label}
                           to={firstChild.href}
                           title={item.label}
-                          className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${isAnyChildActive
-                            ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                            }`}
+                          className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${
+                            isAnyChildActive
+                              ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
+                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          }`}
                         >
                           <Icon className={`w-5 h-5 shrink-0 ${isAnyChildActive ? 'text-white' : 'text-slate-500'}`} />
                         </Link>
@@ -390,18 +406,20 @@ export default function AdminLayout() {
                       <div key={item.label} className="space-y-1">
                         <button
                           onClick={() => toggleGroup(item.label)}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${isAnyChildActive
-                            ? 'text-blue-700 bg-blue-50/90'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                            }`}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            isAnyChildActive
+                              ? 'text-blue-700 bg-blue-50/90'
+                              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                          }`}
                         >
                           <div className="flex items-center gap-3">
                             <Icon className={`w-4.5 h-4.5 shrink-0 ${isAnyChildActive ? 'text-blue-700' : 'text-slate-500'}`} />
                             <span>{item.label}</span>
                           </div>
                           <ChevronDown
-                            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-700' : ''
-                              }`}
+                            className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                              isOpen ? 'rotate-180 text-blue-700' : ''
+                            }`}
                           />
                         </button>
 
@@ -414,10 +432,11 @@ export default function AdminLayout() {
                                   key={child.href}
                                   to={child.href}
                                   onClick={closeMobile}
-                                  className={`block px-2.5 py-1.5 rounded-lg text-xs transition-all ${isActive
-                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-extrabold shadow-md shadow-blue-600/20'
-                                    : 'text-slate-600 hover:text-blue-700 hover:bg-slate-50 font-medium'
-                                    }`}
+                                  className={`block px-2.5 py-1.5 rounded-lg text-xs transition-all ${
+                                    isActive
+                                      ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-extrabold shadow-md shadow-blue-600/20'
+                                      : 'text-slate-600 hover:text-blue-700 hover:bg-slate-50 font-medium'
+                                  }`}
                                 >
                                   {child.label}
                                 </Link>
@@ -438,10 +457,11 @@ export default function AdminLayout() {
                         key={item.href}
                         to={item.href}
                         title={item.label}
-                        className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                          }`}
+                        className={`w-full flex items-center justify-center p-2.5 rounded-xl transition-all ${
+                          isActive
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
                       >
                         <Icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                       </Link>
@@ -453,10 +473,11 @@ export default function AdminLayout() {
                       key={item.href}
                       to={item.href}
                       onClick={closeMobile}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${isActive
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                        }`}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                        isActive
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md shadow-blue-600/20'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                      }`}
                     >
                       <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
                       <span>{item.label}</span>
@@ -515,81 +536,164 @@ export default function AdminLayout() {
       {/* ── MAIN CONTENT AREA ── */}
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${!isExpanded ? 'lg:pl-[68px]' : 'lg:pl-60'}`}>
         {/* Top Header Bar */}
-        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-1 max-w-md">
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4 shadow-2xs">
+          {/* Left Title & Breadcrumb */}
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={toggleMobile}
-              className="lg:hidden p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
+              className="lg:hidden p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            {/* Quick Search Field */}
-            <div className="relative w-full hidden sm:flex items-center">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Search accessible modules..."
-                value={searchQuery}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50/80 border border-slate-200/80 rounded-full pl-10 pr-10 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"
-              />
-              <span className="absolute right-3 inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                <Command className="w-2.5 h-2.5" /> K
+            {/* Current Page Title & Breadcrumb */}
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5 text-[10.5px] font-extrabold text-slate-400 uppercase tracking-widest truncate">
+                <span>{currentTitle.section}</span>
+                {currentTitle.parent && (
+                  <>
+                    <ChevronRight className="w-3 h-3 text-slate-300 inline shrink-0" />
+                    <span className="text-slate-500">{currentTitle.parent}</span>
+                  </>
+                )}
+              </div>
+              <span className="text-base sm:text-lg font-black text-slate-900 leading-tight tracking-tight truncate">
+                {currentTitle.title}
               </span>
-
-              {/* Search dropdown results */}
-              {searchFocused && searchQuery.trim() && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 py-2 max-h-64 overflow-y-auto z-50">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((res) => (
-                      <Link
-                        key={res.href}
-                        to={res.href}
-                        onClick={() => {
-                          setSearchQuery('');
-                          setSearchFocused(false);
-                        }}
-                        className="flex items-center justify-between px-4 py-2 hover:bg-slate-50 text-xs text-slate-700 transition-colors"
-                      >
-                        <span className="font-semibold text-slate-800">{res.label}</span>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
-                          {res.section}
-                        </span>
-                      </Link>
-                    ))
-                  ) : (
-                    <div className="px-4 py-3 text-center text-xs text-slate-400">
-                      No accessible modules found matching "{searchQuery}"
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Right Notifications & Profile Dropdown */}
+          <div className="flex items-center gap-3 shrink-0">
             {/* Notification Icon */}
             <button
-              className="w-9 h-9 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center relative transition-colors cursor-pointer"
+              type="button"
+              className="w-10 h-10 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center relative transition-all hover:scale-105 shadow-2xs cursor-pointer"
               title="Notifications"
             >
               <Bell className="w-4 h-4" />
-              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-2 right-2 ring-2 ring-white" />
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 absolute top-2 right-2 ring-2 ring-white" />
             </button>
 
-            {/* User Profile Pill */}
-            <Link
-              to="/profile"
-              className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-full border border-slate-200/80 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all shadow-xs"
-            >
-              <div className="w-7 h-7 rounded-full bg-blue-700 text-white font-extrabold flex items-center justify-center text-xs">
-                {user?.name?.charAt(0).toUpperCase() || 'A'}
-              </div>
-              <span className="hidden sm:inline text-slate-800">{user?.name || 'Admin'}</span>
-            </Link>
+            {/* User Profile Dropdown Pill & Card */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setProfileDropdownOpen((prev) => !prev)}
+                className={`flex items-center gap-3 pl-1.5 pr-3.5 py-1.5 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
+                  profileDropdownOpen
+                    ? 'border-indigo-500 bg-indigo-50/60 ring-2 ring-indigo-100'
+                    : 'border-slate-200/90 bg-white hover:bg-slate-50/80 hover:border-slate-300'
+                }`}
+              >
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-700 text-white font-black flex items-center justify-center text-xs shadow-xs shrink-0">
+                  {user?.name?.charAt(0).toUpperCase() || 'A'}
+                </div>
+                <div className="hidden sm:flex flex-col text-left min-w-0">
+                  <span className="text-xs font-bold text-slate-900 leading-tight truncate max-w-[140px]">
+                    {user?.name || 'Admin User'}
+                  </span>
+                  <span className="text-[10px] font-semibold text-slate-400 capitalize truncate">
+                    {user?.role || 'Administrator'}
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ${
+                    profileDropdownOpen ? 'rotate-180 text-indigo-600' : ''
+                  }`}
+                />
+              </button>
+
+              {/* Profile Card Popover */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white rounded-2xl shadow-2xl border border-slate-200/90 py-3 z-50">
+                  {/* Card Header Profile Info */}
+                  <div className="px-4 pb-3 pt-1 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-indigo-800 text-white font-black text-base flex items-center justify-center shadow-md shadow-indigo-600/20 shrink-0">
+                        {user?.name?.charAt(0).toUpperCase() || 'A'}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <span className="font-extrabold text-sm text-slate-900 truncate block">
+                          {user?.name || 'Admin'}
+                        </span>
+                        <span className="text-xs font-medium text-slate-400 truncate block">
+                          {user?.email || 'admin@educationmalaysia.in'}
+                        </span>
+                        <div className="mt-1">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100 text-[10px] font-bold text-indigo-700 uppercase tracking-wider">
+                            <ShieldCheck className="w-3 h-3 text-indigo-600" />
+                            {user?.role || 'Staff'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Menu Links */}
+                  <div className="p-2 space-y-1">
+                    <Link
+                      to="/profile"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100/80 hover:text-indigo-600 transition-colors"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <UserIcon className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span>My Profile</span>
+                        <span className="text-[10px] font-normal text-slate-400">Account info and password</span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/system-settings"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100/80 hover:text-indigo-600 transition-colors"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <Settings className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span>Settings</span>
+                        <span className="text-[10px] font-normal text-slate-400">System preferences & email</span>
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/dashboard"
+                      onClick={() => setProfileDropdownOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100/80 hover:text-indigo-600 transition-colors"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <LayoutDashboard className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span>Dashboard</span>
+                        <span className="text-[10px] font-normal text-slate-400">Overview & metrics</span>
+                      </div>
+                    </Link>
+                  </div>
+
+                  {/* Card Footer Logout Button */}
+                  <div className="px-2 pt-2 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                        <LogOut className="w-4 h-4" />
+                      </div>
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
