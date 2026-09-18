@@ -330,9 +330,9 @@ export default function Scholarships() {
                   handleOpenAdd();
                 }
               }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
             >
-              {isFormOpen ? <X className="w-4 h-4 text-amber-300" /> : <Plus className="w-4 h-4 text-amber-300" />}
+              {isFormOpen ? <X className="w-4 h-4 text-emerald-300" /> : <Plus className="w-4 h-4 text-emerald-300" />}
               <span>{isFormOpen ? 'Close Form' : 'Add Scholarship'}</span>
             </button>
           </div>
@@ -824,10 +824,10 @@ export default function Scholarships() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 transition-colors cursor-pointer shadow-2xs"
                           title="Edit Scholarship"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}

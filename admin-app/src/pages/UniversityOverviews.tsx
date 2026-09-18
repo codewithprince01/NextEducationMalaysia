@@ -59,8 +59,8 @@ export default function UniversityOverviews() {
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Form Section Visibility
-  const [isFormOpen, setIsFormOpen] = useState(true);
+  // Form Section Visibility (Default Closed)
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -452,7 +452,7 @@ export default function UniversityOverviews() {
               onClick={() => setIsFormOpen(!isFormOpen)}
             >
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-center justify-center">
+                <span className="w-7 h-7 rounded-lg bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] flex items-center justify-center font-bold">
                   {editingId ? <Edit2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                 </span>
                 <div>
@@ -467,10 +467,20 @@ export default function UniversityOverviews() {
 
               <button
                 type="button"
-                className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#effaf2] hover:bg-[#dcfce7] text-[#14532d] border border-[#c8ebd2] text-xs font-bold transition-all"
                 title={isFormOpen ? 'Collapse form' : 'Expand form'}
               >
-                {isFormOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                {isFormOpen ? (
+                  <>
+                    <Minus className="w-3.5 h-3.5" />
+                    <span>Hide Form</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Open Form</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -586,15 +596,15 @@ export default function UniversityOverviews() {
                     onClick={handleResetForm}
                     className="px-5 py-2.5 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition-colors cursor-pointer"
                   >
-                    Reset Form
+                    Cancel / Reset
                   </button>
 
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                   >
-                    {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />}
+                    {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" />}
                     <span>{editingId ? 'Update Overview' : 'Create Overview Tab'}</span>
                   </button>
                 </div>
@@ -607,7 +617,7 @@ export default function UniversityOverviews() {
             {/* Table Header Bar */}
             <div className="p-5 sm:p-6 bg-[#faf8f4] border-b border-stone-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <span className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-center justify-center">
+                <span className="w-7 h-7 rounded-lg bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] flex items-center justify-center font-bold">
                   <Layers className="w-3.5 h-3.5" />
                 </span>
                 <div>
@@ -618,16 +628,31 @@ export default function UniversityOverviews() {
                 </div>
               </div>
 
-              {/* Search Toolbar */}
-              <div className="relative w-full sm:w-72">
-                <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  placeholder="Search overview tabs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-amber-600 transition-all text-stone-800 placeholder-stone-400 shadow-2xs font-medium"
-                />
+              {/* Action and Search Toolbar */}
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    placeholder="Search overview tabs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-emerald-600 transition-all text-stone-800 placeholder-stone-400 shadow-2xs font-medium"
+                  />
+                </div>
+                {!isFormOpen && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleResetForm();
+                      setIsFormOpen(true);
+                      window.scrollTo({ top: 200, behavior: 'smooth' });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Tab
+                  </button>
+                )}
               </div>
             </div>
 

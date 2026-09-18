@@ -218,7 +218,7 @@ export default function AddUniversity() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
       </div>
     );
   }
@@ -237,18 +237,18 @@ export default function AddUniversity() {
       )}
 
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/universities')}
-            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-[#effaf2] hover:text-[#14532d] hover:border-[#c8ebd2] transition-colors cursor-pointer"
             title="Back to Universities"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-indigo-600" />
+            <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <Building2 className="w-6 h-6 text-emerald-700" />
               {isEdit ? 'Edit University' : 'Add New University'}
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -260,10 +260,10 @@ export default function AddUniversity() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Building2 className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">Basic Information</h3>
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
+          <div className="flex items-center gap-2 border-b border-[#c8ebd2]/60 bg-[#effaf2] -mx-6 -mt-6 p-4 rounded-t-2xl mb-2">
+            <Building2 className="w-5 h-5 text-emerald-700" />
+            <h3 className="font-extrabold text-sm text-[#14532d] uppercase tracking-wider">Basic Information</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -278,7 +278,7 @@ export default function AddUniversity() {
                 onChange={handleChange}
                 required
                 placeholder="e.g. Universiti Malaya"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -292,7 +292,7 @@ export default function AddUniversity() {
                 value={formData.uname}
                 onChange={handleChange}
                 placeholder="Auto-generated if left blank"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all font-mono"
               />
             </div>
 
@@ -304,7 +304,7 @@ export default function AddUniversity() {
                 value={formData.views}
                 onChange={handleChange}
                 placeholder="0"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -316,7 +316,7 @@ export default function AddUniversity() {
                 value={formData.city}
                 onChange={handleChange}
                 placeholder="e.g. Kuala Lumpur"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -328,7 +328,7 @@ export default function AddUniversity() {
                 value={formData.state}
                 onChange={handleChange}
                 placeholder="e.g. Selangor"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -338,7 +338,7 @@ export default function AddUniversity() {
                 name="institute_type"
                 value={formData.institute_type}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               >
                 <option value="">-- Select Type --</option>
                 {instituteTypes.map((it) => (
@@ -360,7 +360,7 @@ export default function AddUniversity() {
                 value={formData.rating}
                 onChange={handleChange}
                 placeholder="e.g. 5"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -372,7 +372,7 @@ export default function AddUniversity() {
                 value={formData.qs_rank}
                 onChange={handleChange}
                 placeholder="e.g. 58"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -384,7 +384,7 @@ export default function AddUniversity() {
                 value={formData.qs_asia_rank}
                 onChange={handleChange}
                 placeholder="e.g. 15"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -396,7 +396,7 @@ export default function AddUniversity() {
                 value={formData.times_rank}
                 onChange={handleChange}
                 placeholder="e.g. 201-250"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -408,7 +408,7 @@ export default function AddUniversity() {
                 value={formData.author_id}
                 onChange={handleChange}
                 placeholder="Author ID"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -420,7 +420,7 @@ export default function AddUniversity() {
                 value={formData.established_year}
                 onChange={handleChange}
                 placeholder="e.g. 1961"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -432,7 +432,7 @@ export default function AddUniversity() {
                 value={formData.latitude_longitude}
                 onChange={handleChange}
                 placeholder="e.g. 3.1222, 101.6569"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -444,7 +444,7 @@ export default function AddUniversity() {
                 value={formData.local_students}
                 onChange={handleChange}
                 placeholder="0"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -456,7 +456,7 @@ export default function AddUniversity() {
                 value={formData.international_students}
                 onChange={handleChange}
                 placeholder="0"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -468,7 +468,7 @@ export default function AddUniversity() {
                 value={formData.contact_number1}
                 onChange={handleChange}
                 placeholder="Primary phone"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -480,7 +480,7 @@ export default function AddUniversity() {
                 value={formData.contact_number2}
                 onChange={handleChange}
                 placeholder="Secondary phone"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -492,7 +492,7 @@ export default function AddUniversity() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="info@university.edu.my"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -504,7 +504,7 @@ export default function AddUniversity() {
                 value={formData.cc}
                 onChange={handleChange}
                 placeholder="cc1@example.com, cc2@example.com"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -516,7 +516,7 @@ export default function AddUniversity() {
                 value={formData.bcc}
                 onChange={handleChange}
                 placeholder="bcc1@example.com, bcc2@example.com"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
           </div>
@@ -529,7 +529,7 @@ export default function AddUniversity() {
                 name="featured"
                 checked={formData.featured}
                 onChange={handleChange}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                className="w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
               />
               <span className="text-xs font-bold text-slate-700">Featured</span>
             </label>
@@ -540,7 +540,7 @@ export default function AddUniversity() {
                 name="is_local"
                 checked={formData.is_local}
                 onChange={handleChange}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                className="w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
               />
               <span className="text-xs font-bold text-slate-700">Is Local</span>
             </label>
@@ -551,7 +551,7 @@ export default function AddUniversity() {
                 name="is_international"
                 checked={formData.is_international}
                 onChange={handleChange}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                className="w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
               />
               <span className="text-xs font-bold text-slate-700">Is International</span>
             </label>
@@ -562,7 +562,7 @@ export default function AddUniversity() {
                 name="scholarship_available"
                 checked={formData.scholarship_available}
                 onChange={handleChange}
-                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer"
+                className="w-4 h-4 text-emerald-700 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
               />
               <span className="text-xs font-bold text-slate-700">Scholarship Available</span>
             </label>
@@ -570,10 +570,10 @@ export default function AddUniversity() {
         </div>
 
         {/* Notes & Facilities Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <FileText className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">Notes & Facilities</h3>
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
+          <div className="flex items-center gap-2 border-b border-[#c8ebd2]/60 bg-[#effaf2] -mx-6 -mt-6 p-4 rounded-t-2xl mb-2">
+            <FileText className="w-5 h-5 text-emerald-700" />
+            <h3 className="font-extrabold text-sm text-[#14532d] uppercase tracking-wider">Notes & Facilities</h3>
           </div>
 
           <div className="space-y-4">
@@ -585,7 +585,7 @@ export default function AddUniversity() {
                 value={formData.shortnote}
                 onChange={handleChange}
                 placeholder="Brief summary about the university"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all resize-none"
               />
             </div>
 
@@ -599,7 +599,7 @@ export default function AddUniversity() {
                 value={formData.approved_by}
                 onChange={handleChange}
                 placeholder="MQA | Ministry of Higher Education"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -614,7 +614,7 @@ export default function AddUniversity() {
                   value={formData.accredited_by}
                   onChange={handleChange}
                   placeholder="Accreditation body 1 | Accreditation body 2"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all resize-none"
                 />
               </div>
 
@@ -628,7 +628,7 @@ export default function AddUniversity() {
                   value={formData.hostel_facility}
                   onChange={handleChange}
                   placeholder="Single Room | Twin Sharing | On-campus WiFi"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all resize-none"
                 />
               </div>
             </div>
@@ -636,10 +636,10 @@ export default function AddUniversity() {
         </div>
 
         {/* Media Assets Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <ImageIcon className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">Images & Media Assets</h3>
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
+          <div className="flex items-center gap-2 border-b border-[#c8ebd2]/60 bg-[#effaf2] -mx-6 -mt-6 p-4 rounded-t-2xl mb-2">
+            <ImageIcon className="w-5 h-5 text-emerald-700" />
+            <h3 className="font-extrabold text-sm text-[#14532d] uppercase tracking-wider">Images & Media Assets</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -649,7 +649,7 @@ export default function AddUniversity() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
               {(logoFile?.name || formData.logo_path) && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
@@ -664,7 +664,7 @@ export default function AddUniversity() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
               {(bannerFile?.name || formData.banner_path) && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
@@ -679,7 +679,7 @@ export default function AddUniversity() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setOgImageFile(e.target.files?.[0] || null)}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
               />
               {(ogImageFile?.name || formData.og_image_path) && (
                 <span className="text-[11px] text-slate-500 mt-1 block truncate">
@@ -691,10 +691,10 @@ export default function AddUniversity() {
         </div>
 
         {/* SEO & Page Content Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm space-y-6">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Search className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">SEO & Page Content</h3>
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs space-y-6">
+          <div className="flex items-center gap-2 border-b border-[#c8ebd2]/60 bg-[#effaf2] -mx-6 -mt-6 p-4 rounded-t-2xl mb-2">
+            <Search className="w-5 h-5 text-emerald-700" />
+            <h3 className="font-extrabold text-sm text-[#14532d] uppercase tracking-wider">SEO & Page Content</h3>
           </div>
 
           <div className="space-y-4">
@@ -706,7 +706,7 @@ export default function AddUniversity() {
                 value={formData.page_content}
                 onChange={handleChange}
                 placeholder="Detailed page content HTML or text"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all resize-none"
               />
             </div>
 
@@ -718,7 +718,7 @@ export default function AddUniversity() {
                 value={formData.meta_title}
                 onChange={handleChange}
                 placeholder="Study at Universiti Malaya 2026"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -730,7 +730,7 @@ export default function AddUniversity() {
                 value={formData.meta_keyword}
                 onChange={handleChange}
                 placeholder="Universiti Malaya, Courses, Fees, Malaysia"
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
               />
             </div>
 
@@ -742,7 +742,7 @@ export default function AddUniversity() {
                 value={formData.meta_description}
                 onChange={handleChange}
                 placeholder="A top-ranked institution offering world-class education..."
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all resize-none"
               />
             </div>
 
@@ -755,7 +755,7 @@ export default function AddUniversity() {
                   value={formData.seo_rating}
                   onChange={handleChange}
                   placeholder="e.g. 5"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
                 />
               </div>
 
@@ -767,7 +767,7 @@ export default function AddUniversity() {
                   value={formData.best_rating}
                   onChange={handleChange}
                   placeholder="e.g. 5"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
                 />
               </div>
 
@@ -779,7 +779,7 @@ export default function AddUniversity() {
                   value={formData.review_number}
                   onChange={handleChange}
                   placeholder="Total reviews count"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 bg-slate-50 focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -791,7 +791,7 @@ export default function AddUniversity() {
           <button
             type="button"
             onClick={() => navigate('/universities')}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-[#effaf2] hover:text-[#14532d] hover:border-[#c8ebd2] transition-colors cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             Cancel
@@ -799,7 +799,7 @@ export default function AddUniversity() {
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {isEdit ? 'Update University' : 'Submit University'}

@@ -366,9 +366,9 @@ export default function Blogs() {
 
             <Link
               to="/blogs/create"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
-              <Plus className="w-4 h-4 text-amber-300" />
+              <Plus className="w-4 h-4 text-emerald-300" />
               <span>Add New Blog</span>
             </Link>
           </div>
@@ -591,10 +591,10 @@ export default function Blogs() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => navigate(`/blogs/edit/${item.id}`)}
-                            className="p-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 transition-colors cursor-pointer shadow-2xs"
                             title="Edit Blog"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(item)}

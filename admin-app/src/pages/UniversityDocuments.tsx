@@ -513,7 +513,7 @@ export default function UniversityDocuments() {
           <div className="flex items-end gap-2">
             <button
               type="submit"
-              className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors"
+              className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-[#14532d] text-white rounded-lg hover:bg-[#0f3e21] text-sm font-medium transition-colors shadow-xs"
             >
               <Filter className="w-4 h-4" />
               Filter
@@ -542,18 +542,18 @@ export default function UniversityDocuments() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3 px-4 w-12 text-center">#</th>
-                <th className="py-3 px-4 w-16 text-center">Format</th>
-                <th className="py-3 px-4">Title & Original File</th>
-                <th className="py-3 px-4">University</th>
-                <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4 text-center">Access</th>
-                <th className="py-3 px-4 text-center">Size</th>
-                <th className="py-3 px-4">Date</th>
-                <th className="py-3 px-4 text-right w-36">Actions</th>
+                <th className="py-3.5 px-4 w-12 text-center text-emerald-700">#</th>
+                <th className="py-3.5 px-4 w-16 text-center text-[#14532d]">Format</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Title & Original File</th>
+                <th className="py-3.5 px-4 text-[#14532d]">University</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Category</th>
+                <th className="py-3.5 px-4 text-center text-[#14532d]">Access</th>
+                <th className="py-3.5 px-4 text-center text-[#14532d]">Size</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Date</th>
+                <th className="py-3.5 px-4 text-right w-36 text-[#14532d]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

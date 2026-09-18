@@ -412,8 +412,8 @@ export default function Internships() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-              <Award className="w-5 h-5" />
+            <div className="p-2 rounded-xl bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]">
+              <Award className="w-5 h-5 text-emerald-700" />
             </div>
             <span>Internship Programs</span>
           </h1>
@@ -424,17 +424,17 @@ export default function Internships() {
         <div className="flex items-center gap-2.5">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl border border-slate-200 transition-all cursor-pointer"
+            className="p-2.5 text-slate-600 hover:text-[#14532d] hover:bg-[#effaf2] rounded-xl border border-slate-200 transition-all cursor-pointer"
             title="Refresh Data"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>Add New Internship</span>
+            {formOpen && !editingId ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-emerald-300" />}
+            <span>{formOpen && !editingId ? 'Close Form' : 'Add New Internship'}</span>
           </button>
         </div>
       </div>
@@ -443,17 +443,17 @@ export default function Internships() {
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div
           onClick={() => setFormOpen(!formOpen)}
-          className="flex items-center justify-between px-5 py-3.5 bg-slate-50/80 border-b border-slate-200/80 cursor-pointer select-none hover:bg-slate-100/60 transition-colors"
+          className="flex items-center justify-between px-5 py-3.5 bg-[#effaf2] border-b border-[#c8ebd2]/60 cursor-pointer select-none hover:bg-[#e2f5e8] transition-colors"
         >
-          <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+          <h2 className="text-sm font-extrabold text-[#14532d] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
             <span>{editingId ? 'Update Record' : 'Add New Record'}</span>
           </h2>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-slate-400">
+            <span className="text-[11px] font-bold text-emerald-800">
               {formOpen ? 'Click to collapse' : 'Click to expand'}
             </span>
-            <button type="button" className="text-slate-500 p-1 rounded-md hover:bg-slate-200/60">
+            <button type="button" className="text-emerald-700 p-1 rounded-md hover:bg-emerald-100">
               {formOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
           </div>
@@ -472,7 +472,7 @@ export default function Internships() {
                   placeholder="Enter Title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 />
               </div>
 
@@ -485,7 +485,7 @@ export default function Internships() {
                   placeholder="Enter Slug"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all font-mono"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-mono"
                 />
               </div>
             </div>
@@ -500,7 +500,7 @@ export default function Internships() {
                   placeholder="e.g. LIVE"
                   value={formData.active_status}
                   onChange={(e) => setFormData({ ...formData, active_status: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 />
               </div>
 
@@ -515,7 +515,7 @@ export default function Internships() {
                     const file = e.target.files?.[0] || null;
                     setThumbnailFile(file);
                   }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                 />
                 {(thumbnailFile || formData.thumbnail_path) && (
                   <span className="text-[11px] text-slate-600 mt-1 block truncate">
@@ -534,7 +534,7 @@ export default function Internships() {
                 placeholder="Shortnote"
                 value={formData.shortnote}
                 onChange={(e) => setFormData({ ...formData, shortnote: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-y"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all resize-y font-medium"
               />
             </div>
 
@@ -542,8 +542,8 @@ export default function Internships() {
 
             {/* SEO Section */}
             <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5 text-blue-600" /> SEO &amp; Meta Information
+              <h3 className="text-xs font-extrabold text-[#14532d] uppercase tracking-wider flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-emerald-700" /> SEO &amp; Meta Information
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -554,7 +554,7 @@ export default function Internships() {
                     placeholder="Enter Meta Title"
                     value={formData.meta_title}
                     onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -565,7 +565,7 @@ export default function Internships() {
                     placeholder="Meta Keyword"
                     value={formData.meta_keyword}
                     onChange={(e) => setFormData({ ...formData, meta_keyword: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
               </div>
@@ -577,7 +577,7 @@ export default function Internships() {
                   placeholder="Meta Description"
                   value={formData.meta_description}
                   onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-none"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all resize-none font-medium"
                 />
               </div>
 
@@ -589,7 +589,7 @@ export default function Internships() {
                     placeholder="Seo Rating"
                     value={formData.seo_rating}
                     onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -600,7 +600,7 @@ export default function Internships() {
                     placeholder="Best Rating"
                     value={formData.best_rating}
                     onChange={(e) => setFormData({ ...formData, best_rating: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -611,7 +611,7 @@ export default function Internships() {
                     placeholder="Total Reviews"
                     value={formData.review_number}
                     onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -624,7 +624,7 @@ export default function Internships() {
                       const file = e.target.files?.[0] || null;
                       setOgImageFile(file);
                     }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                   />
                   {(ogImageFile || formData.og_image_path) && (
                     <span className="text-[11px] text-slate-600 mt-1 block truncate">
@@ -640,7 +640,7 @@ export default function Internships() {
               <button
                 type="button"
                 onClick={handleResetForm}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer border border-slate-300"
               >
                 Reset
               </button>
@@ -648,7 +648,7 @@ export default function Internships() {
                 <button
                   type="button"
                   onClick={handleResetForm}
-                  className="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs"
+                  className="px-3.5 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -656,10 +656,10 @@ export default function Internships() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
                 {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                {editingId ? 'Update' : 'Submit'}
+                <span>{editingId ? 'Update' : 'Submit'}</span>
               </button>
             </div>
           </form>
@@ -667,7 +667,7 @@ export default function Internships() {
       </div>
 
       {/* ── DATA TABLE CARD ── */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         {/* Table Search Header */}
         <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -689,7 +689,7 @@ export default function Internships() {
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
             />
           </div>
         </div>
@@ -697,23 +697,23 @@ export default function Internships() {
         {/* Table Body */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3 px-4 w-16">Sr. No.</th>
-                <th className="py-3 px-4">Title</th>
-                <th className="py-3 px-4">Active Status</th>
-                <th className="py-3 px-4">Images</th>
-                <th className="py-3 px-4">Shortnote</th>
-                <th className="py-3 px-4">Seo</th>
-                <th className="py-3 px-4">Contents</th>
-                <th className="py-3 px-4 text-center">Action</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Title</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Active Status</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Images</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Shortnote</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Seo</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Contents</th>
+                <th className="py-3.5 px-4 text-center text-[#14532d]">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {loading ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-blue-600" />
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-600" />
                     Loading internship programs...
                   </td>
                 </tr>
@@ -727,11 +727,11 @@ export default function Internships() {
                 paginated.map((item, idx) => {
                   const srNo = (currentPage - 1) * itemsPerPage + idx + 1;
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-slate-500">{srNo}</td>
-                      <td className="py-3.5 px-4 font-bold text-slate-800 max-w-xs">{item.title}</td>
+                    <tr key={item.id} className="hover:bg-[#effaf2]/40 transition-colors">
+                      <td className="py-3.5 px-4 text-center font-bold text-emerald-700">{srNo}</td>
+                      <td className="py-3.5 px-4 font-extrabold text-slate-900 max-w-xs">{item.title}</td>
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]/80">
                           {item.active_status || 'LIVE'}
                         </span>
                       </td>
@@ -745,9 +745,9 @@ export default function Internships() {
                                 url: item.thumbnail_path!,
                               })
                             }
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold cursor-pointer transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 rounded-lg text-xs font-bold cursor-pointer transition-colors shadow-2xs"
                           >
-                            <ImageIcon className="w-3 h-3" /> View Image
+                            <ImageIcon className="w-3 h-3 text-emerald-700" /> View Image
                           </button>
                         ) : (
                           <span className="text-slate-400">N/A</span>
@@ -756,7 +756,7 @@ export default function Internships() {
                       <td className="py-3.5 px-4">
                         <button
                           onClick={() => setShortnoteModalItem(item)}
-                          className="px-2.5 py-1 bg-cyan-50 text-cyan-600 border border-cyan-200 hover:bg-cyan-100 rounded text-xs font-bold transition-colors cursor-pointer"
+                          className="px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100 rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-2xs"
                         >
                           View
                         </button>
@@ -764,7 +764,7 @@ export default function Internships() {
                       <td className="py-3.5 px-4">
                         <button
                           onClick={() => setSeoModalItem(item)}
-                          className="px-2.5 py-1 bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 rounded text-xs font-bold transition-colors cursor-pointer"
+                          className="px-2.5 py-1 bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]/60 hover:bg-[#dcfce7] rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-2xs"
                         >
                           View
                         </button>
@@ -773,10 +773,10 @@ export default function Internships() {
                         <div>
                           <button
                             onClick={() => handleOpenContents(item)}
-                            className="px-2 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded text-[11px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2 py-1 bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]/80 hover:bg-[#dcfce7] rounded-lg text-[11px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                           >
                             <span>Contents</span>
-                            <span className="px-1.5 py-0.2 bg-indigo-600 text-white rounded-full text-[10px]">
+                            <span className="px-1.5 py-0.2 bg-[#14532d] text-white rounded-full text-[10px]">
                               {item.contents_count ?? 0}
                             </span>
                           </button>
@@ -784,7 +784,7 @@ export default function Internships() {
                         <div>
                           <button
                             onClick={() => handleOpenFaqs(item)}
-                            className="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 rounded text-[11px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 rounded-lg text-[11px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                           >
                             <span>Faqs</span>
                             <span className="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px]">
@@ -797,14 +797,14 @@ export default function Internships() {
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleStartEdit(item)}
-                            className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded transition-colors"
+                            className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                             title="Edit"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(item.id)}
-                            className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded transition-colors"
+                            className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

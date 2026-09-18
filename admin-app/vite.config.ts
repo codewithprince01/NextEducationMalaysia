@@ -38,6 +38,20 @@ export default defineConfig({
         target: NEXT_ORIGIN,
         changeOrigin: true,
         secure: false,
+        configure: (proxy) => {
+          proxy.on("error", (err, _req, res: any) => {
+            if (res && !res.headersSent) {
+              res.writeHead(503, { "Content-Type": "application/json" });
+              res.end(
+                JSON.stringify({
+                  status: false,
+                  message: "Backend server is booting up. Retrying...",
+                  error: err.message,
+                })
+              );
+            }
+          });
+        },
       },
       "/storage": {
         target: NEXT_ORIGIN,

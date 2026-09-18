@@ -220,27 +220,30 @@ export default function ServiceContents() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1">
-            <Link to="/services" className="hover:text-indigo-600 flex items-center gap-1 transition-colors">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 mb-1">
+            <Link to="/services" className="hover:text-[#14532d] flex items-center gap-1 transition-colors">
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Services
             </Link>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <FileText className="w-6 h-6 text-indigo-600" /> Service Content
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]">
+              <FileText className="w-5 h-5 text-emerald-700" />
+            </div>
+            <span>Service Content</span>
             {service?.page_name && (
-              <span className="text-rose-600 font-semibold text-lg ml-1">({service.page_name})</span>
+              <span className="text-emerald-800 font-bold text-base ml-1">({service.page_name})</span>
             )}
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Manage page sections and tab content for this service.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2.5 text-slate-600 hover:text-[#14532d] hover:bg-[#effaf2] rounded-xl border border-slate-200 transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -253,15 +256,15 @@ export default function ServiceContents() {
                 handleOpenAdd();
               }
             }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
           >
-            {showForm ? (
+            {showForm && !editingId ? (
               <>
-                <ChevronUp className="w-4 h-4" /> Hide Form
+                <ChevronUp className="w-4 h-4" /> Close Form
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4" /> Add Description
+                <Plus className="w-4 h-4 text-emerald-300" /> Add Description
               </>
             )}
           </button>
@@ -270,14 +273,14 @@ export default function ServiceContents() {
 
       {/* Form Card (Matching Laravel service-content.blade.php) */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
-          <div className="flex items-center justify-between p-4 px-6 border-b border-slate-200 bg-slate-50/50">
-            <h3 className="text-base font-bold text-slate-800">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-fadeIn">
+          <div className="flex items-center justify-between p-4 px-6 border-b border-[#c8ebd2]/60 bg-[#effaf2]">
+            <h3 className="text-sm font-extrabold text-[#14532d]">
               {editingId ? 'Edit Record' : 'Add Record'}
             </h3>
             <button
               onClick={handleCancelForm}
-              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+              className="p-1 text-slate-400 hover:text-slate-700 rounded-lg transition-colors cursor-pointer"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -287,7 +290,7 @@ export default function ServiceContents() {
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Title <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -296,14 +299,14 @@ export default function ServiceContents() {
                   placeholder="Title"
                   value={formData.tab_title}
                   onChange={(e) => setFormData({ ...formData, tab_title: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Decription
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                Description
               </label>
               <RichTextEditor
                 value={formData.tab_content}
@@ -318,7 +321,7 @@ export default function ServiceContents() {
                 <button
                   type="button"
                   onClick={handleCancelForm}
-                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-slate-300"
                 >
                   Cancel
                 </button>
@@ -331,7 +334,7 @@ export default function ServiceContents() {
                       tab_content: '',
                     })
                   }
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-slate-300"
                 >
                   Reset
                 </button>
@@ -339,10 +342,10 @@ export default function ServiceContents() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Submit
+                {editingId ? 'Update Content' : 'Submit Content'}
               </button>
             </div>
           </form>
@@ -350,7 +353,7 @@ export default function ServiceContents() {
       )}
 
       {/* Controls / Search */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -358,56 +361,56 @@ export default function ServiceContents() {
             placeholder="Search title or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
           />
         </div>
-        <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+        <div className="text-xs font-bold text-slate-500">
+          Showing <span className="text-[#14532d]">{filtered.length}</span> entries
         </div>
       </div>
 
       {/* Table (Matching Laravel service-content.blade.php: Sr. No., Title, Description, Action) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
-                <th className="py-3.5 px-4">Title</th>
-                <th className="py-3.5 px-4">Description</th>
-                <th className="py-3.5 px-4 text-right">Action</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Title</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Description</th>
+                <th className="py-3.5 px-4 text-right text-[#14532d]">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {loading ? (
                 <tr>
                   <td colSpan={4} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600" />
                     Loading content...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-400">
+                  <td colSpan={4} className="py-12 text-center text-slate-400 font-bold">
                     No content records found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                  <tr key={item.id} className="hover:bg-[#effaf2]/40 transition-colors">
+                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                    <td className="py-3.5 px-4 font-extrabold text-slate-900">
                       {item.tab_title}
                     </td>
                     <td className="py-3.5 px-4">
                       {item.tab_content ? (
                         <button
                           onClick={() => setViewModal({ isOpen: true, title: 'Description', content: item.tab_content || '' })}
-                          className="px-2.5 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
+                          className="px-2.5 py-1 text-xs font-bold text-[#14532d] bg-[#effaf2] border border-[#c8ebd2]/60 hover:bg-[#dcfce7] rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                         >
-                          <Eye className="w-3 h-3" /> View
+                          <Eye className="w-3 h-3 text-emerald-700" /> View
                         </button>
                       ) : (
                         <span className="text-slate-400 text-xs">Null</span>
@@ -416,18 +419,18 @@ export default function ServiceContents() {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>

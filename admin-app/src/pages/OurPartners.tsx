@@ -282,34 +282,35 @@ export default function OurPartners() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Handshake className="w-6 h-6 text-indigo-600" /> Our Partners &amp; Representatives
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            <Handshake className="w-5 h-5 text-emerald-800" /> Our Partners &amp; Representatives
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Manage university partner representatives, study counselors, experience metrics, and ratings.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2 text-slate-600 hover:text-emerald-800 hover:bg-[#effaf2] rounded-xl border border-slate-200 transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Add Partner
+            <Plus className="w-4 h-4 text-emerald-300" />
+            <span>Add Partner</span>
           </button>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -317,21 +318,21 @@ export default function OurPartners() {
             placeholder="Search name, designation, company..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
           />
         </div>
         <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+          Showing <span className="font-bold text-slate-700">{filtered.length}</span> entries
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-12">ID</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
                 <th className="py-3.5 px-4">Partner Name</th>
                 <th className="py-3.5 px-4">Designation &amp; Company</th>
                 <th className="py-3.5 px-4">Verified</th>
@@ -348,39 +349,41 @@ export default function OurPartners() {
               {loading ? (
                 <tr>
                   <td colSpan={11} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-700" />
                     Loading partners...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-slate-400">
+                  <td colSpan={11} className="py-12 text-center text-slate-400 font-medium">
                     No partners found.
                   </td>
                 </tr>
               ) : (
-                paginated.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800 flex items-center gap-2">
+                paginated.map((item, idx) => (
+                  <tr key={item.id} className="hover:bg-[#f6fcf8] transition-colors">
+                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
+                      {(currentPage - 1) * itemsPerPage + idx + 1}
+                    </td>
+                    <td className="py-3.5 px-4 font-bold text-slate-800 flex items-center gap-2">
                       {item.profile_image ? (
-                        <img src={getStorageUrl(item.profile_image)} alt={item.name} className="w-8 h-8 rounded-full object-cover border" />
+                        <img src={getStorageUrl(item.profile_image)} alt={item.name} className="w-8 h-8 rounded-full object-cover border border-[#c8ebd2]" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                        <div className="w-8 h-8 rounded-full bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] flex items-center justify-center font-bold text-xs">
                           {item.name ? item.name.charAt(0).toUpperCase() : 'P'}
                         </div>
                       )}
                       <span>{item.name}</span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-slate-800 text-xs">{item.designation}</div>
-                      <div className="text-slate-400 text-xs flex items-center gap-1">
-                        <Briefcase className="w-3 h-3" /> {item.company || 'N/A'}
+                      <div className="font-bold text-slate-800 text-xs">{item.designation}</div>
+                      <div className="text-slate-500 text-[11px] flex items-center gap-1 mt-0.5">
+                        <Briefcase className="w-3 h-3 text-slate-400" /> {item.company || 'N/A'}
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
                       {Boolean(item.is_verified) ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] text-[11px] font-bold">
                           <ShieldCheck className="w-3 h-3" /> Yes
                         </span>
                       ) : (
@@ -396,8 +399,8 @@ export default function OurPartners() {
                       <div className="text-slate-600 flex items-center gap-1">
                         <Phone className="w-3 h-3 text-slate-400" /> {item.phone || '-'}
                       </div>
-                      <div className="text-indigo-600 flex items-center gap-1">
-                        <Mail className="w-3 h-3 text-indigo-400" /> {item.email || '-'}
+                      <div className="text-emerald-700 flex items-center gap-1">
+                        <Mail className="w-3 h-3 text-emerald-600" /> {item.email || '-'}
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-xs text-slate-600">
@@ -407,9 +410,9 @@ export default function OurPartners() {
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-xs">
-                      <div className="font-medium text-slate-700">{item.experience_years ?? 0} yrs exp</div>
-                      <div className="text-emerald-600 font-semibold flex items-center gap-1">
-                        <Users className="w-3 h-3" /> {item.students_placed ?? 0} placed
+                      <div className="font-semibold text-slate-700">{item.experience_years ?? 0} yrs exp</div>
+                      <div className="text-emerald-700 font-bold flex items-center gap-1 text-[11px]">
+                        <Users className="w-3 h-3 text-emerald-600" /> {item.students_placed ?? 0} placed
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-xs text-slate-500 max-w-xs truncate">
@@ -417,30 +420,30 @@ export default function OurPartners() {
                     </td>
                     <td className="py-3.5 px-4">
                       {Boolean(item.is_active ?? true) ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] font-bold text-[11px]">
                           <Eye className="w-3 h-3" /> Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 font-bold text-[11px]">
                           <EyeOff className="w-3 h-3" /> Inactive
                         </span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
                           title="Delete"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -467,24 +470,25 @@ export default function OurPartners() {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-base font-semibold text-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8ebd2] bg-[#effaf2]">
+              <h3 className="text-sm font-bold text-[#14532d] flex items-center gap-2">
+                <Handshake className="w-4 h-4 text-emerald-700" />
                 {editingId ? 'Edit Partner Profile' : 'Add Partner Profile'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Partner Name <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -493,11 +497,11 @@ export default function OurPartners() {
                     placeholder="e.g. Dr. Alex Wong"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Designation <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -506,11 +510,11 @@ export default function OurPartners() {
                     placeholder="e.g. Senior Representative"
                     value={formData.designation}
                     onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Company / Agency
                   </label>
                   <input
@@ -518,14 +522,14 @@ export default function OurPartners() {
                     placeholder="e.g. EduGlobal Malaysia"
                     value={formData.company}
                     onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Phone Number
                   </label>
                   <input
@@ -533,11 +537,11 @@ export default function OurPartners() {
                     placeholder="+60 12-345 6789"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Email Address
                   </label>
                   <input
@@ -545,14 +549,14 @@ export default function OurPartners() {
                     placeholder="alex@eduglobal.my"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     City
                   </label>
                   <input
@@ -560,11 +564,11 @@ export default function OurPartners() {
                     placeholder="Kuala Lumpur"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     State
                   </label>
                   <input
@@ -572,11 +576,11 @@ export default function OurPartners() {
                     placeholder="Selangor"
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Country
                   </label>
                   <input
@@ -584,14 +588,14 @@ export default function OurPartners() {
                     placeholder="Malaysia"
                     value={formData.country}
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Experience (Years)
                   </label>
                   <input
@@ -600,11 +604,11 @@ export default function OurPartners() {
                     placeholder="e.g. 5"
                     value={formData.experience_years}
                     onChange={(e) => setFormData({ ...formData, experience_years: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Students Placed
                   </label>
                   <input
@@ -613,11 +617,11 @@ export default function OurPartners() {
                     placeholder="e.g. 250"
                     value={formData.students_placed}
                     onChange={(e) => setFormData({ ...formData, students_placed: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Star Rating (0-5)
                   </label>
                   <input
@@ -628,13 +632,13 @@ export default function OurPartners() {
                     placeholder="e.g. 4.9"
                     value={formData.rating}
                     onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                   Profile Image
                 </label>
                 <input
@@ -644,7 +648,7 @@ export default function OurPartners() {
                     const file = e.target.files?.[0] || null;
                     setProfileImageFile(file);
                   }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#effaf2] file:text-[#14532d] hover:file:bg-[#dcfce7] cursor-pointer border border-slate-200 rounded-xl bg-slate-50/70"
                 />
                 {(profileImageFile || formData.profile_image) && (
                   <span className="text-[11px] text-slate-600 mt-1 block truncate">
@@ -654,7 +658,7 @@ export default function OurPartners() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                   Specializations (pipe | or comma separated)
                 </label>
                 <input
@@ -662,29 +666,29 @@ export default function OurPartners() {
                   placeholder="e.g. MBBS Admissions | Medical Counseling"
                   value={formData.specializations}
                   onChange={(e) => setFormData({ ...formData, specializations: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-2">
-                <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer">
+                <label className="flex items-center gap-2 p-3 border border-[#c8ebd2]/70 rounded-xl bg-[#effaf2]/40 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.is_verified}
                     onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
-                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                    className="w-4 h-4 text-[#14532d] accent-emerald-700 rounded focus:ring-emerald-500"
                   />
-                  <span className="text-xs font-semibold text-slate-700">Verified Representative Badge</span>
+                  <span className="text-xs font-bold text-slate-700">Verified Representative Badge</span>
                 </label>
 
-                <label className="flex items-center gap-2 p-3 border border-slate-200 rounded-lg bg-slate-50/50 cursor-pointer">
+                <label className="flex items-center gap-2 p-3 border border-[#c8ebd2]/70 rounded-xl bg-[#effaf2]/40 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                    className="w-4 h-4 text-[#14532d] accent-emerald-700 rounded focus:ring-emerald-500"
                   />
-                  <span className="text-xs font-semibold text-slate-700">Active Public Status</span>
+                  <span className="text-xs font-bold text-slate-700">Active Public Status</span>
                 </label>
               </div>
 
@@ -692,17 +696,17 @@ export default function OurPartners() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Save Changes' : 'Create Partner'}
+                  <span>{editingId ? 'Save Changes' : 'Create Partner'}</span>
                 </button>
               </div>
             </form>

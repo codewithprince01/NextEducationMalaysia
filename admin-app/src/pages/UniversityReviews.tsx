@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
+import { api } from '@/lib/api';
 import Pagination from '@/components/common/Pagination';
 import {
   MessageSquare,
@@ -57,15 +58,14 @@ export default function UniversityReviews() {
       const url = statusFilter !== 'all'
         ? `/api/v1/admin/university-reviews?status=${statusFilter}`
         : '/api/v1/admin/university-reviews';
-      const res = await fetch(url);
-      const json = await res.json();
-      if (res.ok && json.status) {
-        setReviews(json.data || []);
-      } else {
-        showToast('error', json.message || 'Failed to fetch reviews');
+      const res = await api.get(url);
+      if (res.ok && res.data) {
+        setReviews(Array.isArray(res.data) ? res.data : []);
+      } else if (!res.ok && res.status !== 0 && res.status !== 503) {
+        showToast('error', res.message || 'Failed to fetch reviews');
       }
     } catch {
-      showToast('error', 'Network error while fetching data');
+      // safeFetch handles retries internally and avoids spurious toasts
     } finally {
       setLoading(false);
     }
@@ -231,14 +231,14 @@ export default function UniversityReviews() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
-                  <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center">ID</th>
-                  <th className="py-3.5 px-5">University & Program</th>
-                  <th className="py-3.5 px-5">Reviewer Info</th>
-                  <th className="py-3.5 px-4 text-center">Rating & Content</th>
-                  <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">Sr. No.</th>
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">ID</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">University & Program</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">Reviewer Info</th>
+                  <th className="py-3.5 px-4 text-center text-[#14532d]">Rating & Content</th>
+                  <th className="py-3.5 px-4 text-center text-[#14532d]">Status</th>
+                  <th className="py-3.5 px-4 text-right text-[#14532d]">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">

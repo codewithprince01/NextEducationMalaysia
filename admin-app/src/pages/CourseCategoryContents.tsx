@@ -13,9 +13,10 @@ import {
   AlertCircle,
   RefreshCw,
   Layers,
-  Sparkles,
   RotateCcw,
-  Send
+  Send,
+  Plus,
+  Minus
 } from 'lucide-react';
 
 interface CategoryOption {
@@ -52,7 +53,8 @@ export default function CourseCategoryContents() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
-  // Edit State
+  // Edit State & Collapsible Form (Default closed)
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     tab: 'Overview',
@@ -147,7 +149,8 @@ export default function CourseCategoryContents() {
       description: item.description || '',
     });
     // Scroll smoothly up to editor
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsFormOpen(true);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -279,21 +282,39 @@ export default function CourseCategoryContents() {
         </div>
       </div>
 
-      {/* ── FORM SECTION: RICH DESCRIPTION EDITOR (Matching Laravel 127.0.0.1:8000/admin/course-category-contents/17) ── */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-600" />
-            <h2 className="font-extrabold text-slate-900 text-sm">
-              {editingId ? `Edit Tab #${editingId}` : 'Enter Description'}
+      {/* ── FORM SECTION: RICH DESCRIPTION EDITOR ── */}
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
+        <div
+          className="px-6 py-4 border-b border-stone-200/90 bg-[#faf8f4] flex items-center justify-between cursor-pointer select-none"
+          onClick={() => setIsFormOpen(!isFormOpen)}
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-lg bg-[#effaf2] border border-[#c8ebd2] text-[#14532d] flex items-center justify-center font-bold">
+              {editingId ? <Edit2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            </span>
+            <h2 className="font-extrabold text-stone-900 text-sm font-serif">
+              {editingId ? `Edit Tab #${editingId}` : 'Enter Tab Description'}
             </h2>
           </div>
-          {editingId && (
-            <span className="text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">
-              Editing Existing Content
-            </span>
-          )}
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#effaf2] hover:bg-[#dcfce7] text-[#14532d] border border-[#c8ebd2] text-xs font-bold transition-all"
+          >
+            {isFormOpen ? (
+              <>
+                <Minus className="w-3.5 h-3.5" />
+                <span>Hide Form</span>
+              </>
+            ) : (
+              <>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Open Form</span>
+              </>
+            )}
+          </button>
         </div>
+
+        {isFormOpen && (
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -338,44 +359,60 @@ export default function CourseCategoryContents() {
             <button
               type="button"
               onClick={handleReset}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-sm transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>Reset</span>
+              <span>Cancel / Reset</span>
             </button>
 
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-300" />
               ) : (
                 <Send className="w-3.5 h-3.5" />
               )}
-              <span>{editingId ? 'Update Tab Content' : 'Submit'}</span>
+              <span>{editingId ? 'Update Tab Content' : 'Save Tab'}</span>
             </button>
           </div>
         </form>
+        )}
       </div>
 
       {/* ── TABLE OF EXISTING CONTENT TABS FOR THIS CATEGORY ── */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
+        <div className="px-6 py-4 border-b border-stone-200/90 bg-[#faf8f4] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-indigo-600" />
-            <h3 className="font-extrabold text-slate-900 text-sm">
+            <Layers className="w-4 h-4 text-emerald-800" />
+            <h3 className="font-extrabold text-stone-900 text-sm font-serif">
               Existing Content Tabs ({contents.length})
             </h3>
           </div>
-          <button
-            onClick={() => selectedCategoryId && fetchContents(selectedCategoryId)}
-            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
-            title="Reload content list"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+          <div className="flex items-center gap-2">
+            {!isFormOpen && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleReset();
+                  setIsFormOpen(true);
+                  window.scrollTo({ top: 200, behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Content Tab
+              </button>
+            )}
+            <button
+              onClick={() => selectedCategoryId && fetchContents(selectedCategoryId)}
+              className="p-1.5 text-stone-400 hover:text-stone-600 rounded-lg hover:bg-stone-100"
+              title="Reload content list"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -393,13 +430,13 @@ export default function CourseCategoryContents() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
-                  <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center">ID</th>
-                  <th className="py-3.5 px-5">Tab Name</th>
-                  <th className="py-3.5 px-4 text-center">Position</th>
-                  <th className="py-3.5 px-6">Description Preview</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">Sr. No.</th>
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">ID</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">Tab Name</th>
+                  <th className="py-3.5 px-4 text-center text-[#14532d]">Position</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Description Preview</th>
+                  <th className="py-3.5 px-5 text-right text-[#14532d]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">

@@ -55,8 +55,8 @@ export default function UniversityProgramContents() {
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // Form Section Visibility
-  const [isFormOpen, setIsFormOpen] = useState(true);
+  // Form Section Visibility (Default Closed)
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -335,28 +335,39 @@ export default function UniversityProgramContents() {
       )}
 
       {/* Add / Edit Form Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div
-          className="flex items-center justify-between p-3.5 bg-slate-50/80 border-b border-slate-200/80 cursor-pointer select-none"
+          className="flex items-center justify-between p-4 sm:p-5 bg-[#faf8f4] border-b border-stone-200/90 cursor-pointer select-none"
           onClick={() => setIsFormOpen(!isFormOpen)}
         >
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-6 h-6 rounded-lg flex items-center justify-center text-white text-xs font-bold ${
-                editingId ? 'bg-amber-500' : 'bg-indigo-600'
-              }`}
-            >
-              {editingId ? <Edit2 className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#effaf2] border border-[#c8ebd2] flex items-center justify-center text-[#14532d] font-bold text-xs">
+              {editingId ? <Edit2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
             </div>
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              {editingId ? 'Edit Program Content Record' : 'Add New Record'}
-            </h2>
+            <div>
+              <h2 className="text-sm font-black text-stone-900 font-serif">
+                {editingId ? 'Edit Program Content Record' : 'Add New Content Tab'}
+              </h2>
+              <p className="text-[11px] text-stone-500 font-medium">
+                {editingId ? 'Modify heading, tab title, or description' : 'Create a new rich tab for this program'}
+              </p>
+            </div>
           </div>
           <button
             type="button"
-            className="p-1 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#effaf2] hover:bg-[#dcfce7] text-[#14532d] border border-[#c8ebd2] text-xs font-bold transition-all"
           >
-            {isFormOpen ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            {isFormOpen ? (
+              <>
+                <Minus className="w-3.5 h-3.5" />
+                <span>Hide Form</span>
+              </>
+            ) : (
+              <>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Open Form</span>
+              </>
+            )}
           </button>
         </div>
 
@@ -436,30 +447,22 @@ export default function UniversityProgramContents() {
               />
             </div>
 
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-2 pt-2 border-t border-stone-100 justify-between">
               <button
                 type="button"
                 onClick={handleResetForm}
-                className="flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
               >
-                <RotateCcw className="w-3.5 h-3.5" /> Reset
+                <RotateCcw className="w-3.5 h-3.5" /> Cancel / Reset
               </button>
-              {editingId && (
-                <button
-                  type="button"
-                  onClick={handleResetForm}
-                  className="px-3 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-bold rounded-lg transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-              )}
+
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-1.5 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-2 px-6 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold rounded-xl transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
               >
-                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>{editingId ? 'Update Record' : 'Submit Record'}</span>
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" />}
+                <span>{editingId ? 'Update Record' : 'Save Content Tab'}</span>
               </button>
             </div>
           </form>
@@ -467,10 +470,10 @@ export default function UniversityProgramContents() {
       </div>
 
       {/* Program Contents Table Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="p-3.5 border-b border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-stone-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#faf8f4]">
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
             <input
               type="text"
               placeholder="Search by Tab Title or Heading..."
@@ -479,37 +482,53 @@ export default function UniversityProgramContents() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+              className="w-full pl-9 pr-3 py-1.5 text-xs border border-stone-200 rounded-xl focus:outline-none focus:border-emerald-600 bg-white"
             />
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-center">
-            <label className="text-xs text-slate-500 font-medium">Show:</label>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="px-2 py-1 text-xs border border-slate-200 rounded-lg bg-slate-50 font-medium"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-stone-500 font-medium">Show:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-2 py-1 text-xs border border-stone-200 rounded-lg bg-white font-medium text-stone-700"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+
+            {!isFormOpen && (
+              <button
+                type="button"
+                onClick={() => {
+                  handleResetForm();
+                  setIsFormOpen(true);
+                  window.scrollTo({ top: 200, behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Content
+              </button>
+            )}
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
+          <table className="w-full text-left text-xs text-stone-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3 px-4 w-16 text-center">Sr. No.</th>
-                <th className="py-3 px-4">Tab Title</th>
-                <th className="py-3 px-4">Heading</th>
-                <th className="py-3 px-4 w-28 text-center">Thumbnail</th>
-                <th className="py-3 px-4 w-28 text-center">Description</th>
-                <th className="py-3 px-4 w-24 text-center">Action</th>
+                <th className="py-3 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
+                <th className="py-3 px-4 text-[#14532d]">Tab Title</th>
+                <th className="py-3 px-4 text-[#14532d]">Heading</th>
+                <th className="py-3 px-4 w-28 text-center text-[#14532d]">Thumbnail</th>
+                <th className="py-3 px-4 w-28 text-center text-[#14532d]">Description</th>
+                <th className="py-3 px-4 w-24 text-center text-[#14532d]">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

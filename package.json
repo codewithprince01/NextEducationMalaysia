@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
+    "dev": "concurrently -n \"NEXT,ADMIN\" -c \"cyan,magenta\" \"npm run dev:next\" \"npm run admin:dev\"",
+    "dev:next": "node --max-old-space-size=4096 node_modules/next/dist/bin/next dev",
     "admin:dev": "npm --prefix admin-app run dev",
-    "dev:all": "concurrently -n \"NEXT,ADMIN\" -c \"cyan,magenta\" \"npm run dev\" \"npm run admin:dev\"",
+    "dev:all": "npm run dev",
     "admin:install": "npm --prefix admin-app ci --no-audit --no-fund",
     "admin:build": "npm --prefix admin-app run build",
     "build:all": "npm run admin:install && npm run admin:build && npm run build",

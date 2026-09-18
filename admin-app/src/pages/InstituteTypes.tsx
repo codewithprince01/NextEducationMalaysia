@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
+import { api } from '@/lib/api';
 import Pagination from '@/components/common/Pagination';
 import {
   Building2,
@@ -50,15 +51,14 @@ export default function InstituteTypes() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/institute-types');
-      const json = await res.json();
-      if (res.ok && json.status) {
-        setTypes(json.data || []);
-      } else {
-        showToast('error', json.message || 'Failed to fetch institute types');
+      const res = await api.get('/api/v1/admin/institute-types');
+      if (res.ok && res.data) {
+        setTypes(Array.isArray(res.data) ? res.data : []);
+      } else if (!res.ok && res.status !== 0 && res.status !== 503) {
+        showToast('error', res.message || 'Failed to fetch institute types');
       }
     } catch {
-      showToast('error', 'Network error while fetching data');
+      // safeFetch handles retries internally
     } finally {
       setLoading(false);
     }
@@ -204,9 +204,9 @@ export default function InstituteTypes() {
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-emerald-300" />
             <span>Add Institute Type</span>
           </button>
         </div>
@@ -270,13 +270,13 @@ export default function InstituteTypes() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-600 font-extrabold uppercase tracking-wider text-[11px]">
-                  <th className="py-3 px-4 w-16">Sr. No.</th>
-                  <th className="py-3 px-4 w-16">Id</th>
-                  <th className="py-3 px-6">Type</th>
-                  <th className="py-3 px-6">SEO Name</th>
-                  <th className="py-3 px-6">University</th>
-                  <th className="py-3 px-4 text-center w-28">Action</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
+                  <th className="py-3 px-4 w-16 text-center text-emerald-700">Id</th>
+                  <th className="py-3 px-6 text-[#14532d]">Type</th>
+                  <th className="py-3 px-6 text-[#14532d]">SEO Name</th>
+                  <th className="py-3 px-6 text-[#14532d]">University</th>
+                  <th className="py-3 px-4 text-center w-28 text-[#14532d]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -304,8 +304,8 @@ export default function InstituteTypes() {
                           </button>
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white transition-colors cursor-pointer shadow-2xs"
-                            title="Edit"
+                            className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
+                            title="Edit Institute Type"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -391,9 +391,9 @@ export default function InstituteTypes() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 disabled:opacity-50 transition-all cursor-pointer flex items-center gap-2"
+                  className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold shadow-xs disabled:opacity-50 transition-all cursor-pointer"
                 >
-                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" />}
                   <span>{editingId ? 'Update Record' : 'Save Record'}</span>
                 </button>
               </div>

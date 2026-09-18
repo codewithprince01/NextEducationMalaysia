@@ -49,7 +49,7 @@ export default function Exams() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Form card toggle state
-  const [isFormOpen, setIsFormOpen] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -265,19 +265,19 @@ export default function Exams() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-indigo-600" /> Exams
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-emerald-800" /> Exams
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Manage entrance exams, headlines, positions, descriptions, and SEO ratings.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2 text-slate-600 hover:text-emerald-800 hover:bg-[#effaf2] rounded-xl border border-slate-200 transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -290,28 +290,34 @@ export default function Exams() {
                 handleOpenAdd();
               }
             }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
-            {isFormOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {isFormOpen ? 'Close Form' : 'Add New'}
+            {isFormOpen && !editingId ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-emerald-300" />}
+            <span>{isFormOpen && !editingId ? 'Close Form' : 'Add New Exam'}</span>
           </button>
         </div>
       </div>
 
-      {/* Form Card matching screenshot layout */}
+      {/* Form Card */}
       {isFormOpen && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              {editingId ? <Edit2 className="w-4 h-4 text-indigo-600" /> : <Plus className="w-4 h-4 text-indigo-600" />}
-              {editingId ? 'Update Record' : 'Add New Record'}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-fadeIn">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#c8ebd2] bg-[#effaf2]">
+            <h2 className="text-sm font-bold text-[#14532d] flex items-center gap-2">
+              {editingId ? <Edit2 className="w-4 h-4 text-emerald-700" /> : <Plus className="w-4 h-4 text-emerald-700" />}
+              <span>{editingId ? 'Update Exam Record' : 'Add New Exam Record'}</span>
             </h2>
+            <button
+              onClick={() => setIsFormOpen(false)}
+              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Exam Name <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -320,11 +326,11 @@ export default function Exams() {
                   placeholder="Exam Name"
                   value={formData.page_name}
                   onChange={(e) => setFormData({ ...formData, page_name: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Enter Title
                 </label>
                 <input
@@ -332,13 +338,13 @@ export default function Exams() {
                   placeholder="Enter Title"
                   value={formData.headline}
                   onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                 Description
               </label>
               <RichTextEditor
@@ -350,24 +356,24 @@ export default function Exams() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Thumbnail
                 </label>
                 <input
                   type="file"
                   ref={thumbnailRef}
                   accept="image/*"
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#effaf2] file:text-[#14532d] hover:file:bg-[#dcfce7] cursor-pointer border border-slate-200 rounded-xl bg-slate-50/70"
                 />
                 {existingThumbnail && (
                   <div className="mt-1 flex items-center gap-2">
-                    <img src={existingThumbnail} alt="Thumbnail" className="h-6 w-6 object-cover rounded border" />
+                    <img src={existingThumbnail} alt="Thumbnail" className="h-6 w-6 object-cover rounded-md border border-[#c8ebd2]" />
                     <span className="text-[11px] text-slate-500 truncate font-mono">{existingThumbnail}</span>
                   </div>
                 )}
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Position
                 </label>
                 <input
@@ -375,7 +381,7 @@ export default function Exams() {
                   placeholder="Position"
                   value={formData.position}
                   onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -385,7 +391,7 @@ export default function Exams() {
             {/* SEO Section */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Meta Title
                 </label>
                 <input
@@ -393,11 +399,11 @@ export default function Exams() {
                   placeholder="Enter Meta Title"
                   value={formData.meta_title}
                   onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Meta Keyword
                 </label>
                 <input
@@ -405,13 +411,13 @@ export default function Exams() {
                   placeholder="Meta Keyword"
                   value={formData.meta_keyword}
                   onChange={(e) => setFormData({ ...formData, meta_keyword: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                 Meta Description
               </label>
               <textarea
@@ -419,13 +425,13 @@ export default function Exams() {
                 placeholder="Meta Description"
                 value={formData.meta_description}
                 onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all resize-none"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Seo Rating
                 </label>
                 <input
@@ -433,11 +439,11 @@ export default function Exams() {
                   placeholder="Seo Rating"
                   value={formData.seo_rating}
                   onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Best Rating
                 </label>
                 <input
@@ -445,11 +451,11 @@ export default function Exams() {
                   placeholder="Best Rating"
                   value={formData.best_rating}
                   onChange={(e) => setFormData({ ...formData, best_rating: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Number of Review
                 </label>
                 <input
@@ -457,22 +463,22 @@ export default function Exams() {
                   placeholder="Total Reviews"
                   value={formData.review_number}
                   onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
                   Upload OG Image
                 </label>
                 <input
                   type="file"
                   ref={ogImageRef}
                   accept="image/*"
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#effaf2] file:text-[#14532d] hover:file:bg-[#dcfce7] cursor-pointer border border-slate-200 rounded-xl bg-slate-50/70"
                 />
                 {existingOgImage && (
                   <div className="mt-1 flex items-center gap-2">
-                    <img src={existingOgImage} alt="OG Image" className="h-6 w-6 object-cover rounded border" />
+                    <img src={existingOgImage} alt="OG Image" className="h-6 w-6 object-cover rounded-md border border-[#c8ebd2]" />
                     <span className="text-[11px] text-slate-500 truncate font-mono">{existingOgImage}</span>
                   </div>
                 )}
@@ -483,17 +489,17 @@ export default function Exams() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
-                <RotateCcw className="w-4 h-4" /> Reset
+                <RotateCcw className="w-3.5 h-3.5" /> Reset
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {editingId ? 'Update Record' : 'Submit'}
+                <span>{editingId ? 'Update Record' : 'Submit'}</span>
               </button>
             </div>
           </form>
@@ -501,7 +507,7 @@ export default function Exams() {
       )}
 
       {/* Controls & Search */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -509,21 +515,21 @@ export default function Exams() {
             placeholder="Search exam name or heading..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
           />
         </div>
         <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+          Showing <span className="font-bold text-slate-700">{filtered.length}</span> entries
         </div>
       </div>
 
-      {/* Data Table matching screenshot */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* Data Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
                 <th className="py-3.5 px-4">Exam Name</th>
                 <th className="py-3.5 px-4">Heading</th>
                 <th className="py-3.5 px-4">Description</th>
@@ -538,13 +544,13 @@ export default function Exams() {
               {loading ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-700" />
                     Loading exams...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
+                  <td colSpan={9} className="py-12 text-center text-slate-400 font-medium">
                     No data found
                   </td>
                 </tr>
@@ -552,8 +558,8 @@ export default function Exams() {
                 paginated.map((item, index) => {
                   const thumb = getStorageUrl(item.thumbnail_path || item.imgpath);
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-medium text-slate-500">
+                    <tr key={item.id} className="hover:bg-[#f6fcf8] transition-colors">
+                      <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-slate-800">
@@ -566,7 +572,7 @@ export default function Exams() {
                         {item.description ? (
                           <button
                             onClick={() => setDescModal(item.description || '')}
-                            className="px-3 py-1 border border-indigo-200 hover:bg-indigo-50 text-indigo-600 rounded text-xs font-medium transition-colors"
+                            className="px-2.5 py-1 border border-[#c8ebd2] hover:bg-[#dcfce7] bg-[#effaf2] text-[#14532d] rounded-lg text-xs font-bold transition-colors cursor-pointer"
                           >
                             View
                           </button>
@@ -575,7 +581,7 @@ export default function Exams() {
                         )}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500 text-white font-bold text-[10px] uppercase">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] font-bold text-[10px] uppercase">
                           Active
                         </span>
                       </td>
@@ -585,7 +591,7 @@ export default function Exams() {
                       <td className="py-3.5 px-4">
                         {thumb ? (
                           <a href={thumb} target="_blank" rel="noreferrer">
-                            <img src={thumb} alt={item.page_name || 'Exam'} className="h-7 w-7 object-cover rounded border" />
+                            <img src={thumb} alt={item.page_name || 'Exam'} className="h-7 w-7 object-cover rounded-md border border-[#c8ebd2]" />
                           </a>
                         ) : (
                           <span className="text-slate-400 text-xs">N/A</span>
@@ -594,7 +600,7 @@ export default function Exams() {
                       <td className="py-3.5 px-4">
                         <button
                           onClick={() => setSeoModal(item)}
-                          className="px-3 py-1 border border-indigo-200 hover:bg-indigo-50 text-indigo-600 rounded text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 border border-[#c8ebd2] hover:bg-[#dcfce7] bg-[#effaf2] text-[#14532d] rounded-lg text-xs font-bold transition-colors cursor-pointer"
                         >
                           View
                         </button>
@@ -602,18 +608,18 @@ export default function Exams() {
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => handleDelete(item.id)}
-                            className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-lg transition-colors shadow-sm"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                          <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors shadow-sm"
+                            className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                             title="Edit"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -641,15 +647,15 @@ export default function Exams() {
 
       {/* Description View Modal */}
       {descModal !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-indigo-600" /> Description
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8ebd2] bg-[#effaf2]">
+              <h3 className="text-sm font-bold text-[#14532d] flex items-center gap-1.5">
+                <Eye className="w-4 h-4 text-emerald-700" /> Description
               </h3>
               <button
                 onClick={() => setDescModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -661,7 +667,7 @@ export default function Exams() {
             <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setDescModal(null)}
-                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -672,54 +678,54 @@ export default function Exams() {
 
       {/* SEO View Modal */}
       {seoModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                <Globe className="w-4 h-4 text-indigo-600" /> SEO Details - {seoModal.page_name || seoModal.name}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-lg overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8ebd2] bg-[#effaf2]">
+              <h3 className="text-sm font-bold text-[#14532d] flex items-center gap-1.5">
+                <Globe className="w-4 h-4 text-emerald-700" /> SEO Details - {seoModal.page_name || seoModal.name}
               </h3>
               <button
                 onClick={() => setSeoModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div className="p-5 space-y-3 text-xs text-slate-600">
               <div>
-                <span className="font-semibold text-slate-700 block mb-0.5">Meta Title:</span>
-                <p className="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-[11px]">
+                <span className="font-bold text-slate-700 block mb-0.5">Meta Title:</span>
+                <p className="bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono text-[11px]">
                   {seoModal.meta_title || 'N/A'}
                 </p>
               </div>
               <div>
-                <span className="font-semibold text-slate-700 block mb-0.5">Meta Keyword:</span>
-                <p className="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-[11px]">
+                <span className="font-bold text-slate-700 block mb-0.5">Meta Keyword:</span>
+                <p className="bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono text-[11px]">
                   {seoModal.meta_keyword || 'N/A'}
                 </p>
               </div>
               <div>
-                <span className="font-semibold text-slate-700 block mb-0.5">Meta Description:</span>
-                <p className="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-[11px]">
+                <span className="font-bold text-slate-700 block mb-0.5">Meta Description:</span>
+                <p className="bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono text-[11px]">
                   {seoModal.meta_description || 'N/A'}
                 </p>
               </div>
               <div className="grid grid-cols-3 gap-2 pt-1">
                 <div>
-                  <span className="font-semibold text-slate-700 block mb-0.5">Seo Rating:</span>
-                  <span className="px-2 py-1 bg-slate-100 rounded text-slate-800 font-semibold block text-center">
+                  <span className="font-bold text-slate-700 block mb-0.5">Seo Rating:</span>
+                  <span className="px-2 py-1 bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] rounded-lg font-bold block text-center">
                     {seoModal.seo_rating || 'N/A'}
                   </span>
                 </div>
                 <div>
-                  <span className="font-semibold text-slate-700 block mb-0.5">Best Rating:</span>
-                  <span className="px-2 py-1 bg-slate-100 rounded text-slate-800 font-semibold block text-center">
+                  <span className="font-bold text-slate-700 block mb-0.5">Best Rating:</span>
+                  <span className="px-2 py-1 bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] rounded-lg font-bold block text-center">
                     {seoModal.best_rating || 'N/A'}
                   </span>
                 </div>
                 <div>
-                  <span className="font-semibold text-slate-700 block mb-0.5">Reviews:</span>
-                  <span className="px-2 py-1 bg-slate-100 rounded text-slate-800 font-semibold block text-center">
+                  <span className="font-bold text-slate-700 block mb-0.5">Reviews:</span>
+                  <span className="px-2 py-1 bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] rounded-lg font-bold block text-center">
                     {seoModal.review_number || 'N/A'}
                   </span>
                 </div>
@@ -728,7 +734,7 @@ export default function Exams() {
             <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setSeoModal(null)}
-                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>

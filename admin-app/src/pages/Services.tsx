@@ -259,19 +259,22 @@ export default function Services() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Briefcase className="w-6 h-6 text-indigo-600" /> Services
+          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]">
+              <Briefcase className="w-5 h-5 text-emerald-700" />
+            </div>
+            <span>Services</span>
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Manage service page titles, headlines, thumbnails, and SEO meta tags.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2.5 text-slate-600 hover:text-[#14532d] hover:bg-[#effaf2] rounded-xl border border-slate-200 transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -284,15 +287,15 @@ export default function Services() {
                 handleOpenAdd();
               }
             }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer"
           >
-            {showForm ? (
+            {showForm && !editingId ? (
               <>
-                <ChevronUp className="w-4 h-4" /> Hide Form
+                <ChevronUp className="w-4 h-4" /> Close Form
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4" /> Add Service
+                <Plus className="w-4 h-4 text-emerald-300" /> Add Service
               </>
             )}
           </button>
@@ -301,14 +304,14 @@ export default function Services() {
 
       {/* Form Card (Matching Laravel services.blade.php + media_1789217102087.png) */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
-          <div className="flex items-center justify-between p-4 px-6 border-b border-slate-200 bg-slate-50/50">
-            <h3 className="text-base font-bold text-slate-800">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-fadeIn">
+          <div className="flex items-center justify-between p-4 px-6 border-b border-[#c8ebd2]/60 bg-[#effaf2]">
+            <h3 className="text-sm font-extrabold text-[#14532d]">
               {editingId ? 'Edit Record' : 'Add New Record'}
             </h3>
             <button
               onClick={handleCancelForm}
-              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+              className="p-1 text-slate-400 hover:text-slate-700 rounded-lg transition-colors cursor-pointer"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -318,7 +321,7 @@ export default function Services() {
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Enter Page Name
                 </label>
                 <input
@@ -327,12 +330,12 @@ export default function Services() {
                   placeholder="Enter Page Name"
                   value={formData.page_name}
                   onChange={(e) => setFormData({ ...formData, page_name: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Enter Headline
                 </label>
                 <input
@@ -340,14 +343,14 @@ export default function Services() {
                   placeholder="Enter Headline"
                   value={formData.headline}
                   onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Thumbnail
                 </label>
                 <input
@@ -357,7 +360,7 @@ export default function Services() {
                     const file = e.target.files?.[0] || null;
                     setThumbnailFile(file);
                   }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                 />
                 {(thumbnailFile || formData.thumbnail_path) && (
                   <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
@@ -371,13 +374,13 @@ export default function Services() {
 
             {/* SEO Section */}
             <div className="space-y-4">
-              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              <h4 className="text-xs font-extrabold text-[#14532d] uppercase tracking-wider">
                 SEO Settings
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Meta Title
                   </label>
                   <input
@@ -385,12 +388,12 @@ export default function Services() {
                     placeholder="Meta Title"
                     value={formData.meta_title}
                     onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Meta Keyword
                   </label>
                   <input
@@ -398,13 +401,13 @@ export default function Services() {
                     placeholder="Meta Keyword"
                     value={formData.meta_keyword}
                     onChange={(e) => setFormData({ ...formData, meta_keyword: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Meta Description
                 </label>
                 <textarea
@@ -412,13 +415,13 @@ export default function Services() {
                   placeholder="Meta Description"
                   value={formData.meta_description}
                   onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all resize-none font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Seo Rating
                   </label>
                   <input
@@ -427,12 +430,12 @@ export default function Services() {
                     placeholder="Seo Rating"
                     value={formData.seo_rating}
                     onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Best Rating
                   </label>
                   <input
@@ -441,12 +444,12 @@ export default function Services() {
                     placeholder="Best Rating"
                     value={formData.best_rating}
                     onChange={(e) => setFormData({ ...formData, best_rating: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Number of Review
                   </label>
                   <input
@@ -454,12 +457,12 @@ export default function Services() {
                     placeholder="Number of Review"
                     value={formData.review_number}
                     onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Upload OG Image
                   </label>
                   <input
@@ -469,7 +472,7 @@ export default function Services() {
                       const file = e.target.files?.[0] || null;
                       setOgImageFile(file);
                     }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                   />
                   {(ogImageFile || formData.og_image_path) && (
                     <span className="text-[11px] text-slate-600 mt-1 block truncate font-mono">
@@ -486,7 +489,7 @@ export default function Services() {
                 <button
                   type="button"
                   onClick={handleCancelForm}
-                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-slate-300"
                 >
                   Cancel
                 </button>
@@ -507,7 +510,7 @@ export default function Services() {
                       og_image_path: '',
                     })
                   }
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-slate-300"
                 >
                   Reset
                 </button>
@@ -515,10 +518,10 @@ export default function Services() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Submit
+                {editingId ? 'Update Service' : 'Submit Service'}
               </button>
             </div>
           </form>
@@ -526,7 +529,7 @@ export default function Services() {
       )}
 
       {/* Controls / Search */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -534,49 +537,49 @@ export default function Services() {
             placeholder="Search page name or headline..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
           />
         </div>
-        <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+        <div className="text-xs font-bold text-slate-500">
+          Showing <span className="text-[#14532d]">{filtered.length}</span> entries
         </div>
       </div>
 
       {/* Table (Matching Laravel services.blade.php & media_1789217102087.png) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
-                <th className="py-3.5 px-4">Page Name</th>
-                <th className="py-3.5 px-4">Headline</th>
-                <th className="py-3.5 px-4">Image</th>
-                <th className="py-3.5 px-4">SEO</th>
-                <th className="py-3.5 px-4 text-right">Action</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Page Name</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Headline</th>
+                <th className="py-3.5 px-4 text-[#14532d]">Image</th>
+                <th className="py-3.5 px-4 text-[#14532d]">SEO</th>
+                <th className="py-3.5 px-4 text-right text-[#14532d]">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600" />
                     Loading services...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-12 text-center text-slate-400 font-bold">
                     No service records found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                  <tr key={item.id} className="hover:bg-[#effaf2]/40 transition-colors">
+                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                    <td className="py-3.5 px-4 font-extrabold text-slate-900">
                       {item.page_name || '-'}
                     </td>
                     <td className="py-3.5 px-4 text-slate-700 max-w-xs truncate">
@@ -587,7 +590,7 @@ export default function Services() {
                         <img
                           src={getImageUrl(item.thumbnail_path || item.imgpath)}
                           alt={item.page_name || 'Service Thumbnail'}
-                          className="w-10 h-10 object-cover rounded border border-slate-200 bg-slate-50"
+                          className="w-10 h-10 object-cover rounded-xl border border-slate-200 bg-slate-50 p-0.5 shadow-2xs"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';
                             const nextSibling = (e.target as HTMLElement).nextElementSibling as HTMLElement;
@@ -602,9 +605,9 @@ export default function Services() {
                       {item.meta_title ? (
                         <button
                           onClick={() => setSeoModal({ isOpen: true, item })}
-                          className="px-2.5 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
+                          className="px-2.5 py-1 text-xs font-bold text-[#14532d] bg-[#effaf2] border border-[#c8ebd2]/60 hover:bg-[#dcfce7] rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                         >
-                          <Eye className="w-3 h-3" /> View
+                          <Eye className="w-3 h-3 text-emerald-700" /> View
                         </button>
                       ) : (
                         <span className="text-slate-400 text-xs">Null</span>
@@ -614,24 +617,24 @@ export default function Services() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => navigate(`/service-content/${item.id}`)}
-                          className="px-2 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
+                          className="px-2.5 py-1.5 text-xs font-bold text-[#14532d] bg-[#effaf2] border border-[#c8ebd2]/80 hover:bg-[#dcfce7] rounded-xl transition-colors inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                           title="Service Content"
                         >
-                          <FileText className="w-3 h-3" /> Content <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-bold">{item.content_count || 0}</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
+                          <FileText className="w-3.5 h-3.5 text-emerald-700" /> Content <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#14532d] text-white font-bold">{item.content_count || 0}</span>
                         </button>
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>

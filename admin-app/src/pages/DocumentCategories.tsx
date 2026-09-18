@@ -171,7 +171,7 @@ export default function DocumentCategories() {
   );
 
   return (
-    <div className="p-6">
+    <div className="space-y-3 max-w-[1600px] mx-auto">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -188,162 +188,159 @@ export default function DocumentCategories() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <FolderTree className="w-7 h-7 text-indigo-600" />
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            <FolderTree className="w-5 h-5 text-emerald-800" />
             University Document Categories
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Manage document categories for university brochures, fee structure, guides, and media files.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link
             to="/university-documents"
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] hover:bg-[#dcfce7] rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
-            <FileText className="w-4 h-4" />
-            View All Documents
+            <FileText className="w-4 h-4 text-emerald-700" />
+            <span>View All Documents</span>
           </Link>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            Add Category
+            <Plus className="w-4 h-4 text-emerald-300" />
+            <span>Add Category</span>
           </button>
         </div>
       </div>
 
-      {/* Main Content Card */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Search & Actions Bar */}
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/50">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search category name, slug..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <button
-              onClick={fetchData}
-              className="p-2 hover:bg-gray-200 rounded-lg text-gray-600 transition-colors"
-              title="Refresh Data"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <span>
-              Total Categories: <strong className="text-gray-900">{filteredItems.length}</strong>
-            </span>
-          </div>
+      {/* Search & Controls */}
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-center">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search category name, slug..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
+          />
         </div>
 
-        {/* Table */}
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <button
+            onClick={fetchData}
+            className="p-2 text-slate-600 hover:text-emerald-800 hover:bg-[#effaf2] rounded-xl border border-slate-200 transition-colors cursor-pointer"
+            title="Refresh Data"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <span>
+            Total Categories: <strong className="text-slate-800 font-bold">{filteredItems.length}</strong>
+          </span>
+        </div>
+      </div>
+
+      {/* Main Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3 px-4 w-16 text-center">#</th>
-                <th className="py-3 px-4">Category Name</th>
-                <th className="py-3 px-4">Slug</th>
-                <th className="py-3 px-4">Icon</th>
-                <th className="py-3 px-4 text-center">Sort Order</th>
-                <th className="py-3 px-4 text-center">Total Documents</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Action</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
+                <th className="py-3.5 px-4">Category Name</th>
+                <th className="py-3.5 px-4">Slug</th>
+                <th className="py-3.5 px-4">Icon</th>
+                <th className="py-3.5 px-4 text-center">Sort Order</th>
+                <th className="py-3.5 px-4 text-center">Total Documents</th>
+                <th className="py-3.5 px-4 text-center">Status</th>
+                <th className="py-3.5 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-gray-500">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-600 mb-2" />
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-emerald-700 mb-2" />
                     Loading categories...
                   </td>
                 </tr>
               ) : currentData.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-gray-500">
+                  <td colSpan={8} className="py-12 text-center text-slate-400 font-medium">
                     No document categories found.
                   </td>
                 </tr>
               ) : (
                 currentData.map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="py-3 px-4 text-center text-gray-500 font-mono text-xs">
+                  <tr key={item.id} className="hover:bg-[#f6fcf8] transition-colors">
+                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
                       {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-medium">
-                          <Folder className="w-4 h-4" />
+                        <div className="w-8 h-8 rounded-full bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] flex items-center justify-center font-medium">
+                          <Folder className="w-4 h-4 text-emerald-700" />
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{item.name}</div>
+                          <div className="font-bold text-slate-800">{item.name}</div>
                           {item.description && (
-                            <div className="text-xs text-gray-500 line-clamp-1 max-w-md">
+                            <div className="text-[11px] text-slate-500 line-clamp-1 max-w-md mt-0.5">
                               {item.description}
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">
-                      <code className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                    <td className="py-3.5 px-4">
+                      <code className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-mono">
                         {item.slug}
                       </code>
                     </td>
-                    <td className="py-3 px-4 text-xs text-gray-600">
-                      <span className="font-mono bg-gray-50 px-2 py-1 rounded border border-gray-200">
+                    <td className="py-3.5 px-4 text-xs text-slate-600">
+                      <span className="font-mono bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 text-[11px]">
                         {item.icon || 'ri-folder-line'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                        {item.position}
-                      </span>
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-700">
+                      {item.position}
                     </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700">
+                    <td className="py-3.5 px-4 text-center">
+                      <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]">
                         {item.documents_count || 0}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === 1
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-red-100 text-red-800'
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${item.status === 1
+                            ? 'bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]'
+                            : 'bg-rose-50 text-rose-600 border border-rose-200'
                           }`}
                       >
                         {item.status === 1 ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                           title="Edit Category"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
                           title="Delete Category"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -356,7 +353,7 @@ export default function DocumentCategories() {
 
         {/* Pagination */}
         {!loading && filteredItems.length > 0 && (
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-slate-100">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
@@ -368,25 +365,25 @@ export default function DocumentCategories() {
 
       {/* Add / Edit Category Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <Tag className="w-5 h-5 text-indigo-600" />
-                {editingId ? 'Edit Category' : 'Add Document Category'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8ebd2] bg-[#effaf2]">
+              <h3 className="text-sm font-bold text-[#14532d] flex items-center gap-2">
+                <Tag className="w-4 h-4 text-emerald-700" />
+                {editingId ? 'Edit Document Category' : 'Add Document Category'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg"
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category Name <span className="text-red-500">*</span>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
+                  Category Name <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -394,13 +391,13 @@ export default function DocumentCategories() {
                   placeholder="e.g. Prospectus & Fee Structure"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Icon Class
                   </label>
                   <input
@@ -408,25 +405,25 @@ export default function DocumentCategories() {
                     placeholder="ri-folder-line or fa fa-file-pdf"
                     value={formData.icon}
                     onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                     Sort Order / Position
                   </label>
                   <input
                     type="number"
                     value={formData.position}
                     onChange={(e) => setFormData({ ...formData, position: parseInt(e.target.value, 10) || 0 })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                   Description / Notes
                 </label>
                 <textarea
@@ -434,7 +431,7 @@ export default function DocumentCategories() {
                   placeholder="Brief description of documents stored in this category..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all resize-none"
                 ></textarea>
               </div>
 
@@ -444,28 +441,28 @@ export default function DocumentCategories() {
                   id="status-toggle"
                   checked={formData.status === 1}
                   onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 1 : 0 })}
-                  className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                  className="w-4 h-4 text-[#14532d] accent-emerald-700 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
                 />
-                <label htmlFor="status-toggle" className="text-sm font-medium text-gray-700 select-none">
+                <label htmlFor="status-toggle" className="text-xs font-bold text-slate-700 select-none cursor-pointer">
                   Active Status
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {editingId ? 'Update Category' : 'Save Category'}
+                  <span>{editingId ? 'Update Category' : 'Save Category'}</span>
                 </button>
               </div>
             </form>

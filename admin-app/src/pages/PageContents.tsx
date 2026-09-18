@@ -197,34 +197,38 @@ export default function PageContents() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-2xs">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <Layout className="w-6 h-6 text-indigo-600" /> Page Contents
+          <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]/60 shadow-2xs">
+              <Layout className="w-5 h-5 text-emerald-700" />
+            </span>
+            Page Contents
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Manage main page content sections, headers, descriptions, and authors.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2 text-slate-600 hover:text-[#14532d] hover:bg-[#effaf2] rounded-xl border border-slate-200 hover:border-[#c8ebd2] transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Add Page Content
+            <Plus className="w-3.5 h-3.5 text-emerald-300" /> Add Page Content
           </button>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -232,21 +236,21 @@ export default function PageContents() {
             placeholder="Search page name or heading..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
           />
         </div>
         <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+          Showing <span className="font-bold text-slate-700">{filtered.length}</span> entries
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
                 <th className="py-3.5 px-4">Page Name</th>
                 <th className="py-3.5 px-4">Heading</th>
                 <th className="py-3.5 px-4">Description</th>
@@ -257,27 +261,27 @@ export default function PageContents() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600" />
                     Loading page contents...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">
                     No page content sections found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, index) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-indigo-600">
+                    <td className="py-3.5 px-4 font-bold text-emerald-950">
                       <div>{item.page_name}</div>
                       {item.author && (
                         <div className="text-[11px] font-normal text-slate-400 flex items-center gap-1 mt-0.5">
-                          <UserCheck className="w-3 h-3 text-purple-600" /> {item.author.name}
+                          <UserCheck className="w-3 h-3 text-emerald-700" /> {item.author.name}
                         </div>
                       )}
                     </td>
@@ -285,41 +289,41 @@ export default function PageContents() {
                       {item.heading ? (
                         <button
                           onClick={() => setHeadingModal(item.heading || '')}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 bg-[#effaf2] hover:bg-[#dcfce7] text-[#14532d] rounded-lg text-xs font-bold transition-colors border border-[#c8ebd2]/60 cursor-pointer"
                         >
                           View Heading
                         </button>
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <span className="text-slate-400 text-xs italic">N/A</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4">
                       {item.description ? (
                         <button
                           onClick={() => setDescModal(item.description || '')}
-                          className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded text-xs font-medium transition-colors flex items-center gap-1"
+                          className="px-2.5 py-1 bg-[#effaf2] hover:bg-[#dcfce7] text-[#14532d] rounded-lg text-xs font-bold transition-colors border border-[#c8ebd2]/60 flex items-center gap-1 cursor-pointer"
                         >
-                          <Eye className="w-3.5 h-3.5" /> View Description
+                          <Eye className="w-3.5 h-3.5 text-emerald-700" /> View Description
                         </button>
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <span className="text-slate-400 text-xs italic">N/A</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
                           title="Delete"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -332,7 +336,7 @@ export default function PageContents() {
 
         {/* Pagination */}
         {!loading && filtered.length > 0 && (
-          <div className="p-4 border-t border-slate-100">
+          <div className="p-4 border-t border-slate-100 bg-slate-50/50">
             <Pagination
               currentPage={currentPage}
               totalPages={Math.ceil(filtered.length / itemsPerPage)}
@@ -346,13 +350,13 @@ export default function PageContents() {
 
       {/* Heading View Modal */}
       {headingModal !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-sm font-bold text-slate-800">Heading Title</h3>
               <button
                 onClick={() => setHeadingModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -363,7 +367,7 @@ export default function PageContents() {
             <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setHeadingModal(null)}
-                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -374,15 +378,15 @@ export default function PageContents() {
 
       {/* Description View Modal */}
       {descModal !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-indigo-600" /> Description Content
+                <Eye className="w-4 h-4 text-emerald-700" /> Description Content
               </h3>
               <button
                 onClick={() => setDescModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -394,7 +398,7 @@ export default function PageContents() {
             <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setDescModal(null)}
-                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -405,15 +409,15 @@ export default function PageContents() {
 
       {/* Add / Edit Form Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-base font-semibold text-slate-800">
+              <h3 className="text-base font-bold text-slate-800">
                 {editingId ? 'Edit Page Content' : 'Add Page Content'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -422,7 +426,7 @@ export default function PageContents() {
             <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Page Name <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -431,17 +435,18 @@ export default function PageContents() {
                     placeholder="e.g. Home"
                     value={formData.page_name}
                     onChange={(e) => setFormData({ ...formData, page_name: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-                  />
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
+                  >
+                  </input>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Author
                   </label>
                   <select
                     value={formData.author_id}
                     onChange={(e) => setFormData({ ...formData, author_id: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   >
                     <option value="">-- Select Author --</option>
                     {authors.map((a) => (
@@ -454,7 +459,7 @@ export default function PageContents() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Heading Title
                 </label>
                 <input
@@ -462,12 +467,12 @@ export default function PageContents() {
                   placeholder="e.g. Welcome to Education Malaysia"
                   value={formData.heading}
                   onChange={(e) => setFormData({ ...formData, heading: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Content Body (Rich Text)
                 </label>
                 <RichTextEditor
@@ -481,16 +486,16 @@ export default function PageContents() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin text-emerald-300" />}
                   {editingId ? 'Save Changes' : 'Create Section'}
                 </button>
               </div>

@@ -592,9 +592,9 @@ export default function CourseCategories() {
 
             <button
               onClick={handleOpenAdd}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-emerald-300" />
               <span>Add New Category</span>
             </button>
           </div>
@@ -660,9 +660,9 @@ export default function CourseCategories() {
           <button
             onClick={handleImport}
             disabled={importing || !importFile}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0"
           >
-            {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" /> : <Upload className="w-3.5 h-3.5" />}
             <span>Import Categories</span>
           </button>
         </div>
@@ -850,10 +850,10 @@ export default function CourseCategories() {
 
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 transition-colors cursor-pointer shadow-2xs"
                             title="Edit Category"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
 
                           <button

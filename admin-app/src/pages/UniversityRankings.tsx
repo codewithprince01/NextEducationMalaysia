@@ -220,14 +220,14 @@ export default function UniversityRankings() {
       <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-blue-700 block">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-800 block">
               UNIVERSITY MODULE
             </span>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <Trophy className="w-6 h-6 text-amber-500" />
+            <h1 className="text-2xl font-extrabold text-stone-900 tracking-tight flex items-center gap-2 font-serif">
+              <Trophy className="w-6 h-6 text-emerald-700" />
               University Rankings
               {selectedUniv && (
-                <span className="ml-2 text-base font-bold text-blue-700">
+                <span className="ml-2 text-base font-bold text-[#14532d]">
                   — {selectedUniv.name}
                 </span>
               )}
@@ -237,9 +237,9 @@ export default function UniversityRankings() {
             {selectedUnivId && (
               <button
                 onClick={handleOpenAdd}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold text-xs shadow-md shadow-blue-600/20 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+                className="px-5 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
               >
-                <Plus className="w-4 h-4" /> Add Ranking
+                <Plus className="w-4 h-4 text-emerald-300" /> Add Ranking
               </button>
             )}
           </div>
@@ -253,7 +253,7 @@ export default function UniversityRankings() {
           <select
             value={selectedUnivId}
             onChange={handleUniversityChange}
-            className="w-full sm:w-80 px-3 py-2 rounded-xl border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:border-blue-600 bg-slate-50"
+            className="w-full sm:w-80 px-3 py-2 rounded-xl border border-stone-200 text-stone-800 text-xs font-semibold focus:outline-none focus:border-emerald-600 bg-stone-50"
           >
             <option value="">-- Select University --</option>
             {universities.map(u => (
@@ -264,13 +264,13 @@ export default function UniversityRankings() {
 
         {selectedUnivId && (
           <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
               placeholder="Search rankings..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-600"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 text-xs font-semibold focus:outline-none focus:border-emerald-600"
             />
           </div>
         )}
@@ -351,21 +351,21 @@ export default function UniversityRankings() {
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100">
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors"
+                  className="px-5 py-2.5 rounded-xl border border-stone-200 text-stone-600 font-bold text-xs hover:bg-stone-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 flex items-center gap-2 transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs flex items-center gap-2 transition-all disabled:opacity-50"
                 >
-                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{editingId ? 'Update Ranking' : 'Save Ranking'}</span>
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin text-emerald-300" />}
+                  {editingId ? 'Update Ranking' : 'Add Ranking'}
                 </button>
               </div>
             </form>
@@ -416,14 +416,14 @@ export default function UniversityRankings() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/50 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                  <th className="py-4 px-6">ID</th>
-                  <th className="py-4 px-6">Ranking Agency / Title</th>
-                  <th className="py-4 px-6">Position</th>
-                  <th className="py-4 px-6">Description</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-6 text-emerald-700">ID</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Ranking Agency / Title</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Position</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Description</th>
+                  <th className="py-3.5 px-6 text-right text-[#14532d]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">

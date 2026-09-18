@@ -322,9 +322,9 @@ export default function CourseSpecializationContents() {
                 setShowForm(false);
               }
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs transition-all shadow-xs cursor-pointer"
           >
-            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-emerald-300" />}
             <span>{showForm ? 'Close Form' : '+ Add Description'}</span>
           </button>
         </div>
@@ -464,12 +464,12 @@ export default function CourseSpecializationContents() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
-                  <th className="py-3.5 px-4 w-16 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-24 text-center">Position</th>
-                  <th className="py-3.5 px-5 w-44">Tab</th>
-                  <th className="py-3.5 px-6">Description</th>
-                  <th className="py-3.5 px-5 text-right w-28">Action</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">Sr. No.</th>
+                  <th className="py-3.5 px-4 text-center text-[#14532d]">Pos</th>
+                  <th className="py-3.5 px-5 w-44 text-[#14532d]">Tab</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Description</th>
+                  <th className="py-3.5 px-5 text-right w-28 text-[#14532d]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -498,10 +498,10 @@ export default function CourseSpecializationContents() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleEditClick(item)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 transition-colors cursor-pointer shadow-2xs"
                             title="Edit Tab & Description"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(item.id, item.tab)}

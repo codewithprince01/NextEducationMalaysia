@@ -198,14 +198,14 @@ export default function AddEditBlog() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/blogs')}
-            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-[#effaf2] hover:text-[#14532d] hover:border-[#c8ebd2] transition-colors cursor-pointer"
             title="Back to Blogs List"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <FileText className="w-5 h-5 text-indigo-600" />
+              <FileText className="w-5 h-5 text-emerald-700" />
               <span>Blogs</span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -217,13 +217,13 @@ export default function AddEditBlog() {
 
       {loading ? (
         <div className="bg-white border border-slate-200/80 rounded-2xl p-12 flex flex-col items-center justify-center text-slate-500">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mb-3" />
           <p className="text-xs font-semibold">Loading blog record...</p>
         </div>
       ) : (
         <div className="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden">
-          <div className="px-6 py-4 bg-slate-50/80 border-b border-slate-200/80">
-            <h2 className="text-sm font-extrabold text-slate-800">
+          <div className="px-6 py-4 bg-[#effaf2] border-b border-[#c8ebd2]/60">
+            <h2 className="text-sm font-extrabold text-[#14532d]">
               {isEdit ? 'Update Record' : 'Add New Record'}
             </h2>
           </div>
@@ -241,7 +241,7 @@ export default function AddEditBlog() {
                   placeholder="Title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 />
               </div>
 
@@ -254,7 +254,7 @@ export default function AddEditBlog() {
                   placeholder="Slug"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-mono"
                 />
               </div>
             </div>
@@ -268,7 +268,7 @@ export default function AddEditBlog() {
                 <select
                   value={formData.category_id}
                   onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 >
                   <option value="">Select</option>
                   {categories.map((c) => (
@@ -286,7 +286,7 @@ export default function AddEditBlog() {
                 <select
                   value={formData.author_id}
                   onChange={(e) => setFormData({ ...formData, author_id: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                 >
                   <option value="">Select</option>
                   {authors.map((a) => (
@@ -315,7 +315,7 @@ export default function AddEditBlog() {
                       }));
                     }
                   }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
                 {(thumbnailFile || formData.thumbnail_path) && (
                   <span className="text-[11px] text-slate-600 mt-1 block truncate">
@@ -335,7 +335,7 @@ export default function AddEditBlog() {
                 placeholder="Description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-y font-medium"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all resize-y font-medium"
               />
             </div>
 
@@ -353,7 +353,7 @@ export default function AddEditBlog() {
                     placeholder="Enter Meta Title"
                     value={formData.meta_title}
                     onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -366,7 +366,7 @@ export default function AddEditBlog() {
                     placeholder="Meta Keyword"
                     value={formData.meta_keyword}
                     onChange={(e) => setFormData({ ...formData, meta_keyword: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
               </div>
@@ -380,7 +380,7 @@ export default function AddEditBlog() {
                   placeholder="Meta Description"
                   value={formData.meta_description}
                   onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-y font-medium"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all resize-y font-medium"
                 />
               </div>
 
@@ -394,7 +394,7 @@ export default function AddEditBlog() {
                     placeholder="Seo Rating"
                     value={formData.seo_rating}
                     onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -407,7 +407,7 @@ export default function AddEditBlog() {
                     placeholder="Best Rating"
                     value={formData.best_rating}
                     onChange={(e) => setFormData({ ...formData, best_rating: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -420,7 +420,7 @@ export default function AddEditBlog() {
                     placeholder="Total Reviews"
                     value={formData.review_number}
                     onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
 
@@ -435,7 +435,7 @@ export default function AddEditBlog() {
                       const file = e.target.files?.[0] || null;
                       setOgImageFile(file);
                     }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                    className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-800 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                   />
                   {(ogImageFile || formData.og_image_path) && (
                     <span className="text-[11px] text-slate-600 mt-1 block truncate">
@@ -451,7 +451,7 @@ export default function AddEditBlog() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer"
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer border border-slate-300"
               >
                 Reset
               </button>
@@ -459,7 +459,7 @@ export default function AddEditBlog() {
                 <button
                   type="button"
                   onClick={() => navigate('/blogs')}
-                  className="px-3.5 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer"
+                  className="px-3.5 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-colors shadow-2xs cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -467,10 +467,10 @@ export default function AddEditBlog() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
               >
                 {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>{isEdit ? 'Update' : 'Submit'}</span>
+                <span>{isEdit ? 'Update Blog' : 'Publish Blog'}</span>
               </button>
             </div>
           </form>

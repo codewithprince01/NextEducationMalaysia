@@ -234,19 +234,19 @@ export default function Faqs() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <HelpCircle className="w-6 h-6 text-indigo-600" /> Faqs
+          <h1 className="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-emerald-800" /> FAQs Management
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage category frequently asked questions and answers.
+          <p className="text-xs text-slate-500 mt-1">
+            Manage frequently asked questions, categorized queries, and detailed rich-text answers.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2 text-slate-600 hover:text-emerald-800 hover:bg-[#effaf2] rounded-xl border border-slate-200 transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -259,34 +259,35 @@ export default function Faqs() {
                 handleOpenAdd();
               }
             }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
-            {showForm ? (
+            {showForm && !editingId ? (
               <>
-                <ChevronUp className="w-4 h-4" /> Hide Form
+                <ChevronUp className="w-4 h-4" /> <span>Close Form</span>
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4" /> Add FAQ
+                <Plus className="w-4 h-4 text-emerald-300" /> <span>Add FAQ</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Form Card (Matching Laravel faqs.blade.php) */}
+      {/* Form Card */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
-          <div className="flex items-center justify-between p-4 px-6 border-b border-slate-200 bg-slate-50/50">
-            <h3 className="text-base font-bold text-slate-800">
-              {editingId ? 'Edit Faq Record' : 'Add Faq Record'}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden animate-fadeIn">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#c8ebd2] bg-[#effaf2]">
+            <h3 className="text-sm font-bold text-[#14532d] flex items-center gap-2">
+              {editingId ? <Edit2 className="w-4 h-4 text-emerald-700" /> : <Plus className="w-4 h-4 text-emerald-700" />}
+              <span>{editingId ? 'Edit Faq Record' : 'Add Faq Record'}</span>
             </h3>
             <button
               onClick={handleCancelForm}
-              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+              className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               title="Close"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -294,14 +295,14 @@ export default function Faqs() {
             {/* Select Category */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                   Select Category <span className="text-rose-500">*</span>
                 </label>
                 <select
                   required
                   value={formData.category_id}
                   onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-slate-700"
+                  className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all text-slate-700"
                 >
                   <option value="">-- Select Category --</option>
                   {categories.map((cat) => (
@@ -315,7 +316,7 @@ export default function Faqs() {
 
             {/* Question */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                 Question <span className="text-rose-500">*</span>
               </label>
               <input
@@ -324,13 +325,13 @@ export default function Faqs() {
                 placeholder="Question"
                 value={formData.question}
                 onChange={(e) => setFormData({ ...formData, question: e.target.value })}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
               />
             </div>
 
             {/* Answer */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1.5">
                 Answer <span className="text-rose-500">*</span>
               </label>
               <RichTextEditor
@@ -346,7 +347,7 @@ export default function Faqs() {
                 <button
                   type="button"
                   onClick={handleCancelForm}
-                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -360,7 +361,7 @@ export default function Faqs() {
                       answer: '',
                     })
                   }
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-medium transition-colors"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   Reset
                 </button>
@@ -368,10 +369,10 @@ export default function Faqs() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                Submit
+                <span>{editingId ? 'Update FAQ' : 'Submit FAQ'}</span>
               </button>
             </div>
           </form>
@@ -379,7 +380,7 @@ export default function Faqs() {
       )}
 
       {/* Controls / Filter / Search */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -388,16 +389,16 @@ export default function Faqs() {
               placeholder="Search questions or answers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-slate-400" />
+            <Filter className="w-4 h-4 text-emerald-700" />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="py-2 px-3 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700"
+              className="py-2 px-3 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 text-slate-700"
             >
               <option value="">All FAQ Categories</option>
               {categories.map((cat) => (
@@ -410,17 +411,17 @@ export default function Faqs() {
         </div>
 
         <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+          Showing <span className="font-bold text-slate-700">{filtered.length}</span> entries
         </div>
       </div>
 
-      {/* Table (Matching Laravel FaqC.php: Sr. No., Category, Question, Answer, Action) */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
                 <th className="py-3.5 px-4">Category</th>
                 <th className="py-3.5 px-4">Question</th>
                 <th className="py-3.5 px-4">Answer</th>
@@ -431,33 +432,35 @@ export default function Faqs() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-700" />
                     Loading FAQs...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">
                     No FAQs found.
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                  <tr key={item.id} className="hover:bg-[#f6fcf8] transition-colors">
+                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-indigo-600">
-                      {item.category_name || 'General'}
+                    <td className="py-3.5 px-4 font-bold text-emerald-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#effaf2] text-[#14532d] border border-[#c8ebd2] text-[11px] font-bold">
+                        {item.category_name || 'General'}
+                      </span>
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800 max-w-sm">
+                    <td className="py-3.5 px-4 font-bold text-slate-800 max-w-sm">
                       {item.question}
                     </td>
                     <td className="py-3.5 px-4">
                       {item.answer ? (
                         <button
                           onClick={() => setViewModal({ isOpen: true, title: 'Answer', content: item.answer || '' })}
-                          className="px-2.5 py-1 text-xs font-medium text-sky-700 bg-sky-50 border border-sky-200 hover:bg-sky-100 rounded transition-colors inline-flex items-center gap-1"
+                          className="px-2.5 py-1 text-xs font-bold text-[#14532d] bg-[#effaf2] border border-[#c8ebd2] hover:bg-[#dcfce7] rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
                         >
                           <Eye className="w-3 h-3" /> View
                         </button>
@@ -469,17 +472,17 @@ export default function Faqs() {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200/60 shadow-2xs transition-colors cursor-pointer"
                           title="Delete"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -506,25 +509,25 @@ export default function Faqs() {
 
       {/* Answer View Modal */}
       {viewModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
-            <div className="flex items-center justify-between p-4 px-6 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-base font-bold text-slate-800">{viewModal.title}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[#c8ebd2] bg-[#effaf2]">
+              <h3 className="text-sm font-bold text-[#14532d]">{viewModal.title}</h3>
               <button
                 onClick={() => setViewModal({ isOpen: false, title: '', content: '' })}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div
-              className="p-6 text-sm text-slate-700 max-h-[60vh] overflow-y-auto leading-relaxed prose max-w-none"
+              className="p-6 text-xs text-slate-700 max-h-[60vh] overflow-y-auto leading-relaxed prose max-w-none"
               dangerouslySetInnerHTML={{ __html: viewModal.content }}
             />
             <div className="flex justify-end p-4 px-6 border-t border-slate-100 bg-slate-50/50">
               <button
                 onClick={() => setViewModal({ isOpen: false, title: '', content: '' })}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>

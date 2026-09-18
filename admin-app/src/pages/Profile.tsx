@@ -219,14 +219,14 @@ export default function Profile() {
       </div>
 
       {/* ── PROFILE TABS NAVIGATION ── */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <div className="flex items-center gap-2 border-b border-stone-200 pb-2">
         <button
           type="button"
           onClick={() => setActiveTab('details')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
             activeTab === 'details'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              ? 'bg-[#14532d] text-white shadow-xs'
+              : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
           }`}
         >
           <User className="w-4 h-4" />
@@ -236,10 +236,10 @@ export default function Profile() {
         <button
           type="button"
           onClick={() => setActiveTab('security')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
             activeTab === 'security'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              ? 'bg-[#14532d] text-white shadow-xs'
+              : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
           }`}
         >
           <KeyRound className="w-4 h-4" />
@@ -249,10 +249,10 @@ export default function Profile() {
         <button
           type="button"
           onClick={() => setActiveTab('permissions')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
             activeTab === 'permissions'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              ? 'bg-[#14532d] text-white shadow-xs'
+              : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -262,13 +262,13 @@ export default function Profile() {
 
       {/* ── TAB 1: ACCOUNT DETAILS ── */}
       {activeTab === 'details' && (
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="bg-white border border-stone-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-stone-100">
             <div>
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Personal Information</h2>
-              <p className="text-xs text-slate-400 font-medium">Update your account name, email, and department</p>
+              <h2 className="text-base sm:text-lg font-bold text-stone-900">Personal Information</h2>
+              <p className="text-xs text-stone-400 font-medium">Update your account name, email, and department</p>
             </div>
-            <span className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <span className="p-2 rounded-xl bg-[#effaf2] text-[#14532d]">
               <Sparkles className="w-5 h-5" />
             </span>
           </div>
@@ -276,68 +276,68 @@ export default function Profile() {
           <form onSubmit={handleUpdateDetails} className="space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 block">Full Name</label>
+                <label className="text-xs font-bold text-stone-700 block">Full Name</label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <User className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Aman Ahlawat"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 block">Email Address</label>
+                <label className="text-xs font-bold text-stone-700 block">Email Address</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="e.g. admin@educationmalaysia.in"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 block">Department / Team</label>
+                <label className="text-xs font-bold text-stone-700 block">Department / Team</label>
                 <div className="relative">
-                  <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Building className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     placeholder="e.g. Admissions, IT Support, Operations"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 block">Role & Authority</label>
+                <label className="text-xs font-bold text-stone-700 block">Role & Authority</label>
                 <div className="relative">
-                  <Shield className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Shield className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     disabled
                     value={isSuperAdmin ? 'Super Administrator (Full Unrestricted Access)' : user?.role || 'Staff Member'}
-                    className="w-full bg-slate-100 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-bold text-slate-500 cursor-not-allowed"
+                    className="w-full bg-stone-100 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-bold text-stone-500 cursor-not-allowed"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+            <div className="pt-4 border-t border-stone-100 flex items-center justify-end">
               <button
                 type="submit"
                 disabled={savingDetails}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer disabled:opacity-50"
               >
                 {savingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Save Changes</span>
@@ -349,34 +349,34 @@ export default function Profile() {
 
       {/* ── TAB 2: SECURITY & PASSWORD ── */}
       {activeTab === 'security' && (
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="bg-white border border-stone-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-stone-100">
             <div>
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Change Account Password</h2>
-              <p className="text-xs text-slate-400 font-medium">Ensure your account is protected with a secure password</p>
+              <h2 className="text-base sm:text-lg font-bold text-stone-900">Change Account Password</h2>
+              <p className="text-xs text-stone-400 font-medium">Ensure your account is protected with a secure password</p>
             </div>
-            <span className="p-2 rounded-xl bg-amber-50 text-amber-600">
+            <span className="p-2 rounded-xl bg-amber-50 text-amber-700">
               <Lock className="w-5 h-5" />
             </span>
           </div>
 
           <form onSubmit={handleUpdatePassword} className="space-y-5 max-w-xl">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">Current Password</label>
+              <label className="text-xs font-bold text-stone-700 block">Current Password</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showCurrentPass ? 'text' : 'password'}
                   required
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm font-semibold text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPass((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
                 >
                   {showCurrentPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -384,21 +384,21 @@ export default function Profile() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">New Password</label>
+              <label className="text-xs font-bold text-stone-700 block">New Password</label>
               <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <KeyRound className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showNewPass ? 'text' : 'password'}
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimum 6 characters"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm font-semibold text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPass((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
                 >
                   {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -406,25 +406,25 @@ export default function Profile() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 block">Confirm New Password</label>
+              <label className="text-xs font-bold text-stone-700 block">Confirm New Password</label>
               <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <KeyRound className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showNewPass ? 'text' : 'password'}
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Re-type new password"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm font-semibold text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
+            <div className="pt-4 border-t border-stone-100 flex items-center justify-end">
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-indigo-600/20 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer disabled:opacity-50"
               >
                 {savingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Update Password</span>
@@ -436,17 +436,17 @@ export default function Profile() {
 
       {/* ── TAB 3: ASSIGNED PERMISSIONS OVERVIEW ── */}
       {activeTab === 'permissions' && (
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="bg-white border border-stone-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-stone-100">
             <div>
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Module Access & Permissions</h2>
-              <p className="text-xs text-slate-400 font-medium">
+              <h2 className="text-base sm:text-lg font-bold text-stone-900">Module Access & Permissions</h2>
+              <p className="text-xs text-stone-400 font-medium">
                 {isSuperAdmin
                   ? 'As a Super Administrator, you have full unrestricted access to all portal modules.'
                   : 'Review the administrative modules granted to your account by the administrator.'}
               </p>
             </div>
-            <span className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+            <span className="p-2 rounded-xl bg-[#effaf2] text-[#14532d]">
               <ShieldCheck className="w-5 h-5" />
             </span>
           </div>

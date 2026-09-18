@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
+import { api } from '@/lib/api';
 import Pagination from '@/components/common/Pagination';
 import {
   BookOpen,
@@ -46,15 +47,14 @@ export default function StudyModes() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/study-modes');
-      const json = await res.json();
-      if (res.ok && json.status) {
-        setModes(json.data || []);
-      } else {
-        showToast('error', json.message || 'Failed to fetch study modes');
+      const res = await api.get('/api/v1/admin/study-modes');
+      if (res.ok && res.data) {
+        setModes(Array.isArray(res.data) ? res.data : []);
+      } else if (!res.ok && res.status !== 0 && res.status !== 503) {
+        showToast('error', res.message || 'Failed to fetch study modes');
       }
     } catch {
-      showToast('error', 'Network error while fetching data');
+      // safeFetch handles retries internally
     } finally {
       setLoading(false);
     }
@@ -191,9 +191,9 @@ export default function StudyModes() {
 
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-emerald-300" />
             <span>Add Study Mode</span>
           </button>
         </div>
@@ -234,12 +234,12 @@ export default function StudyModes() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
-                  <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center">ID</th>
-                  <th className="py-3.5 px-5">Study Mode Name</th>
-                  <th className="py-3.5 px-5">Created At</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">Sr. No.</th>
+                  <th className="py-3.5 px-4 w-14 text-center text-emerald-700">ID</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">Study Mode Name</th>
+                  <th className="py-3.5 px-5 text-[#14532d]">Created At</th>
+                  <th className="py-3.5 px-5 text-right text-[#14532d]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -259,10 +259,10 @@ export default function StudyModes() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                             title="Edit Study Mode"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(item.id, item.study_mode)}
@@ -333,9 +333,9 @@ export default function StudyModes() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 disabled:opacity-50 transition-all cursor-pointer flex items-center gap-2"
+                  className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold shadow-xs disabled:opacity-50 transition-all cursor-pointer"
                 >
-                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" />}
                   <span>{editingId ? 'Update Mode' : 'Save Mode'}</span>
                 </button>
               </div>

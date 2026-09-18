@@ -221,9 +221,9 @@ export default function SystemSettings() {
         <div className="flex border-b border-stone-200 bg-stone-50/70 p-2 gap-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('mode')}
-            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'mode'
-                ? 'bg-stone-900 text-white shadow-sm'
+                ? 'bg-[#14532d] text-white shadow-xs'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
             }`}
           >
@@ -232,9 +232,9 @@ export default function SystemSettings() {
           </button>
           <button
             onClick={() => setActiveTab('main')}
-            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'main'
-                ? 'bg-stone-900 text-white shadow-sm'
+                ? 'bg-[#14532d] text-white shadow-xs'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
             }`}
           >
@@ -243,9 +243,9 @@ export default function SystemSettings() {
           </button>
           <button
             onClick={() => setActiveTab('testing')}
-            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap ${
+            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'testing'
-                ? 'bg-stone-900 text-white shadow-sm'
+                ? 'bg-[#14532d] text-white shadow-xs'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
             }`}
           >
@@ -332,7 +332,7 @@ export default function SystemSettings() {
                 <button
                   type="submit"
                   disabled={submittingMode}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-all cursor-pointer disabled:opacity-50"
                 >
                   {submittingMode ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -360,7 +360,7 @@ export default function SystemSettings() {
                   {/* Primary Recipient Group */}
                   <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4">
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
-                      <AtSign className="w-4 h-4 text-amber-600" />
+                      <AtSign className="w-4 h-4 text-emerald-700" />
                       <span>Primary Destination (TO)</span>
                     </div>
 
@@ -373,7 +373,7 @@ export default function SystemSettings() {
                         required
                         value={mainSettings.main_to_email}
                         onChange={(e) => setMainSettings({ ...mainSettings, main_to_email: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                         placeholder="admissions@tutelage.edu.my"
                       />
                     </div>
@@ -388,7 +388,7 @@ export default function SystemSettings() {
                           type="text"
                           value={mainSettings.main_to_name}
                           onChange={(e) => setMainSettings({ ...mainSettings, main_to_name: e.target.value })}
-                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                           placeholder="Admissions Office"
                         />
                       </div>
@@ -410,7 +410,7 @@ export default function SystemSettings() {
                         type="email"
                         value={mainSettings.main_cc_email}
                         onChange={(e) => setMainSettings({ ...mainSettings, main_cc_email: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                         placeholder="counselor@tutelage.edu.my"
                       />
                     </div>
@@ -425,7 +425,7 @@ export default function SystemSettings() {
                           type="text"
                           value={mainSettings.main_cc_name}
                           onChange={(e) => setMainSettings({ ...mainSettings, main_cc_name: e.target.value })}
-                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                           placeholder="Lead Counselor"
                         />
                       </div>
@@ -435,7 +435,7 @@ export default function SystemSettings() {
                   {/* Blind Carbon Copy (BCC) Group */}
                   <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4 md:col-span-2">
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
-                      <ShieldCheck className="w-4 h-4 text-purple-600" />
+                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
                       <span>Blind Carbon Copy (BCC Archiving)</span>
                     </div>
 
@@ -448,7 +448,7 @@ export default function SystemSettings() {
                           type="email"
                           value={mainSettings.main_bcc_email}
                           onChange={(e) => setMainSettings({ ...mainSettings, main_bcc_email: e.target.value })}
-                          className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          className="w-full px-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                           placeholder="archive@tutelage.edu.my"
                         />
                       </div>
@@ -463,7 +463,7 @@ export default function SystemSettings() {
                             type="text"
                             value={mainSettings.main_bcc_name}
                             onChange={(e) => setMainSettings({ ...mainSettings, main_bcc_name: e.target.value })}
-                            className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                            className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                             placeholder="Compliance Archive"
                           />
                         </div>
@@ -477,7 +477,7 @@ export default function SystemSettings() {
                 <button
                   type="submit"
                   disabled={submittingMain}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-all cursor-pointer disabled:opacity-50"
                 >
                   {submittingMain ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -505,7 +505,7 @@ export default function SystemSettings() {
                   {/* Testing Primary */}
                   <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4">
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
-                      <AtSign className="w-4 h-4 text-purple-600" />
+                      <AtSign className="w-4 h-4 text-emerald-700" />
                       <span>Testing Primary Target (TO)</span>
                     </div>
 
@@ -518,7 +518,7 @@ export default function SystemSettings() {
                         required
                         value={testingSettings.testing_to_email}
                         onChange={(e) => setTestingSettings({ ...testingSettings, testing_to_email: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                         placeholder="test@example.com"
                       />
                     </div>
@@ -533,7 +533,7 @@ export default function SystemSettings() {
                           type="text"
                           value={testingSettings.testing_to_name}
                           onChange={(e) => setTestingSettings({ ...testingSettings, testing_to_name: e.target.value })}
-                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                           placeholder="QA Engineer"
                         />
                       </div>
@@ -555,7 +555,7 @@ export default function SystemSettings() {
                         type="email"
                         value={testingSettings.testing_cc_email}
                         onChange={(e) => setTestingSettings({ ...testingSettings, testing_cc_email: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                         placeholder="test-cc@example.com"
                       />
                     </div>
@@ -570,7 +570,7 @@ export default function SystemSettings() {
                           type="text"
                           value={testingSettings.testing_cc_name}
                           onChange={(e) => setTestingSettings({ ...testingSettings, testing_cc_name: e.target.value })}
-                          className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                           placeholder="Dev QA Team"
                         />
                       </div>
@@ -580,7 +580,7 @@ export default function SystemSettings() {
                   {/* Testing BCC */}
                   <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-4 md:col-span-2">
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700 pb-2 border-b border-stone-200/60">
-                      <ShieldCheck className="w-4 h-4 text-purple-600" />
+                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
                       <span>Testing Blind Carbon Copy (BCC)</span>
                     </div>
 
@@ -593,7 +593,7 @@ export default function SystemSettings() {
                           type="email"
                           value={testingSettings.testing_bcc_email}
                           onChange={(e) => setTestingSettings({ ...testingSettings, testing_bcc_email: e.target.value })}
-                          className="w-full px-3.5 py-2.5 text-sm font-mono bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                          className="w-full px-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                           placeholder="test-bcc@example.com"
                         />
                       </div>
@@ -608,7 +608,7 @@ export default function SystemSettings() {
                             type="text"
                             value={testingSettings.testing_bcc_name}
                             onChange={(e) => setTestingSettings({ ...testingSettings, testing_bcc_name: e.target.value })}
-                            className="w-full pl-9 pr-3.5 py-2.5 text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600 transition-all shadow-sm"
+                            className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
                             placeholder="Audit Logger"
                           />
                         </div>
@@ -622,7 +622,7 @@ export default function SystemSettings() {
                 <button
                   type="submit"
                   disabled={submittingTesting}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-all cursor-pointer disabled:opacity-50"
                 >
                   {submittingTesting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

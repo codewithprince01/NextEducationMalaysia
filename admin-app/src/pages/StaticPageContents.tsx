@@ -154,34 +154,37 @@ export default function StaticPageContents() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-2xs">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <FileCode className="w-6 h-6 text-indigo-600" /> Static Page Contents
+          <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+            <span className="p-2 rounded-xl bg-[#effaf2] text-[#14532d] border border-[#c8ebd2]/60 shadow-2xs">
+              <FileCode className="w-5 h-5 text-emerald-700" />
+            </span>
+            Static Page Contents
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Manage global static descriptions, positions, and section content blocks.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
+            className="p-2 text-slate-600 hover:text-[#14532d] hover:bg-[#effaf2] rounded-xl border border-slate-200 hover:border-[#c8ebd2] transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={handleOpenAdd}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Add Static Content
+            <Plus className="w-3.5 h-3.5 text-emerald-300" /> Add Static Content
           </button>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-2xs flex flex-col sm:flex-row gap-4 justify-between items-center">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -189,21 +192,21 @@ export default function StaticPageContents() {
             placeholder="Search page name, position or text..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+            className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
           />
         </div>
         <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+          Showing <span className="font-bold text-slate-700">{filtered.length}</span> entries
         </div>
       </div>
 
       {/* Data Table matching reference screenshot */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-slate-600">
+            <thead className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
+                <th className="py-3.5 px-4 w-16 text-center text-emerald-700">Sr. No.</th>
                 <th className="py-3.5 px-4">Page Name</th>
                 <th className="py-3.5 px-4">Position</th>
                 <th className="py-3.5 px-4">Description</th>
@@ -214,48 +217,50 @@ export default function StaticPageContents() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-600" />
                     Loading static page contents...
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={5} className="py-12 text-center text-slate-400 font-medium">
                     No data found
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, index) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                    <td className="py-3.5 px-4 text-center font-bold text-emerald-700">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-800">
+                    <td className="py-3.5 px-4 font-bold text-slate-800">
                       {item.page_name || item.title || 'select-university'}
                     </td>
-                    <td className="py-3.5 px-4 text-xs font-mono text-slate-600">
-                      {item.position || 'top'}
+                    <td className="py-3.5 px-4 text-xs font-mono text-emerald-800">
+                      <span className="px-2 py-0.5 rounded-lg bg-[#effaf2] border border-[#c8ebd2]/60 font-bold">
+                        {item.position || 'top'}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4">
                       {item.description ? (
                         <button
                           onClick={() => setDescModal(item.description || '')}
-                          className="px-3 py-1 border border-indigo-200 hover:bg-indigo-50 text-indigo-600 rounded text-xs font-medium transition-colors"
+                          className="px-3 py-1 border border-[#c8ebd2]/80 hover:bg-[#effaf2] text-[#14532d] rounded-lg text-xs font-bold transition-colors cursor-pointer"
                         >
                           View
                         </button>
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <span className="text-slate-400 text-xs italic">N/A</span>
                       )}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-lg transition-colors shadow-sm"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
                           title="Edit"
                         >
-                          <Edit2 className="w-4 h-4" />
+                          <Edit2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -268,7 +273,7 @@ export default function StaticPageContents() {
 
         {/* Pagination */}
         {!loading && filtered.length > 0 && (
-          <div className="p-4 border-t border-slate-100">
+          <div className="p-4 border-t border-slate-100 bg-slate-50/50">
             <Pagination
               currentPage={currentPage}
               totalPages={Math.ceil(filtered.length / itemsPerPage)}
@@ -282,17 +287,17 @@ export default function StaticPageContents() {
 
       {/* Description View Modal */}
       {descModal !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/50">
               <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-indigo-600" /> Description Content
+                <Eye className="w-4 h-4 text-emerald-700" /> Description Content
               </h3>
               <button
                 onClick={() => setDescModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
             <div
@@ -302,7 +307,7 @@ export default function StaticPageContents() {
             <div className="p-3 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setDescModal(null)}
-                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded text-xs font-medium transition-colors"
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -313,15 +318,15 @@ export default function StaticPageContents() {
 
       {/* Add / Edit Form Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-base font-semibold text-slate-800">
+              <h3 className="text-base font-bold text-slate-800">
                 {editingId ? 'Edit Static Content' : 'Add Static Content'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -330,7 +335,7 @@ export default function StaticPageContents() {
             <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Page Name
                   </label>
                   <input
@@ -338,11 +343,11 @@ export default function StaticPageContents() {
                     placeholder="e.g. select-university"
                     value={formData.page_name}
                     onChange={(e) => setFormData({ ...formData, page_name: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-medium"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                     Position
                   </label>
                   <input
@@ -350,13 +355,13 @@ export default function StaticPageContents() {
                     placeholder="e.g. top, bottom, private-university"
                     value={formData.position}
                     onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                    className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1.5">
                   Description (Rich Text)
                 </label>
                 <RichTextEditor
@@ -370,16 +375,16 @@ export default function StaticPageContents() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#14532d] hover:bg-[#0f3e21] text-white rounded-xl text-xs font-bold shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin text-emerald-300" />}
                   {editingId ? 'Save Changes' : 'Create Static Content'}
                 </button>
               </div>

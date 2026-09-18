@@ -239,7 +239,7 @@ export default function AuditLogs() {
               type="button"
               onClick={() => fetchLogs(true)}
               disabled={refreshing}
-              className="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-stone-900/15 transition-all cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
               title="Refresh audit stream"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
@@ -288,7 +288,7 @@ export default function AuditLogs() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search staff, email, action, IP..."
-              className="w-full pl-10 pr-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
+              className="w-full pl-10 pr-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 placeholder-stone-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
             />
           </div>
 
@@ -300,7 +300,7 @@ export default function AuditLogs() {
                 setActionFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
+              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all cursor-pointer"
             >
               <option value="">All Actions</option>
               <option value="CREATE">CREATE</option>
@@ -319,7 +319,7 @@ export default function AuditLogs() {
                 setModuleFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all capitalize"
+              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all capitalize cursor-pointer"
             >
               <option value="">All Modules</option>
               {availableModules.length > 0 ? (
@@ -351,7 +351,7 @@ export default function AuditLogs() {
                 setStartDate(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
+              className="w-full px-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
               title="Start Date"
             />
           </div>
@@ -365,7 +365,7 @@ export default function AuditLogs() {
                 setEndDate(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
+              className="w-full px-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 focus:bg-white transition-all"
               title="End Date"
             />
             <button
@@ -400,7 +400,7 @@ export default function AuditLogs() {
               {loading ? (
                 <tr>
                   <td colSpan={8} className="py-16 text-center text-stone-400">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-800" />
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#14532d]" />
                     <span className="text-xs font-bold">Loading audit trail entries...</span>
                   </td>
                 </tr>
@@ -415,18 +415,18 @@ export default function AuditLogs() {
               ) : (
                 logs.map((log, index) => (
                   <tr key={log.id} className="hover:bg-[#fbfaf7] transition-colors group">
-                    <td className="py-3.5 px-4 text-stone-400 font-mono text-[11px] text-center font-bold">
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-center font-bold text-emerald-700">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
 
                     {/* Admin User */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-xl bg-stone-900 text-white font-black text-xs flex items-center justify-center shrink-0 font-serif">
+                        <div className="w-7 h-7 rounded-xl bg-[#14532d] text-white font-black text-xs flex items-center justify-center shrink-0 font-serif shadow-2xs">
                           {log.user_name?.charAt(0).toUpperCase() || 'A'}
                         </div>
                         <div className="min-w-0">
-                          <span className="font-bold text-stone-900 block truncate group-hover:text-amber-800 transition-colors">
+                          <span className="font-bold text-stone-900 block truncate group-hover:text-[#14532d] transition-colors">
                             {log.user_name || 'System / Staff'}
                           </span>
                           <span className="text-[10px] text-stone-400 font-mono block truncate">
@@ -505,7 +505,7 @@ export default function AuditLogs() {
                           setSelectedLog(log);
                           setModalTab(log.diff_values ? 'diff' : log.new_values ? 'new' : 'client');
                         }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-900 text-stone-800 hover:text-white text-xs font-bold transition-all cursor-pointer border border-stone-200/90 shadow-2xs"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#effaf2] hover:bg-[#dcfce7] text-[#14532d] text-xs font-bold transition-all cursor-pointer border border-[#c8ebd2]/60 shadow-2xs"
                       >
                         <FileCode2 className="w-3.5 h-3.5" />
                         <span>Inspect</span>
@@ -535,22 +535,22 @@ export default function AuditLogs() {
       {/* ── JSON DIFF & CLIENT METADATA INSPECTION MODAL ── */}
       {selectedLog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+            <div className="p-5 border-b border-stone-100 flex items-center justify-between bg-[#faf8f4]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20">
+                <div className="w-10 h-10 rounded-2xl bg-[#14532d] text-white flex items-center justify-center shadow-xs">
                   <Terminal className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-black text-slate-900">
+                    <h3 className="text-base font-black text-stone-900">
                       Audit Log #{selectedLog.id}
                     </h3>
                     {renderActionBadge(selectedLog.action)}
                   </div>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Module: <strong className="text-slate-800 uppercase">{selectedLog.module}</strong> • Admin: <strong className="text-slate-800">{selectedLog.user_name || 'System'}</strong>
+                  <p className="text-xs text-stone-500 font-medium">
+                    Module: <strong className="text-stone-800 uppercase">{selectedLog.module}</strong> • Admin: <strong className="text-stone-800">{selectedLog.user_name || 'System'}</strong>
                   </p>
                 </div>
               </div>
@@ -558,21 +558,21 @@ export default function AuditLogs() {
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-200/60 transition-colors cursor-pointer"
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-xl hover:bg-stone-200/60 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal Tabs */}
-            <div className="px-5 pt-3 border-b border-slate-100 flex items-center gap-2 overflow-x-auto bg-white">
+            <div className="px-5 pt-3 border-b border-stone-100 flex items-center gap-2 overflow-x-auto bg-white">
               <button
                 type="button"
                 onClick={() => setModalTab('diff')}
                 className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
                   modalTab === 'diff'
-                    ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                    ? 'border-[#14532d] text-[#14532d] bg-[#effaf2]'
+                    : 'border-transparent text-stone-500 hover:text-stone-800'
                 }`}
               >
                 Property Diff ({selectedLog.diff_values ? Object.keys(selectedLog.diff_values).length : 0} Changes)
@@ -582,8 +582,8 @@ export default function AuditLogs() {
                 onClick={() => setModalTab('new')}
                 className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
                   modalTab === 'new'
-                    ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                    ? 'border-[#14532d] text-[#14532d] bg-[#effaf2]'
+                    : 'border-transparent text-stone-500 hover:text-stone-800'
                 }`}
               >
                 New State Payload
@@ -593,8 +593,8 @@ export default function AuditLogs() {
                 onClick={() => setModalTab('old')}
                 className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
                   modalTab === 'old'
-                    ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                    ? 'border-[#14532d] text-[#14532d] bg-[#effaf2]'
+                    : 'border-transparent text-stone-500 hover:text-stone-800'
                 }`}
               >
                 Old State Snapshot
@@ -604,8 +604,8 @@ export default function AuditLogs() {
                 onClick={() => setModalTab('client')}
                 className={`px-3 py-2 text-xs font-bold rounded-t-xl transition-all border-b-2 cursor-pointer ${
                   modalTab === 'client'
-                    ? 'border-indigo-600 text-indigo-700 bg-indigo-50/50'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                    ? 'border-[#14532d] text-[#14532d] bg-[#effaf2]'
+                    : 'border-transparent text-stone-500 hover:text-stone-800'
                 }`}
               >
                 Client & Session Info

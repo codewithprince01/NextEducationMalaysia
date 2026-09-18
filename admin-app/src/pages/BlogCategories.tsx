@@ -234,9 +234,9 @@ export default function BlogCategories() {
             </button>
             <button
               onClick={handleOpenAdd}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
+              className="px-5 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-emerald-300" />
               Add Blog Category
             </button>
           </div>
@@ -273,15 +273,15 @@ export default function BlogCategories() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/50 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                  <th className="py-4 px-6">ID</th>
-                  <th className="py-4 px-6">Category Name</th>
-                  <th className="py-4 px-6">Slug</th>
-                  <th className="py-4 px-6">Blogs Count</th>
-                  <th className="py-4 px-6">Status</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
+                <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-6 text-emerald-700">ID</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Category Name</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Slug</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Blogs Count</th>
+                  <th className="py-3.5 px-6 text-[#14532d]">Status</th>
+                  <th className="py-3.5 px-6 text-right text-[#14532d]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
@@ -310,7 +310,8 @@ export default function BlogCategories() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+                          className="p-1.5 rounded-lg bg-[#effaf2] text-[#14532d] hover:bg-[#dcfce7] border border-[#c8ebd2]/60 shadow-2xs transition-colors cursor-pointer"
+                          title="Edit Category"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>

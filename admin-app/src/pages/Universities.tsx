@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import { getStorageUrl } from '@/lib/uploadHelper';
+import { api } from '@/lib/api';
 import Pagination from '@/components/common/Pagination';
 import {
   Building2,
@@ -96,16 +97,15 @@ export default function Universities() {
     if (showLoading) setLoading(true);
     try {
       const q = website ? `?website=${website}` : '';
-      const univRes = await fetch(`/api/v1/admin/universities${q}`);
-      const univJson = await univRes.json();
+      const res = await api.get(`/api/v1/admin/universities${q}`);
 
-      if (univRes.ok && (univJson.status || univJson.success)) {
-        setUniversities(univJson.data || []);
-      } else {
-        showToast('error', univJson.message || 'Failed to fetch universities');
+      if (res.ok && res.data) {
+        setUniversities(Array.isArray(res.data) ? res.data : []);
+      } else if (!res.ok && res.status !== 0 && res.status !== 503) {
+        showToast('error', res.message || 'Failed to fetch universities');
       }
     } catch {
-      showToast('error', 'Network error while fetching data');
+      // safeFetch handles retries internally and avoids spurious startup toasts
     } finally {
       if (showLoading) setLoading(false);
     }

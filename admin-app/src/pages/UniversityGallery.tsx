@@ -453,8 +453,8 @@ export default function UniversityGallery() {
                 onClick={() => setActiveTab('photos')}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'photos'
-                    ? 'bg-stone-900 text-white shadow-xs'
-                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                    ? 'bg-[#14532d] text-white shadow-xs'
+                    : 'text-stone-600 hover:text-[#14532d] hover:bg-[#effaf2]'
                 }`}
               >
                 <ImageIcon className="w-3.5 h-3.5" />
@@ -464,8 +464,8 @@ export default function UniversityGallery() {
                 onClick={() => setActiveTab('videos')}
                 className={`flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'videos'
-                    ? 'bg-stone-900 text-white shadow-xs'
-                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                    ? 'bg-[#14532d] text-white shadow-xs'
+                    : 'text-stone-600 hover:text-[#14532d] hover:bg-[#effaf2]'
                 }`}
               >
                 <VideoIcon className="w-3.5 h-3.5" />
@@ -504,9 +504,9 @@ export default function UniversityGallery() {
                   setPhotoPreviewUrl(null);
                   setIsPhotoModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5 text-amber-400" />
+                <Plus className="w-3.5 h-3.5 text-emerald-300" />
                 <span>Add Photo</span>
               </button>
 
@@ -523,9 +523,9 @@ export default function UniversityGallery() {
                   });
                   setIsVideoModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs shadow-2xs transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#c8ebd2] bg-[#effaf2] hover:bg-[#dcfce7] text-[#14532d] font-bold text-xs shadow-2xs transition-all cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5 text-amber-700" />
+                <Plus className="w-3.5 h-3.5 text-emerald-700" />
                 <span>Add Video</span>
               </button>
             </div>
@@ -947,9 +947,9 @@ export default function UniversityGallery() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                  className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />}
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-300" />}
                   <span>{submitting ? 'Uploading...' : 'Add Photo'}</span>
                 </button>
               </div>
