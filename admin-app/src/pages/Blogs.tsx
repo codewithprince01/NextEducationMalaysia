@@ -568,19 +568,19 @@ export default function Blogs() {
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleOpenContents(item)}
-                            className="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 rounded-lg text-[10.5px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 rounded-lg text-[10.5px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                           >
                             <span>Content</span>
-                            <span className="px-1.5 py-0.2 bg-stone-800 text-white rounded-full text-[9px]">
+                            <span className="px-1.5 py-0.5 bg-stone-200 text-stone-800 rounded-md text-[9px] font-extrabold">
                               {item.contents_count ?? 0}
                             </span>
                           </button>
                           <button
                             onClick={() => handleOpenFaqs(item)}
-                            className="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 rounded-lg text-[10.5px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg text-[10.5px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                           >
                             <span>FAQs</span>
-                            <span className="px-1.5 py-0.2 bg-amber-700 text-white rounded-full text-[9px]">
+                            <span className="px-1.5 py-0.5 bg-amber-100 text-amber-900 rounded-md text-[9px] font-extrabold">
                               {item.faqs_count ?? 0}
                             </span>
                           </button>

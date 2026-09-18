@@ -825,12 +825,12 @@ export default function CourseCategories() {
                           {/* Sub-module 1: Content Badge */}
                           <button
                             onClick={() => navigate(`/course-category-contents/${item.id}`)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-bold text-[11px] shadow-2xs transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-stone-100/90 hover:bg-stone-200/90 text-stone-800 border border-stone-200 font-bold text-[11px] shadow-2xs transition-all cursor-pointer"
                             title="Manage Category Content Tabs in Dedicated Editor"
                           >
-                            <FileText className="w-3.5 h-3.5" />
+                            <FileText className="w-3.5 h-3.5 text-stone-600" />
                             <span>Content</span>
-                            <span className="bg-stone-700 text-white px-1.5 py-0.2 rounded-full text-[9.5px]">
+                            <span className="bg-stone-200 text-stone-800 px-1.5 py-0.5 rounded-md text-[9.5px] font-extrabold">
                               {item.contents_count || 0}
                             </span>
                           </button>
@@ -838,12 +838,12 @@ export default function CourseCategories() {
                           {/* Sub-module 2: FAQs Badge */}
                           <button
                             onClick={() => handleOpenFaqsModal(item)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-800 hover:bg-amber-900 text-white font-bold text-[11px] shadow-2xs transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50/90 hover:bg-amber-100/90 text-amber-900 border border-amber-200/80 font-bold text-[11px] shadow-2xs transition-all cursor-pointer"
                             title="Manage Category FAQs"
                           >
-                            <HelpCircle className="w-3.5 h-3.5" />
+                            <HelpCircle className="w-3.5 h-3.5 text-amber-700" />
                             <span>FAQs</span>
-                            <span className="bg-amber-950 text-white px-1.5 py-0.2 rounded-full text-[9.5px]">
+                            <span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-md text-[9.5px] font-extrabold">
                               {item.faqs_count || 0}
                             </span>
                           </button>

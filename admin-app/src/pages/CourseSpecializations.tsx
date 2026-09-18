@@ -738,13 +738,13 @@ export default function CourseSpecializations() {
                           {/* Content Badge */}
                           <button
                             onClick={() => navigate(`/course-specialization-contents/${item.id}`)}
-                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-bold text-[10.5px] shadow-2xs transition-all cursor-pointer"
+                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-stone-100/90 hover:bg-stone-200/90 text-stone-800 border border-stone-200 font-bold text-[10.5px] transition-all cursor-pointer shadow-2xs"
                             title="Manage Specialization Content Tabs"
                           >
-                            <span className="flex items-center gap-1">
-                              <FileText className="w-3 h-3" /> Content
+                            <span className="flex items-center gap-1.5">
+                              <FileText className="w-3 h-3 text-stone-600" /> Content
                             </span>
-                            <span className="bg-stone-700 text-white px-1.5 py-0.2 rounded-full text-[9px]">
+                            <span className="bg-stone-200/90 text-stone-800 px-1.5 py-0.5 rounded-md font-extrabold text-[9px]">
                               {item.contents_count || 0}
                             </span>
                           </button>
@@ -752,13 +752,13 @@ export default function CourseSpecializations() {
                           {/* FAQs Badge */}
                           <button
                             onClick={() => handleOpenFaqsModal(item)}
-                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-amber-800 hover:bg-amber-900 text-white font-bold text-[10.5px] shadow-2xs transition-all cursor-pointer"
+                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-amber-50/90 hover:bg-amber-100/90 text-amber-900 border border-amber-200/80 font-bold text-[10.5px] transition-all cursor-pointer shadow-2xs"
                             title="Manage Specialization FAQs"
                           >
-                            <span className="flex items-center gap-1">
-                              <HelpCircle className="w-3 h-3" /> FAQs
+                            <span className="flex items-center gap-1.5">
+                              <HelpCircle className="w-3 h-3 text-amber-700" /> FAQs
                             </span>
-                            <span className="bg-amber-950 text-white px-1.5 py-0.2 rounded-full text-[9px]">
+                            <span className="bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded-md font-extrabold text-[9px]">
                               {item.faqs_count || 0}
                             </span>
                           </button>
@@ -766,13 +766,13 @@ export default function CourseSpecializations() {
                           {/* Level Badge */}
                           <button
                             onClick={() => navigate(`/specialization-levels/${item.id}`)}
-                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-stone-700 hover:bg-stone-800 text-white font-bold text-[10.5px] shadow-2xs transition-all cursor-pointer"
+                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-indigo-50/90 hover:bg-indigo-100/90 text-indigo-900 border border-indigo-200/80 font-bold text-[10.5px] transition-all cursor-pointer shadow-2xs"
                             title="Manage Specialization Levels"
                           >
-                            <span className="flex items-center gap-1">
-                              <Layers className="w-3 h-3" /> Level
+                            <span className="flex items-center gap-1.5">
+                              <Layers className="w-3 h-3 text-indigo-700" /> Level
                             </span>
-                            <span className="bg-stone-900 text-white px-1.5 py-0.2 rounded-full text-[9px]">
+                            <span className="bg-indigo-100 text-indigo-900 px-1.5 py-0.5 rounded-md font-extrabold text-[9px]">
                               {item.levels_count || 0}
                             </span>
                           </button>
