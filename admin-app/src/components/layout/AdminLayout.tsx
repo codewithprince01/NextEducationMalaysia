@@ -88,17 +88,10 @@ const navigationConfig: NavSection[] = [
       {
         label: 'Programs & Courses',
         icon: GraduationCap,
-        module: 'programs',
         children: [
-          { label: 'Degree Programs', href: '/programs', module: 'programs' },
-          { label: 'Academic Levels', href: '/levels', module: 'levels' },
+          { label: 'Levels', href: '/levels', module: 'levels' },
           { label: 'Course Categories', href: '/course-category', module: 'course-category' },
-          { label: 'Category Contents', href: '/course-category-contents', module: 'course-category-contents' },
           { label: 'Specializations', href: '/course-specializations', module: 'course-specializations' },
-          { label: 'Specialization Contents', href: '/course-specialization-contents', module: 'course-specialization-contents' },
-          { label: 'Specialization Levels', href: '/specialization-levels', module: 'specialization-levels' },
-          { label: 'Specialization Level Contents', href: '/specialization-level-contents', module: 'specialization-level-contents' },
-          { label: 'Program Contents', href: '/university-program-contents', module: 'university-program-contents' },
         ],
       },
       { label: 'Scholarships & Grants', href: '/scholarships', icon: Award, module: 'scholarships' },
