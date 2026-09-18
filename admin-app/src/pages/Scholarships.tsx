@@ -697,16 +697,16 @@ export default function Scholarships() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px]">
-                <th className="py-4 px-4 w-12 text-center">#</th>
-                <th className="py-4 px-4 min-w-[240px]">Scholarship Title</th>
-                <th className="py-4 px-4 min-w-[120px]">Scheme Type</th>
-                <th className="py-4 px-4 text-center min-w-[110px]">Active Status</th>
-                <th className="py-4 px-4 min-w-[130px]">Media Assets</th>
-                <th className="py-4 px-4 min-w-[110px]">Shortnote</th>
-                <th className="py-4 px-4 min-w-[100px]">SEO Meta</th>
-                <th className="py-4 px-4 min-w-[140px]">Content Modules</th>
-                <th className="py-4 px-4 text-right w-24">Actions</th>
+              <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
+                <th className="py-4 px-4 w-12 text-center text-stone-300">#</th>
+                <th className="py-4 px-4 min-w-[240px] text-stone-100">Scholarship Title</th>
+                <th className="py-4 px-4 min-w-[120px] text-stone-100">Scheme Type</th>
+                <th className="py-4 px-4 text-center min-w-[110px] text-stone-100">Active Status</th>
+                <th className="py-4 px-4 min-w-[130px] text-stone-100">Media Assets</th>
+                <th className="py-4 px-4 min-w-[110px] text-stone-100">Shortnote</th>
+                <th className="py-4 px-4 min-w-[100px] text-stone-100">SEO Meta</th>
+                <th className="py-4 px-4 min-w-[140px] text-stone-100">Content Modules</th>
+                <th className="py-4 px-4 text-right w-24 text-stone-100">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

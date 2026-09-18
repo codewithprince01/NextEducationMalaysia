@@ -656,15 +656,15 @@ export default function UniversityOverviews() {
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-600">
-                <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px] font-serif">
+                <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
                   <tr>
-                    <th className="py-3.5 px-5 w-16 text-center">#</th>
-                    <th className="py-3.5 px-4 w-20 text-center">Pos</th>
-                    <th className="py-3.5 px-5">Tab / Title</th>
-                    <th className="py-3.5 px-5">Content Preview</th>
-                    <th className="py-3.5 px-5 w-32 text-center">Thumbnail</th>
-                    <th className="py-3.5 px-5 w-48">Timestamps</th>
-                    <th className="py-3.5 px-5 w-28 text-right">Actions</th>
+                    <th className="py-4 px-5 w-16 text-center text-stone-300">#</th>
+                    <th className="py-4 px-4 w-20 text-center text-stone-100">Pos</th>
+                    <th className="py-4 px-5 text-stone-100">Tab / Title</th>
+                    <th className="py-4 px-5 text-stone-100">Content Preview</th>
+                    <th className="py-4 px-5 w-32 text-center text-stone-100">Thumbnail</th>
+                    <th className="py-4 px-5 w-48 text-stone-100">Timestamps</th>
+                    <th className="py-4 px-5 w-28 text-right text-stone-100">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">

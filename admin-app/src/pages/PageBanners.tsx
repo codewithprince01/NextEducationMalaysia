@@ -425,15 +425,15 @@ export default function PageBanners() {
         {/* ── DATA TABLE ── */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
-            <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px] font-serif">
+            <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
               <tr>
-                <th className="py-3.5 px-4 w-16 text-center">Sr. No.</th>
-                <th className="py-3.5 px-4">Page Route</th>
-                <th className="py-3.5 px-4">Alt Text</th>
-                <th className="py-3.5 px-4">Banner Graphic</th>
-                <th className="py-3.5 px-4">Headline Title</th>
-                <th className="py-3.5 px-4">Description</th>
-                <th className="py-3.5 px-4 text-right">Actions</th>
+                <th className="py-4 px-4 w-16 text-center text-stone-300">Sr. No.</th>
+                <th className="py-4 px-4 text-stone-100">Page Route</th>
+                <th className="py-4 px-4 text-stone-100">Alt Text</th>
+                <th className="py-4 px-4 text-stone-100">Banner Graphic</th>
+                <th className="py-4 px-4 text-stone-100">Headline Title</th>
+                <th className="py-4 px-4 text-stone-100">Description</th>
+                <th className="py-4 px-4 text-right text-stone-100">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

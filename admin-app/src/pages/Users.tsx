@@ -559,14 +559,14 @@ export default function Users() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px]">
-                <th className="py-4 px-4 w-14 text-center">#</th>
-                <th className="py-4 px-4">User Profile</th>
-                <th className="py-4 px-4">Email Address</th>
-                <th className="py-4 px-4">Contact Phone</th>
-                <th className="py-4 px-4">System Role</th>
-                <th className="py-4 px-4 text-center">Access Permissions</th>
-                <th className="py-4 px-4 text-right w-28">Actions</th>
+              <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
+                <th className="py-4 px-4 w-14 text-center text-stone-300">#</th>
+                <th className="py-4 px-4 text-stone-100">User Profile</th>
+                <th className="py-4 px-4 text-stone-100">Email Address</th>
+                <th className="py-4 px-4 text-stone-100">Contact Phone</th>
+                <th className="py-4 px-4 text-stone-100">System Role</th>
+                <th className="py-4 px-4 text-center text-stone-100">Access Permissions</th>
+                <th className="py-4 px-4 text-right w-28 text-stone-100">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

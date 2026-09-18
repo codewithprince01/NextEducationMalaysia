@@ -646,16 +646,16 @@ export default function CourseSpecializations() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                  <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
-                  <th className="py-3.5 px-4 w-14 text-center">ID</th>
-                  <th className="py-3.5 px-5">Specialization & Slug</th>
-                  <th className="py-3.5 px-5">Category</th>
-                  <th className="py-3.5 px-4">SEO</th>
-                  <th className="py-3.5 px-5">Images</th>
-                  <th className="py-3.5 px-5">Sub-Modules</th>
-                  <th className="py-3.5 px-5">More Details</th>
-                  <th className="py-3.5 px-5 text-right">Actions</th>
+                <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
+                  <th className="py-4 px-4 w-14 text-center text-stone-300">Sr. No.</th>
+                  <th className="py-4 px-4 w-14 text-center text-stone-300">ID</th>
+                  <th className="py-4 px-5 text-stone-100">Specialization & Slug</th>
+                  <th className="py-4 px-5 text-stone-100">Category</th>
+                  <th className="py-4 px-4 text-stone-100">SEO</th>
+                  <th className="py-4 px-5 text-stone-100">Images</th>
+                  <th className="py-4 px-5 text-stone-100">Sub-Modules</th>
+                  <th className="py-4 px-5 text-stone-100">More Details</th>
+                  <th className="py-4 px-5 text-right text-stone-100">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

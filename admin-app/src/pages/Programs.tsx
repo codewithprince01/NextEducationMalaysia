@@ -2235,15 +2235,15 @@ export default function Programs() {
         {/* ── PROGRAM LIST TABLE ── */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
-            <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase text-[10px] tracking-wider font-serif">
+            <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase text-[10.5px] tracking-wider font-serif">
               <tr>
-                <th className="py-3.5 px-4 w-12 text-center">Sr.</th>
-                <th className="py-3.5 px-4">Program Name</th>
-                <th className="py-3.5 px-4">Category & Specialization</th>
-                <th className="py-3.5 px-4 w-32">Duration & Mode</th>
-                <th className="py-3.5 px-4 w-32">Intake / Fee</th>
-                <th className="py-3.5 px-4 w-24 text-center">Status</th>
-                <th className="py-3.5 px-4 w-28 text-right">Actions</th>
+                <th className="py-4 px-4 w-12 text-center text-stone-300">Sr.</th>
+                <th className="py-4 px-4 text-stone-100">Program Name</th>
+                <th className="py-4 px-4 text-stone-100">Category & Specialization</th>
+                <th className="py-4 px-4 w-32 text-stone-100">Duration & Mode</th>
+                <th className="py-4 px-4 w-32 text-stone-100">Intake / Fee</th>
+                <th className="py-4 px-4 w-24 text-center text-stone-100">Status</th>
+                <th className="py-4 px-4 w-28 text-right text-stone-100">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">

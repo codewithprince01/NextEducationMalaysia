@@ -486,16 +486,16 @@ export default function Blogs() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px]">
-                  <th className="py-4 px-4 w-12 text-center">#</th>
-                  <th className="py-4 px-4 min-w-[140px]">Category</th>
-                  <th className="py-4 px-4 min-w-[240px]">Article Title</th>
-                  <th className="py-4 px-4 w-24">Description</th>
-                  <th className="py-4 px-4 w-28">Thumbnail</th>
-                  <th className="py-4 px-4 min-w-[140px]">Author</th>
-                  <th className="py-4 px-4 text-center w-24">Status</th>
-                  <th className="py-4 px-4 min-w-[140px]">Sub Modules</th>
-                  <th className="py-4 px-4 text-right w-24">Actions</th>
+                <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
+                  <th className="py-4 px-4 w-12 text-center text-stone-300">#</th>
+                  <th className="py-4 px-4 min-w-[140px] text-stone-100">Category</th>
+                  <th className="py-4 px-4 min-w-[240px] text-stone-100">Article Title</th>
+                  <th className="py-4 px-4 w-24 text-stone-100">Description</th>
+                  <th className="py-4 px-4 w-28 text-stone-100">Thumbnail</th>
+                  <th className="py-4 px-4 min-w-[140px] text-stone-100">Author</th>
+                  <th className="py-4 px-4 text-center w-24 text-stone-100">Status</th>
+                  <th className="py-4 px-4 min-w-[140px] text-stone-100">Sub Modules</th>
+                  <th className="py-4 px-4 text-right w-24 text-stone-100">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

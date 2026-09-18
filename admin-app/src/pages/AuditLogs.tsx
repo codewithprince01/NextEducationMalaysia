@@ -371,16 +371,16 @@ export default function AuditLogs() {
       <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
-            <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black text-[10.5px] uppercase tracking-wider font-serif">
+            <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black text-[10.5px] uppercase tracking-wider font-serif">
               <tr>
-                <th className="py-3.5 px-4 w-12 text-center">#</th>
-                <th className="py-3.5 px-4">Admin User</th>
-                <th className="py-3.5 px-4">Action</th>
-                <th className="py-3.5 px-4">Module & Target</th>
-                <th className="py-3.5 px-4">Description</th>
-                <th className="py-3.5 px-4">Client Info (IP & OS)</th>
-                <th className="py-3.5 px-4">Timestamp (MYT)</th>
-                <th className="py-3.5 px-4 text-right">Inspect</th>
+                <th className="py-4 px-4 w-12 text-center text-stone-300">#</th>
+                <th className="py-4 px-4 text-stone-100">Admin User</th>
+                <th className="py-4 px-4 text-stone-100">Action</th>
+                <th className="py-4 px-4 text-stone-100">Module & Target</th>
+                <th className="py-4 px-4 text-stone-100">Description</th>
+                <th className="py-4 px-4 text-stone-100">Client Info (IP & OS)</th>
+                <th className="py-4 px-4 text-stone-100">Timestamp (MYT)</th>
+                <th className="py-4 px-4 text-right text-stone-100">Inspect</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
