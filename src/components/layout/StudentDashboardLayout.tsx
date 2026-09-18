@@ -99,7 +99,10 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
       />
 
       {/* Main Area: Top Bar + Content */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      {/* `min-h-screen` here sat below the body's 76px navbar padding, so every
+          dashboard page was 76px taller than the viewport and always had a
+          stray scrollbar. */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-[calc(100vh-76px)]">
         {/* Sleek Dashboard Top Navbar */}
         {/* Sticks below the 76px fixed site navbar, matching the sidebar — at
             top-0 it slid underneath the navbar and disappeared on scroll. */}

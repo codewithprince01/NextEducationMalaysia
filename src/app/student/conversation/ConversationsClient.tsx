@@ -20,12 +20,21 @@ const DEFAULT_MESSAGES: Message[] = [
   { id: 1, sender: 'admin', senderName: 'Admissions Desk', text: 'Welcome to your Student & Advisor Communication Desk! Feel free to ask any questions regarding your application.', time: '10:00 AM', isStudent: false },
 ]
 
+const isSameThread = (a: Message[], b: Message[]) =>
+  a.length === b.length &&
+  a.every((msg, i) => msg.id === b[i]?.id && msg.text === b[i]?.text)
+
 export default function ConversationsClient() {
   const [messages, setMessages] = useState<Message[]>(DEFAULT_MESSAGES)
   const [newMsg, setNewMsg] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+  // Auto-scroll only while the reader is already at the bottom, so scrolling up
+  // to read older messages is not undone by the next poll.
+  const stickToBottomRef = useRef(true)
+  const hasAutoScrolledRef = useRef(false)
 
   const fetchConversation = async (silent = false) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -46,7 +55,10 @@ export default function ConversationsClient() {
         : []
 
       if (list.length > 0) {
-        setMessages(list)
+        // The poll hands back a fresh array every 4s even when nothing changed.
+        // Keeping the old reference in that case stops the auto-scroll effect
+        // from re-running four times a minute for no reason.
+        setMessages((prev) => (isSameThread(prev, list) ? prev : list))
       }
     } catch (err) {
       if (!silent) console.error('Failed to load conversation:', err)
@@ -66,8 +78,26 @@ export default function ConversationsClient() {
     return () => clearInterval(interval)
   }, [])
 
+  // Track whether the reader is parked at the bottom of the thread.
+  const handleChatScroll = () => {
+    const el = chatContainerRef.current
+    if (!el) return
+    stickToBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+  }
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = chatContainerRef.current
+    if (!el) return
+    if (hasAutoScrolledRef.current && !stickToBottomRef.current) return
+
+    // Scroll the thread itself. `scrollIntoView()` also scrolls every
+    // scrollable ancestor — including the window — which dragged the whole
+    // dashboard page downwards on each poll.
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: hasAutoScrolledRef.current ? 'smooth' : 'auto',
+    })
+    hasAutoScrolledRef.current = true
   }, [messages])
 
   const handleSend = async () => {
@@ -125,8 +155,11 @@ export default function ConversationsClient() {
     }
   }
 
+  // Height is the viewport minus the 76px fixed site navbar and the 4rem
+  // dashboard header. Leaving the navbar out made this 76px too tall, so the
+  // page itself had room to scroll — which is what the auto-scroll then moved.
   return (
-    <div className="w-full h-[calc(100vh-4rem)] flex flex-col bg-white overflow-hidden">
+    <div className="w-full h-[calc(100vh-4rem-76px)] flex flex-col bg-white overflow-hidden">
       {/* Header — Full Width */}
       <div className="px-6 py-4 flex items-center justify-between bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xs shrink-0">
         <div className="flex items-center gap-3">
@@ -146,7 +179,11 @@ export default function ConversationsClient() {
       </div>
 
       {/* Chat Area — Full Width & Height with auto-scroll */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-12 py-6 space-y-6 bg-slate-50/60 scrollbar-thin">
+      <div
+        ref={chatContainerRef}
+        onScroll={handleChatScroll}
+        className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 lg:px-12 py-6 space-y-6 bg-slate-50/60 scrollbar-thin"
+      >
         {loading ? (
           <div className="flex flex-col items-center justify-center h-48 gap-2 text-slate-400">
             <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
