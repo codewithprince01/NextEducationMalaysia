@@ -60,6 +60,7 @@ export default function Universities() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [stateFilter, setStateFilter] = useState('');
+  const [websiteFilter, setWebsiteFilter] = useState('MYS');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -81,10 +82,11 @@ export default function Universities() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchData = async (showLoading = true) => {
+  const fetchData = async (showLoading = true, website = websiteFilter) => {
     if (showLoading) setLoading(true);
     try {
-      const univRes = await fetch('/api/v1/admin/universities');
+      const q = website ? `?website=${website}` : '';
+      const univRes = await fetch(`/api/v1/admin/universities${q}`);
       const univJson = await univRes.json();
 
       if (univRes.ok && (univJson.status || univJson.success)) {
@@ -100,8 +102,8 @@ export default function Universities() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(true, websiteFilter);
+  }, [websiteFilter]);
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -319,9 +321,22 @@ export default function Universities() {
           </div>
 
           <select
+            value={websiteFilter}
+            onChange={(e) => setWebsiteFilter(e.target.value)}
+            className="w-full sm:w-44 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
+          >
+            <option value="MYS">Malaysia (MYS)</option>
+            <option value="USA">United States (USA)</option>
+            <option value="IND">India (IND)</option>
+            <option value="CAN">Canada (CAN)</option>
+            <option value="DEU">Germany (DEU)</option>
+            <option value="ALL">All Countries</option>
+          </select>
+
+          <select
             value={stateFilter}
             onChange={(e) => setStateFilter(e.target.value)}
-            className="w-full sm:w-48 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
+            className="w-full sm:w-44 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 focus:outline-none focus:border-indigo-500"
           >
             <option value="">All States</option>
             {stateOptions.map((st) => (

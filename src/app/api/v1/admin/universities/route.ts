@@ -10,10 +10,20 @@ export async function GET(req: Request) {
     const state = searchParams.get('state') || '';
     const city = searchParams.get('city') || '';
 
+    const website = searchParams.get('website');
+
     if (minimal) {
-      const minimalRows: any[] = await prisma.$queryRawUnsafe(
-        `SELECT id, name, uname FROM universities WHERE website = 'MYS' ORDER BY name ASC`
-      );
+      let minSql = `SELECT id, name, uname FROM universities`;
+      const minParams: any[] = [];
+      if (website && website !== 'ALL') {
+        minSql += ` WHERE website = ?`;
+        minParams.push(website);
+      } else if (!website) {
+        minSql += ` WHERE website = 'MYS'`;
+      }
+      minSql += ` ORDER BY name ASC`;
+
+      const minimalRows: any[] = await prisma.$queryRawUnsafe(minSql, ...minParams);
       return NextResponse.json({
         status: true,
         data: serializeBigInt(minimalRows),
@@ -34,9 +44,16 @@ export async function GET(req: Request) {
       LEFT JOIN (SELECT university_id, COUNT(*) as cnt FROM university_photos GROUP BY university_id) uph ON uph.university_id = u.id
       LEFT JOIN (SELECT university_id, COUNT(*) as cnt FROM university_videos GROUP BY university_id) uv ON uv.university_id = u.id
       LEFT JOIN (SELECT u_id, COUNT(*) as cnt FROM university_facilities GROUP BY u_id) uf ON uf.u_id = u.id
-      WHERE u.website = 'MYS'
+      WHERE 1=1
     `;
     const params: any[] = [];
+
+    if (website && website !== 'ALL') {
+      sql += ` AND u.website = ?`;
+      params.push(website);
+    } else if (!website) {
+      sql += ` AND (u.website = 'MYS' OR u.website IS NULL OR u.website = '')`;
+    }
 
     if (search) {
       sql += ` AND (u.name LIKE ? OR u.city LIKE ? OR u.state LIKE ?)`;
