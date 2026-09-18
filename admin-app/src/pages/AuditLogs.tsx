@@ -17,7 +17,8 @@ import {
   PlusCircle,
   Edit3,
   Trash2,
-  LogIn
+  LogIn,
+  RotateCcw
 } from 'lucide-react';
 
 interface AuditLogItem {
@@ -208,77 +209,82 @@ export default function AuditLogs() {
   return (
     <div className="space-y-6 pb-12">
       {/* ── HEADER & AUDIT METRICS ── */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-2xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4" />
-                Security & Compliance
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <ShieldAlert className="w-3.5 h-3.5 text-amber-700" />
+                <span>Security & Compliance</span>
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-emerald-50 text-emerald-800 border border-emerald-200/80 uppercase tracking-wider">
                 Live Audit Stream
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Admin Audit Trail & Activity Logs
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              System Audit Trail & Activity Logs
             </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Complete record of all administrative modifications, creations, deletions, JSON property diffs, and client sessions.
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Complete chronological ledger of administrative modifications, creates, deletes, JSON property diffs, IP locations, and client browser sessions.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0">
             <button
               type="button"
               onClick={() => fetchLogs(true)}
               disabled={refreshing}
-              className="px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold flex items-center gap-2 shadow-md shadow-stone-900/15 transition-all cursor-pointer disabled:opacity-50"
               title="Refresh audit stream"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-indigo-600' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
               <span>Refresh Log</span>
             </button>
           </div>
         </div>
 
-        {/* ── KPI METRICS RIBBON ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-5 border-t border-slate-100">
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Logs</span>
-            <span className="text-lg font-black text-slate-900 mt-0.5 block">{stats.total.toLocaleString()}</span>
+        {/* ── KPI METRICS RIBBON (5 CARDS) ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Total Logs</span>
+            <span className="text-2xl font-black text-stone-900 mt-0.5 block">{stats.total.toLocaleString()}</span>
+            <span className="text-[10.5px] font-semibold text-stone-500 mt-0.5 block">Recorded events</span>
           </div>
-          <div className="bg-emerald-50/60 rounded-xl p-3 border border-emerald-100">
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Created Records</span>
-            <span className="text-lg font-black text-emerald-800 mt-0.5 block">{stats.create.toLocaleString()}</span>
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Created</span>
+            <span className="text-2xl font-black text-emerald-800 mt-0.5 block">{stats.create.toLocaleString()}</span>
+            <span className="text-[10.5px] font-semibold text-emerald-700 mt-0.5 block">New records</span>
           </div>
-          <div className="bg-blue-50/60 rounded-xl p-3 border border-blue-100">
-            <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">Updated Records</span>
-            <span className="text-lg font-black text-blue-800 mt-0.5 block">{stats.update.toLocaleString()}</span>
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Updated</span>
+            <span className="text-2xl font-black text-amber-900 mt-0.5 block">{stats.update.toLocaleString()}</span>
+            <span className="text-[10.5px] font-semibold text-amber-800 mt-0.5 block">Modifications</span>
           </div>
-          <div className="bg-rose-50/60 rounded-xl p-3 border border-rose-100">
-            <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Deleted Records</span>
-            <span className="text-lg font-black text-rose-800 mt-0.5 block">{stats.delete.toLocaleString()}</span>
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Deleted</span>
+            <span className="text-2xl font-black text-rose-800 mt-0.5 block">{stats.delete.toLocaleString()}</span>
+            <span className="text-[10.5px] font-semibold text-rose-700 mt-0.5 block">Removed records</span>
           </div>
-          <div className="bg-amber-50/60 rounded-xl p-3 border border-amber-100 col-span-2 sm:col-span-1">
-            <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Active Admins</span>
-            <span className="text-lg font-black text-amber-800 mt-0.5 block">{stats.activeAdmins.toLocaleString()} Staff</span>
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80 col-span-2 sm:col-span-1">
+            <span className="text-[10px] font-bold text-indigo-950 uppercase tracking-wider block">Staff Admins</span>
+            <span className="text-2xl font-black text-indigo-950 mt-0.5 block">{stats.activeAdmins.toLocaleString()}</span>
+            <span className="text-[10.5px] font-semibold text-indigo-800 mt-0.5 block">Active actors</span>
           </div>
         </div>
       </div>
 
       {/* ── ADVANCED SEARCH & FILTER CONTROLS ── */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-stone-200/90 shadow-xs space-y-3">
         <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           {/* Search Box */}
           <div className="lg:col-span-2 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search user, email, description, IP..."
-              className="w-full pl-9 pr-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              placeholder="Search staff, email, action, IP..."
+              className="w-full pl-10 pr-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
             />
           </div>
 
@@ -290,7 +296,7 @@ export default function AuditLogs() {
                 setActionFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
             >
               <option value="">All Actions</option>
               <option value="CREATE">CREATE</option>
@@ -309,7 +315,7 @@ export default function AuditLogs() {
                 setModuleFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
             >
               <option value="">All Modules</option>
               <option value="auth">Auth & Login</option>
@@ -332,7 +338,7 @@ export default function AuditLogs() {
                 setStartDate(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="w-full px-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
               title="Start Date"
             />
           </div>
@@ -346,28 +352,28 @@ export default function AuditLogs() {
                 setEndDate(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+              className="w-full px-3 py-2 text-xs font-medium bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
               title="End Date"
             />
             <button
               type="button"
               onClick={handleResetFilters}
-              className="p-2 text-xs font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl border border-slate-200 transition-colors cursor-pointer shrink-0"
+              className="p-2 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-stone-900 transition-colors shrink-0 cursor-pointer"
               title="Reset Filters"
             >
-              <X className="w-4 h-4" />
+              <RotateCcw className="w-4 h-4" />
             </button>
           </div>
         </form>
       </div>
 
       {/* ── AUDIT LOGS TABLE ── */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-extrabold text-[11px] uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-stone-700">
+            <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black text-[10.5px] uppercase tracking-wider font-serif">
               <tr>
-                <th className="py-3.5 px-4 w-12">#</th>
+                <th className="py-3.5 px-4 w-12 text-center">#</th>
                 <th className="py-3.5 px-4">Admin User</th>
                 <th className="py-3.5 px-4">Action</th>
                 <th className="py-3.5 px-4">Module & Target</th>
@@ -377,40 +383,40 @@ export default function AuditLogs() {
                 <th className="py-3.5 px-4 text-right">Inspect</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-slate-400">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading audit trail entries...
+                  <td colSpan={8} className="py-16 text-center text-stone-400">
+                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-800" />
+                    <span className="text-xs font-bold">Loading audit trail entries...</span>
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-slate-400">
-                    <ShieldCheck className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                    <p className="font-bold text-slate-700">No audit logs found</p>
-                    <p className="text-[11px] text-slate-400 mt-1">Try adjusting your search criteria or date filters</p>
+                  <td colSpan={8} className="py-16 text-center text-stone-400">
+                    <ShieldCheck className="w-8 h-8 text-stone-300 mx-auto mb-2" />
+                    <p className="font-bold text-stone-700">No audit logs found</p>
+                    <p className="text-[11px] text-stone-400 mt-1">Try adjusting your search criteria or date filters</p>
                   </td>
                 </tr>
               ) : (
                 logs.map((log, index) => (
-                  <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 text-slate-400 font-mono text-[11px]">
+                  <tr key={log.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                    <td className="py-3.5 px-4 text-stone-400 font-mono text-[11px] text-center font-bold">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
 
                     {/* Admin User */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-blue-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-xl bg-stone-900 text-white font-black text-xs flex items-center justify-center shrink-0 font-serif">
                           {log.user_name?.charAt(0).toUpperCase() || 'A'}
                         </div>
                         <div className="min-w-0">
-                          <span className="font-bold text-slate-900 block truncate">
-                            {log.user_name || 'System / Guest'}
+                          <span className="font-bold text-stone-900 block truncate group-hover:text-amber-800 transition-colors">
+                            {log.user_name || 'System / Staff'}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-mono block truncate">
+                          <span className="text-[10px] text-stone-400 font-mono block truncate">
                             {log.user_email || 'anonymous'}
                           </span>
                         </div>
@@ -425,12 +431,12 @@ export default function AuditLogs() {
                     {/* Module & Record */}
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col">
-                        <span className="font-bold text-indigo-700 uppercase tracking-wide text-[10.5px]">
+                        <span className="font-bold text-stone-900 uppercase tracking-wide text-[10.5px]">
                           {log.module}
                         </span>
                         {log.record_id && (
-                          <span className="text-[10px] font-mono text-slate-400">
-                            ID: {log.record_id}
+                          <span className="text-[10px] font-mono text-stone-400">
+                            ID: #{log.record_id}
                           </span>
                         )}
                       </div>
@@ -438,7 +444,7 @@ export default function AuditLogs() {
 
                     {/* Description */}
                     <td className="py-3.5 px-4 max-w-[280px]">
-                      <span className="font-medium text-slate-800 line-clamp-2" title={log.description || ''}>
+                      <span className="font-medium text-stone-800 line-clamp-2" title={log.description || ''}>
                         {log.description || 'Action performed'}
                       </span>
                     </td>
@@ -446,28 +452,28 @@ export default function AuditLogs() {
                     {/* Client Info */}
                     <td className="py-3.5 px-4">
                       <div className="flex flex-col gap-0.5 text-[10.5px]">
-                        <span className="font-mono text-slate-700 font-semibold flex items-center gap-1">
-                          <Globe className="w-3 h-3 text-slate-400" />
+                        <span className="font-mono text-stone-700 font-semibold flex items-center gap-1">
+                          <Globe className="w-3 h-3 text-stone-400" />
                           {log.ip_address || '127.0.0.1'}
                         </span>
-                        <span className="text-slate-400 flex items-center gap-1">
-                          <Monitor className="w-3 h-3 text-slate-400" />
+                        <span className="text-stone-400 flex items-center gap-1">
+                          <Monitor className="w-3 h-3 text-stone-400" />
                           {[log.browser, log.os].filter(Boolean).join(' • ') || 'Desktop'}
                         </span>
                       </div>
                     </td>
 
                     {/* Timestamp */}
-                    <td className="py-3.5 px-4 text-slate-600">
+                    <td className="py-3.5 px-4 text-stone-600">
                       <div className="flex flex-col text-[10.5px]">
-                        <span className="font-bold text-slate-800">
+                        <span className="font-bold text-stone-800">
                           {new Date(log.created_at).toLocaleDateString('en-GB', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric',
                           })}
                         </span>
-                        <span className="text-slate-400 font-mono">
+                        <span className="text-stone-400 font-mono">
                           {new Date(log.created_at).toLocaleTimeString('en-US', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -486,7 +492,7 @@ export default function AuditLogs() {
                           setSelectedLog(log);
                           setModalTab(log.diff_values ? 'diff' : log.new_values ? 'new' : 'client');
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-colors cursor-pointer border border-indigo-200/80"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-900 text-stone-800 hover:text-white text-xs font-bold transition-all cursor-pointer border border-stone-200/90 shadow-2xs"
                       >
                         <FileCode2 className="w-3.5 h-3.5" />
                         <span>Inspect</span>
@@ -501,7 +507,7 @@ export default function AuditLogs() {
 
         {/* Pagination */}
         {!loading && logs.length > 0 && (
-          <div className="border-t border-slate-100">
+          <div className="p-4 border-t border-stone-200/80 bg-[#faf8f4]">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

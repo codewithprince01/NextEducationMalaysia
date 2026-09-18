@@ -20,7 +20,6 @@ import {
   FileText,
   GraduationCap,
   Image as ImageIcon,
-  Video,
   Trophy,
   Layers,
   Calendar,
@@ -984,118 +983,166 @@ export default function Programs() {
   };
 
   return (
-    <div className="space-y-2 max-w-[1600px] mx-auto text-slate-700">
+    <div className="space-y-5 max-w-[1600px] mx-auto pb-8">
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold text-white backdrop-blur-md transition-all animate-in slide-in-from-top-2 ${
-            toast.type === 'success' ? 'bg-emerald-600/95 ring-1 ring-emerald-400/30' : 'bg-rose-600/95 ring-1 ring-rose-400/30'
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
+            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
           }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* ── UNIFIED PAGE HEADER & FILTER CARD ── */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-2.5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-2.5 border-b border-slate-100">
-          <div className="space-y-0.5">
-            <h1 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2.5 flex-wrap">
-              <span>University Programs</span>
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <GraduationCap className="w-3 h-3 text-amber-700" />
+                <span>Academic Degree Catalog</span>
+              </span>
               {selectedUniv && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 border border-rose-200 text-rose-600">
+                <span className="text-[11px] font-bold text-stone-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
                   {selectedUniv.name}
                 </span>
               )}
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              Programs & Courses Directory
             </h1>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Manage undergraduate and postgraduate academic courses, specializations, international tuition schedules, and entry requirements.
+            </p>
           </div>
 
-          {/* Select University Dropdown */}
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-indigo-600" />
-              University:
-            </label>
-            <select
-              value={selectedUnivId}
-              onChange={handleUniversityChange}
-              className="w-full md:w-80 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-800 text-xs font-bold bg-slate-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+            {/* Select University Dropdown */}
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-amber-800 shrink-0" />
+              <select
+                value={selectedUnivId}
+                onChange={handleUniversityChange}
+                className="w-full sm:w-72 bg-stone-50/70 border border-stone-200/90 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white cursor-pointer shadow-2xs"
+              >
+                <option value="">-- All Universities ({universities.length}) --</option>
+                {universities.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={() => {
+                fetchPrograms(selectedUnivId);
+              }}
+              disabled={loading}
+              className="p-2.5 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-stone-700 transition-colors cursor-pointer disabled:opacity-50 shadow-2xs self-start sm:self-auto"
+              title="Refresh programs"
             >
-              <option value="">-- All Universities --</option>
-              {universities.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+              <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin text-stone-600' : ''}`} />
+            </button>
           </div>
         </div>
 
-        {/* Sub-Navigation Pills */}
+        {/* Sub-Navigation Pills for selected university */}
         {selectedUnivId && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-stone-100">
             <button
               onClick={() => navigate(`/university-overviews?university_id=${selectedUnivId}`)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              <FileText className="w-3.5 h-3.5 text-slate-400" />
+              <FileText className="w-3.5 h-3.5 text-stone-500" />
               <span>Overview</span>
             </button>
             <button
               onClick={() => navigate(`/programs?university_id=${selectedUnivId}`)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-xs transition-all"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-stone-900 text-white shadow-xs transition-all"
             >
-              <GraduationCap className="w-3.5 h-3.5 text-white" />
-              <span>Courses</span>
+              <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
+              <span>Programs ({programs.length})</span>
             </button>
             <button
               onClick={() => navigate(`/university-gallery?university_id=${selectedUnivId}`)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              <ImageIcon className="w-3.5 h-3.5 text-slate-400" />
+              <ImageIcon className="w-3.5 h-3.5 text-stone-500" />
               <span>Gallery</span>
             </button>
             <button
-              onClick={() => navigate(`/university-gallery?university_id=${selectedUnivId}`)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-all cursor-pointer"
-            >
-              <Video className="w-3.5 h-3.5 text-slate-400" />
-              <span>Videos</span>
-            </button>
-            <button
               onClick={() => navigate(`/university-facilities?university_id=${selectedUnivId}`)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
+              <Building2 className="w-3.5 h-3.5 text-stone-500" />
               <span>Facilities</span>
             </button>
             <button
-              onClick={() => navigate(`/university-reviews?university_id=${selectedUnivId}`)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50/80 transition-all cursor-pointer"
+              onClick={() => navigate(`/university-rankings?university_id=${selectedUnivId}`)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              <Trophy className="w-3.5 h-3.5 text-slate-400" />
+              <Trophy className="w-3.5 h-3.5 text-amber-600" />
               <span>Rankings</span>
             </button>
           </div>
         )}
+
+        {/* ── CLASSIC METRIC STAT CARDS ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Degree Offerings</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {loading ? '...' : programs.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-stone-600 mt-1">Available in catalog</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Active Programs</div>
+            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
+              {loading ? '...' : programs.filter((p) => p.status === 1).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Live applications open</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Academic Categories</div>
+            <div className="text-2xl font-black text-amber-800 tracking-tight mt-0.5">
+              {categories.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Disciplines & fields</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Specializations</div>
+            <div className="text-2xl font-black text-indigo-900 tracking-tight mt-0.5">
+              {specializations.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-indigo-700 mt-1">Degree majors</div>
+          </div>
+        </div>
       </div>
 
       {/* ── BULK DATA IMPORT / EXPORT CARDS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 space-y-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileSpreadsheet className="w-4 h-4 text-sky-600" />
-              <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Import New Data</h3>
+              <FileSpreadsheet className="w-4 h-4 text-amber-800" />
+              <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wider">Import New Degree Data</h3>
             </div>
             <button
               type="button"
               onClick={handleDownloadFormat}
-              className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-md hover:bg-indigo-100 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-900 border border-amber-200/80 text-xs font-bold rounded-xl hover:bg-amber-100 transition-colors cursor-pointer"
               title="Download CSV Template Format"
             >
-              <Download className="w-3 h-3" /> Formats
+              <Download className="w-3.5 h-3.5" /> CSV Template
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -1104,13 +1151,13 @@ export default function Programs() {
               type="file"
               accept=".csv, .xlsx, .xls"
               onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-              className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 border border-slate-200 rounded-lg bg-slate-50 p-0.5 cursor-pointer"
+              className="w-full text-xs text-stone-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-stone-200 file:text-stone-800 border border-stone-200 rounded-xl bg-stone-50/70 p-1 cursor-pointer"
             />
             <button
               type="button"
               onClick={handleImport}
               disabled={isImporting || !importFile}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors shrink-0"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer transition-colors shrink-0"
             >
               {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               <span>Import</span>
@@ -1118,10 +1165,10 @@ export default function Programs() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs p-3.5 space-y-2">
+        <div className="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-4 space-y-3">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-violet-600" />
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Update Bulk Data</h3>
+            <Layers className="w-4 h-4 text-amber-800" />
+            <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wider">Update Bulk Program Fees</h3>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -1129,13 +1176,13 @@ export default function Programs() {
               type="file"
               accept=".csv, .xlsx, .xls"
               onChange={(e) => setBulkFile(e.target.files?.[0] || null)}
-              className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 border border-slate-200 rounded-lg bg-slate-50 p-0.5 cursor-pointer"
+              className="w-full text-xs text-stone-600 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-stone-200 file:text-stone-800 border border-stone-200 rounded-xl bg-stone-50/70 p-1 cursor-pointer"
             />
             <button
               type="button"
               onClick={handleBulkUpdate}
               disabled={isBulkUpdating || !bulkFile}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors shrink-0"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-800 hover:bg-amber-900 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-xs cursor-pointer transition-colors shrink-0"
             >
               {isBulkUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               <span>Update</span>
@@ -1145,33 +1192,36 @@ export default function Programs() {
       </div>
 
       {/* ── ADD / EDIT PROGRAM FORM (COLLAPSIBLE WITH SUB-TABS) ── */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div
-          className="flex items-center justify-between p-3.5 bg-slate-50/80 border-b border-slate-200/80 cursor-pointer select-none"
+          className="flex items-center justify-between p-4 bg-[#faf8f4] border-b border-stone-200/90 cursor-pointer select-none"
           onClick={() => setIsFormOpen(!isFormOpen)}
         >
           <div className="flex items-center gap-2.5">
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs ${editingId ? 'bg-amber-500' : 'bg-indigo-600'}`}>
-              {editingId ? <Edit2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-xs ${editingId ? 'bg-amber-600' : 'bg-stone-900'}`}>
+              {editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             </div>
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              {editingId ? 'Edit Program Record' : 'Add New Program Record'}
-            </h2>
+            <div>
+              <h2 className="text-xs font-bold text-stone-900 uppercase tracking-wider font-serif">
+                {editingId ? 'Edit Program & Tuition Record' : 'Add New Academic Program'}
+              </h2>
+              <p className="text-[11px] text-stone-500 font-medium">Detailed course descriptions, tuition schedules, and entry requirements</p>
+            </div>
           </div>
-          <button type="button" className="p-1 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100">
-            {isFormOpen ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+          <button type="button" className="p-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-100">
+            {isFormOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
           </button>
         </div>
 
         {isFormOpen && (
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5">
             {/* Form Section Navigation Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-100 pb-2.5">
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-stone-200/70 pb-3">
               <button
                 type="button"
                 onClick={() => setActiveFormTab('basic')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'basic' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'basic' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
                 <Info className="w-3.5 h-3.5" /> Basic Info
@@ -1179,8 +1229,8 @@ export default function Programs() {
               <button
                 type="button"
                 onClick={() => setActiveFormTab('overview')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'overview' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'overview' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" /> Overview & Descriptions
@@ -1188,8 +1238,8 @@ export default function Programs() {
               <button
                 type="button"
                 onClick={() => setActiveFormTab('intl_fees')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'intl_fees' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'intl_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
                 <DollarSign className="w-3.5 h-3.5" /> International Fees
@@ -1197,8 +1247,8 @@ export default function Programs() {
               <button
                 type="button"
                 onClick={() => setActiveFormTab('local_fees')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'local_fees' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'local_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
                 <Building2 className="w-3.5 h-3.5" /> Local Fees
@@ -1206,8 +1256,8 @@ export default function Programs() {
               <button
                 type="button"
                 onClick={() => setActiveFormTab('other_fees')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'other_fees' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'other_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
                 <Tag className="w-3.5 h-3.5" /> Other Fees
@@ -1215,8 +1265,8 @@ export default function Programs() {
               <button
                 type="button"
                 onClick={() => setActiveFormTab('seo')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'seo' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'seo' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
                 }`}
               >
                 <Globe className="w-3.5 h-3.5" /> SEO Settings
@@ -2120,10 +2170,10 @@ export default function Programs() {
       </div>
 
       {/* ── TABLE SEARCH & TOOLBAR ── */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="p-3.5 border-b border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-stone-200/90 flex flex-col md:flex-row items-center justify-between gap-3 bg-[#faf8f4]">
           <div className="relative w-full md:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Search by program name, category, or level..."
@@ -2132,12 +2182,12 @@ export default function Programs() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-8 py-1.5 text-xs font-medium border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500 transition-all"
+              className="w-full pl-10 pr-8 py-2 text-xs font-medium border border-stone-200/90 rounded-xl bg-white text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-600 font-bold"
               >
                 ×
               </button>
@@ -2146,11 +2196,11 @@ export default function Programs() {
 
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-between md:justify-end">
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Sort:</span>
+              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider hidden sm:inline">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'Date' | 'Name')}
-                className="px-2.5 py-1 border border-slate-200 rounded-lg bg-slate-50 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none"
+                className="px-3 py-1.5 border border-stone-200/90 rounded-xl bg-white text-xs font-bold text-stone-700 cursor-pointer focus:outline-none"
               >
                 <option value="Date">Date Added</option>
                 <option value="Name">Program Name</option>
@@ -2158,23 +2208,23 @@ export default function Programs() {
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as 'DESC' | 'ASC')}
-                className="px-2.5 py-1 border border-slate-200 rounded-lg bg-slate-50 text-xs font-bold text-slate-700 cursor-pointer focus:outline-none"
+                className="px-3 py-1.5 border border-stone-200/90 rounded-xl bg-white text-xs font-bold text-stone-700 cursor-pointer focus:outline-none"
               >
                 <option value="DESC">DESC</option>
                 <option value="ASC">ASC</option>
               </select>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleExportDetails}
-                className="flex items-center gap-1 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" /> Export
               </button>
               <button
                 onClick={handleExportFees}
-                className="flex items-center gap-1 px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200/80 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 rounded-xl text-xs font-bold transition-all cursor-pointer"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" /> Fees Export
               </button>
@@ -2184,31 +2234,31 @@ export default function Programs() {
 
         {/* ── PROGRAM LIST TABLE ── */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+          <table className="w-full text-left text-xs text-stone-700">
+            <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase text-[10px] tracking-wider font-serif">
               <tr>
-                <th className="py-3 px-3 w-12 text-center">Sr.</th>
-                <th className="py-3 px-3">Program Name</th>
-                <th className="py-3 px-3">Category & Specialization</th>
-                <th className="py-3 px-3 w-28">Duration & Mode</th>
-                <th className="py-3 px-3 w-28">Intake / Fee</th>
-                <th className="py-3 px-3 w-20 text-center">Status</th>
-                <th className="py-3 px-3 w-24 text-right">Actions</th>
+                <th className="py-3.5 px-4 w-12 text-center">Sr.</th>
+                <th className="py-3.5 px-4">Program Name</th>
+                <th className="py-3.5 px-4">Category & Specialization</th>
+                <th className="py-3.5 px-4 w-32">Duration & Mode</th>
+                <th className="py-3.5 px-4 w-32">Intake / Fee</th>
+                <th className="py-3.5 px-4 w-24 text-center">Status</th>
+                <th className="py-3.5 px-4 w-28 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
+                  <td colSpan={7} className="py-12 text-center text-stone-400">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-700" />
                     <span className="text-xs font-bold">Loading university programs...</span>
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 space-y-1">
-                    <BookOpen className="w-7 h-7 text-slate-300 mx-auto mb-1" />
-                    <div className="text-xs font-bold text-slate-600">No programs found</div>
+                  <td colSpan={7} className="py-12 text-center text-stone-400 space-y-1">
+                    <BookOpen className="w-7 h-7 text-stone-300 mx-auto mb-1" />
+                    <div className="text-xs font-bold text-stone-600">No programs found</div>
                     <p className="text-[11px]">Try adjusting search filters or select another university.</p>
                   </td>
                 </tr>
@@ -2216,73 +2266,73 @@ export default function Programs() {
                 paginated.map((item, index) => {
                   const srNo = (currentPage - 1) * itemsPerPage + index + 1;
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
-                      <td className="py-3 px-3 text-center font-bold text-slate-400 text-[11px]">{srNo}</td>
-                      <td className="py-3 px-3 space-y-1">
+                    <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                      <td className="py-3.5 px-4 text-center font-bold text-stone-400 text-[11px]">{srNo}</td>
+                      <td className="py-3.5 px-4 space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-stone-700 bg-stone-100 border border-stone-200 px-1.5 py-0.5 rounded">
                             #{item.id}
                           </span>
-                          <span className="font-extrabold text-slate-900 text-xs group-hover:text-indigo-600 transition-colors">
+                          <span className="font-extrabold text-stone-900 text-xs group-hover:text-amber-800 transition-colors">
                             {item.course_name}
                           </span>
                         </div>
                         {item.level && (
-                          <div className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                            <Tag className="w-2.5 h-2.5 text-slate-400" /> {item.level}
+                          <div className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-600 bg-stone-100/90 border border-stone-200/80 px-2 py-0.5 rounded-full">
+                            <Tag className="w-2.5 h-2.5 text-stone-400" /> {item.level}
                           </div>
                         )}
                       </td>
-                      <td className="py-3 px-3 space-y-0.5">
-                        <div className="text-xs font-bold text-slate-700">{item.category_name || '-'}</div>
-                        <div className="text-[11px] font-medium text-slate-400">{item.specialization_name || '-'}</div>
+                      <td className="py-3.5 px-4 space-y-0.5">
+                        <div className="text-xs font-bold text-stone-800">{item.category_name || '-'}</div>
+                        <div className="text-[11px] font-medium text-stone-500">{item.specialization_name || '-'}</div>
                       </td>
-                      <td className="py-3 px-3 space-y-0.5">
-                        <div className="flex items-center gap-1 text-xs font-bold text-slate-700">
-                          <Clock className="w-3 h-3 text-slate-400" /> {item.duration || '-'}
+                      <td className="py-3.5 px-4 space-y-0.5">
+                        <div className="flex items-center gap-1 text-xs font-bold text-stone-800">
+                          <Clock className="w-3 h-3 text-stone-400" /> {item.duration || '-'}
                         </div>
-                        <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">
+                        <div className="text-[10px] font-semibold text-stone-500 uppercase tracking-tight">
                           {item.study_mode || '-'}
                         </div>
                       </td>
-                      <td className="py-3 px-3 space-y-0.5">
-                        <div className="flex items-center gap-1 text-xs font-bold text-slate-800 font-mono">
-                          <DollarSign className="w-3 h-3 text-emerald-600" /> {item.total_fee_international || item.total_tuition_fee_international || item.total_fee || '-'}
+                      <td className="py-3.5 px-4 space-y-0.5">
+                        <div className="flex items-center gap-1 text-xs font-bold text-stone-900 font-mono">
+                          <DollarSign className="w-3 h-3 text-emerald-700" /> {item.total_fee_international || item.total_tuition_fee_international || item.total_fee || '-'}
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400">
+                        <div className="flex items-center gap-1 text-[10px] font-semibold text-stone-500">
                           <Calendar className="w-2.5 h-2.5" /> {item.intake || '-'}
                         </div>
                       </td>
-                      <td className="py-3 px-3 text-center">
+                      <td className="py-3.5 px-4 text-center">
                         {item.status === 1 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200/80">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80">
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
                             Inactive
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg transition-all cursor-pointer"
+                            className="p-1.5 bg-stone-100 hover:bg-stone-900 text-stone-700 hover:text-white rounded-lg transition-all cursor-pointer"
                             title="Edit Program"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(item.id, item.course_name)}
-                            className="p-1.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-lg transition-all cursor-pointer"
+                            className="p-1.5 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white rounded-lg transition-all cursor-pointer"
                             title="Delete Program"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => navigate(`/university-program-contents/${item.id}`)}
-                            className="px-2 py-1 bg-violet-50 hover:bg-violet-600 text-violet-700 hover:text-white text-[10px] font-bold rounded-lg border border-violet-200/80 transition-all cursor-pointer"
+                            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-800 text-amber-900 hover:text-white text-[10px] font-bold rounded-lg border border-amber-200/80 transition-all cursor-pointer"
                             title="Manage Detailed Content"
                           >
                             Content
@@ -2299,11 +2349,11 @@ export default function Programs() {
 
         {/* ── PAGINATION FOOTER ── */}
         {!loading && filtered.length > 0 && (
-          <div className="p-3 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
-            <div className="font-semibold text-slate-600">
-              Showing <span className="font-bold text-slate-800">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-              <span className="font-bold text-slate-800">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of{' '}
-              <span className="font-bold text-slate-800">{filtered.length}</span> programs
+          <div className="p-4 border-t border-stone-200/80 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-stone-500 bg-[#faf8f4]">
+            <div className="font-semibold text-stone-600">
+              Showing <span className="font-bold text-stone-900">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+              <span className="font-bold text-stone-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of{' '}
+              <span className="font-bold text-stone-900">{filtered.length}</span> programs
             </div>
             <Pagination
               currentPage={currentPage}

@@ -221,123 +221,165 @@ export default function PageBanners() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-              <ImageIcon className="w-6 h-6 text-indigo-600" /> Page Banners
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <ImageIcon className="w-3.5 h-3.5 text-amber-700" />
+                <span>Visual Hero Assets</span>
+              </span>
+              <span className="text-[11px] font-bold text-amber-900 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
+                Website: MYS Region
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              Page Banners & Hero Sliders
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wide">
-              Website: MYS
-            </span>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Manage top promotional banners, hero headlines, alt tags, and graphic media across Malaysia (MYS) web pages.
+            </p>
           </div>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage top hero sliders, alt texts, title headlines, and banner images for Malaysia (MYS) pages.
-          </p>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={fetchData}
+              className="p-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-stone-900 transition-colors cursor-pointer"
+              title="Refresh"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-800' : ''}`} />
+            </button>
+            <button
+              onClick={() => {
+                if (isFormOpen && !editingId) {
+                  setIsFormOpen(false);
+                } else {
+                  handleOpenAdd();
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer whitespace-nowrap"
+            >
+              {isFormOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              <span>{isFormOpen ? 'Close Editor' : 'Add New Banner'}</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={() => {
-              if (isFormOpen && !editingId) {
-                setIsFormOpen(false);
-              } else {
-                handleOpenAdd();
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
-          >
-            {isFormOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {isFormOpen ? 'Close Form' : 'Add New'}
-          </button>
+
+        {/* ── TOP STAT METRICS (4 CARDS) ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Banners</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {items.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-stone-500 mt-1">Configured banners</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Active Pages</div>
+            <div className="text-2xl font-black text-amber-900 tracking-tight mt-0.5">
+              {Array.from(new Set(items.map((i) => i.page || 'home'))).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Target portal routes</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Graphic Assets</div>
+            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
+              {items.filter((i) => Boolean(i.banner_path)).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Published hero images</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Target Scope</div>
+            <div className="text-2xl font-black text-indigo-950 tracking-tight mt-0.5">
+              MYS
+            </div>
+            <div className="text-[10.5px] font-semibold text-indigo-800 mt-1">Malaysia domain scope</div>
+          </div>
         </div>
       </div>
 
-      {/* Form Card (Top) */}
+      {/* ── COLLAPSIBLE BANNER FORM CARD ── */}
       {isFormOpen && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden animate-fadeIn">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              {editingId ? <Edit2 className="w-4 h-4 text-indigo-600" /> : <Plus className="w-4 h-4 text-indigo-600" />}
-              {editingId ? 'Update Record' : 'Add New Record'}
+        <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden animate-fadeIn">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-stone-200/80 bg-[#faf8f4]">
+            <h2 className="text-xs font-bold text-stone-900 uppercase tracking-wider flex items-center gap-2 font-serif">
+              {editingId ? <Edit2 className="w-4 h-4 text-amber-800" /> : <Plus className="w-4 h-4 text-amber-800" />}
+              <span>{editingId ? 'Edit Hero Banner Record' : 'Create New Page Banner'}</span>
             </h2>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                  Enter Alt Text <span className="text-rose-500">*</span>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                  Alt Text <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Enter Alt Text"
+                  placeholder="e.g. Study in Malaysia Leading Universities Banner"
                   value={formData.alt_text}
                   onChange={(e) => setFormData({ ...formData, alt_text: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  className="w-full px-3.5 py-2 text-xs bg-stone-50/70 border border-stone-200/90 rounded-xl focus:outline-none focus:border-amber-600 focus:bg-white transition-all font-medium text-stone-800"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                  Upload Banner
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                  Upload Banner Image
                 </label>
                 <input
                   type="file"
                   ref={fileInputRef}
                   accept="image/*"
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                  className="w-full text-xs text-stone-600 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-stone-200 file:text-stone-800 hover:file:bg-stone-300 cursor-pointer border border-stone-200 rounded-xl bg-stone-50/70 p-1"
                 />
                 {existingBanner && (
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <img src={existingBanner} alt="Current Banner" className="h-7 w-12 object-cover rounded border" />
-                    <span className="text-[11px] text-slate-500 font-mono truncate">{existingBanner}</span>
+                  <div className="mt-2 flex items-center gap-2 p-1.5 bg-[#faf8f4] border border-stone-200 rounded-xl">
+                    <img src={existingBanner} alt="Current Banner" className="h-8 w-14 object-cover rounded-lg border border-stone-200" />
+                    <span className="text-[11px] text-stone-600 font-mono truncate">{existingBanner}</span>
                   </div>
                 )}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                Enter Title
+              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                Banner Headline Title
               </label>
               <input
                 type="text"
-                placeholder="Enter Title"
+                placeholder="e.g. Explore Top Universities in Malaysia"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                className="w-full px-3.5 py-2 text-xs bg-stone-50/70 border border-stone-200/90 rounded-xl focus:outline-none focus:border-amber-600 focus:bg-white transition-all font-medium text-stone-800"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">
-                Enter Description
+              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                Banner Subtitle / Description
               </label>
               <textarea
                 rows={3}
-                placeholder="Enter Description"
+                placeholder="Brief promotional subtitle or narrative text displayed over banner..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-none"
+                className="w-full px-3.5 py-2 text-xs bg-stone-50/70 border border-stone-200/90 rounded-xl focus:outline-none focus:border-amber-600 focus:bg-white transition-all resize-none font-medium text-stone-800"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-stone-100">
               <button
                 type="button"
                 onClick={handleReset}
-                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors cursor-pointer"
               >
-                <RotateCcw className="w-4 h-4" /> Reset
+                <RotateCcw className="w-3.5 h-3.5" /> Reset
               </button>
               <button
                 type="button"
@@ -345,129 +387,133 @@ export default function PageBanners() {
                   setIsFormOpen(false);
                   setEditingId(null);
                 }}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-bold text-stone-600 border border-stone-200 hover:bg-stone-50 rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold shadow-md shadow-stone-900/15 transition-all disabled:opacity-50 cursor-pointer"
               >
-                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {editingId ? 'Update Record' : 'Submit'}
+                {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>{editingId ? 'Update Banner' : 'Submit Banner'}</span>
               </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Controls & Search */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search alt text, title or page..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-          />
+      {/* ── TABLE SEARCH & TOOLBAR ── */}
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-stone-200/90 flex flex-col sm:flex-row gap-4 justify-between items-center bg-[#faf8f4]">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+            <input
+              type="text"
+              placeholder="Search alt text, title, or page..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-xs bg-white border border-stone-200/90 rounded-xl focus:outline-none focus:border-amber-600 transition-all font-medium text-stone-800 placeholder-stone-400"
+            />
+          </div>
+          <div className="text-xs font-bold text-stone-500">
+            Showing <span className="font-extrabold text-stone-900">{filtered.length}</span> page banners
+          </div>
         </div>
-        <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
-        </div>
-      </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+        {/* ── DATA TABLE ── */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs text-stone-700">
+            <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px] font-serif">
               <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
-                <th className="py-3.5 px-4">Page</th>
+                <th className="py-3.5 px-4 w-16 text-center">Sr. No.</th>
+                <th className="py-3.5 px-4">Page Route</th>
                 <th className="py-3.5 px-4">Alt Text</th>
-                <th className="py-3.5 px-4">Banner</th>
-                <th className="py-3.5 px-4">Title</th>
+                <th className="py-3.5 px-4">Banner Graphic</th>
+                <th className="py-3.5 px-4">Headline Title</th>
                 <th className="py-3.5 px-4">Description</th>
-                <th className="py-3.5 px-4 text-right">Action</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading page banners...
+                  <td colSpan={7} className="py-16 text-center text-stone-400">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-amber-800" />
+                    <span className="text-xs font-bold">Loading page banners...</span>
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    No data found
+                  <td colSpan={7} className="py-16 text-center text-stone-400">
+                    <ImageIcon className="w-10 h-10 mx-auto mb-2 text-stone-300" />
+                    <p className="text-sm font-bold text-stone-700">No Banners Found</p>
+                    <p className="text-xs text-stone-400 mt-1">Try adjusting search term or create a new banner.</p>
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                  <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                    <td className="py-4 px-4 text-center font-extrabold text-stone-500">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-mono text-xs text-indigo-600 uppercase font-semibold">
-                      {item.page || 'home'}
+                    <td className="py-4 px-4 font-mono text-[11px] text-amber-900 uppercase font-bold">
+                      <span className="px-2 py-0.5 rounded-md bg-stone-100 border border-stone-200">
+                        {item.page || 'home'}
+                      </span>
                     </td>
-                    <td className="py-3.5 px-4 font-medium text-slate-800">{item.alt_text}</td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-4 px-4 font-bold text-stone-900 group-hover:text-amber-800 transition-colors">{item.alt_text}</td>
+                    <td className="py-4 px-4">
                       {item.banner_path ? (
                         <a
                           href={getStorageUrl(item.banner_path)}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-indigo-600 rounded text-xs font-medium transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-lg text-xs font-bold transition-colors border border-stone-200"
                         >
-                          <Eye className="w-3.5 h-3.5" /> View Banner
+                          <Eye className="w-3.5 h-3.5 text-stone-500" /> View Image
                         </a>
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <span className="text-stone-400 text-xs italic">N/A</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-4 px-4">
                       {item.title ? (
                         <button
                           onClick={() => setTitleModal(item.title || '')}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-bold transition-colors border border-stone-200 cursor-pointer"
                         >
                           View Title
                         </button>
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <span className="text-stone-400 text-xs italic">N/A</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-4 px-4">
                       {item.description ? (
                         <button
                           onClick={() => setDescModal(item.description || '')}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-xs font-bold transition-colors border border-stone-200 cursor-pointer"
                         >
-                          View Description
+                          View Subtitle
                         </button>
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <span className="text-stone-400 text-xs italic">N/A</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="py-4 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -481,18 +527,15 @@ export default function PageBanners() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {!loading && filtered.length > 0 && (
-          <div className="p-4 border-t border-slate-100">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(filtered.length / itemsPerPage)}
-              onPageChange={setCurrentPage}
-              totalItems={filtered.length}
-              itemsPerPage={itemsPerPage}
-            />
-          </div>
-        )}
+        <div className="p-4 border-t border-stone-200/80 bg-[#faf8f4]">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filtered.length / itemsPerPage)}
+            totalItems={filtered.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={(p) => setCurrentPage(p)}
+          />
+        </div>
       </div>
 
       {/* Title View Modal */}

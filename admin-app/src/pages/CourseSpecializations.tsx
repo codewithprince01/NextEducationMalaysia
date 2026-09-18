@@ -489,126 +489,164 @@ export default function CourseSpecializations() {
         </div>
       )}
 
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 shrink-0">
-            <GraduationCap className="w-6 h-6" />
-          </div>
-          <div>
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-extrabold text-cyan-600 bg-cyan-50 border border-cyan-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Course Specializations
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <GraduationCap className="w-3.5 h-3.5 text-amber-700" />
+                <span>Degree Specializations</span>
+              </span>
+              <span className="text-[11px] font-bold text-stone-500 bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">
+                Course Majors
               </span>
             </div>
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight mt-0.5">Course Specialization List</h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Manage academic disciplines, SEO metadata, image assets, contents, levels, and FAQs.
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              Course Specializations Directory
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Manage academic specializations, linked category majors, syllabus content overviews, degree levels, and FAQs.
             </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => fetchData()}
+              className="p-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-stone-900 transition-colors cursor-pointer"
+              title="Refresh list"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-800' : ''}`} />
+            </button>
+
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+            >
+              <Download className="w-4 h-4 text-emerald-700" />
+              <span>Export CSV</span>
+            </button>
+
+            <button
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Specialization</span>
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => fetchData()}
-            className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
-            title="Refresh list"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
+        {/* ── TOP STAT METRICS (4 CARDS) ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Specializations</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {specializations.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-stone-500 mt-1">Listed majors</div>
+          </div>
 
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs transition-colors cursor-pointer"
-          >
-            <Download className="w-4 h-4" />
-            <span>Export CSV</span>
-          </button>
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Active Published</div>
+            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
+              {specializations.filter((s) => s.status === 1).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Visible on portal</div>
+          </div>
 
-          <button
-            onClick={handleOpenAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Specialization</span>
-          </button>
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Parent Categories</div>
+            <div className="text-2xl font-black text-amber-900 tracking-tight mt-0.5">
+              {categories.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Academic disciplines</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">FAQ Knowledge</div>
+            <div className="text-2xl font-black text-indigo-950 tracking-tight mt-0.5">
+              {specializations.reduce((acc, s) => acc + (s.faqs_count || 0), 0)}
+            </div>
+            <div className="text-[10.5px] font-semibold text-indigo-800 mt-1">Specialization FAQs</div>
+          </div>
         </div>
       </div>
 
-      {/* Select Excel File Import Box */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-        <h3 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Select Excel File</h3>
+      {/* ── EXCEL DATA IMPORT TOOL ── */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200/90 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-stone-800 uppercase tracking-wider">Bulk Import Specializations</h3>
+          <button
+            onClick={handleDownloadFormat}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-900 border border-amber-200/80 text-xs font-bold rounded-xl hover:bg-amber-100 transition-colors cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>CSV Template</span>
+          </button>
+        </div>
         <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+          <div className="relative flex-1 w-full flex items-center border border-stone-200 rounded-xl overflow-hidden bg-stone-50/70 p-1">
             <input
               type="file"
               accept=".xlsx, .xls, .csv"
               onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-              className="w-full text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-l-xl file:border-0 file:text-xs file:font-bold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer"
+              className="w-full text-xs text-stone-600 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-stone-200 file:text-stone-800 hover:file:bg-stone-300 cursor-pointer"
             />
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
-            <button
-              onClick={handleImport}
-              disabled={importing || !importFile}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-600 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
-            >
-              {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-              <span>Import</span>
-            </button>
-            <button
-              onClick={handleDownloadFormat}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Formate</span>
-            </button>
-          </div>
+          <button
+            onClick={handleImport}
+            disabled={importing || !importFile}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0"
+          >
+            {importing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            <span>Import Specializations</span>
+          </button>
         </div>
       </div>
 
-      {/* Search & Stats Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+      {/* ── SEARCH & STATS BAR ── */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200/90 shadow-xs">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search specialization, category, slug..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+            className="w-full bg-stone-50/70 border border-stone-200/90 rounded-xl pl-10 pr-4 py-2 text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
+        <div className="flex items-center gap-4 text-xs font-bold text-stone-500">
           <div>
-            Total: <span className="text-slate-900 font-bold">{specializations.length}</span>
+            Showing: <span className="text-stone-900 font-extrabold">{filtered.length}</span> Specializations
           </div>
-          <div className="h-3 w-px bg-slate-200" />
+          <div className="h-3 w-px bg-stone-200" />
           <div>
-            Active: <span className="text-emerald-600 font-bold">{specializations.filter((s) => s.status === 1).length}</span>
+            Active: <span className="text-emerald-700 font-extrabold">{specializations.filter((s) => s.status === 1).length}</span>
           </div>
         </div>
       </div>
 
-      {/* Main Rich Data Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      {/* ── MAIN RICH DATA TABLE ── */}
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="p-12 flex flex-col items-center justify-center text-slate-400">
-            <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-3" />
-            <p className="text-xs font-semibold">Loading specializations...</p>
+          <div className="p-16 flex flex-col items-center justify-center text-stone-400">
+            <Loader2 className="w-8 h-8 animate-spin text-amber-800 mb-3" />
+            <p className="text-xs font-bold">Loading specializations...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center text-slate-400">
-            <GraduationCap className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-            <p className="text-sm font-bold text-slate-700">No Specializations Found</p>
-            <p className="text-xs text-slate-400 mt-1">Try searching another term or add a new specialization.</p>
+          <div className="p-16 text-center text-stone-400">
+            <GraduationCap className="w-12 h-12 mx-auto mb-3 text-stone-300" />
+            <p className="text-sm font-bold text-stone-700">No Specializations Found</p>
+            <p className="text-xs text-stone-400 mt-1">Try searching another term or add a new specialization.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-slate-500 font-extrabold uppercase tracking-wider text-[10.5px]">
+                <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px] font-serif">
                   <th className="py-3.5 px-4 w-14 text-center">Sr. No.</th>
                   <th className="py-3.5 px-4 w-14 text-center">ID</th>
                   <th className="py-3.5 px-5">Specialization & Slug</th>
@@ -620,31 +658,31 @@ export default function CourseSpecializations() {
                   <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+              <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
                 {paginated.map((item, index) => {
                   const srNo = (currentPage - 1) * itemsPerPage + index + 1;
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-4 text-center font-extrabold text-slate-700">{srNo}</td>
-                      <td className="py-4 px-4 text-center font-bold text-slate-400">#{item.id}</td>
+                    <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                      <td className="py-4 px-4 text-center font-extrabold text-stone-500">{srNo}</td>
+                      <td className="py-4 px-4 text-center font-bold text-stone-400">#{item.id}</td>
                       <td className="py-4 px-5 max-w-xs">
-                        <div className="font-bold text-slate-900 text-xs leading-snug">{item.name}</div>
-                        <div className="text-[11px] font-mono text-slate-400 mt-0.5 truncate">{item.slug}</div>
+                        <div className="font-bold text-stone-900 text-xs leading-snug group-hover:text-amber-800 transition-colors">{item.name}</div>
+                        <div className="text-[11px] font-mono text-stone-400 mt-0.5 truncate">{item.slug}</div>
                       </td>
 
                       {/* Category Column */}
                       <td className="py-4 px-5">
-                        <div className="font-bold text-indigo-700 text-xs">{item.category_name || 'N/A'}</div>
-                        <div className="text-[10.5px] text-slate-400 font-mono">Cat #{item.course_category_id}</div>
+                        <div className="font-bold text-stone-900 text-xs">{item.category_name || 'N/A'}</div>
+                        <div className="text-[10.5px] text-stone-400 font-mono">Cat #{item.course_category_id}</div>
                       </td>
 
                       {/* SEO Metadata Column */}
                       <td className="py-4 px-4">
                         <button
                           onClick={() => setPreviewSeo(item)}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-sky-200 bg-sky-50/70 text-sky-700 text-[11px] font-bold hover:bg-sky-100 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 text-[11px] font-bold transition-colors cursor-pointer"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5 text-stone-500" />
                           <span>View</span>
                         </button>
                       </td>
@@ -653,42 +691,42 @@ export default function CourseSpecializations() {
                       <td className="py-4 px-5">
                         <div className="space-y-1 text-[11px]">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 font-semibold">Thumbnail:</span>
+                            <span className="text-stone-400 font-semibold">Thumbnail:</span>
                             {item.thumbnail_path ? (
                               <button
                                 onClick={() => setPreviewImage({ title: 'Thumbnail', url: item.thumbnail_path! })}
-                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                                className="text-amber-800 font-bold hover:underline cursor-pointer flex items-center gap-1"
                               >
                                 View <ExternalLink className="w-2.5 h-2.5" />
                               </button>
                             ) : (
-                              <span className="text-slate-400">N/A</span>
+                              <span className="text-stone-400">N/A</span>
                             )}
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 font-semibold">Banner:</span>
+                            <span className="text-stone-400 font-semibold">Banner:</span>
                             {item.banner_path ? (
                               <button
                                 onClick={() => setPreviewImage({ title: 'Banner', url: item.banner_path! })}
-                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                                className="text-amber-800 font-bold hover:underline cursor-pointer flex items-center gap-1"
                               >
                                 View <ExternalLink className="w-2.5 h-2.5" />
                               </button>
                             ) : (
-                              <span className="text-slate-400">N/A</span>
+                              <span className="text-stone-400">N/A</span>
                             )}
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <span className="text-slate-400 font-semibold">OG Image:</span>
+                            <span className="text-stone-400 font-semibold">OG Image:</span>
                             {item.og_image_path ? (
                               <button
                                 onClick={() => setPreviewImage({ title: 'OG Image', url: item.og_image_path! })}
-                                className="text-indigo-600 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                                className="text-amber-800 font-bold hover:underline cursor-pointer flex items-center gap-1"
                               >
                                 View <ExternalLink className="w-2.5 h-2.5" />
                               </button>
                             ) : (
-                              <span className="text-slate-400">N/A</span>
+                              <span className="text-stone-400">N/A</span>
                             )}
                           </div>
                         </div>
@@ -700,13 +738,13 @@ export default function CourseSpecializations() {
                           {/* Content Badge */}
                           <button
                             onClick={() => navigate(`/course-specialization-contents/${item.id}`)}
-                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10.5px] shadow-xs transition-all cursor-pointer"
+                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-bold text-[10.5px] shadow-2xs transition-all cursor-pointer"
                             title="Manage Specialization Content Tabs"
                           >
                             <span className="flex items-center gap-1">
                               <FileText className="w-3 h-3" /> Content
                             </span>
-                            <span className="bg-indigo-800 text-white px-1.5 py-0.2 rounded-full text-[9px]">
+                            <span className="bg-stone-700 text-white px-1.5 py-0.2 rounded-full text-[9px]">
                               {item.contents_count || 0}
                             </span>
                           </button>
@@ -714,13 +752,13 @@ export default function CourseSpecializations() {
                           {/* FAQs Badge */}
                           <button
                             onClick={() => handleOpenFaqsModal(item)}
-                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold text-[10.5px] shadow-xs transition-all cursor-pointer"
+                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-amber-800 hover:bg-amber-900 text-white font-bold text-[10.5px] shadow-2xs transition-all cursor-pointer"
                             title="Manage Specialization FAQs"
                           >
                             <span className="flex items-center gap-1">
-                              <HelpCircle className="w-3 h-3" /> Faqs
+                              <HelpCircle className="w-3 h-3" /> FAQs
                             </span>
-                            <span className="bg-sky-800 text-white px-1.5 py-0.2 rounded-full text-[9px]">
+                            <span className="bg-amber-950 text-white px-1.5 py-0.2 rounded-full text-[9px]">
                               {item.faqs_count || 0}
                             </span>
                           </button>
@@ -728,13 +766,13 @@ export default function CourseSpecializations() {
                           {/* Level Badge */}
                           <button
                             onClick={() => navigate(`/specialization-levels/${item.id}`)}
-                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-[10.5px] shadow-xs transition-all cursor-pointer"
+                            className="w-full inline-flex items-center justify-between px-2.5 py-1 rounded-lg bg-stone-700 hover:bg-stone-800 text-white font-bold text-[10.5px] shadow-2xs transition-all cursor-pointer"
                             title="Manage Specialization Levels"
                           >
                             <span className="flex items-center gap-1">
                               <Layers className="w-3 h-3" /> Level
                             </span>
-                            <span className="bg-cyan-800 text-white px-1.5 py-0.2 rounded-full text-[9px]">
+                            <span className="bg-stone-900 text-white px-1.5 py-0.2 rounded-full text-[9px]">
                               {item.levels_count || 0}
                             </span>
                           </button>
@@ -745,14 +783,14 @@ export default function CourseSpecializations() {
                       <td className="py-4 px-5">
                         <div className="space-y-1 text-[11px]">
                           <div className="flex items-center gap-1.5">
-                            <User className="w-3 h-3 text-slate-400" />
-                            <span className="text-slate-500">Author:</span>
-                            <span className="font-bold text-slate-800">{item.author_name || 'Team EM'}</span>
+                            <User className="w-3 h-3 text-stone-400" />
+                            <span className="text-stone-500">Author:</span>
+                            <span className="font-bold text-stone-800">{item.author_name || 'Team EM'}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <Tag className="w-3 h-3 text-slate-400" />
-                            <span className="text-slate-500">Icon:</span>
-                            <span className="font-mono text-slate-600">{item.icon_class || 'N/A'}</span>
+                            <Tag className="w-3 h-3 text-stone-400" />
+                            <span className="text-stone-500">Icon:</span>
+                            <span className="font-mono text-stone-600">{item.icon_class || 'N/A'}</span>
                           </div>
                         </div>
                       </td>
@@ -762,7 +800,7 @@ export default function CourseSpecializations() {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEditModal(item)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                             title="Edit Specialization"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -770,7 +808,7 @@ export default function CourseSpecializations() {
 
                           <button
                             onClick={() => handleDelete(item.id, item.name)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             title="Delete Specialization"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -783,13 +821,15 @@ export default function CourseSpecializations() {
               </tbody>
             </table>
 
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filtered.length}
-              itemsPerPage={itemsPerPage}
-              onPageChange={(p) => setCurrentPage(p)}
-            />
+            <div className="p-4 border-t border-stone-200/80 bg-[#faf8f4]">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                itemsPerPage={itemsPerPage}
+                onPageChange={(p) => setCurrentPage(p)}
+              />
+            </div>
           </div>
         )}
       </div>

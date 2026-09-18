@@ -273,11 +273,6 @@ export default function Universities() {
 
       {/* ── CLASSIC EDITORIAL HEADER ── */}
       <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
-        {/* Subtle classic watermark badge */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none">
-          <Building2 className="w-56 h-56 text-stone-900" />
-        </div>
-
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2">

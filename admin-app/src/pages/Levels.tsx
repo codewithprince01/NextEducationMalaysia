@@ -184,111 +184,155 @@ export default function Levels() {
         </div>
       )}
 
-      <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold">
-            <GraduationCap className="w-3.5 h-3.5" />
-            ACADEMICS
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <GraduationCap className="w-3.5 h-3.5 text-amber-700" />
+                <span>Academic Hierarchy</span>
+              </span>
+              <span className="text-[11px] font-bold text-stone-500 bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">
+                Education Levels
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              Academic Levels Management
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Configure degree classifications, study tiers (Diploma, Bachelor, Master, PhD, Foundation), short abbreviations, and SEO routes.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Levels Management
-          </h1>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium">
-            Configure degree levels (e.g. Diploma, Undergraduate, Post Graduate, PhD).
-          </p>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={fetchLevels}
+              className="p-2.5 rounded-xl border border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-stone-900 transition-colors cursor-pointer"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-800' : ''}`} />
+            </button>
+            <button
+              onClick={handleOpenAddModal}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add New Level</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchLevels}
-            className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
-            title="Refresh Data"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={handleOpenAddModal}
-            className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Level
-          </button>
+        {/* ── TOP STAT METRICS (4 CARDS) ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Levels</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {levels.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-stone-500 mt-1">Classifications</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Short Codes</div>
+            <div className="text-2xl font-black text-amber-900 tracking-tight mt-0.5">
+              {levels.filter((l) => Boolean(l.short_name)).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Degree abbreviations</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">SEO Indexed</div>
+            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
+              {levels.filter((l) => Boolean(l.seo_name)).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">SEO naming assigned</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Status</div>
+            <div className="text-2xl font-black text-indigo-950 tracking-tight mt-0.5">
+              Active
+            </div>
+            <div className="text-[10.5px] font-semibold text-indigo-800 mt-1">All tiers enabled</div>
+          </div>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200/80 rounded-3xl shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-6 border-b border-slate-100 flex items-center justify-between gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+      {/* ── TABLE SEARCH & TOOLBAR ── */}
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-stone-200/90 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#faf8f4]">
+          <div className="relative flex-1 w-full max-w-md">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search level name, slug, or short name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition-all"
+              className="w-full bg-white border border-stone-200/90 rounded-xl pl-10 pr-4 py-2 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 transition-all"
             />
           </div>
-          <span className="text-xs font-bold text-slate-400">
-            Total: <strong className="text-slate-800">{filteredLevels.length}</strong> levels
+          <span className="text-xs font-bold text-stone-500">
+            Showing <strong className="text-stone-900">{filteredLevels.length}</strong> academic tiers
           </span>
         </div>
 
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="py-16 text-center text-slate-500 flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-              <span className="text-xs font-semibold">Loading academic levels...</span>
+            <div className="py-16 text-center text-stone-400 flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-amber-800" />
+              <span className="text-xs font-bold">Loading academic levels...</span>
             </div>
           ) : filteredLevels.length === 0 ? (
-            <div className="py-16 text-center text-slate-400 space-y-2">
-              <Layers className="w-10 h-10 mx-auto text-slate-300" />
-              <p className="text-sm font-bold text-slate-700">No Levels Found</p>
-              <p className="text-xs text-slate-400">Try adjusting your search query or add a new level.</p>
+            <div className="py-16 text-center text-stone-400 space-y-2">
+              <Layers className="w-10 h-10 mx-auto text-stone-300" />
+              <p className="text-sm font-bold text-stone-700">No Levels Found</p>
+              <p className="text-xs text-stone-400">Try adjusting your search query or add a new level.</p>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">
-                  <th className="py-4 px-6 w-16 text-center">Sr. No.</th>
-                  <th className="py-4 px-6 w-16 text-center">ID</th>
-                  <th className="py-4 px-6">Level Title</th>
-                  <th className="py-4 px-6">URL Slug</th>
-                  <th className="py-4 px-6">Short Name</th>
-                  <th className="py-4 px-6">SEO Name</th>
-                  <th className="py-4 px-6 text-right">Actions</th>
+                <tr className="bg-[#faf8f4] border-b border-stone-200 text-[10.5px] font-black text-stone-600 uppercase tracking-wider font-serif">
+                  <th className="py-3.5 px-6 w-16 text-center">Sr. No.</th>
+                  <th className="py-3.5 px-6 w-16 text-center">ID</th>
+                  <th className="py-3.5 px-6">Level Title</th>
+                  <th className="py-3.5 px-6">URL Slug</th>
+                  <th className="py-3.5 px-6">Short Name</th>
+                  <th className="py-3.5 px-6">SEO Name</th>
+                  <th className="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
+              <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
                 {paginatedLevels.map((item, index) => {
                   const srNo = (currentPage - 1) * itemsPerPage + index + 1;
                   return (
-                  <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                    <td className="py-4 px-6 text-center font-extrabold text-slate-700">{srNo}</td>
-                    <td className="py-4 px-6 text-center font-bold text-slate-400">#{item.id}</td>
-                    <td className="py-4 px-6 font-bold text-slate-900">{item.level}</td>
-                    <td className="py-4 px-6 font-mono text-[11px] text-slate-500">{item.slug}</td>
+                  <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                    <td className="py-4 px-6 text-center font-extrabold text-stone-500">{srNo}</td>
+                    <td className="py-4 px-6 text-center font-bold text-stone-400">#{item.id}</td>
+                    <td className="py-4 px-6 font-bold text-stone-900 group-hover:text-amber-800 transition-colors">{item.level}</td>
+                    <td className="py-4 px-6 font-mono text-[11px] text-stone-400">{item.slug}</td>
                     <td className="py-4 px-6">
                       {item.short_name ? (
-                        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold">
+                        <span className="px-2.5 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-stone-700 text-[11px] font-bold">
                           {item.short_name}
                         </span>
                       ) : (
-                        <span className="text-slate-300">-</span>
+                        <span className="text-stone-300">-</span>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-slate-600">{item.seo_name || '-'}</td>
+                    <td className="py-4 px-6 text-stone-600">{item.seo_name || '-'}</td>
                     <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEditModal(item)}
-                          className="p-2 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                           title="Edit Level"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id, item.level)}
-                          className="p-2 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Delete Level"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -303,13 +347,15 @@ export default function Levels() {
           )}
         </div>
 
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredLevels.length}
-          itemsPerPage={itemsPerPage}
-          onPageChange={(p) => setCurrentPage(p)}
-        />
+        <div className="p-4 border-t border-stone-200/80 bg-[#faf8f4]">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredLevels.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={(p) => setCurrentPage(p)}
+          />
+        </div>
       </div>
 
       {/* Modal Form */}

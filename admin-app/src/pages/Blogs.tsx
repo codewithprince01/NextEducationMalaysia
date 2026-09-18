@@ -319,138 +319,224 @@ export default function Blogs() {
   );
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto p-2 sm:p-4">
+    <div className="space-y-5 max-w-[1600px] mx-auto pb-8">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
+            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
+          }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-              <FileText className="w-5 h-5" />
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <FileText className="w-3 h-3 text-amber-700" />
+                <span>Editorial & Publications</span>
+              </span>
+              <span className="text-[11px] font-bold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">
+                Education Malaysia
+              </span>
             </div>
-            <span>Blog Records</span>
-          </h1>
-          <p className="text-xs font-medium text-slate-500 mt-1">
-            Manage blog posts, categories, content sub-sections, and FAQs.
-          </p>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              Blog & Article Publications
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Curate and publish educational articles, university insights, study guides, structured contents, and student FAQs.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => fetchBlogs()}
+              disabled={loading}
+              className="p-2.5 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-stone-700 transition-colors cursor-pointer disabled:opacity-50 shadow-2xs"
+              title="Refresh articles"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-stone-600' : ''}`} />
+            </button>
+
+            <Link
+              to="/blogs/create"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4 text-amber-300" />
+              <span>Add New Blog</span>
+            </Link>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => fetchBlogs()}
-            className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all cursor-pointer"
-            title="Refresh Data"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <Link
-            to="/blogs/create"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition-all cursor-pointer whitespace-nowrap"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add New Blog</span>
-          </Link>
+        {/* ── CLASSIC METRIC STAT CARDS ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Articles</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {loading ? '...' : blogs.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-stone-600 mt-1">Published & drafts</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Live Published</div>
+            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
+              {loading ? '...' : blogs.filter((b) => b.status === 1).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Approved & visible</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Categories</div>
+            <div className="text-2xl font-black text-amber-800 tracking-tight mt-0.5">
+              {categories.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Editorial topics</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Drafts Pending</div>
+            <div className="text-2xl font-black text-indigo-900 tracking-tight mt-0.5">
+              {loading ? '...' : blogs.filter((b) => b.status !== 1).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-indigo-700 mt-1">In review pipeline</div>
+          </div>
         </div>
       </div>
 
-      {/* Filters & Search */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-72">
-            <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+      {/* ── SEARCH & FILTER CONTROLS ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200/90 shadow-xs">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search blogs title or slug..."
+              placeholder="Search by article title or slug..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-600 bg-slate-50 focus:bg-white transition-all"
+              className="w-full bg-stone-50/70 border border-stone-200/90 rounded-xl pl-10 pr-8 py-2 text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-stone-400 hover:text-stone-700 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full sm:w-64 px-3.5 py-2 rounded-xl border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:border-blue-600 bg-slate-50 focus:bg-white transition-all"
-          >
-            <option value="">-- All Categories --</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.category_name}
-              </option>
-            ))}
-          </select>
+          <div className="relative w-full sm:w-64">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="w-full bg-stone-50/70 border border-stone-200/90 rounded-xl px-3 py-2 text-xs font-bold text-stone-700 focus:outline-none focus:border-amber-600 focus:bg-white cursor-pointer"
+            >
+              <option value="">-- All Categories ({categories.length}) --</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.category_name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {(searchQuery || selectedCategory) && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('');
+              }}
+              className="px-3 py-2 rounded-xl text-xs font-bold text-amber-800 hover:bg-amber-50 cursor-pointer transition-colors"
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
 
-        <span className="text-xs font-bold text-slate-500">
-          Showing <span className="font-extrabold text-slate-800">{filteredBlogs.length}</span> entries
-        </span>
+        <div className="flex items-center gap-3 text-xs font-semibold text-stone-500 shrink-0">
+          <span>Showing</span>
+          <span className="px-2.5 py-1 rounded-lg bg-stone-100 font-bold text-stone-900 border border-stone-200">
+            {filteredBlogs.length} {filteredBlogs.length === 1 ? 'Article' : 'Articles'}
+          </span>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+      {/* ── MAIN DATA TABLE ── */}
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         {loading ? (
-          <div className="p-12 flex flex-col items-center justify-center text-slate-500">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600 mb-2" />
-            <p className="text-xs font-semibold">Loading blogs...</p>
+          <div className="p-16 flex flex-col items-center justify-center text-stone-400">
+            <Loader2 className="w-8 h-8 animate-spin text-amber-700 mb-2" />
+            <p className="text-xs font-bold text-stone-700">Loading blog articles...</p>
           </div>
         ) : filteredBlogs.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 font-semibold text-xs">
-            No blog posts found.
+          <div className="p-16 text-center text-stone-400">
+            <p className="text-sm font-black text-stone-800 font-serif">No Blog Posts Found</p>
+            <p className="text-xs text-stone-500 mt-1">Try resetting search filters or create a new blog entry.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs text-slate-600">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-700 font-bold uppercase tracking-wider">
-                  <th className="py-3 px-4 w-14">Sr. No.</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Title</th>
-                  <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4">Thumbnail</th>
-                  <th className="py-3 px-4">Author</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Activity</th>
-                  <th className="py-3 px-4 text-center">Action</th>
+                <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px]">
+                  <th className="py-4 px-4 w-12 text-center">#</th>
+                  <th className="py-4 px-4 min-w-[140px]">Category</th>
+                  <th className="py-4 px-4 min-w-[240px]">Article Title</th>
+                  <th className="py-4 px-4 w-24">Description</th>
+                  <th className="py-4 px-4 w-28">Thumbnail</th>
+                  <th className="py-4 px-4 min-w-[140px]">Author</th>
+                  <th className="py-4 px-4 text-center w-24">Status</th>
+                  <th className="py-4 px-4 min-w-[140px]">Sub Modules</th>
+                  <th className="py-4 px-4 text-right w-24">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
                 {currentBlogs.map((item, index) => {
                   const categoryName = item.category?.category_name || item.category_name || 'Uncategorized';
                   const authorName = item.author?.name || item.author_name || 'Team Education Malaysia';
 
                   return (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-slate-500">
+                    <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                      <td className="py-4 px-4 text-center font-bold text-stone-400 font-mono text-[11px]">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-slate-800">
-                        <span className="inline-flex items-center gap-1">
-                          <FolderOpen className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                          {categoryName}
+
+                      <td className="py-4 px-4">
+                        <span className="inline-flex items-center gap-1 font-bold text-amber-900 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md text-[11px]">
+                          <FolderOpen className="w-3 h-3 text-amber-700 shrink-0" />
+                          <span>{categoryName}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 max-w-xs font-semibold text-slate-800">
-                        {item.title || item.headline}
+
+                      <td className="py-4 px-4">
+                        <div className="font-extrabold text-stone-900 text-xs sm:text-sm leading-snug hover:text-amber-800 transition-colors">
+                          {item.title || item.headline}
+                        </div>
+                        {item.slug && (
+                          <div className="text-[10.5px] font-mono text-stone-400 mt-0.5 truncate max-w-xs">
+                            /{item.slug}
+                          </div>
+                        )}
                       </td>
-                      <td className="py-3.5 px-4">
+
+                      <td className="py-4 px-4">
                         <button
                           onClick={() => setDescriptionModalItem(item)}
-                          className="px-2.5 py-1 bg-cyan-50 text-cyan-600 border border-cyan-200 hover:bg-cyan-100 rounded text-xs font-bold transition-colors cursor-pointer"
+                          className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200/80 rounded-lg text-[10.5px] font-bold transition-colors cursor-pointer shadow-2xs"
                         >
-                          View
+                          View Text
                         </button>
                       </td>
-                      <td className="py-3.5 px-4">
+
+                      <td className="py-4 px-4">
                         {item.thumbnail_path ? (
                           <button
                             type="button"
@@ -460,88 +546,74 @@ export default function Blogs() {
                                 url: item.thumbnail_path!,
                               })
                             }
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold cursor-pointer transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/60 rounded-lg text-[10.5px] font-bold cursor-pointer transition-colors shadow-2xs"
                           >
-                            <ImageIcon className="w-3 h-3" /> View Image
+                            <ImageIcon className="w-3 h-3 text-amber-700" />
+                            <span>Preview</span>
                           </button>
                         ) : (
-                          <span className="text-slate-400">N/A</span>
+                          <span className="text-stone-400">—</span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 font-medium text-slate-700">
-                        <span className="inline-flex items-center gap-1">
-                          <UserCheck className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                          {authorName}
+
+                      <td className="py-4 px-4 font-semibold text-stone-800 text-[11px]">
+                        <span className="inline-flex items-center gap-1.5">
+                          <UserCheck className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                          <span>{authorName}</span>
                         </span>
                       </td>
-                      <td className="py-3.5 px-4">
+
+                      <td className="py-4 px-4 text-center">
                         {item.status === 1 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                             Approved
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-600 border border-stone-200">
                             Draft
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 space-y-1 text-[11px]">
-                        <div>
-                          <span className="text-slate-400 font-medium">Created: </span>
-                          <span className="inline-block px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-800 font-bold">
-                            {item.creator_name || authorName}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-medium">Updated: </span>
-                          <span className="inline-block px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">
-                            {item.updater_name || authorName}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-medium">Approved: </span>
-                          <span className="inline-block px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-bold">
-                            {item.approver_name || (item.status === 1 ? item.creator_name || authorName : 'Pending')}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3.5 px-4 space-y-1">
-                        <div>
+
+                      <td className="py-4 px-4 space-y-1">
+                        <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleOpenContents(item)}
-                            className="px-2 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded text-[11px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 rounded-lg text-[10.5px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
                           >
                             <span>Content</span>
-                            <span className="px-1.5 py-0.2 bg-indigo-600 text-white rounded-full text-[10px]">
+                            <span className="px-1.5 py-0.2 bg-stone-800 text-white rounded-full text-[9px]">
                               {item.contents_count ?? 0}
                             </span>
                           </button>
-                        </div>
-                        <div>
                           <button
                             onClick={() => handleOpenFaqs(item)}
-                            className="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 rounded text-[11px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 rounded-lg text-[10.5px] font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
                           >
-                            <span>Faqs</span>
-                            <span className="px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px]">
+                            <span>FAQs</span>
+                            <span className="px-1.5 py-0.2 bg-amber-700 text-white rounded-full text-[9px]">
                               {item.faqs_count ?? 0}
                             </span>
                           </button>
                         </div>
-                        <div className="flex items-center justify-center gap-1 pt-1">
+                      </td>
+
+                      <td className="py-4 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => navigate(`/blogs/edit/${item.id}`)}
-                            className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded transition-colors"
-                            title="Edit"
+                            className="p-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white transition-colors cursor-pointer"
+                            title="Edit Blog"
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(item)}
-                            className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded transition-colors"
-                            title="Delete"
+                            className="p-1.5 rounded-lg bg-stone-100 hover:bg-rose-50 text-stone-500 hover:text-rose-600 border border-stone-200 transition-colors cursor-pointer"
+                            title="Delete Blog"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>
@@ -554,7 +626,7 @@ export default function Blogs() {
         )}
 
         {totalPages > 1 && (
-          <div className="p-4 border-t border-slate-100">
+          <div className="p-4 border-t border-stone-100 bg-[#faf8f4]/60">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

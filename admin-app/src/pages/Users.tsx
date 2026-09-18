@@ -397,73 +397,131 @@ export default function Users() {
   const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
 
   return (
-    <div className="p-6">
+    <div className="space-y-5 max-w-[1600px] mx-auto pb-8">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg text-white ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'
-            }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
+            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
+          }`}
         >
-          {toast.type === 'success' ? (
-            <CheckCircle2 className="w-5 h-5" />
-          ) : (
-            <AlertCircle className="w-5 h-5" />
-          )}
-          <span className="font-medium text-sm">{toast.message}</span>
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
+          <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <UsersIcon className="w-7 h-7 text-indigo-600" />
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <UsersIcon className="w-3 h-3 text-amber-700" />
+                <span>Access Control & Security</span>
+              </span>
+              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                Active Staff (Status: 1)
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
               Users & Module Permissions
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Active Users (Status: 1)
-            </span>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Manage system administrators, staff members, role assignments, and granular read/write/edit access across all modules.
+            </p>
           </div>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage active admin users, roles, and granular access permissions for all system modules.
-          </p>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="p-2.5 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-stone-700 transition-colors cursor-pointer disabled:opacity-50 shadow-2xs"
+              title="Refresh users"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-stone-600' : ''}`} />
+            </button>
+
+            <button
+              onClick={handleOpenAdd}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-amber-300" />
+              <span>Add New User</span>
+            </button>
+          </div>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors text-sm font-semibold shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Add New User
-        </button>
+        {/* ── CLASSIC METRIC STAT CARDS ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Active Staff Users</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {loading ? '...' : items.filter((u) => Number(u.status) === 1).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Authenticated accounts</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Administrators</div>
+            <div className="text-2xl font-black text-amber-800 tracking-tight mt-0.5">
+              {loading ? '...' : items.filter((u) => (u.role || '').toLowerCase() === 'admin').length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Full control roles</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Sub Admins / Staff</div>
+            <div className="text-2xl font-black text-indigo-900 tracking-tight mt-0.5">
+              {loading ? '...' : items.filter((u) => (u.role || '').toLowerCase() !== 'admin' && Number(u.status) === 1).length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-indigo-700 mt-1">Delegated access</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Modules</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {PERMISSION_MODULES.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-stone-600 mt-1">Granular RBAC items</div>
+          </div>
+        </div>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      {/* ── SEARCH & FILTER CONTROLS ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200/90 shadow-xs">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search name, email, mobile..."
+              placeholder="Search by name, email, username..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              className="w-full bg-stone-50/70 border border-stone-200/90 rounded-xl pl-10 pr-8 py-2 text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-stone-400 hover:text-stone-700 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          <div>
+          <div className="relative w-full sm:w-48">
             <select
               value={roleFilter}
               onChange={(e) => {
                 setRoleFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+              className="w-full bg-stone-50/70 border border-stone-200/90 rounded-xl px-3 py-2 text-xs font-bold text-stone-700 focus:outline-none focus:border-amber-600 focus:bg-white cursor-pointer"
             >
               <option value="">All Roles</option>
               <option value="admin">Admin</option>
@@ -474,98 +532,113 @@ export default function Users() {
             </select>
           </div>
 
-          <div className="flex items-center justify-end gap-2 text-sm text-slate-500">
+          {(searchQuery || roleFilter) && (
             <button
-              onClick={fetchData}
-              className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
-              title="Refresh Users"
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setRoleFilter('');
+              }}
+              className="px-3 py-2 rounded-xl text-xs font-bold text-amber-800 hover:bg-amber-50 cursor-pointer transition-colors"
             >
-              <RefreshCw className="w-4 h-4" />
+              Reset Filters
             </button>
-            <span>
-              Total Users: <strong className="text-slate-800">{filtered.length}</strong>
-            </span>
-          </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 text-xs font-semibold text-stone-500 shrink-0">
+          <span>Showing</span>
+          <span className="px-2.5 py-1 rounded-lg bg-stone-100 font-bold text-stone-900 border border-stone-200">
+            {filtered.length} {filtered.length === 1 ? 'User' : 'Users'}
+          </span>
         </div>
       </div>
 
-      {/* Main Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* ── MAIN DATA TABLE ── */}
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
-              <tr>
-                <th className="py-3.5 px-4 w-16 text-center">S.No.</th>
-                <th className="py-3.5 px-4">Name</th>
-                <th className="py-3.5 px-4">Email</th>
-                <th className="py-3.5 px-4">Mobile</th>
-                <th className="py-3.5 px-4">Role</th>
-                <th className="py-3.5 px-4 text-center">Permissions</th>
-                <th className="py-3.5 px-4 text-right w-28">Action</th>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px]">
+                <th className="py-4 px-4 w-14 text-center">#</th>
+                <th className="py-4 px-4">User Profile</th>
+                <th className="py-4 px-4">Email Address</th>
+                <th className="py-4 px-4">Contact Phone</th>
+                <th className="py-4 px-4">System Role</th>
+                <th className="py-4 px-4 text-center">Access Permissions</th>
+                <th className="py-4 px-4 text-right w-28">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-600 mb-2" />
-                    Loading users...
+                  <td colSpan={7} className="py-16 text-center text-stone-400">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-700 mb-2" />
+                    <p className="text-xs font-bold text-stone-700">Loading user records...</p>
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
-                    No users found matching your search.
+                  <td colSpan={7} className="py-16 text-center text-stone-400">
+                    <p className="text-sm font-black text-stone-800 font-serif">No Users Found</p>
+                    <p className="text-xs text-stone-500 mt-1">No active users match the current search filters.</p>
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 text-center text-slate-500 font-mono text-xs">
+                  <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                    <td className="py-4 px-4 text-center font-bold text-stone-400 font-mono text-[11px]">
                       {(currentPage - 1) * itemsPerPage + idx + 1}
                     </td>
 
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-900">{item.name}</div>
-                      {item.username && (
-                        <span className="text-xs text-slate-400 font-mono">@{item.username}</span>
-                      )}
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-stone-100 border border-stone-200 text-stone-700 font-black text-xs flex items-center justify-center shrink-0">
+                          {item.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-stone-900 text-xs sm:text-sm">{item.name}</div>
+                          {item.username && (
+                            <span className="text-[10.5px] text-stone-400 font-mono">@{item.username}</span>
+                          )}
+                        </div>
+                      </div>
                     </td>
 
-                    <td className="py-3 px-4 text-slate-700 font-mono text-xs">{item.email}</td>
+                    <td className="py-4 px-4 text-stone-700 font-mono text-xs">{item.email}</td>
 
-                    <td className="py-3 px-4 text-slate-600 font-mono text-xs">
-                      {item.mobile || 'N/A'}
+                    <td className="py-4 px-4 text-stone-600 font-mono text-xs">
+                      {item.mobile || '—'}
                     </td>
 
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 capitalize border border-indigo-100">
+                    <td className="py-4 px-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-900 capitalize border border-amber-200/60">
                         {item.role || 'subadmin'}
                       </span>
                     </td>
 
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-4 px-4 text-center">
                       <button
                         onClick={() => handleOpenPermissions(item)}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline bg-indigo-50/60 hover:bg-indigo-100 px-3 py-1.5 rounded-lg border border-indigo-200/60 transition-all"
+                        className="inline-flex items-center gap-1.5 text-[11px] font-bold text-stone-700 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-xl border border-stone-200/80 transition-all cursor-pointer shadow-2xs"
                       >
-                        <ShieldCheck className="w-3.5 h-3.5" />
-                        {item.granted_count || 0} module(s)
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{item.granted_count || 0} module(s)</span>
                       </button>
                     </td>
 
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white transition-colors cursor-pointer"
                           title="Edit User"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg bg-stone-100 hover:bg-rose-50 text-stone-500 hover:text-rose-600 border border-stone-200 transition-colors cursor-pointer"
                           title="Delete User"
                         >
                           <Trash2 className="w-4 h-4" />

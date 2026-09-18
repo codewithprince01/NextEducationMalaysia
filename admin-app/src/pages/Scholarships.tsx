@@ -17,8 +17,6 @@ import {
   HelpCircle,
   RotateCcw,
   X,
-  Eye,
-  EyeOff,
   Globe
 } from 'lucide-react';
 
@@ -279,49 +277,100 @@ export default function Scholarships() {
   );
 
   return (
-    <div className="space-y-4 max-w-[1600px] mx-auto pb-10">
+    <div className="space-y-5 max-w-[1600px] mx-auto pb-8">
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
+            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
+          }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <GraduationCap className="w-6 h-6 text-indigo-600" /> Scholarships
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage university grants, merit schemes, scholarship landing links, and SEO metadata.
-          </p>
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <GraduationCap className="w-3 h-3 text-amber-700" />
+                <span>Financial Aid & Grants</span>
+              </span>
+              <span className="text-[11px] font-bold text-stone-600 bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">
+                Malaysia Schemes
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              Scholarships & Grants
+            </h1>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Manage university tuition waivers, government bursaries, merit grants, eligibility guidelines, and application links.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={fetchData}
+              disabled={loading}
+              className="p-2.5 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-stone-700 transition-colors cursor-pointer disabled:opacity-50 shadow-2xs"
+              title="Refresh scholarships"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-stone-600' : ''}`} />
+            </button>
+
+            <button
+              onClick={() => {
+                if (isFormOpen && !editingId) {
+                  setIsFormOpen(false);
+                } else {
+                  handleOpenAdd();
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-md shadow-stone-900/15 transition-all cursor-pointer"
+            >
+              {isFormOpen ? <X className="w-4 h-4 text-amber-300" /> : <Plus className="w-4 h-4 text-amber-300" />}
+              <span>{isFormOpen ? 'Close Form' : 'Add Scholarship'}</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={fetchData}
-            className="p-2.5 text-slate-600 hover:text-indigo-600 hover:bg-slate-50 rounded-lg border border-slate-200 transition-colors"
-            title="Refresh"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={() => {
-              if (isFormOpen && !editingId) {
-                setIsFormOpen(false);
-              } else {
-                handleOpenAdd();
-              }
-            }}
-            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors"
-          >
-            {isFormOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {isFormOpen ? 'Close Form' : 'Add New'}
-          </button>
+
+        {/* ── CLASSIC METRIC STAT CARDS ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Schemes</div>
+            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
+              {loading ? '...' : items.length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-stone-600 mt-1">Listed grants</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Active Published</div>
+            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
+              {loading ? '...' : items.filter((s) => String(s.active_status) === '1').length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Live applications</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">University Types</div>
+            <div className="text-2xl font-black text-amber-800 tracking-tight mt-0.5">
+              {loading ? '...' : items.filter((s) => (s.type || '').toLowerCase() === 'university').length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Direct institutional</div>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">General Schemes</div>
+            <div className="text-2xl font-black text-indigo-900 tracking-tight mt-0.5">
+              {loading ? '...' : items.filter((s) => (s.type || '').toLowerCase() !== 'university').length}
+            </div>
+            <div className="text-[10.5px] font-semibold text-indigo-700 mt-1">External / merit</div>
+          </div>
         </div>
       </div>
 
@@ -601,157 +650,201 @@ export default function Scholarships() {
         </div>
       )}
 
-      {/* Controls & Search */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search title, type, or slug..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
-          />
+      {/* ── SEARCH & FILTER CONTROLS ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200/90 shadow-xs">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search title, type, or slug..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-stone-50/70 border border-stone-200/90 rounded-xl pl-10 pr-8 py-2 text-xs font-medium text-stone-800 placeholder-stone-400 focus:outline-none focus:border-amber-600 focus:bg-white focus:ring-2 focus:ring-amber-500/20 transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-stone-400 hover:text-stone-700 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="px-3 py-2 rounded-xl text-xs font-bold text-amber-800 hover:bg-amber-50 cursor-pointer transition-colors"
+            >
+              Reset Search
+            </button>
+          )}
         </div>
-        <div className="text-xs text-slate-500">
-          Showing <span className="font-semibold text-slate-700">{filtered.length}</span> entries
+
+        <div className="flex items-center gap-3 text-xs font-semibold text-stone-500 shrink-0">
+          <span>Showing</span>
+          <span className="px-2.5 py-1 rounded-lg bg-stone-100 font-bold text-stone-900 border border-stone-200">
+            {filtered.length} {filtered.length === 1 ? 'Scholarship' : 'Scholarships'}
+          </span>
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* ── MAIN DATA TABLE ── */}
+      <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold text-xs uppercase tracking-wider">
-              <tr>
-                <th className="py-3.5 px-4 w-16">Sr. No.</th>
-                <th className="py-3.5 px-4">Title</th>
-                <th className="py-3.5 px-4">Type</th>
-                <th className="py-3.5 px-4">Active Status</th>
-                <th className="py-3.5 px-4">Images</th>
-                <th className="py-3.5 px-4">Shortnote</th>
-                <th className="py-3.5 px-4">SEO</th>
-                <th className="py-3.5 px-4">Contents</th>
-                <th className="py-3.5 px-4 text-right">Action</th>
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px]">
+                <th className="py-4 px-4 w-12 text-center">#</th>
+                <th className="py-4 px-4 min-w-[240px]">Scholarship Title</th>
+                <th className="py-4 px-4 min-w-[120px]">Scheme Type</th>
+                <th className="py-4 px-4 text-center min-w-[110px]">Active Status</th>
+                <th className="py-4 px-4 min-w-[130px]">Media Assets</th>
+                <th className="py-4 px-4 min-w-[110px]">Shortnote</th>
+                <th className="py-4 px-4 min-w-[100px]">SEO Meta</th>
+                <th className="py-4 px-4 min-w-[140px]">Content Modules</th>
+                <th className="py-4 px-4 text-right w-24">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
-                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                    Loading scholarships...
+                  <td colSpan={9} className="py-16 text-center text-stone-400">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-700 mb-2" />
+                    <p className="text-xs font-bold text-stone-700">Loading scholarships...</p>
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-400">
-                    No data found.
+                  <td colSpan={9} className="py-16 text-center text-stone-400">
+                    <p className="text-sm font-black text-stone-800 font-serif">No Scholarships Found</p>
+                    <p className="text-xs text-stone-500 mt-1">Try searching another term or add a new scholarship scheme.</p>
                   </td>
                 </tr>
               ) : (
                 paginated.map((item, index) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3.5 px-4 font-medium text-slate-500">
+                  <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                    <td className="py-4 px-4 text-center font-bold text-stone-400 font-mono text-[11px]">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">
-                      <div>{item.title}</div>
+
+                    <td className="py-4 px-4">
+                      <div className="font-extrabold text-stone-900 text-xs sm:text-sm leading-snug hover:text-amber-800 transition-colors">
+                        {item.title}
+                      </div>
                       {item.slug && (
-                        <div className="text-[11px] font-mono text-slate-400 font-normal">/{item.slug}</div>
+                        <div className="text-[10.5px] font-mono text-stone-400 mt-0.5 truncate max-w-xs">
+                          /{item.slug}
+                        </div>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-xs font-semibold capitalize text-indigo-600">
-                      {item.type || 'N/A'}
+
+                    <td className="py-4 px-4">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-amber-50 text-amber-900 capitalize border border-amber-200/60">
+                        {item.type || 'N/A'}
+                      </span>
                     </td>
-                    <td className="py-3.5 px-4">
+
+                    <td className="py-4 px-4 text-center">
                       {String(item.active_status) === '1' ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold text-xs">
-                          <Eye className="w-3 h-3" /> Active
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                          Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">
-                          <EyeOff className="w-3 h-3" /> Inactive
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-stone-100 text-stone-600 border border-stone-200">
+                          Inactive
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-xs">
+
+                    <td className="py-4 px-4 text-xs">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-slate-400">Thumbnail:</span>
+                          <span className="text-stone-400 text-[11px]">Thumb:</span>
                           {item.thumbnail_path ? (
                             <a
                               href={getStorageUrl(item.thumbnail_path)}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-indigo-600 hover:underline flex items-center gap-1"
+                              className="text-amber-800 font-bold hover:underline flex items-center gap-0.5 text-[11px]"
                             >
-                              <ImageIcon className="w-3.5 h-3.5" /> View
+                              <span>View</span>
+                              <ImageIcon className="w-3 h-3 text-amber-700" />
                             </a>
                           ) : (
-                            <span className="text-slate-400">N/A</span>
+                            <span className="text-stone-400">—</span>
                           )}
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-slate-400">Og image:</span>
+                          <span className="text-stone-400 text-[11px]">OG:</span>
                           {item.og_image_path ? (
                             <a
                               href={getStorageUrl(item.og_image_path)}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-indigo-600 hover:underline flex items-center gap-1"
+                              className="text-amber-800 font-bold hover:underline flex items-center gap-0.5 text-[11px]"
                             >
-                              <ImageIcon className="w-3.5 h-3.5" /> View
+                              <span>View</span>
+                              <ImageIcon className="w-3 h-3 text-amber-700" />
                             </a>
                           ) : (
-                            <span className="text-slate-400">N/A</span>
+                            <span className="text-stone-400">—</span>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4">
+
+                    <td className="py-4 px-4">
                       {item.shortnote ? (
                         <button
                           onClick={() => setShortnoteModal(item.shortnote || '')}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200/80 rounded-lg text-[10.5px] font-bold transition-colors cursor-pointer shadow-2xs"
                         >
-                          View Shortnote
+                          View Text
                         </button>
                       ) : (
-                        <span className="text-slate-400 text-xs">N/A</span>
+                        <span className="text-stone-400 text-[11px]">—</span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4">
+
+                    <td className="py-4 px-4">
                       <button
                         onClick={() => setSeoModal(item)}
-                        className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded text-xs font-medium transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/60 rounded-lg text-[10.5px] font-bold transition-colors flex items-center gap-1 cursor-pointer shadow-2xs"
                       >
-                        <Globe className="w-3 h-3" /> View SEO
+                        <Globe className="w-3 h-3 text-amber-700" />
+                        <span>SEO</span>
                       </button>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <div className="flex flex-col gap-1.5">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-semibold w-fit">
-                          <FileText className="w-3 h-3" /> Contents ({item.contents_count ?? 0})
+
+                    <td className="py-4 px-4">
+                      <div className="flex flex-col gap-1 text-[10.5px]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-stone-100 text-stone-700 font-bold w-fit border border-stone-200/60">
+                          <FileText className="w-3 h-3 text-stone-500" /> Contents ({item.contents_count ?? 0})
                         </span>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-amber-50 text-amber-700 text-xs font-semibold w-fit">
-                          <HelpCircle className="w-3 h-3" /> FAQs ({item.faqs_count ?? 0})
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 text-amber-900 font-bold w-fit border border-amber-200/60">
+                          <HelpCircle className="w-3 h-3 text-amber-700" /> FAQs ({item.faqs_count ?? 0})
                         </span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+
+                    <td className="py-4 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                          title="Edit"
+                          className="p-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white transition-colors cursor-pointer"
+                          title="Edit Scholarship"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                          title="Delete"
+                          className="p-1.5 rounded-lg bg-stone-100 hover:bg-rose-50 text-stone-500 hover:text-rose-600 border border-stone-200 transition-colors cursor-pointer"
+                          title="Delete Scholarship"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -765,8 +858,8 @@ export default function Scholarships() {
         </div>
 
         {/* Pagination */}
-        {!loading && filtered.length > 0 && (
-          <div className="p-4 border-t border-slate-100">
+        {!loading && filtered.length > itemsPerPage && (
+          <div className="p-4 border-t border-stone-100 bg-[#faf8f4]/60">
             <Pagination
               currentPage={currentPage}
               totalPages={Math.ceil(filtered.length / itemsPerPage)}
