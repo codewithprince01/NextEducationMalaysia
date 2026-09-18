@@ -168,115 +168,277 @@ export class MultipleSearchApplyService {
   /**
    * 4. GET /programs
    * Match: MultipleSearchAndApplyApiController::programs
+   * Returns ALL fields from university_programs table EXCEPT the 17 specified fields:
+   *   - tution_fee, exam_fee, tutions_fee, total_fee, total_tuition_fee, annual_tuition_fee,
+   *     scholarship_amount, tution_fee_after_scholarship, year1_tuition_fee, year2_tuition_fee,
+   *     year3_tuition_fee, year4_tuition_fee
+   *   - meta_title, meta_description, meta_keyword, og_image_path, page_content
+   * And includes nested university with ALL fields EXCEPT:
+   *   - meta_title, meta_description, meta_keyword, og_image_path, page_content
    */
   async getPrograms(filters: any, page = 1, perPage = 10) {
-    const where: any = {};
+    const EXCLUDED_PROGRAM_FIELDS = [
+      'meta_title',
+      'meta_description',
+      'meta_keyword',
+      'og_image_path',
+      'page_content',
+    ];
 
-    const websites = this.normalize(filters.website);
-    if (websites.length > 0) where.website = { in: websites };
+    const EXCLUDED_UNIVERSITY_FIELDS = [
+      'meta_title',
+      'meta_description',
+      'meta_keyword',
+      'og_image_path',
+      'page_content',
+    ];
+
+    const whereClauses: string[] = [];
+    const params: any[] = [];
+
+    const websites = this.normalize(filters.website || filters.country);
+    if (websites.length > 0) {
+      whereClauses.push(`up.website IN (${websites.map(() => '?').join(',')})`);
+      params.push(...websites);
+    }
 
     const universityIds = this.normalize(filters.university_id)
       .map((id) => Number(id))
       .filter((id) => !Number.isNaN(id));
-    if (universityIds.length > 0) where.university_id = { in: universityIds };
+    if (universityIds.length > 0) {
+      whereClauses.push(`up.university_id IN (${universityIds.map(() => '?').join(',')})`);
+      params.push(...universityIds);
+    }
 
     const levels = this.normalize(filters.level);
-    if (levels.length > 0) where.level = { in: levels };
+    if (levels.length > 0) {
+      whereClauses.push(`up.level IN (${levels.map(() => '?').join(',')})`);
+      params.push(...levels);
+    }
 
     const categoryIds = this.normalize(filters.course_category_id)
       .map((id) => Number(id))
       .filter((id) => !Number.isNaN(id));
-    if (categoryIds.length > 0) where.course_category_id = { in: categoryIds };
+    if (categoryIds.length > 0) {
+      whereClauses.push(`up.course_category_id IN (${categoryIds.map(() => '?').join(',')})`);
+      params.push(...categoryIds);
+    }
 
     const specializationIds = this.normalize(filters.specialization_id)
       .map((id) => Number(id))
       .filter((id) => !Number.isNaN(id));
-    if (specializationIds.length > 0)
-      where.specialization_id = { in: specializationIds };
+    if (specializationIds.length > 0) {
+      whereClauses.push(`up.specialization_id IN (${specializationIds.map(() => '?').join(',')})`);
+      params.push(...specializationIds);
+    }
 
-    const [total, items] = await Promise.all([
-      prisma.universityProgram.count({ where }),
-      prisma.universityProgram.findMany({
-        where,
-        select: {
-          id: true,
-          website: true,
-          university_id: true,
-          course_category_id: true,
-          specialization_id: true,
-          level: true,
-          course_name: true,
-          intake: true,
-          study_mode: true,
-          duration: true,
-          application_deadline: true,
-          tution_fee: true,
-          total_fee: true,
-          total_tuition_fee: true,
-          commission: true,
-          university: {
-            select: {
-              id: true,
-              name: true,
-              uname: true,
-              email: true,
-              cc: true,
-              logo_path: true,
-            },
-          },
-          courseCategory: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          courseSpecialization: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-        orderBy: {
-          id: "desc",
-        },
-        skip: (page - 1) * perPage,
-        take: perPage,
-      }),
+    const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    const countQuery = `SELECT COUNT(*) as total FROM university_programs up ${whereSql}`;
+    const dataQuery = `
+      SELECT up.*
+      FROM university_programs up
+      ${whereSql}
+      ORDER BY up.id DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    const offset = (page - 1) * perPage;
+    const [countResult, programs] = await Promise.all([
+      prisma.$queryRawUnsafe(countQuery, ...params) as Promise<any[]>,
+      prisma.$queryRawUnsafe(dataQuery, ...params, perPage, offset) as Promise<any[]>,
     ]);
 
-    const formattedItems = items.map((item: any) => ({
-      id: item.id,
-      website: item.website,
-      university_id: item.university_id,
-      course_category_id: item.course_category_id,
-      specialization_id: item.specialization_id,
-      level: item.level,
-      course_name: item.course_name,
-      intake: item.intake,
-      study_mode: item.study_mode,
-      duration: item.duration,
-      application_deadline: item.application_deadline,
-      tution_fee: item.tution_fee != null ? String(item.tution_fee) : null,
-      total_fee: item.total_fee != null ? String(item.total_fee) : null,
-      total_tuition_fee:
-        item.total_tuition_fee != null ? String(item.total_tuition_fee) : null,
-      commission: item.commission != null ? item.commission : null,
-      university: item.university
-        ? {
-            id: item.university.id,
-            name: item.university.name,
-            uname: item.university.uname,
-            email: item.university.email ?? null,
-            cc: item.university.cc ?? null,
-            logo_path: item.university.logo_path ?? null,
-          }
-        : null,
-      course_category: item.courseCategory,
-      course_specialization: item.courseSpecialization,
-    }));
+    const total = Number(countResult[0]?.total || 0);
+
+    if (programs.length === 0) {
+      return {
+        items: [],
+        pagination: {
+          current_page: page,
+          last_page: Math.ceil(total / perPage) || 0,
+          per_page: perPage,
+          total,
+        },
+      };
+    }
+
+    const uniIds = [...new Set(programs.map((p) => p.university_id).filter(Boolean))];
+    const catIds = [...new Set(programs.map((p) => p.course_category_id).filter(Boolean))];
+    const specIds = [...new Set(programs.map((p) => p.specialization_id).filter(Boolean))];
+
+    const [universities, categories, specializations] = await Promise.all([
+      uniIds.length > 0
+        ? (prisma.$queryRawUnsafe(
+            `SELECT u.* FROM universities u WHERE u.id IN (${uniIds.map(() => '?').join(',')})`,
+            ...uniIds
+          ) as Promise<any[]>)
+        : Promise.resolve([]),
+      catIds.length > 0
+        ? (prisma.$queryRawUnsafe(
+            `SELECT id, name, slug FROM course_categories WHERE id IN (${catIds.map(() => '?').join(',')})`,
+            ...catIds
+          ) as Promise<any[]>)
+        : Promise.resolve([]),
+      specIds.length > 0
+        ? (prisma.$queryRawUnsafe(
+            `SELECT id, name, slug FROM course_specializations WHERE id IN (${specIds.map(() => '?').join(',')})`,
+            ...specIds
+          ) as Promise<any[]>)
+        : Promise.resolve([]),
+    ]);
+
+    // Strip excluded SEO fields from universities
+    for (const uni of universities) {
+      for (const f of EXCLUDED_UNIVERSITY_FIELDS) {
+        delete uni[f];
+      }
+    }
+
+    const uniMap = new Map(universities.map((u) => [Number(u.id), u]));
+    const catMap = new Map(categories.map((c) => [Number(c.id), c]));
+    const specMap = new Map(specializations.map((s) => [Number(s.id), s]));
+
+    const FEE_FIELDS_ORDER = [
+      // Fee Metadata & Currency
+      'currency',
+      'fee_type',
+      'fee_number',
+      'feefilename',
+      'feefilepath',
+      'fees_remark',
+      'discount',
+      'domestic_discount',
+      'international_discount',
+      'saarc_discount',
+      'nri_discount',
+      'commission',
+      'avrg_tution_fees_per_year',
+      'avrg_cost_living_per_year',
+
+      // Tab 1: International Fees
+      'total_fee_international',
+      'total_tuition_fee_international',
+      'annual_tuition_fee_international',
+      'year1_tuition_fee_international',
+      'year2_tuition_fee_international',
+      'year3_tuition_fee_international',
+      'year4_tuition_fee_international',
+      'scholarship_amount_international',
+      'tution_fee_after_scholarship_international',
+      'total_fee',
+      'total_tuition_fee',
+      'annual_tuition_fee',
+      'year1_tuition_fee',
+      'year2_tuition_fee',
+      'year3_tuition_fee',
+      'year4_tuition_fee',
+      'scholarship_amount',
+      'tution_fee_after_scholarship',
+
+      // Tab 2: Local Fees
+      'total_fee_local',
+      'total_tuition_fee_local',
+      'annual_tuition_fee_local',
+      'anual_tuition_fee_local',
+      'year1_tuition_fee_local',
+      'year2_tuition_fee_local',
+      'year3_tuition_fee_local',
+      'year4_tuition_fee_local',
+      'scholarship_amount_local',
+      'tution_fee_after_scholarship_local',
+
+      // Tab 3: Other Fees
+      'application_fee',
+      'application_fees',
+      'registration_fee',
+      'admin_fee',
+      'viza_fee',
+      'emgs_processing_fee',
+      'medical_insurance_fee',
+      'insurance_fee',
+      'personal_bond_fee',
+      'library_fee',
+      'icard_fee',
+      'examination_fee',
+      'laboratory_fee',
+      'technology_fee',
+      'student_activity_fee',
+      'resources_fee',
+      'facilities_fee',
+      'commitment_fee',
+      'international_student_fee',
+      'international_student_fees',
+      'international_student_charge',
+      'international_administration_fee',
+      'international_security_deposit',
+      'accommodation_fee',
+      'airport_pickup_fee',
+      'other_fee',
+      'other_fees',
+      'additional_note',
+    ];
+
+    const feeSet = new Set(FEE_FIELDS_ORDER);
+    const excludedSet = new Set(EXCLUDED_PROGRAM_FIELDS);
+
+    const formattedItems = programs.map((p) => {
+      // Sync international and legacy fee aliases so both are available
+      p.total_fee_international = p.total_fee_international ?? p.total_fee ?? null;
+      p.total_fee = p.total_fee ?? p.total_fee_international ?? null;
+      p.total_tuition_fee_international = p.total_tuition_fee_international ?? p.total_tuition_fee ?? null;
+      p.total_tuition_fee = p.total_tuition_fee ?? p.total_tuition_fee_international ?? null;
+      p.annual_tuition_fee_international = p.annual_tuition_fee_international ?? p.annual_tuition_fee ?? null;
+      p.annual_tuition_fee = p.annual_tuition_fee ?? p.annual_tuition_fee_international ?? null;
+      p.year1_tuition_fee_international = p.year1_tuition_fee_international ?? p.year1_tuition_fee ?? null;
+      p.year1_tuition_fee = p.year1_tuition_fee ?? p.year1_tuition_fee_international ?? null;
+      p.year2_tuition_fee_international = p.year2_tuition_fee_international ?? p.year2_tuition_fee ?? null;
+      p.year2_tuition_fee = p.year2_tuition_fee ?? p.year2_tuition_fee_international ?? null;
+      p.year3_tuition_fee_international = p.year3_tuition_fee_international ?? p.year3_tuition_fee ?? null;
+      p.year3_tuition_fee = p.year3_tuition_fee ?? p.year3_tuition_fee_international ?? null;
+      p.year4_tuition_fee_international = p.year4_tuition_fee_international ?? p.year4_tuition_fee ?? null;
+      p.year4_tuition_fee = p.year4_tuition_fee ?? p.year4_tuition_fee_international ?? null;
+      p.scholarship_amount_international = p.scholarship_amount_international ?? p.scholarship_amount ?? null;
+      p.scholarship_amount = p.scholarship_amount ?? p.scholarship_amount_international ?? null;
+      p.tution_fee_after_scholarship_international = p.tution_fee_after_scholarship_international ?? p.tution_fee_after_scholarship ?? null;
+      p.tution_fee_after_scholarship = p.tution_fee_after_scholarship ?? p.tution_fee_after_scholarship_international ?? null;
+      p.annual_tuition_fee_local = p.annual_tuition_fee_local ?? p.anual_tuition_fee_local ?? null;
+
+      const organizedProg: any = {};
+
+      // 1. General & basic course fields first (non-fee, non-excluded)
+      for (const [key, value] of Object.entries(p)) {
+        if (!excludedSet.has(key) && !feeSet.has(key)) {
+          organizedProg[key] = value;
+        }
+      }
+
+      // 2. All fee fields placed together in contiguous block
+      for (const feeKey of FEE_FIELDS_ORDER) {
+        if (feeKey in p && !excludedSet.has(feeKey)) {
+          organizedProg[feeKey] = p[feeKey];
+        }
+      }
+
+      // 3. Fallback for any remaining unexcluded field
+      for (const [key, value] of Object.entries(p)) {
+        if (!excludedSet.has(key) && !(key in organizedProg)) {
+          organizedProg[key] = value;
+        }
+      }
+
+      const cat = catMap.get(Number(p.course_category_id)) || null;
+      const spec = specMap.get(Number(p.specialization_id)) || null;
+
+      // 4. Attached relations
+      organizedProg.university = uniMap.get(Number(p.university_id)) || null;
+      organizedProg.courseCategory = cat;
+      organizedProg.courseSpecialization = spec;
+      organizedProg.course_category = cat || p.course_category;
+      organizedProg.course_specialization = spec || p.specialization;
+
+      return organizedProg;
+    });
 
     return {
       items: serializeBigInt(formattedItems),

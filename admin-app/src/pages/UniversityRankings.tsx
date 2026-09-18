@@ -72,7 +72,7 @@ export default function UniversityRankings() {
 
   const fetchUniversities = async () => {
     try {
-      const res = await fetch('/api/v1/admin/universities');
+      const res = await fetch('/api/v1/admin/universities?minimal=true');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setUniversities(json.data || []);
@@ -82,15 +82,15 @@ export default function UniversityRankings() {
     }
   };
 
-  const fetchRankings = async (targetUnivId?: string) => {
+  const fetchRankings = async (targetUnivId?: string, showLoading = true) => {
     const univId = targetUnivId !== undefined ? targetUnivId : selectedUnivId;
     if (!univId) {
       setRankings([]);
-      setLoading(false);
+      if (showLoading) setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch(`/api/v1/admin/university-rankings?university_id=${univId}`);
       const json = await res.json();
@@ -102,7 +102,7 @@ export default function UniversityRankings() {
     } catch {
       showToast('error', 'Network error');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -180,17 +180,21 @@ export default function UniversityRankings() {
     const confirmed = await confirmDelete(item.title);
     if (!confirmed) return;
 
+    // Optimistic removal: instantly vanishes from UI
+    setRankings(prev => prev.filter(r => r.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-rankings/${item.id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && json.success) {
         showToast('success', 'Ranking deleted');
-        setRankings(prev => prev.filter(r => r.id !== item.id));
       } else {
         showToast('error', json.error || 'Failed to delete');
+        fetchRankings(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Error deleting ranking');
+      fetchRankings(selectedUnivId, false);
     }
   };
 
@@ -325,7 +329,7 @@ export default function UniversityRankings() {
                 </div>
                 <div>
                   <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
-                    Position / Rank
+                    Position
                   </label>
                   <input
                     type="number"

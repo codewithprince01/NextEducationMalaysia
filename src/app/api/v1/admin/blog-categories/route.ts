@@ -9,8 +9,9 @@ export async function GET(request: Request) {
 
     let sql = `SELECT bc.id, bc.category_name, bc.category_slug, bc.meta_title, bc.meta_description, bc.meta_keyword,
                bc.og_image_path, bc.seo_rating, bc.best_rating, bc.review_number, bc.status, bc.created_at,
-               (SELECT COUNT(*) FROM blogs b WHERE b.category_id = bc.id) AS blog_count
-               FROM blog_categories bc`;
+               COALESCE(b.cnt, 0) AS blog_count
+               FROM blog_categories bc
+               LEFT JOIN (SELECT category_id, COUNT(*) as cnt FROM blogs GROUP BY category_id) b ON b.category_id = bc.id`;
 
     if (search) {
       sql += ` WHERE bc.category_name LIKE '%${search}%' OR bc.category_slug LIKE '%${search}%'`;

@@ -13,6 +13,7 @@ import {
   RefreshCw,
   PenTool
 } from 'lucide-react';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 
 interface AuthorItem {
   id: number;
@@ -38,6 +39,7 @@ export default function Authors() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -74,6 +76,7 @@ export default function Authors() {
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setProfileImageFile(null);
     setFormData({
       name: '',
       email: '',
@@ -86,6 +89,7 @@ export default function Authors() {
 
   const handleOpenEdit = (item: AuthorItem) => {
     setEditingId(item.id);
+    setProfileImageFile(null);
     setFormData({
       name: item.name || '',
       email: item.email || '',
@@ -124,6 +128,12 @@ export default function Authors() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (profileImageFile) {
+        const res = await uploadFileToStorage(profileImageFile, 'author');
+        currentFormData.profile_image = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/authors/${editingId}`
         : '/api/v1/admin/authors';
@@ -132,7 +142,7 @@ export default function Authors() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -166,9 +176,8 @@ export default function Authors() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -364,15 +373,22 @@ export default function Authors() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Profile Image Path
+                  Profile Image
                 </label>
                 <input
-                  type="text"
-                  placeholder="/uploads/authors/sarah.jpg"
-                  value={formData.profile_image}
-                  onChange={(e) => setFormData({ ...formData, profile_image: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setProfileImageFile(file);
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
+                {(profileImageFile || formData.profile_image) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                    {profileImageFile ? `Selected: ${profileImageFile.name}` : `Current: ${formData.profile_image}`}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

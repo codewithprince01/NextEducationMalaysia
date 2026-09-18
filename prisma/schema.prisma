@@ -87,6 +87,29 @@ model UniversityProgram {
   tution_fee        Int?
   total_fee         Decimal?  @db.Decimal(12, 2)
   total_tuition_fee Decimal?  @db.Decimal(12, 2)
+
+  // Local Fees
+  total_fee_local                           Decimal?  @db.Decimal(12, 2)
+  total_tuition_fee_local                   Decimal?  @db.Decimal(12, 2)
+  annual_tuition_fee_local                  Decimal?  @db.Decimal(12, 2)
+  year1_tuition_fee_local                   Decimal?  @db.Decimal(12, 2)
+  year2_tuition_fee_local                   Decimal?  @db.Decimal(12, 2)
+  year3_tuition_fee_local                   Decimal?  @db.Decimal(12, 2)
+  year4_tuition_fee_local                   Decimal?  @db.Decimal(12, 2)
+  scholarship_amount_local                  Decimal?  @db.Decimal(12, 2)
+  tution_fee_after_scholarship_local        Decimal?  @db.Decimal(12, 2)
+
+  // International Fees
+  total_fee_international                   Decimal?  @db.Decimal(12, 2)
+  total_tuition_fee_international           Decimal?  @db.Decimal(12, 2)
+  annual_tuition_fee_international          Decimal?  @db.Decimal(12, 2)
+  year1_tuition_fee_international           Decimal?  @db.Decimal(12, 2)
+  year2_tuition_fee_international           Decimal?  @db.Decimal(12, 2)
+  year3_tuition_fee_international           Decimal?  @db.Decimal(12, 2)
+  year4_tuition_fee_international           Decimal?  @db.Decimal(12, 2)
+  scholarship_amount_international          Decimal?  @db.Decimal(12, 2)
+  tution_fee_after_scholarship_international Decimal?  @db.Decimal(12, 2)
+
   commission        Int?
   course_category   String?
   specialization    String?
@@ -99,6 +122,10 @@ model UniversityProgram {
   meta_description  String?   @db.Text
   meta_keyword      String?   @db.Text
   og_image_path     String?
+  page_content      String?   @db.LongText
+  seo_rating        Decimal?  @db.Decimal(2, 1)
+  best_rating       Decimal?  @db.Decimal(2, 1)
+  review_number     Int?
   overview          String?   @db.LongText
   website           String?   @default("MYS")
   created_at        DateTime? @default(now())
@@ -479,9 +506,12 @@ model UniversityScholarshipContent {
 model UniversityProgramContent {
   id          Int       @id @default(autoincrement())
   c_id        Int?
-  tab         String?
+  tab_title   String?   @db.VarChar(100)
+  heading     String?   @db.VarChar(100)
   description String?   @db.LongText
-  position    Int?      @default(0)
+  imgpath     String?   @db.VarChar(100)
+  imgname     String?   @db.VarChar(100)
+  status      Int?      @default(1)
   created_at  DateTime? @default(now())
   updated_at  DateTime? @updatedAt
 

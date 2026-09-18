@@ -15,6 +15,7 @@ import {
   Eye,
   Download
 } from 'lucide-react';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 
 interface PhotoItem {
   id: number;
@@ -63,16 +64,17 @@ export default function UniversityGallery() {
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const [photoForm, setPhotoForm] = useState({
-    university_id: '',
+    university_id: queryUnivId,
     title: '',
     photo_path: '',
-    is_featured: false,
+    is_featured: 0,
   });
 
   const [videoForm, setVideoForm] = useState({
-    university_id: '',
+    university_id: queryUnivId,
     title: '',
     video_url: '',
   });
@@ -84,17 +86,17 @@ export default function UniversityGallery() {
 
   const fetchUniversities = async () => {
     try {
-      const res = await fetch('/api/v1/admin/universities');
+      const res = await fetch('/api/v1/admin/universities?minimal=true');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setUniversities(json.data || []);
       }
     } catch {
-      console.error('Failed to fetch universities');
+      console.error('Failed to fetch universities list');
     }
   };
 
-  const fetchGallery = async (targetUnivId?: string) => {
+  const fetchGallery = async (targetUnivId?: string, showLoading = true) => {
     const univId = targetUnivId !== undefined ? targetUnivId : selectedUnivId;
     if (!univId) {
       setPhotos([]);
@@ -103,61 +105,73 @@ export default function UniversityGallery() {
       return;
     }
 
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
-      const [photoRes, videoRes] = await Promise.all([
+      const [photosRes, videosRes] = await Promise.all([
         fetch(`/api/v1/admin/university-photos?university_id=${univId}`),
         fetch(`/api/v1/admin/university-videos?university_id=${univId}`),
       ]);
 
-      const photoJson = await photoRes.json();
-      const videoJson = await videoRes.json();
+      const photosJson = await photosRes.json();
+      const videosJson = await videosRes.json();
 
-      if (photoRes.ok && photoJson.success) setPhotos(photoJson.data || []);
-      if (videoRes.ok && videoJson.success) setVideos(videoJson.data || []);
+      if (photosRes.ok && photosJson.success) {
+        setPhotos(photosJson.data || []);
+      }
+      if (videosRes.ok && videosJson.success) {
+        setVideos(videosJson.data || []);
+      }
     } catch {
-      showToast('error', 'Error loading gallery items');
+      showToast('error', 'Failed to fetch gallery items');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchUniversities();
-    if (queryUnivId) {
-      setSelectedUnivId(queryUnivId);
-      fetchGallery(queryUnivId);
+    if (selectedUnivId) {
+      fetchGallery(selectedUnivId);
     }
-  }, [queryUnivId]);
+  }, []);
 
-  const handleUniversityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
+  const handleUnivChange = (val: string) => {
     setSelectedUnivId(val);
+    setPhotoForm((prev) => ({ ...prev, university_id: val }));
+    setVideoForm((prev) => ({ ...prev, university_id: val }));
     if (val) {
-      navigate(`/university-gallery?university_id=${val}`);
+      navigate(`/photos-and-videos-gallery?university_id=${val}`);
     }
     fetchGallery(val);
   };
 
   const handleAddPhotoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!photoForm.university_id || !photoForm.photo_path.trim()) {
-      showToast('error', 'University and photo URL/path are required');
-      return;
-    }
-
     setSubmitting(true);
     try {
+      const currentPhotoForm = { ...photoForm };
+      if (photoFile) {
+        const res = await uploadFileToStorage(photoFile, 'university-photos');
+        currentPhotoForm.photo_path = res.file_path;
+      }
+
+      if (!currentPhotoForm.university_id || !currentPhotoForm.photo_path.trim()) {
+        showToast('error', 'University and photo file are required');
+        setSubmitting(false);
+        return;
+      }
+
       const res = await fetch('/api/v1/admin/university-photos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(photoForm),
+        body: JSON.stringify(currentPhotoForm),
       });
       const json = await res.json();
 
       if (res.ok && json.success) {
         showToast('success', 'Photo added successfully');
         setIsPhotoModalOpen(false);
+        setPhotoFile(null);
         fetchGallery();
       } else {
         showToast('error', json.error || 'Failed to add photo');
@@ -203,16 +217,21 @@ export default function UniversityGallery() {
     const confirmed = await confirmDelete('this photo');
     if (!confirmed) return;
 
+    setPhotos((prev) => prev.filter((p) => p.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-photos/${item.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
         showToast('success', 'Photo deleted');
-        setPhotos((prev) => prev.filter((p) => p.id !== item.id));
+      } else {
+        showToast('error', 'Failed to delete photo');
+        fetchGallery(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Failed to delete photo');
+      fetchGallery(selectedUnivId, false);
     }
   };
 
@@ -220,16 +239,21 @@ export default function UniversityGallery() {
     const confirmed = await confirmDelete('this video');
     if (!confirmed) return;
 
+    setVideos((prev) => prev.filter((v) => v.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-videos/${item.id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
         showToast('success', 'Video deleted');
-        setVideos((prev) => prev.filter((v) => v.id !== item.id));
+      } else {
+        showToast('error', 'Failed to delete video');
+        fetchGallery(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Failed to delete video');
+      fetchGallery(selectedUnivId, false);
     }
   };
 
@@ -250,9 +274,8 @@ export default function UniversityGallery() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all ${
-            toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all ${toast.type === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -292,7 +315,7 @@ export default function UniversityGallery() {
                   university_id: selectedUnivId || (universities[0]?.id.toString() || ''),
                   title: '',
                   photo_path: '',
-                  is_featured: false,
+                  is_featured: 0,
                 });
                 setIsPhotoModalOpen(true);
               }}
@@ -331,7 +354,7 @@ export default function UniversityGallery() {
             </label>
             <select
               value={selectedUnivId}
-              onChange={handleUniversityChange}
+              onChange={(e) => handleUnivChange(e.target.value)}
               className="w-full sm:w-80 px-3 py-1 rounded-lg border border-slate-200 text-slate-800 text-xs font-semibold focus:outline-none focus:border-indigo-600 bg-slate-50"
             >
               <option value="">-- Select a University --</option>
@@ -346,22 +369,20 @@ export default function UniversityGallery() {
           <div className="flex items-center bg-slate-100 p-1 rounded-lg shrink-0">
             <button
               onClick={() => setActiveTab('photos')}
-              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${
-                activeTab === 'photos'
-                  ? 'bg-white text-indigo-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${activeTab === 'photos'
+                ? 'bg-white text-indigo-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               <ImageIcon className="w-3.5 h-3.5" />
               <span>Photos ({photos.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('videos')}
-              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${
-                activeTab === 'videos'
-                  ? 'bg-white text-purple-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`px-3 py-1 rounded-md text-xs font-bold flex items-center gap-1.5 transition-all ${activeTab === 'videos'
+                ? 'bg-white text-purple-600 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               <VideoIcon className="w-3.5 h-3.5" />
               <span>Videos ({videos.length})</span>
@@ -477,44 +498,44 @@ export default function UniversityGallery() {
                   {videos.map((item) => {
                     const vUrl = item.video_url || item.video_link || '';
                     return (
-                    <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-6 font-bold text-slate-400">#{item.id}</td>
-                      <td className="py-4 px-6 font-extrabold text-slate-900 text-xs">
-                        {item.title || <span className="text-slate-400 italic">No Title</span>}
-                      </td>
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-2">
+                      <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="py-4 px-6 font-bold text-slate-400">#{item.id}</td>
+                        <td className="py-4 px-6 font-extrabold text-slate-900 text-xs">
+                          {item.title || <span className="text-slate-400 italic">No Title</span>}
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setPreviewMedia({ type: 'video', url: vUrl })}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-600 border border-purple-500 hover:bg-purple-50 rounded-md transition-colors"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> View Video
+                            </button>
+                            <button
+                              onClick={() => handleDownload(vUrl)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-md transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" /> Download
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-[11px] text-slate-500 font-medium">
+                          <div>Created: <b className="text-slate-700">{item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</b></div>
+                          {item.updated_at && (
+                            <div>Updated: <b className="text-slate-700">{new Date(item.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</b></div>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 text-right">
                           <button
-                            onClick={() => setPreviewMedia({ type: 'video', url: vUrl })}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-600 border border-purple-500 hover:bg-purple-50 rounded-md transition-colors"
+                            onClick={() => handleDeleteVideo(item)}
+                            className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-colors cursor-pointer"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View Video
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                          <button
-                            onClick={() => handleDownload(vUrl)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-300 hover:bg-slate-50 rounded-md transition-colors"
-                          >
-                            <Download className="w-3.5 h-3.5" /> Download
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-[11px] text-slate-500 font-medium">
-                        <div>Created: <b className="text-slate-700">{item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}</b></div>
-                        {item.updated_at && (
-                          <div>Updated: <b className="text-slate-700">{new Date(item.updated_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</b></div>
-                        )}
-                      </td>
-                      <td className="py-4 px-6 text-right">
-                        <button
-                          onClick={() => handleDeleteVideo(item)}
-                          className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -540,11 +561,7 @@ export default function UniversityGallery() {
             <div className="p-6 flex items-center justify-center bg-slate-950 min-h-[300px]">
               {previewMedia.type === 'photo' ? (
                 <img
-                  src={
-                    previewMedia.url.startsWith('http')
-                      ? previewMedia.url
-                      : `/${previewMedia.url.replace(/^\//, '')}`
-                  }
+                  src={getStorageUrl(previewMedia.url)}
                   alt="Gallery Preview"
                   className="max-h-[70vh] max-w-full object-contain rounded-lg shadow-lg"
                   onError={(e) => {
@@ -629,23 +646,29 @@ export default function UniversityGallery() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Photo URL / Path *</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Upload Photo *</label>
                 <input
-                  type="text"
-                  placeholder="/storage/photos/univ1.jpg or https://..."
-                  value={photoForm.photo_path}
-                  onChange={(e) => setPhotoForm({ ...photoForm, photo_path: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setPhotoFile(file);
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                 />
+                {photoForm.photo_path && (
+                  <span className="text-[11px] text-slate-500 mt-1 block truncate">
+                    Current: {photoForm.photo_path}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   id="is_featured"
-                  checked={photoForm.is_featured}
-                  onChange={(e) => setPhotoForm({ ...photoForm, is_featured: e.target.checked })}
+                  checked={Boolean(photoForm.is_featured)}
+                  onChange={(e) => setPhotoForm({ ...photoForm, is_featured: e.target.checked ? 1 : 0 })}
                   className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                 />
                 <label htmlFor="is_featured" className="text-xs font-bold text-slate-700">

@@ -3,20 +3,27 @@ import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
 
 // GET /api/v1/admin/course-specializations
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const website = searchParams.get('website') || 'MYS';
+
     const specializations: any[] = await prisma.$queryRawUnsafe(
       `SELECT cs.*, 
               cc.name as category_name,
               a.name as author_name,
-              (SELECT COUNT(*) FROM specialization_contents sc WHERE sc.specialization_id = cs.id) as contents_count,
-              (SELECT COUNT(*) FROM course_specialization_faqs csf WHERE csf.specialization_id = cs.id) as faqs_count,
-              (SELECT COUNT(*) FROM specialization_levels sl WHERE sl.specialization_id = cs.id) as levels_count
+              COALESCE(sc.cnt, 0) as contents_count,
+              COALESCE(csf.cnt, 0) as faqs_count,
+              COALESCE(sl.cnt, 0) as levels_count
        FROM course_specializations cs
        LEFT JOIN course_categories cc ON cs.course_category_id = cc.id
        LEFT JOIN authors a ON cs.author_id = a.id
-       WHERE cs.website = 'MYS'
-       ORDER BY cs.id DESC`
+       LEFT JOIN (SELECT specialization_id, COUNT(*) as cnt FROM specialization_contents GROUP BY specialization_id) sc ON sc.specialization_id = cs.id
+       LEFT JOIN (SELECT specialization_id, COUNT(*) as cnt FROM course_specialization_faqs GROUP BY specialization_id) csf ON csf.specialization_id = cs.id
+       LEFT JOIN (SELECT specialization_id, COUNT(*) as cnt FROM specialization_levels GROUP BY specialization_id) sl ON sl.specialization_id = cs.id
+       WHERE cs.website = ?
+       ORDER BY cs.name ASC`,
+      website
     );
 
     return NextResponse.json({

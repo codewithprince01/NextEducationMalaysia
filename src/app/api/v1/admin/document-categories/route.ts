@@ -6,8 +6,9 @@ export async function GET() {
   try {
     const rows: any[] = await prisma.$queryRawUnsafe(`
       SELECT c.*,
-             (SELECT COUNT(*) FROM university_documents d WHERE d.category_id = c.id) AS documents_count
+             COALESCE(d.cnt, 0) AS documents_count
       FROM university_document_categories c
+      LEFT JOIN (SELECT category_id, COUNT(*) as cnt FROM university_documents GROUP BY category_id) d ON d.category_id = c.id
       ORDER BY c.position ASC, c.id DESC
     `);
 

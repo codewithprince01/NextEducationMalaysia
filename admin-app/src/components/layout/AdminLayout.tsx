@@ -36,12 +36,20 @@ type NavLinkItem = {
   label: string;
   href: string;
   icon: React.ElementType;
+  module?: string | string[];
+};
+
+type NavGroupChild = {
+  label: string;
+  href: string;
+  module?: string | string[];
 };
 
 type NavGroupItem = {
   label: string;
   icon: React.ElementType;
-  children: { label: string; href: string }[];
+  module?: string | string[];
+  children: NavGroupChild[];
 };
 
 type NavSection = {
@@ -53,7 +61,7 @@ const navigationConfig: NavSection[] = [
   {
     section: 'MAIN',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, module: 'dashboard' },
     ],
   },
   {
@@ -63,27 +71,31 @@ const navigationConfig: NavSection[] = [
         label: 'Universities',
         icon: Building2,
         children: [
-          { label: 'All Universities', href: '/university' },
-          { label: 'Add University', href: '/university/add' },
-          { label: 'University Overviews', href: '/university-overviews' },
-          { label: 'Photos & Videos Gallery', href: '/university-gallery' },
-          { label: 'University Facilities', href: '/university-facilities' },
-          { label: 'University Reviews', href: '/university-reviews' },
-          { label: 'University Rankings', href: '/university-rankings' },
-          { label: 'Institute Types', href: '/institute-types' },
-          { label: 'Study Modes', href: '/study-modes' },
-          { label: 'University Documents', href: '/university-documents' },
-          { label: 'Document Categories', href: '/document-categories' },
+          { label: 'All Universities', href: '/university', module: 'university' },
+          { label: 'Add University', href: '/university/add', module: 'university' },
+          { label: 'University Overviews', href: '/university-overviews', module: 'university-overview' },
+          { label: 'Photos & Videos Gallery', href: '/university-gallery', module: ['university-photos', 'university-videos'] },
+          { label: 'University Facilities', href: '/university-facilities', module: 'university-facilities' },
+          { label: 'University Reviews', href: '/university-reviews', module: 'university-reviews' },
+          { label: 'University Rankings', href: '/university-rankings', module: 'university-ranking' },
+          { label: 'Institute Types', href: '/institute-types', module: 'institute-types' },
+          { label: 'Study Modes', href: '/study-modes', module: 'study-modes' },
+          { label: 'University Documents', href: '/university-documents', module: 'university-documents' },
+          { label: 'Document Categories', href: '/document-categories', module: 'document-categories' },
         ],
       },
       {
         label: 'Programs & Courses',
         icon: GraduationCap,
         children: [
-          { label: 'Levels', href: '/levels' },
-          { label: 'Course Categories', href: '/course-category' },
-          { label: 'Category Contents', href: '/course-category-contents' },
-          { label: 'Specializations', href: '/course-specializations' },
+          { label: 'Programs', href: '/programs', module: 'programs' },
+          { label: 'Levels', href: '/levels', module: 'levels' },
+          { label: 'Course Categories', href: '/course-category', module: 'course-category' },
+          { label: 'Category Contents', href: '/course-category-contents', module: 'course-category-contents' },
+          { label: 'Specializations', href: '/course-specializations', module: 'course-specializations' },
+          { label: 'Specialization Levels', href: '/specialization-levels', module: 'specialization-levels' },
+          { label: 'Specialization Level Contents', href: '/specialization-level-contents', module: 'specialization-level-contents' },
+          { label: 'Program Contents', href: '/university-program-contents', module: 'university-program-contents' },
         ],
       },
     ],
@@ -95,10 +107,10 @@ const navigationConfig: NavSection[] = [
         label: 'Applications Data',
         icon: FileCheck,
         children: [
-          { label: 'Course Categories', href: '/malaysia-application-categories' },
-          { label: 'Course Applications (Malaysia)', href: '/malaysia-applications' },
-          { label: 'Countries', href: '/international-student-data-countries' },
-          { label: 'Country Applications (International)', href: '/international-student-data' },
+          { label: 'Course Categories', href: '/malaysia-application-categories', module: 'malaysia-application-categories' },
+          { label: 'Course Applications (Malaysia)', href: '/malaysia-applications', module: 'malaysia-applications' },
+          { label: 'Countries', href: '/international-student-data-countries', module: 'international-student-data-countries' },
+          { label: 'Country Applications (International)', href: '/international-student-data', module: 'international-student-data' },
         ],
       },
     ],
@@ -110,25 +122,28 @@ const navigationConfig: NavSection[] = [
         label: 'Blogs',
         icon: FileText,
         children: [
-          { label: 'All Blogs', href: '/blogs' },
-          { label: 'Create Blog', href: '/blogs/create' },
-          { label: 'Blog Categories', href: '/blog-category' },
+          { label: 'All Blogs', href: '/blogs', module: 'blogs' },
+          { label: 'Create Blog', href: '/blogs/create', module: 'blogs' },
+          { label: 'Blog Categories', href: '/blog-category', module: 'blog-category' },
+          { label: 'Blog Contents', href: '/blog-contents', module: 'blog-contents' },
+          { label: 'Blog FAQs', href: '/blog-faqs', module: 'blog-faqs' },
         ],
       },
       {
         label: 'FAQs',
         icon: HelpCircle,
         children: [
-          { label: 'FAQ List', href: '/faqs' },
-          { label: 'FAQ Categories', href: '/faq-categories' },
+          { label: 'FAQ List', href: '/faqs', module: 'faqs' },
+          { label: 'FAQ Categories', href: '/faq-categories', module: 'faq-categories' },
         ],
       },
-      { label: 'Services', href: '/services', icon: Briefcase },
-      { label: 'Exams', href: '/exams', icon: BookOpen },
-      { label: 'Home Page Contents', href: '/page-contents', icon: FileText },
-      { label: 'University Page Contents', href: '/static-page-contents', icon: FileText },
-      { label: 'Internships', href: '/internships', icon: Award },
-      { label: 'Partners', href: '/our-partners', icon: Handshake },
+      { label: 'Services', href: '/services', icon: Briefcase, module: 'services' },
+      { label: 'Service Contents', href: '/service-contents', icon: FileText, module: 'service-content' },
+      { label: 'Exams', href: '/exams', icon: BookOpen, module: 'exams' },
+      { label: 'Home Page Contents', href: '/page-contents', icon: FileText, module: 'page-contents' },
+      { label: 'University Page Contents', href: '/static-page-contents', icon: FileText, module: 'static-page-contents' },
+      { label: 'Internships', href: '/internships', icon: Award, module: 'internships' },
+      { label: 'Partners', href: '/our-partners', icon: Handshake, module: 'our-partners' },
     ],
   },
   {
@@ -138,9 +153,9 @@ const navigationConfig: NavSection[] = [
         label: 'SEO Settings',
         icon: Search,
         children: [
-          { label: 'Static Page SEO', href: '/static-page-seos' },
-          { label: 'Dynamic Page SEO', href: '/dynamic-page-seos' },
-          { label: 'Default OG Image', href: '/default-og-image' },
+          { label: 'Static Page SEO', href: '/static-page-seos', module: 'static-page-seos' },
+          { label: 'Dynamic Page SEO', href: '/dynamic-page-seos', module: 'dynamic-page-seos' },
+          { label: 'Default OG Image', href: '/default-og-image', module: 'default-og-image' },
         ],
       },
     ],
@@ -148,21 +163,21 @@ const navigationConfig: NavSection[] = [
   {
     section: 'ADMINISTRATION',
     items: [
-      { label: 'Admin Users', href: '/users', icon: Users },
-      { label: 'Authors', href: '/authors', icon: PenTool },
-      { label: 'Testimonials', href: '/testimonials', icon: MessageSquare },
+      { label: 'Admin Users', href: '/users', icon: Users, module: 'users' },
+      { label: 'Authors', href: '/authors', icon: PenTool, module: 'authors' },
+      { label: 'Testimonials', href: '/testimonials', icon: MessageSquare, module: 'testimonials' },
     ],
   },
   {
     section: 'MORE 2 / SYSTEM & UTILITIES',
     items: [
-      { label: 'Upload Files', href: '/upload-files', icon: UploadCloud },
-      { label: 'URL Redirections', href: '/url-redirections', icon: ArrowLeftRight },
-      { label: 'Addresses', href: '/addresses', icon: MapPin },
-      { label: 'Email & System Settings', href: '/system-settings', icon: Settings },
-      { label: 'Landing Pages', href: '/landing-pages', icon: Layout },
-      { label: 'Scholarships', href: '/scholarships', icon: GraduationCap },
-      { label: 'Page Banners', href: '/page-banners', icon: ImageIcon },
+      { label: 'Upload Files', href: '/upload-files', icon: UploadCloud, module: 'upload-files' },
+      { label: 'URL Redirections', href: '/url-redirections', icon: ArrowLeftRight, module: 'url-redirections' },
+      { label: 'Addresses', href: '/addresses', icon: MapPin, module: 'addresses' },
+      { label: 'Email & System Settings', href: '/system-settings', icon: Settings, module: 'email-settings' },
+      { label: 'Landing Pages', href: '/landing-pages', icon: Layout, module: 'landing-pages' },
+      { label: 'Scholarships', href: '/scholarships', icon: GraduationCap, module: 'scholarships' },
+      { label: 'Page Banners', href: '/page-banners', icon: ImageIcon, module: 'page-banners' },
     ],
   },
 ];
@@ -170,7 +185,7 @@ const navigationConfig: NavSection[] = [
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAdminAuth();
+  const { user, logout, canAccess } = useAdminAuth();
   const {
     isOpen: mobileSidebarOpen,
     toggleMobile,
@@ -183,6 +198,52 @@ export default function AdminLayout() {
 
   const pathname = location.pathname;
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+
+  // Filter sections and items dynamically according to user permissions
+  const filteredNavigationConfig = React.useMemo(() => {
+    return navigationConfig
+      .map((sec) => {
+        const allowedItems = sec.items
+          .map((item) => {
+            if ('children' in item) {
+              const allowedChildren = item.children.filter((child) => {
+                return child.module ? canAccess(child.module) : true;
+              });
+              if (allowedChildren.length === 0) return null;
+              return { ...item, children: allowedChildren };
+            }
+            return (item.module ? canAccess(item.module) : true) ? item : null;
+          })
+          .filter(Boolean) as (NavLinkItem | NavGroupItem)[];
+
+        if (allowedItems.length === 0) return null;
+        return { ...sec, items: allowedItems };
+      })
+      .filter(Boolean) as NavSection[];
+  }, [canAccess]);
+
+  const searchResults = React.useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    const results: { label: string; href: string; section: string }[] = [];
+    filteredNavigationConfig.forEach((sec) => {
+      sec.items.forEach((item) => {
+        if ('children' in item) {
+          item.children.forEach((child) => {
+            if (child.label.toLowerCase().includes(q) || item.label.toLowerCase().includes(q)) {
+              results.push({ label: `${item.label} → ${child.label}`, href: child.href, section: sec.section });
+            }
+          });
+        } else {
+          if (item.label.toLowerCase().includes(q)) {
+            results.push({ label: item.label, href: item.href, section: sec.section });
+          }
+        }
+      });
+    });
+    return results;
+  }, [searchQuery, filteredNavigationConfig]);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -203,7 +264,7 @@ export default function AdminLayout() {
 
   // Automatically expand group containing active route
   React.useEffect(() => {
-    navigationConfig.forEach((sec) => {
+    filteredNavigationConfig.forEach((sec) => {
       sec.items.forEach((item) => {
         if ('children' in item) {
           const isChildActive = item.children.some(
@@ -215,7 +276,7 @@ export default function AdminLayout() {
         }
       });
     });
-  }, [pathname]);
+  }, [pathname, filteredNavigationConfig]);
 
   const toggleGroup = (groupName: string) => {
     setOpenGroups((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
@@ -288,7 +349,7 @@ export default function AdminLayout() {
 
           {/* Navigation Links List */}
           <div className={`flex-1 p-3 space-y-5 overflow-y-auto scrollbar-thin ${!isExpanded && !mobileSidebarOpen ? 'px-2' : 'px-3'}`}>
-            {navigationConfig.map((sec, secIdx) => (
+            {filteredNavigationConfig.map((sec, secIdx) => (
               <div key={sec.section} className="space-y-1">
                 {(isExpanded || mobileSidebarOpen) ? (
                   <span className="px-3 text-[10.5px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
@@ -468,14 +529,44 @@ export default function AdminLayout() {
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search accessible modules..."
                 value={searchQuery}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-50/80 border border-slate-200/80 rounded-full pl-10 pr-10 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all"
               />
               <span className="absolute right-3 inline-flex items-center gap-0.5 text-[10px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded border border-slate-200">
                 <Command className="w-2.5 h-2.5" /> K
               </span>
+
+              {/* Search dropdown results */}
+              {searchFocused && searchQuery.trim() && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-slate-200 py-2 max-h-64 overflow-y-auto z-50">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((res) => (
+                      <Link
+                        key={res.href}
+                        to={res.href}
+                        onClick={() => {
+                          setSearchQuery('');
+                          setSearchFocused(false);
+                        }}
+                        className="flex items-center justify-between px-4 py-2 hover:bg-slate-50 text-xs text-slate-700 transition-colors"
+                      >
+                        <span className="font-semibold text-slate-800">{res.label}</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {res.section}
+                        </span>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-center text-xs text-slate-400">
+                      No accessible modules found matching "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

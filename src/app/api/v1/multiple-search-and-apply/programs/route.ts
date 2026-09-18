@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const filters = {
-      website: searchParams.get('website'),
+      website: searchParams.get('website') || searchParams.get('country'),
       university_id: searchParams.get('university_id'),
       level: searchParams.get('level'),
       course_category_id: searchParams.get('course_category_id'),

@@ -8,6 +8,8 @@ import {
   FileText
 } from 'lucide-react';
 
+import { uploadFileToStorage } from '@/lib/uploadHelper';
+
 interface CategoryOption {
   id: number;
   category_name: string;
@@ -28,6 +30,9 @@ export default function AddEditBlog() {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [authors, setAuthors] = useState<AuthorOption[]>([]);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -61,8 +66,8 @@ export default function AddEditBlog() {
       const catJson = await catRes.json();
       const authorJson = await authorRes.json();
 
-      if (catRes.ok && catJson.success) setCategories(catJson.data || []);
-      if (authorRes.ok && authorJson.success) setAuthors(authorJson.data || []);
+      if (catRes.ok && (catJson.success || catJson.status || catJson.data)) setCategories(catJson.data || []);
+      if (authorRes.ok && (authorJson.success || authorJson.status || authorJson.data)) setAuthors(authorJson.data || []);
     } catch {
       console.error('Error fetching categories or authors');
     }
@@ -139,6 +144,16 @@ export default function AddEditBlog() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'blogs');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'blogs');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = isEdit ? `/api/v1/admin/blogs/${id}` : '/api/v1/admin/blogs';
       const method = isEdit ? 'PUT' : 'POST';
 
@@ -146,8 +161,8 @@ export default function AddEditBlog() {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          headline: formData.title,
-          ...formData,
+          headline: currentFormData.title,
+          ...currentFormData,
         }),
       });
       const json = await res.json();
@@ -290,16 +305,21 @@ export default function AddEditBlog() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    const file = e.target.files?.[0];
+                    const file = e.target.files?.[0] || null;
+                    setThumbnailFile(file);
                     if (file) {
-                      setFormData({ ...formData, thumbnail_path: file.name });
+                      const autoTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                      setFormData((prev) => ({
+                        ...prev,
+                        title: prev.title.trim() ? prev.title : autoTitle,
+                      }));
                     }
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
-                {formData.thumbnail_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                    Current / Selected: {formData.thumbnail_path}
+                {(thumbnailFile || formData.thumbnail_path) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                    {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                   </span>
                 )}
               </div>
@@ -412,16 +432,14 @@ export default function AddEditBlog() {
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setFormData({ ...formData, og_image_path: file.name });
-                      }
+                      const file = e.target.files?.[0] || null;
+                      setOgImageFile(file);
                     }}
                     className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                   />
-                  {formData.og_image_path && (
-                    <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                      Current / Selected: {formData.og_image_path}
+                  {(ogImageFile || formData.og_image_path) && (
+                    <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                      {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                     </span>
                   )}
                 </div>

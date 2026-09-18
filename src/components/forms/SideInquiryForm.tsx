@@ -39,9 +39,10 @@ type Props = {
   title?: string
   type?: string
   context?: string | { slug: string; universityName?: string | null }
+  universityName?: string
 }
 
-export default function SideInquiryForm({ title = 'Get In Touch', context = '', type = 'general' }: Props) {
+export default function SideInquiryForm({ title = 'Get In Touch', context = '', type = 'general', universityName = '' }: Props) {
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -50,6 +51,11 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
     country: '',
     captcha: '',
     agree: false
+  })
+  const [interestedUniversity, setInterestedUniversity] = useState<string>(() => {
+    if (universityName) return universityName
+    if (typeof context === 'object' && context?.universityName) return context.universityName
+    return ''
   })
   const [securityCheck, setSecurityCheck] = useState(INITIAL_SECURITY_CHECK)
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -70,7 +76,40 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
   }, [])
 
   const universitySlug = contextSlug || urlUniversity.slug
-  const interestedUniversity = contextUniversityName || urlUniversity.name
+
+  useEffect(() => {
+    if (universityName) {
+      setInterestedUniversity(universityName)
+      return
+    }
+    if (typeof context === 'object' && context?.universityName) {
+      setInterestedUniversity(context.universityName)
+      return
+    }
+
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname
+      const match = pathname.match(/\/university\/([^/?#]+)/i)
+      if (match && match[1]) {
+        const slug = match[1]
+        const heroHeading = document.querySelector('h1')?.textContent?.trim()
+        if (heroHeading && !['overview', 'courses', 'gallery', 'videos', 'ranking', 'reviews'].includes(heroHeading.toLowerCase())) {
+          setInterestedUniversity(heroHeading)
+          return
+        }
+
+        fetch(`/api/v1/universities/${slug}`)
+          .then((res) => res.json())
+          .then((json) => {
+            const uniName = json?.data?.name || json?.data?.university?.name || json?.university?.name
+            if (uniName) {
+              setInterestedUniversity(uniName)
+            }
+          })
+          .catch(() => {})
+      }
+    }
+  }, [universityName, context])
 
   const phoneCodeOptions = useMemo(() => {
     const s = new Set<string>()
@@ -209,6 +248,7 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
           country_code: form.phoneCode.replace(/^\+/, ''),
           mobile: form.phone,
           nationality: form.country,
+          intrested_university: interestedUniversity,
           interested_university: interestedUniversity,
           university_slug: universitySlug,
           source: getSource(),
@@ -253,6 +293,7 @@ export default function SideInquiryForm({ title = 'Get In Touch', context = '', 
         className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs relative overflow-hidden"
       >
         {/* Carries the university the visitor is looking at through to the CRM. */}
+        <input type="hidden" name="intrested_university" value={interestedUniversity} readOnly />
         <input type="hidden" name="interested_university" value={interestedUniversity} readOnly />
         <input type="hidden" name="university_slug" value={universitySlug} readOnly />
 

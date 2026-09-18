@@ -28,8 +28,11 @@ import {
   DollarSign,
   Tag,
   Globe,
-  Info
+  Info,
+  Upload,
+  Check
 } from 'lucide-react';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 
 interface UniversityItem {
   id: number;
@@ -39,12 +42,25 @@ interface UniversityItem {
 interface CategoryItem {
   id: number;
   name: string;
+  website?: string;
 }
 
 interface SpecializationItem {
   id: number;
   name: string;
   course_category_id?: number;
+  website?: string;
+}
+
+interface LevelItem {
+  id: number;
+  level: string;
+  slug?: string;
+}
+
+interface StudyModeItem {
+  id: number;
+  study_mode: string;
 }
 
 interface ProgramItem {
@@ -68,7 +84,18 @@ interface ProgramItem {
   scholarship_info?: string;
   courses_description?: string;
 
-  tution_fee?: string;
+  // International Fees
+  total_fee_international?: string;
+  total_tuition_fee_international?: string;
+  annual_tuition_fee_international?: string;
+  year1_tuition_fee_international?: string;
+  year2_tuition_fee_international?: string;
+  year3_tuition_fee_international?: string;
+  year4_tuition_fee_international?: string;
+  scholarship_amount_international?: string;
+  tution_fee_after_scholarship_international?: string;
+
+  // Legacy mappings for international
   total_fee?: string;
   total_tuition_fee?: string;
   annual_tuition_fee?: string;
@@ -76,6 +103,11 @@ interface ProgramItem {
   year2_tuition_fee?: string;
   year3_tuition_fee?: string;
   year4_tuition_fee?: string;
+  scholarship_amount?: string;
+  tution_fee_after_scholarship?: string;
+
+  // Untouched other fees
+  tution_fee?: string;
   registration_fee?: string;
   laboratory_fee?: string;
   library_fee?: string;
@@ -96,22 +128,29 @@ interface ProgramItem {
   accommodation_fee?: string;
   airport_pickup_fee?: string;
   other_fee?: string;
-  scholarship_amount?: string;
-  tution_fee_after_scholarship?: string;
   currency?: string;
   additional_note?: string;
 
+  // Local Fees
+  total_fee_local?: string;
+  total_tuition_fee_local?: string;
+  annual_tuition_fee_local?: string;
   anual_tuition_fee_local?: string;
   year1_tuition_fee_local?: string;
   year2_tuition_fee_local?: string;
   year3_tuition_fee_local?: string;
   year4_tuition_fee_local?: string;
-  total_tuition_fee_local?: string;
+  scholarship_amount_local?: string;
+  tution_fee_after_scholarship_local?: string;
 
   meta_title?: string;
   meta_keyword?: string;
   meta_description?: string;
   page_content?: string;
+  seo_rating?: string | number;
+  best_rating?: string | number;
+  review_number?: string | number;
+  og_image_path?: string;
 
   university_id?: number;
   university_name?: string;
@@ -123,6 +162,8 @@ interface ProgramItem {
   created_at?: string;
 }
 
+const ALL_MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
 export default function Programs() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -133,6 +174,8 @@ export default function Programs() {
   const [universities, setUniversities] = useState<UniversityItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [specializations, setSpecializations] = useState<SpecializationItem[]>([]);
+  const [levels, setLevels] = useState<LevelItem[]>([]);
+  const [studyModes, setStudyModes] = useState<StudyModeItem[]>([]);
   const [selectedUnivId, setSelectedUnivId] = useState<string>(queryUnivId);
 
   const [loading, setLoading] = useState(true);
@@ -141,7 +184,7 @@ export default function Programs() {
 
   // Form Visibility & Sub-Tabs
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'overview' | 'intl_fees' | 'local_fees' | 'seo'>('basic');
+  const [activeFormTab, setActiveFormTab] = useState<'basic' | 'overview' | 'intl_fees' | 'local_fees' | 'other_fees' | 'seo'>('basic');
 
   // Pagination & Sorting
   const [currentPage, setCurrentPage] = useState(1);
@@ -152,6 +195,15 @@ export default function Programs() {
   // Form State
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
+
+  // Bulk Import & Update States
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [bulkFile, setBulkFile] = useState<File | null>(null);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const importInputRef = React.useRef<HTMLInputElement>(null);
+  const bulkInputRef = React.useRef<HTMLInputElement>(null);
 
   const initialFormState = {
     university_id: '',
@@ -161,7 +213,7 @@ export default function Programs() {
     level: 'Bachelor',
     duration: '',
     study_mode: 'BY COURSEWORK, FULL TIME',
-    intake: 'Jan, Mar, Sep',
+    intake: 'JAN, MAR, SEP',
     application_deadline: 'Dec, Feb, Aug',
     campus: '',
     accreditations: 'N/A',
@@ -175,7 +227,18 @@ export default function Programs() {
     scholarship_info: '',
     courses_description: '',
 
-    tution_fee: '',
+    // International Fees
+    total_fee_international: '',
+    total_tuition_fee_international: '',
+    annual_tuition_fee_international: '',
+    year1_tuition_fee_international: '',
+    year2_tuition_fee_international: '',
+    year3_tuition_fee_international: '',
+    year4_tuition_fee_international: '',
+    scholarship_amount_international: '',
+    tution_fee_after_scholarship_international: '',
+
+    // Legacy international mappings
     total_fee: '',
     total_tuition_fee: '',
     annual_tuition_fee: '',
@@ -183,6 +246,10 @@ export default function Programs() {
     year2_tuition_fee: '',
     year3_tuition_fee: '',
     year4_tuition_fee: '',
+    scholarship_amount: '',
+    tution_fee_after_scholarship: '',
+
+    // Untouched other fees
     registration_fee: '',
     laboratory_fee: '',
     library_fee: '',
@@ -203,22 +270,29 @@ export default function Programs() {
     accommodation_fee: '',
     airport_pickup_fee: '',
     other_fee: '',
-    scholarship_amount: '',
-    tution_fee_after_scholarship: '',
     currency: 'MYR',
     additional_note: '',
 
+    // Local Fees
+    total_fee_local: '',
+    total_tuition_fee_local: '',
+    annual_tuition_fee_local: '',
     anual_tuition_fee_local: '',
     year1_tuition_fee_local: '',
     year2_tuition_fee_local: '',
     year3_tuition_fee_local: '',
     year4_tuition_fee_local: '',
-    total_tuition_fee_local: '',
+    scholarship_amount_local: '',
+    tution_fee_after_scholarship_local: '',
 
     meta_title: '',
     meta_keyword: '',
     meta_description: '',
     page_content: '',
+    seo_rating: '',
+    best_rating: '',
+    review_number: '',
+    og_image_path: '',
     status: 1,
   };
 
@@ -231,25 +305,35 @@ export default function Programs() {
 
   const fetchDropdownData = async () => {
     try {
-      const [uRes, cRes, sRes] = await Promise.all([
-        fetch('/api/v1/admin/universities'),
-        fetch('/api/v1/admin/course-categories'),
-        fetch('/api/v1/admin/course-specializations'),
+      const [uRes, cRes, sRes, lRes, smRes] = await Promise.all([
+        fetch('/api/v1/admin/universities?minimal=true'),
+        fetch('/api/v1/admin/course-categories?website=MYS'),
+        fetch('/api/v1/admin/course-specializations?website=MYS'),
+        fetch('/api/v1/admin/levels'),
+        fetch('/api/v1/admin/study-modes'),
       ]);
 
-      const [uJson, cJson, sJson] = await Promise.all([uRes.json(), cRes.json(), sRes.json()]);
+      const [uJson, cJson, sJson, lJson, smJson] = await Promise.all([
+        uRes.json(),
+        cRes.json(),
+        sRes.json(),
+        lRes.json(),
+        smRes.json(),
+      ]);
 
       if (uRes.ok && (uJson.status || uJson.success)) setUniversities(uJson.data || []);
       if (cRes.ok && (cJson.status || cJson.success)) setCategories(cJson.data || []);
       if (sRes.ok && (sJson.status || sJson.success)) setSpecializations(sJson.data || []);
+      if (lRes.ok && (lJson.status || lJson.success)) setLevels(lJson.data || []);
+      if (smRes.ok && (smJson.status || smJson.success)) setStudyModes(smJson.data || []);
     } catch {
       console.error('Failed to fetch dropdown datasets');
     }
   };
 
-  const fetchPrograms = async (univId?: string) => {
+  const fetchPrograms = async (univId?: string, showLoading = true) => {
     const targetId = univId !== undefined ? univId : selectedUnivId;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const url = targetId
         ? `/api/v1/admin/programs?university_id=${targetId}`
@@ -264,7 +348,7 @@ export default function Programs() {
     } catch {
       showToast('error', 'Connection error while fetching programs');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -289,17 +373,73 @@ export default function Programs() {
     }
   };
 
+  const filteredSpecializations = formData.course_category_id
+    ? specializations
+        .filter(
+          (s) =>
+            String(s.course_category_id) === String(formData.course_category_id) &&
+            (!s.website || s.website === 'MYS')
+        )
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    : [];
+
+  const selectedStudyModes = (formData.study_mode || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const toggleStudyMode = (modeName: string) => {
+    const isSelected = selectedStudyModes.some(
+      (m) => m.toLowerCase() === modeName.toLowerCase()
+    );
+    let next: string[];
+    if (isSelected) {
+      next = selectedStudyModes.filter(
+        (m) => m.toLowerCase() !== modeName.toLowerCase()
+      );
+    } else {
+      next = [...selectedStudyModes, modeName];
+    }
+    setFormData({ ...formData, study_mode: next.join(', ') });
+  };
+
+  const selectedIntakes = (formData.intake || '')
+    .split(',')
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
+
+  const toggleIntake = (month: string) => {
+    const isSelected = selectedIntakes.includes(month);
+    let next: string[];
+    if (isSelected) {
+      next = selectedIntakes.filter((m) => m !== month);
+    } else {
+      next = ALL_MONTHS.filter((m) => selectedIntakes.includes(m) || m === month);
+    }
+    setFormData({ ...formData, intake: next.join(', ') });
+  };
+
   const handleResetForm = () => {
     setEditingId(null);
+    setOgImageFile(null);
+    const defaultUniv = selectedUnivId || (universities[0]?.id ? String(universities[0].id) : '');
+    const defaultCat = categories[0]?.id ? String(categories[0].id) : '';
+    const filteredSpecs = defaultCat
+      ? specializations.filter((s) => String(s.course_category_id) === defaultCat)
+      : [];
     setFormData({
       ...initialFormState,
-      university_id: selectedUnivId,
-      course_category_id: categories[0]?.id ? String(categories[0].id) : '',
-      specialization_id: specializations[0]?.id ? String(specializations[0].id) : '',
+      university_id: defaultUniv,
+      course_category_id: defaultCat,
+      specialization_id: filteredSpecs[0]?.id ? String(filteredSpecs[0].id) : '',
+      level: levels[0]?.level || 'Bachelor',
+      study_mode: studyModes[0]?.study_mode || '',
+      intake: 'JAN, MAR, SEP',
     });
   };
 
   const handleOpenEdit = (item: ProgramItem) => {
+    setOgImageFile(null);
     setEditingId(item.id);
     setFormData({
       university_id: item.university_id ? String(item.university_id) : selectedUnivId,
@@ -323,14 +463,29 @@ export default function Programs() {
       scholarship_info: item.scholarship_info || '',
       courses_description: item.courses_description || '',
 
-      tution_fee: item.tution_fee || '',
-      total_fee: item.total_fee || '',
-      total_tuition_fee: item.total_tuition_fee || '',
-      annual_tuition_fee: item.annual_tuition_fee || '',
-      year1_tuition_fee: item.year1_tuition_fee || '',
-      year2_tuition_fee: item.year2_tuition_fee || '',
-      year3_tuition_fee: item.year3_tuition_fee || '',
-      year4_tuition_fee: item.year4_tuition_fee || '',
+      // International Fees (new + legacy fallbacks)
+      total_fee_international: item.total_fee_international || item.total_fee || '',
+      total_tuition_fee_international: item.total_tuition_fee_international || item.total_tuition_fee || '',
+      annual_tuition_fee_international: item.annual_tuition_fee_international || item.annual_tuition_fee || '',
+      year1_tuition_fee_international: item.year1_tuition_fee_international || item.year1_tuition_fee || '',
+      year2_tuition_fee_international: item.year2_tuition_fee_international || item.year2_tuition_fee || '',
+      year3_tuition_fee_international: item.year3_tuition_fee_international || item.year3_tuition_fee || '',
+      year4_tuition_fee_international: item.year4_tuition_fee_international || item.year4_tuition_fee || '',
+      scholarship_amount_international: item.scholarship_amount_international || item.scholarship_amount || '',
+      tution_fee_after_scholarship_international: item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
+
+      // Legacy international mappings
+      total_fee: item.total_fee_international || item.total_fee || '',
+      total_tuition_fee: item.total_tuition_fee_international || item.total_tuition_fee || '',
+      annual_tuition_fee: item.annual_tuition_fee_international || item.annual_tuition_fee || '',
+      year1_tuition_fee: item.year1_tuition_fee_international || item.year1_tuition_fee || '',
+      year2_tuition_fee: item.year2_tuition_fee_international || item.year2_tuition_fee || '',
+      year3_tuition_fee: item.year3_tuition_fee_international || item.year3_tuition_fee || '',
+      year4_tuition_fee: item.year4_tuition_fee_international || item.year4_tuition_fee || '',
+      scholarship_amount: item.scholarship_amount_international || item.scholarship_amount || '',
+      tution_fee_after_scholarship: item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
+
+      // Untouched other fees
       registration_fee: item.registration_fee || '',
       laboratory_fee: item.laboratory_fee || '',
       library_fee: item.library_fee || '',
@@ -351,22 +506,29 @@ export default function Programs() {
       accommodation_fee: item.accommodation_fee || '',
       airport_pickup_fee: item.airport_pickup_fee || '',
       other_fee: item.other_fee || '',
-      scholarship_amount: item.scholarship_amount || '',
-      tution_fee_after_scholarship: item.tution_fee_after_scholarship || '',
       currency: item.currency || 'MYR',
       additional_note: item.additional_note || '',
 
-      anual_tuition_fee_local: item.anual_tuition_fee_local || '',
+      // Local Fees
+      total_fee_local: item.total_fee_local || '',
+      total_tuition_fee_local: item.total_tuition_fee_local || '',
+      annual_tuition_fee_local: item.annual_tuition_fee_local || item.anual_tuition_fee_local || '',
+      anual_tuition_fee_local: item.anual_tuition_fee_local || item.annual_tuition_fee_local || '',
       year1_tuition_fee_local: item.year1_tuition_fee_local || '',
       year2_tuition_fee_local: item.year2_tuition_fee_local || '',
       year3_tuition_fee_local: item.year3_tuition_fee_local || '',
       year4_tuition_fee_local: item.year4_tuition_fee_local || '',
-      total_tuition_fee_local: item.total_tuition_fee_local || '',
+      scholarship_amount_local: item.scholarship_amount_local || '',
+      tution_fee_after_scholarship_local: item.tution_fee_after_scholarship_local || '',
 
       meta_title: item.meta_title || '',
       meta_keyword: item.meta_keyword || '',
       meta_description: item.meta_description || '',
       page_content: item.page_content || '',
+      seo_rating: item.seo_rating !== undefined && item.seo_rating !== null ? String(item.seo_rating) : '',
+      best_rating: item.best_rating !== undefined && item.best_rating !== null ? String(item.best_rating) : '',
+      review_number: item.review_number !== undefined && item.review_number !== null ? String(item.review_number) : '',
+      og_image_path: item.og_image_path || '',
       status: item.status !== undefined ? item.status : 1,
     });
     setIsFormOpen(true);
@@ -383,6 +545,18 @@ export default function Programs() {
 
     setSubmitting(true);
     try {
+      let finalOgImagePath = formData.og_image_path;
+      if (ogImageFile) {
+        try {
+          const upRes = await uploadFileToStorage(ogImageFile, 'programs');
+          finalOgImagePath = upRes.file_path;
+        } catch (err: any) {
+          showToast('error', err.message || 'Failed to upload OG image');
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const url = editingId ? `/api/v1/admin/programs/${editingId}` : '/api/v1/admin/programs';
       const method = editingId ? 'PUT' : 'POST';
 
@@ -392,6 +566,33 @@ export default function Programs() {
         body: JSON.stringify({
           ...formData,
           university_id: formData.university_id || selectedUnivId,
+          og_image_path: finalOgImagePath,
+          seo_rating: formData.seo_rating || null,
+          best_rating: formData.best_rating || null,
+          review_number: formData.review_number || null,
+          // Sync international fees
+          total_fee: formData.total_fee_international || formData.total_fee,
+          total_tuition_fee: formData.total_tuition_fee_international || formData.total_tuition_fee,
+          annual_tuition_fee: formData.annual_tuition_fee_international || formData.annual_tuition_fee,
+          year1_tuition_fee: formData.year1_tuition_fee_international || formData.year1_tuition_fee,
+          year2_tuition_fee: formData.year2_tuition_fee_international || formData.year2_tuition_fee,
+          year3_tuition_fee: formData.year3_tuition_fee_international || formData.year3_tuition_fee,
+          year4_tuition_fee: formData.year4_tuition_fee_international || formData.year4_tuition_fee,
+          scholarship_amount: formData.scholarship_amount_international || formData.scholarship_amount,
+          tution_fee_after_scholarship: formData.tution_fee_after_scholarship_international || formData.tution_fee_after_scholarship,
+          total_fee_international: formData.total_fee_international || formData.total_fee,
+          total_tuition_fee_international: formData.total_tuition_fee_international || formData.total_tuition_fee,
+          annual_tuition_fee_international: formData.annual_tuition_fee_international || formData.annual_tuition_fee,
+          year1_tuition_fee_international: formData.year1_tuition_fee_international || formData.year1_tuition_fee,
+          year2_tuition_fee_international: formData.year2_tuition_fee_international || formData.year2_tuition_fee,
+          year3_tuition_fee_international: formData.year3_tuition_fee_international || formData.year3_tuition_fee,
+          year4_tuition_fee_international: formData.year4_tuition_fee_international || formData.year4_tuition_fee,
+          scholarship_amount_international: formData.scholarship_amount_international || formData.scholarship_amount,
+          tution_fee_after_scholarship_international: formData.tution_fee_after_scholarship_international || formData.tution_fee_after_scholarship,
+
+          // Sync local fees
+          annual_tuition_fee_local: formData.annual_tuition_fee_local || formData.anual_tuition_fee_local,
+          anual_tuition_fee_local: formData.annual_tuition_fee_local || formData.anual_tuition_fee_local,
         }),
       });
 
@@ -399,6 +600,7 @@ export default function Programs() {
       if (res.ok && json.status) {
         showToast('success', json.message || (editingId ? 'Program updated!' : 'Program created!'));
         handleResetForm();
+        setOgImageFile(null);
         setIsFormOpen(false);
         fetchPrograms(selectedUnivId);
       } else {
@@ -418,17 +620,22 @@ export default function Programs() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic removal: instantly vanishes from UI with 0ms delay
+    setPrograms((prev) => prev.filter((item) => item.id !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/programs/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', `Program "${name}" deleted successfully`);
-        fetchPrograms(selectedUnivId);
+        fetchPrograms(selectedUnivId, false);
       } else {
         showToast('error', json.message || 'Failed to delete program');
+        fetchPrograms(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Connection error while deleting program');
+      fetchPrograms(selectedUnivId, false);
     }
   };
 
@@ -483,6 +690,146 @@ export default function Programs() {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadFormat = () => {
+    const headers = [
+      'course_name', 'course_category_id', 'specialization_id', 'level',
+      'duration', 'study_mode', 'intake', 'application_deadline', 'campus',
+      'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction',
+      'scholarship_info', 'is_local', 'is_international', 'accreditations',
+
+      // Local Fees
+      'total_fee_local',
+      'total_tuition_fee_local',
+      'year1_tuition_fee_local',
+      'year2_tuition_fee_local',
+      'year3_tuition_fee_local',
+      'year4_tuition_fee_local',
+      'annual_tuition_fee_local',
+      'scholarship_amount_local',
+      'tution_fee_after_scholarship_local',
+
+      // International Fees
+      'total_fee_international',
+      'total_tuition_fee_international',
+      'annual_tuition_fee_international',
+      'year1_tuition_fee_international',
+      'year2_tuition_fee_international',
+      'year3_tuition_fee_international',
+      'year4_tuition_fee_international',
+      'scholarship_amount_international',
+      'tution_fee_after_scholarship_international',
+
+      // Untouched other fees
+      'registration_fee',
+      'laboratory_fee',
+      'library_fee',
+      'technology_fee',
+      'student_activity_fee',
+      'insurance_fee',
+      'examination_fee',
+      'application_fee',
+      'emgs_processing_fee',
+      'international_student_fee',
+      'international_security_deposit',
+      'international_student_charge',
+      'international_administration_fee',
+      'personal_bond_fee',
+      'resources_fee',
+      'commitment_fee',
+      'facilities_fee',
+      'accommodation_fee',
+      'airport_pickup_fee',
+      'other_fee',
+      'currency',
+      'additional_note'
+    ];
+    const sampleRow = [
+      'Bachelor of Information Technology (Hons)', '1', '1', 'Bachelor',
+      '3 Years', 'BY COURSEWORK, FULL TIME', 'Jan, Mar, Sep', 'Dec, Feb, Aug', 'Main Campus',
+      'Comprehensive IT program covering software engineering and cybersecurity.',
+      'STPM with min 2 Principal passes or equivalent.', 'IELTS 5.5', 'English',
+      'Up to 30% merit scholarship available', 1, 1, 'MQA Approved',
+      // Local Fees sample
+      '35000', '32000', '11000', '11000', '10000', '0', '11000', '5000', '27000',
+      // International Fees sample
+      '52000', '48000', '16000', '16000', '16000', '16000', '16000', '6000', '42000',
+      // Untouched other fees sample
+      '1500', '', '', '', '', '', '', '500', '2500', '2000', '1000', '', '1500', '', '', '', '', '', '', '', 'MYR', ''
+    ];
+    downloadCSV('university-programs-import-format.csv', headers, [sampleRow]);
+    showToast('success', 'Import template format downloaded.');
+  };
+
+  const handleImport = async () => {
+    if (!importFile) {
+      showToast('error', 'Please choose an Excel or CSV file to import.');
+      return;
+    }
+    if (!selectedUnivId) {
+      showToast('error', 'Please select a University before importing data.');
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const data = new FormData();
+      data.append('file', importFile);
+      data.append('university_id', selectedUnivId);
+
+      const res = await fetch('/api/v1/admin/programs/import', {
+        method: 'POST',
+        body: data,
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.status) {
+        showToast('success', json.message || 'Programs imported successfully!');
+        setImportFile(null);
+        if (importInputRef.current) importInputRef.current.value = '';
+        fetchPrograms(selectedUnivId);
+      } else {
+        showToast('error', json.message || 'Failed to import programs');
+      }
+    } catch {
+      showToast('error', 'Network error during import');
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  const handleBulkUpdate = async () => {
+    if (!bulkFile) {
+      showToast('error', 'Please choose a CSV or Excel file for bulk update.');
+      return;
+    }
+    setIsBulkUpdating(true);
+    try {
+      const data = new FormData();
+      data.append('file', bulkFile);
+      if (selectedUnivId) {
+        data.append('university_id', selectedUnivId);
+      }
+
+      const res = await fetch('/api/v1/admin/programs/bulk-update', {
+        method: 'POST',
+        body: data,
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.status) {
+        showToast('success', json.message || 'Bulk update completed successfully!');
+        setBulkFile(null);
+        if (bulkInputRef.current) bulkInputRef.current.value = '';
+        fetchPrograms(selectedUnivId);
+      } else {
+        showToast('error', json.message || 'Failed to update bulk program data');
+      }
+    } catch {
+      showToast('error', 'Network error during bulk update');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   const handleExportDetails = () => {
     if (sorted.length === 0) {
       showToast('error', 'No program records available to export.');
@@ -528,31 +875,84 @@ export default function Programs() {
       return;
     }
     const headers = [
-      'id', 'course_name', 'tution_fee', 'total_fee', 'total_tuition_fee',
-      'annual_tuition_fee', 'year1_tuition_fee', 'year2_tuition_fee', 'year3_tuition_fee',
-      'year4_tuition_fee', 'registration_fee', 'laboratory_fee', 'library_fee',
-      'technology_fee', 'student_activity_fee', 'insurance_fee', 'examination_fee',
-      'application_fee', 'emgs_processing_fee', 'international_student_fee',
-      'international_security_deposit', 'international_student_charge',
-      'international_administration_fee', 'personal_bond_fee', 'resources_fee',
-      'commitment_fee', 'facilities_fee', 'accommodation_fee', 'airport_pickup_fee',
-      'other_fee', 'scholarship_amount', 'tution_fee_after_scholarship', 'currency',
-      'additional_note', 'anual_tuition_fee_local', 'year1_tuition_fee_local',
-      'year2_tuition_fee_local', 'year3_tuition_fee_local', 'year4_tuition_fee_local',
-      'total_tuition_fee_local'
+      'id', 'course_name', 'duration', 'intake',
+
+      // Local Fees
+      'total_fee_local',
+      'total_tuition_fee_local',
+      'year1_tuition_fee_local',
+      'year2_tuition_fee_local',
+      'year3_tuition_fee_local',
+      'year4_tuition_fee_local',
+      'annual_tuition_fee_local',
+      'scholarship_amount_local',
+      'tution_fee_after_scholarship_local',
+
+      // International Fees
+      'total_fee_international',
+      'total_tuition_fee_international',
+      'annual_tuition_fee_international',
+      'year1_tuition_fee_international',
+      'year2_tuition_fee_international',
+      'year3_tuition_fee_international',
+      'year4_tuition_fee_international',
+      'scholarship_amount_international',
+      'tution_fee_after_scholarship_international',
+
+      // Untouched other fees
+      'registration_fee',
+      'laboratory_fee',
+      'library_fee',
+      'technology_fee',
+      'student_activity_fee',
+      'insurance_fee',
+      'examination_fee',
+      'application_fee',
+      'emgs_processing_fee',
+      'international_student_fee',
+      'international_security_deposit',
+      'international_student_charge',
+      'international_administration_fee',
+      'personal_bond_fee',
+      'resources_fee',
+      'commitment_fee',
+      'facilities_fee',
+      'accommodation_fee',
+      'airport_pickup_fee',
+      'other_fee',
+      'currency',
+      'additional_note'
     ];
 
     const rows = sorted.map((item) => [
       item.id,
       item.course_name || '',
-      item.tution_fee || '',
-      item.total_fee || '',
-      item.total_tuition_fee || '',
-      item.annual_tuition_fee || '',
-      item.year1_tuition_fee || '',
-      item.year2_tuition_fee || '',
-      item.year3_tuition_fee || '',
-      item.year4_tuition_fee || '',
+      item.duration || '',
+      item.intake || '',
+
+      // Local Fees
+      item.total_fee_local || '',
+      item.total_tuition_fee_local || '',
+      item.year1_tuition_fee_local || '',
+      item.year2_tuition_fee_local || '',
+      item.year3_tuition_fee_local || '',
+      item.year4_tuition_fee_local || '',
+      item.annual_tuition_fee_local || item.anual_tuition_fee_local || '',
+      item.scholarship_amount_local || '',
+      item.tution_fee_after_scholarship_local || '',
+
+      // International Fees
+      item.total_fee_international || item.total_fee || '',
+      item.total_tuition_fee_international || item.total_tuition_fee || '',
+      item.annual_tuition_fee_international || item.annual_tuition_fee || '',
+      item.year1_tuition_fee_international || item.year1_tuition_fee || '',
+      item.year2_tuition_fee_international || item.year2_tuition_fee || '',
+      item.year3_tuition_fee_international || item.year3_tuition_fee || '',
+      item.year4_tuition_fee_international || item.year4_tuition_fee || '',
+      item.scholarship_amount_international || item.scholarship_amount || '',
+      item.tution_fee_after_scholarship_international || item.tution_fee_after_scholarship || '',
+
+      // Untouched other fees
       item.registration_fee || '',
       item.laboratory_fee || '',
       item.library_fee || '',
@@ -573,16 +973,8 @@ export default function Programs() {
       item.accommodation_fee || '',
       item.airport_pickup_fee || '',
       item.other_fee || '',
-      item.scholarship_amount || '',
-      item.tution_fee_after_scholarship || '',
       item.currency || '',
-      item.additional_note || '',
-      item.anual_tuition_fee_local || '',
-      item.year1_tuition_fee_local || '',
-      item.year2_tuition_fee_local || '',
-      item.year3_tuition_fee_local || '',
-      item.year4_tuition_fee_local || '',
-      item.total_tuition_fee_local || ''
+      item.additional_note || ''
     ]);
 
     const univName = selectedUniv?.name ? selectedUniv.name.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'all';
@@ -698,19 +1090,30 @@ export default function Programs() {
               <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Import New Data</h3>
             </div>
             <button
-              onClick={handleExportDetails}
+              type="button"
+              onClick={handleDownloadFormat}
               className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-md hover:bg-indigo-100 transition-colors cursor-pointer"
+              title="Download CSV Template Format"
             >
               <Download className="w-3 h-3" /> Formats
             </button>
           </div>
           <div className="flex items-center gap-2">
             <input
+              ref={importInputRef}
               type="file"
+              accept=".csv, .xlsx, .xls"
+              onChange={(e) => setImportFile(e.target.files?.[0] || null)}
               className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 border border-slate-200 rounded-lg bg-slate-50 p-0.5 cursor-pointer"
             />
-            <button className="px-4 py-1.5 bg-sky-600 text-white text-xs font-bold rounded-lg hover:bg-sky-700 shadow-xs cursor-pointer">
-              Import
+            <button
+              type="button"
+              onClick={handleImport}
+              disabled={isImporting || !importFile}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors shrink-0"
+            >
+              {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>Import</span>
             </button>
           </div>
         </div>
@@ -722,11 +1125,20 @@ export default function Programs() {
           </div>
           <div className="flex items-center gap-2">
             <input
+              ref={bulkInputRef}
               type="file"
+              accept=".csv, .xlsx, .xls"
+              onChange={(e) => setBulkFile(e.target.files?.[0] || null)}
               className="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 border border-slate-200 rounded-lg bg-slate-50 p-0.5 cursor-pointer"
             />
-            <button className="px-4 py-1.5 bg-violet-600 text-white text-xs font-bold rounded-lg hover:bg-violet-700 shadow-xs cursor-pointer">
-              Update
+            <button
+              type="button"
+              onClick={handleBulkUpdate}
+              disabled={isBulkUpdating || !bulkFile}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors shrink-0"
+            >
+              {isBulkUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+              <span>Update</span>
             </button>
           </div>
         </div>
@@ -793,6 +1205,15 @@ export default function Programs() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveFormTab('other_fees')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  activeFormTab === 'other_fees' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" /> Other Fees
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveFormTab('seo')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                   activeFormTab === 'seo' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -805,56 +1226,7 @@ export default function Programs() {
             {/* TAB 1: BASIC INFO */}
             {activeFormTab === 'basic' && (
               <div className="space-y-4 animate-in fade-in-50 duration-150">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">University</label>
-                    <select
-                      value={formData.university_id}
-                      onChange={(e) => setFormData({ ...formData, university_id: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="">-- Select University --</option>
-                      {universities.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Course Category <span className="text-rose-500">*</span></label>
-                    <select
-                      value={formData.course_category_id}
-                      onChange={(e) => setFormData({ ...formData, course_category_id: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="">-- Select Category --</option>
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Specialization <span className="text-rose-500">*</span></label>
-                    <select
-                      value={formData.specialization_id}
-                      onChange={(e) => setFormData({ ...formData, specialization_id: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
-                    >
-                      <option value="">-- Select Specialization --</option>
-                      {specializations.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
+                {/* ROW 1: Course / Program Name * (First Place), Category *, Specialization * */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                   <div className="sm:col-span-6">
                     <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -871,51 +1243,84 @@ export default function Programs() {
                   </div>
 
                   <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Course Category <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.course_category_id}
+                      onChange={(e) => {
+                        const newCat = e.target.value;
+                        setFormData({
+                          ...formData,
+                          course_category_id: newCat,
+                          specialization_id: '',
+                        });
+                      }}
+                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
+                    >
+                      <option value="">-- Select Category --</option>
+                      {categories
+                        .filter((c) => !c.website || c.website === 'MYS')
+                        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Specialization <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      value={formData.specialization_id}
+                      onChange={(e) => setFormData({ ...formData, specialization_id: e.target.value })}
+                      disabled={!formData.course_category_id}
+                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50 disabled:bg-slate-100 disabled:text-slate-400"
+                    >
+                      <option value="">
+                        {!formData.course_category_id
+                          ? '-- Select Category First --'
+                          : filteredSpecializations.length === 0
+                          ? '-- No Specializations Found --'
+                          : '-- Select Specialization --'}
+                      </option>
+                      {filteredSpecializations.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* ROW 2: Level, Duration, Application Deadline, Campus */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Level</label>
                     <select
                       value={formData.level}
                       onChange={(e) => setFormData({ ...formData, level: e.target.value })}
                       className="w-full px-3 py-2 text-xs font-semibold border border-slate-200 rounded-lg bg-slate-50"
                     >
-                      <option value="Pre-University">Pre-University</option>
-                      <option value="DIPLOMA">DIPLOMA</option>
-                      <option value="Bachelor">Bachelor</option>
-                      <option value="Master">Master</option>
-                      <option value="PhD">PhD</option>
+                      <option value="">-- Select Level --</option>
+                      {levels.map((lvl) => (
+                        <option key={lvl.id} value={lvl.level}>
+                          {lvl.level}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
-                  <div className="sm:col-span-3">
+                  <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Duration</label>
                     <input
                       type="text"
                       placeholder="e.g. 1 Year, 3.5 Years"
                       value={formData.duration}
                       onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Study Mode</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. BY COURSEWORK, FULL TIME"
-                      value={formData.study_mode}
-                      onChange={(e) => setFormData({ ...formData, study_mode: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Intake Months</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Jan, Mar, Sep"
-                      value={formData.intake}
-                      onChange={(e) => setFormData({ ...formData, intake: e.target.value })}
                       className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg"
                     />
                   </div>
@@ -943,6 +1348,67 @@ export default function Programs() {
                   </div>
                 </div>
 
+                {/* ROW 3: Study Modes (Multi-select) & Intake Months (Multi-select 3-letter) */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                  <div className="sm:col-span-6">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Study Mode {selectedStudyModes.length > 0 && <span className="text-[11px] font-normal text-indigo-600">({selectedStudyModes.length} selected)</span>}
+                    </label>
+                    <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-lg min-h-[42px] items-center">
+                      {studyModes.length === 0 ? (
+                        <span className="text-xs text-slate-400">Loading study modes...</span>
+                      ) : (
+                        studyModes.map((sm) => {
+                          const isSelected = selectedStudyModes.some(
+                            (m) => m.toLowerCase() === sm.study_mode.toLowerCase()
+                          );
+                          return (
+                            <button
+                              type="button"
+                              key={sm.id}
+                              onClick={() => toggleStudyMode(sm.study_mode)}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
+                                isSelected
+                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                  : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
+                              }`}
+                            >
+                              {isSelected ? <Check className="w-3.5 h-3.5 text-white" /> : <Plus className="w-3 h-3 text-slate-400" />}
+                              {sm.study_mode}
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-6">
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Intake Months {selectedIntakes.length > 0 && <span className="text-[11px] font-normal text-indigo-600">({selectedIntakes.length} selected)</span>}
+                    </label>
+                    <div className="flex flex-wrap gap-1 p-2 bg-slate-50 border border-slate-200 rounded-lg min-h-[42px] items-center">
+                      {ALL_MONTHS.map((m) => {
+                        const isSelected = selectedIntakes.includes(m);
+                        return (
+                          <button
+                            type="button"
+                            key={m}
+                            onClick={() => toggleIntake(m)}
+                            className={`px-2 py-1 rounded-md text-xs font-bold transition-all cursor-pointer border ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ROW 4: Accreditations, Checkboxes */}
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
                   <div className="sm:col-span-8">
                     <label className="block text-xs font-bold text-slate-700 mb-1">Accreditations (Separated by |)</label>
@@ -956,7 +1422,7 @@ export default function Programs() {
                   </div>
 
                   <div className="sm:col-span-4 flex items-center gap-6 pt-5">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
                       <input
                         type="checkbox"
                         checked={formData.is_local}
@@ -966,7 +1432,7 @@ export default function Programs() {
                       Is Local
                     </label>
 
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
                       <input
                         type="checkbox"
                         checked={formData.is_international}
@@ -989,6 +1455,7 @@ export default function Programs() {
                     value={formData.overview}
                     onChange={(val) => setFormData({ ...formData, overview: val })}
                     placeholder="General program overview..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -998,6 +1465,7 @@ export default function Programs() {
                     value={formData.entry_requirement}
                     onChange={(val) => setFormData({ ...formData, entry_requirement: val })}
                     placeholder="Academic and language entry criteria..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -1007,6 +1475,7 @@ export default function Programs() {
                     value={formData.exam_required}
                     onChange={(val) => setFormData({ ...formData, exam_required: val })}
                     placeholder="IELTS, TOEFL, MUET, SAT details..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -1016,6 +1485,7 @@ export default function Programs() {
                     value={formData.mode_of_instruction}
                     onChange={(val) => setFormData({ ...formData, mode_of_instruction: val })}
                     placeholder="Lecture, lab, online sessions info..."
+                    minHeight={120}
                   />
                 </div>
 
@@ -1025,15 +1495,7 @@ export default function Programs() {
                     value={formData.scholarship_info}
                     onChange={(val) => setFormData({ ...formData, scholarship_info: val })}
                     placeholder="Available waivers, bursaries, and merit scholarships..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Full Course Description</label>
-                  <RichTextEditor
-                    value={formData.courses_description}
-                    onChange={(val) => setFormData({ ...formData, courses_description: val })}
-                    placeholder="Detailed program structure, modules, career pathways..."
+                    minHeight={120}
                   />
                 </div>
               </div>
@@ -1042,47 +1504,36 @@ export default function Programs() {
             {/* TAB 3: INTERNATIONAL FEES */}
             {activeFormTab === 'intl_fees' && (
               <div className="space-y-4 animate-in fade-in-50 duration-150">
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Fee (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.tution_fee}
-                      onChange={(e) => setFormData({ ...formData, tution_fee: e.target.value })}
+                      value={formData.total_fee_international}
+                      onChange={(e) => setFormData({ ...formData, total_fee_international: e.target.value, total_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Tuition Fee (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.total_fee}
-                      onChange={(e) => setFormData({ ...formData, total_fee: e.target.value })}
+                      value={formData.total_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, total_tuition_fee_international: e.target.value, total_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Annual Tuition Fee (International)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.total_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, total_tuition_fee: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Annual Tuition Fee</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.annual_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, annual_tuition_fee: e.target.value })}
+                      value={formData.annual_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, annual_tuition_fee_international: e.target.value, annual_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
@@ -1091,51 +1542,192 @@ export default function Programs() {
                 {/* Yearly Breakdown */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year1_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year1_tuition_fee: e.target.value })}
+                      value={formData.year1_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year1_tuition_fee_international: e.target.value, year1_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year2_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year2_tuition_fee: e.target.value })}
+                      value={formData.year2_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year2_tuition_fee_international: e.target.value, year2_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year3_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year3_tuition_fee: e.target.value })}
+                      value={formData.year3_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year3_tuition_fee_international: e.target.value, year3_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee (Intl)</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.year4_tuition_fee}
-                      onChange={(e) => setFormData({ ...formData, year4_tuition_fee: e.target.value })}
+                      value={formData.year4_tuition_fee_international}
+                      onChange={(e) => setFormData({ ...formData, year4_tuition_fee_international: e.target.value, year4_tuition_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
                     />
                   </div>
                 </div>
 
-                {/* Additional Fee Component Breakdown */}
+                {/* Scholarship Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-100/70">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Scholarship Amount (International)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.scholarship_amount_international}
+                      onChange={(e) => setFormData({ ...formData, scholarship_amount_international: e.target.value, scholarship_amount: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Fee After Scholarship (International)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.tution_fee_after_scholarship_international}
+                      onChange={(e) => setFormData({ ...formData, tution_fee_after_scholarship_international: e.target.value, tution_fee_after_scholarship: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: LOCAL FEES */}
+            {activeFormTab === 'local_fees' && (
+              <div className="space-y-4 animate-in fade-in-50 duration-150">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.total_fee_local}
+                      onChange={(e) => setFormData({ ...formData, total_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Total Tuition Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.total_tuition_fee_local}
+                      onChange={(e) => setFormData({ ...formData, total_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Annual Tuition Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.annual_tuition_fee_local}
+                      onChange={(e) => setFormData({ ...formData, annual_tuition_fee_local: e.target.value, anual_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Yearly Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.year1_tuition_fee_local}
+                      onChange={(e) => setFormData({ ...formData, year1_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.year2_tuition_fee_local}
+                      onChange={(e) => setFormData({ ...formData, year2_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.year3_tuition_fee_local}
+                      onChange={(e) => setFormData({ ...formData, year3_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.year4_tuition_fee_local}
+                      onChange={(e) => setFormData({ ...formData, year4_tuition_fee_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Scholarship Breakdown */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/70">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Scholarship Amount (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.scholarship_amount_local}
+                      onChange={(e) => setFormData({ ...formData, scholarship_amount_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Fee After Scholarship (Local)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.tution_fee_after_scholarship_local}
+                      onChange={(e) => setFormData({ ...formData, tution_fee_after_scholarship_local: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: OTHER FEES */}
+            {activeFormTab === 'other_fees' && (
+              <div className="space-y-4 animate-in fade-in-50 duration-150">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">Registration Fee</label>
@@ -1259,6 +1851,17 @@ export default function Programs() {
                   </div>
 
                   <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Student Charge</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.international_student_charge}
+                      onChange={(e) => setFormData({ ...formData, international_student_charge: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">Intl. Admin Fee</label>
                     <input
                       type="number"
@@ -1268,27 +1871,80 @@ export default function Programs() {
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Scholarship Amount</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Personal Bond Fee</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.scholarship_amount}
-                      onChange={(e) => setFormData({ ...formData, scholarship_amount: e.target.value })}
+                      value={formData.personal_bond_fee}
+                      onChange={(e) => setFormData({ ...formData, personal_bond_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Fee After Scholarship</label>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Resources Fee</label>
                     <input
                       type="number"
                       placeholder="0.00"
-                      value={formData.tution_fee_after_scholarship}
-                      onChange={(e) => setFormData({ ...formData, tution_fee_after_scholarship: e.target.value })}
+                      value={formData.resources_fee}
+                      onChange={(e) => setFormData({ ...formData, resources_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Commitment Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.commitment_fee}
+                      onChange={(e) => setFormData({ ...formData, commitment_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Facilities Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.facilities_fee}
+                      onChange={(e) => setFormData({ ...formData, facilities_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Accommodation Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.accommodation_fee}
+                      onChange={(e) => setFormData({ ...formData, accommodation_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Airport Pickup Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.airport_pickup_fee}
+                      onChange={(e) => setFormData({ ...formData, airport_pickup_fee: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Other Fee</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.other_fee}
+                      onChange={(e) => setFormData({ ...formData, other_fee: e.target.value })}
                       className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg"
                     />
                   </div>
@@ -1304,7 +1960,7 @@ export default function Programs() {
                     />
                   </div>
 
-                  <div>
+                  <div className="sm:col-span-2">
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">Additional Note</label>
                     <input
                       type="text"
@@ -1318,82 +1974,7 @@ export default function Programs() {
               </div>
             )}
 
-            {/* TAB 4: LOCAL FEES */}
-            {activeFormTab === 'local_fees' && (
-              <div className="space-y-4 animate-in fade-in-50 duration-150">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Annual Tuition Fee (Local)</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.anual_tuition_fee_local}
-                      onChange={(e) => setFormData({ ...formData, anual_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Total Tuition Fee (Local)</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.total_tuition_fee_local}
-                      onChange={(e) => setFormData({ ...formData, total_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-lg"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 1 Tuition Fee Local</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.year1_tuition_fee_local}
-                      onChange={(e) => setFormData({ ...formData, year1_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 2 Tuition Fee Local</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.year2_tuition_fee_local}
-                      onChange={(e) => setFormData({ ...formData, year2_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 3 Tuition Fee Local</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.year3_tuition_fee_local}
-                      onChange={(e) => setFormData({ ...formData, year3_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Year 4 Tuition Fee Local</label>
-                    <input
-                      type="number"
-                      placeholder="0.00"
-                      value={formData.year4_tuition_fee_local}
-                      onChange={(e) => setFormData({ ...formData, year4_tuition_fee_local: e.target.value })}
-                      className="w-full px-3 py-1.5 text-xs font-mono border border-slate-200 rounded-lg bg-white"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 5: SEO SETTINGS */}
+            {/* TAB 6: SEO SETTINGS */}
             {activeFormTab === 'seo' && (
               <div className="space-y-4 animate-in fade-in-50 duration-150">
                 <div>
@@ -1429,13 +2010,82 @@ export default function Programs() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Page SEO Content / Extra Body HTML</label>
-                  <RichTextEditor
-                    value={formData.page_content}
-                    onChange={(val) => setFormData({ ...formData, page_content: val })}
-                    placeholder="Bottom page SEO text content..."
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Seo Rating
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 4.8"
+                      value={formData.seo_rating}
+                      onChange={(e) => setFormData({ ...formData, seo_rating: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Best Rating
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 5.0"
+                      value={formData.best_rating}
+                      onChange={(e) => setFormData({ ...formData, best_rating: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Number of Review
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 150"
+                      value={formData.review_number}
+                      onChange={(e) => setFormData({ ...formData, review_number: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      Upload OG Image
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setOgImageFile(file);
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
+                    />
+                    {(ogImageFile || formData.og_image_path) && (
+                      <div className="flex items-center gap-2 mt-2 p-1.5 bg-slate-50 border border-slate-200 rounded-lg">
+                        <img
+                          src={ogImageFile ? URL.createObjectURL(ogImageFile) : getStorageUrl(formData.og_image_path)}
+                          alt="OG Preview"
+                          className="w-9 h-9 object-cover rounded border border-slate-200 shrink-0"
+                        />
+                        <span className="text-[11px] text-slate-600 truncate flex-1">
+                          {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOgImageFile(null);
+                            setFormData({ ...formData, og_image_path: '' });
+                          }}
+                          className="text-rose-500 hover:text-rose-700 text-xs font-semibold px-2 py-1 hover:bg-rose-50 rounded cursor-pointer shrink-0"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -1597,7 +2247,7 @@ export default function Programs() {
                       </td>
                       <td className="py-3 px-3 space-y-0.5">
                         <div className="flex items-center gap-1 text-xs font-bold text-slate-800 font-mono">
-                          <DollarSign className="w-3 h-3 text-emerald-600" /> {item.tution_fee || '-'}
+                          <DollarSign className="w-3 h-3 text-emerald-600" /> {item.total_fee_international || item.total_tuition_fee_international || item.total_fee || '-'}
                         </div>
                         <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-400">
                           <Calendar className="w-2.5 h-2.5" /> {item.intake || '-'}
@@ -1631,7 +2281,7 @@ export default function Programs() {
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => navigate(`/course-category-contents?program_id=${item.id}`)}
+                            onClick={() => navigate(`/university-program-contents/${item.id}`)}
                             className="px-2 py-1 bg-violet-50 hover:bg-violet-600 text-violet-700 hover:text-white text-[10px] font-bold rounded-lg border border-violet-200/80 transition-all cursor-pointer"
                             title="Manage Detailed Content"
                           >

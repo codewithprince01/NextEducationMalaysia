@@ -9,7 +9,8 @@ export async function GET(req: NextRequest) {
       level: searchParams.get('level'),
       course_category_id: searchParams.get('course_category_id'),
       specialization_id: searchParams.get('specialization_id'),
-      country: searchParams.get('country'),
+      // Accept both ?country=MYS and ?website=MYS — both map to website column
+      country: searchParams.get('country') || searchParams.get('website'),
     };
 
     const page = parseInt(searchParams.get('page') || searchParams.get('current_page') || '1', 10);
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
           status: false,
           message: 'No programs found',
           data: [],
+          pagination: result.pagination,
         },
         { status: 404 }
       );

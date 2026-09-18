@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import {
   GraduationCap,
   Plus,
@@ -105,6 +106,11 @@ export default function CourseCategories() {
     status: 1,
   });
 
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [contentImageFile, setContentImageFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
+
   // Preview Modals
   const [previewSeo, setPreviewSeo] = useState<CategoryItem | null>(null);
   const [previewShortnote, setPreviewShortnote] = useState<CategoryItem | null>(null);
@@ -177,30 +183,30 @@ export default function CourseCategories() {
     }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
-      const [catRes, authRes] = await Promise.all([
+      const [catRes, authorRes] = await Promise.all([
         fetch('/api/v1/admin/course-categories'),
         fetch('/api/v1/admin/authors'),
       ]);
 
       const catJson = await catRes.json();
-      const authJson = await authRes.json();
+      const authorJson = await authorRes.json();
 
       if (catRes.ok && catJson.status) {
         setCategories(catJson.data || []);
       } else {
-        showToast('error', catJson.message || 'Failed to fetch categories');
+        if (showLoading) showToast('error', catJson.message || 'Failed to load course categories');
       }
 
-      if (authRes.ok && authJson.data) {
-        setAuthors(authJson.data || []);
+      if (authorRes.ok && authorJson.status) {
+        setAuthors(authorJson.data || []);
       }
     } catch {
-      showToast('error', 'Connection error while loading data');
+      if (showLoading) showToast('error', 'Connection error while fetching data');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -208,11 +214,11 @@ export default function CourseCategories() {
     fetchData();
   }, []);
 
-  // Export to CSV
+  // Export to CSV Function
   const handleExportCSV = () => {
     if (categories.length === 0) return;
 
-    const headers = ['ID', 'Name', 'Slug', 'Author', 'Shortnote', 'Status', 'Contents Count', 'FAQs Count'];
+    const headers = ['ID', 'Category Name', 'Author', 'Shortnote', 'Status', 'Contents Count', 'FAQs Count'];
     const rows = categories.map((c) => [
       c.id,
       `"${(c.name || '').replace(/"/g, '""')}"`,
@@ -234,10 +240,18 @@ export default function CourseCategories() {
     document.body.removeChild(link);
   };
 
+  const resetFileStates = () => {
+    setOgImageFile(null);
+    setThumbnailFile(null);
+    setBannerFile(null);
+    setContentImageFile(null);
+  };
+
   // Open Add Modal
   const handleOpenAdd = () => {
     setEditingId(null);
     setActiveTab('basic');
+    resetFileStates();
     setFormData({
       name: '',
       author_id: authors.length > 0 ? String(authors[0].id) : '',
@@ -263,6 +277,7 @@ export default function CourseCategories() {
   const handleOpenEdit = (item: CategoryItem) => {
     setEditingId(item.id);
     setActiveTab('basic');
+    resetFileStates();
     setFormData({
       name: item.name || '',
       author_id: item.author_id ? String(item.author_id) : '',
@@ -294,6 +309,24 @@ export default function CourseCategories() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'categories');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (bannerFile) {
+        const res = await uploadFileToStorage(bannerFile, 'categories');
+        currentFormData.banner_path = res.file_path;
+      }
+      if (contentImageFile) {
+        const res = await uploadFileToStorage(contentImageFile, 'categories');
+        currentFormData.content_image_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/course-categories/${editingId}`
         : '/api/v1/admin/course-categories';
@@ -302,7 +335,7 @@ export default function CourseCategories() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -328,17 +361,22 @@ export default function CourseCategories() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic UI update
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/course-categories/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', `Category "${name}" deleted successfully`);
-        fetchData();
+        fetchData(false);
       } else {
         showToast('error', json.message || 'Failed to delete category');
+        fetchData(false);
       }
     } catch {
       showToast('error', 'Connection error while deleting category');
+      fetchData(false);
     }
   };
 
@@ -535,7 +573,7 @@ export default function CourseCategories() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
             title="Refresh list"
           >
@@ -827,8 +865,8 @@ export default function CourseCategories() {
                 type="button"
                 onClick={() => setActiveTab('basic')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'basic'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 Basic Information
@@ -837,8 +875,8 @@ export default function CourseCategories() {
                 type="button"
                 onClick={() => setActiveTab('seo')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'seo'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 SEO Metadata
@@ -847,8 +885,8 @@ export default function CourseCategories() {
                 type="button"
                 onClick={() => setActiveTab('images')}
                 className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'images'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
                   }`}
               >
                 Media Assets
@@ -1017,16 +1055,14 @@ export default function CourseCategories() {
                         type="file"
                         accept="image/*"
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setFormData({ ...formData, og_image_path: file.name });
-                          }
+                          const file = e.target.files?.[0] || null;
+                          setOgImageFile(file);
                         }}
                         className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                       />
-                      {formData.og_image_path && (
-                        <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                          Current / Selected: {formData.og_image_path}
+                      {(ogImageFile || formData.og_image_path) && (
+                        <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                          {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                         </span>
                       )}
                     </div>
@@ -1042,16 +1078,14 @@ export default function CourseCategories() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFormData({ ...formData, thumbnail_path: file.name });
-                        }
+                        const file = e.target.files?.[0] || null;
+                        setThumbnailFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.thumbnail_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.thumbnail_path}
+                    {(thumbnailFile || formData.thumbnail_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                       </span>
                     )}
                   </div>
@@ -1062,16 +1096,14 @@ export default function CourseCategories() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFormData({ ...formData, banner_path: file.name });
-                        }
+                        const file = e.target.files?.[0] || null;
+                        setBannerFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.banner_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.banner_path}
+                    {(bannerFile || formData.banner_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {bannerFile ? `Selected: ${bannerFile.name}` : `Current: ${formData.banner_path}`}
                       </span>
                     )}
                   </div>
@@ -1082,16 +1114,14 @@ export default function CourseCategories() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFormData({ ...formData, content_image_path: file.name });
-                        }
+                        const file = e.target.files?.[0] || null;
+                        setContentImageFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.content_image_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.content_image_path}
+                    {(contentImageFile || formData.content_image_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {contentImageFile ? `Selected: ${contentImageFile.name}` : `Current: ${formData.content_image_path}`}
                       </span>
                     )}
                   </div>
@@ -1102,16 +1132,14 @@ export default function CourseCategories() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFormData({ ...formData, og_image_path: file.name });
-                        }
+                        const file = e.target.files?.[0] || null;
+                        setOgImageFile(file);
                       }}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.og_image_path && (
-                      <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.og_image_path}
+                    {(ogImageFile || formData.og_image_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                       </span>
                     )}
                   </div>
@@ -1486,14 +1514,21 @@ export default function CourseCategories() {
             </div>
             <div className="p-4 flex flex-col items-center justify-center bg-slate-900/5">
               <img
-                src={previewImage.url.startsWith('http') ? previewImage.url : `/${previewImage.url}`}
+                src={getStorageUrl(previewImage.url)}
                 alt={previewImage.title}
-                className="max-h-64 object-contain rounded-lg shadow-md"
+                className="max-h-64 object-contain rounded-lg shadow-md bg-white p-1"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
               />
-              <span className="text-[11px] font-mono text-slate-500 mt-3 break-all">{previewImage.url}</span>
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-mono text-indigo-600 hover:underline mt-3 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

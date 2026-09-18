@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Allow overriding build output dir to avoid stale/locked folders on Windows.
-  distDir: process.env.NEXT_DIST_DIR || '.next',
+  distDir: process.env.NEXT_DIST_DIR || ".next",
 
   // Disable metadata streaming so tags are emitted in <head> in initial HTML/view-source.
   htmlLimitedBots: /.*/,
@@ -24,9 +24,10 @@ const nextConfig: NextConfig = {
 
   // Strip console.* in production — reduces JS parse + eval time on mobile
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production"
-      ? { exclude: ["error", "warn"] }
-      : false,
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
   },
 
   // Tree-shake barrel imports from heavy icon/utility libraries
@@ -52,14 +53,18 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "admin.educationmalaysia.in",
-        pathname: "/storage/**",
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/**",
       },
       {
         protocol: "http",
         hostname: "127.0.0.1",
-        port: "8000",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "admin.educationmalaysia.in",
         pathname: "/storage/**",
       },
       {
@@ -107,14 +112,18 @@ const nextConfig: NextConfig = {
     // files and only the client-side routes need to fall through to index.html.
     // In development it is proxied to the Vite dev server so HMR keeps working
     // while the panel is still reachable at <site>/admin.
-    const adminDevOrigin = process.env.ADMIN_DEV_ORIGIN || "http://127.0.0.1:5174";
+    const adminDevOrigin =
+      process.env.ADMIN_DEV_ORIGIN || "http://127.0.0.1:5174";
     const adminRewrites =
       process.env.NODE_ENV === "development"
         ? [
             // Vite serves its client, HMR and module graph under `base` too,
             // so this single pair covers the whole dev server.
             { source: "/admin", destination: `${adminDevOrigin}/admin/` },
-            { source: "/admin/:path*", destination: `${adminDevOrigin}/admin/:path*` },
+            {
+              source: "/admin/:path*",
+              destination: `${adminDevOrigin}/admin/:path*`,
+            },
           ]
         : [
             { source: "/admin", destination: "/admin/index.html" },
@@ -122,6 +131,20 @@ const nextConfig: NextConfig = {
           ];
 
     return {
+      beforeFiles: [
+        {
+          source: "/admin/uploads/:path*",
+          destination: "/storage/uploads/:path*",
+        },
+        {
+          source: "/uploads/:path*",
+          destination: "/storage/uploads/:path*",
+        },
+        {
+          source: "/admin/storage/:path*",
+          destination: "/storage/:path*",
+        },
+      ],
       // Real files in public/admin (assets, favicon) are matched by the
       // filesystem before these run, so only unknown paths reach index.html.
       afterFiles: [

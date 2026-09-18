@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -18,7 +19,8 @@ import {
   Layers,
   Image as ImageIcon,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 
 interface BlogItem {
@@ -83,6 +85,9 @@ export default function Blogs() {
   // Description Modal State
   const [descriptionModalItem, setDescriptionModalItem] = useState<BlogItem | null>(null);
 
+  // Image Preview Modal
+  const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
+
   // Blog Contents Manager Modal
   const [contentManagerItem, setContentManagerItem] = useState<BlogItem | null>(null);
   const [contentsList, setContentsList] = useState<BlogContentItem[]>([]);
@@ -117,8 +122,8 @@ export default function Blogs() {
     }
   };
 
-  const fetchBlogs = async () => {
-    setLoading(true);
+  const fetchBlogs = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const query = selectedCategory ? `?category_id=${selectedCategory}` : '';
       const res = await fetch(`/api/v1/admin/blogs${query}`);
@@ -126,12 +131,12 @@ export default function Blogs() {
       if (res.ok && json.success) {
         setBlogs(json.data || []);
       } else {
-        showToast('error', json.error || 'Failed to fetch blogs');
+        if (showLoading) showToast('error', json.error || 'Failed to fetch blogs');
       }
     } catch {
-      showToast('error', 'Network error while fetching blogs');
+      if (showLoading) showToast('error', 'Network error while fetching blogs');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -148,6 +153,9 @@ export default function Blogs() {
     const confirmed = await confirmDelete(item.title || 'this blog post');
     if (!confirmed) return;
 
+    // Optimistic UI update
+    setBlogs((prev) => prev.filter((b) => b.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/blogs/${item.id}`, {
         method: 'DELETE',
@@ -155,12 +163,14 @@ export default function Blogs() {
       const json = await res.json();
       if (res.ok && json.success) {
         showToast('success', 'Blog deleted successfully');
-        setBlogs((prev) => prev.filter((b) => b.id !== item.id));
+        fetchBlogs(false);
       } else {
         showToast('error', json.error || 'Failed to delete blog');
+        fetchBlogs(false);
       }
     } catch {
       showToast('error', 'Error deleting blog');
+      fetchBlogs(false);
     }
   };
 
@@ -337,7 +347,7 @@ export default function Blogs() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={fetchBlogs}
+            onClick={() => fetchBlogs()}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 transition-all cursor-pointer"
             title="Refresh Data"
           >
@@ -442,14 +452,18 @@ export default function Blogs() {
                       </td>
                       <td className="py-3.5 px-4">
                         {item.thumbnail_path ? (
-                          <a
-                            href={item.thumbnail_path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold"
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewImage({
+                                title: item.title || item.headline || 'Blog Thumbnail',
+                                url: item.thumbnail_path!,
+                              })
+                            }
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold cursor-pointer transition-colors"
                           >
                             <ImageIcon className="w-3 h-3" /> View Image
-                          </a>
+                          </button>
                         ) : (
                           <span className="text-slate-400">N/A</span>
                         )}
@@ -648,7 +662,7 @@ export default function Blogs() {
                   <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">Section Description</label>
                   <RichTextEditor
                     value={contentFormData.description}
-                    onChange={(val) => setContentFormData({ ...contentFormData, description: val })}
+                    onChange={(val) => setContentFormData(prev => ({ ...prev, description: val }))}
                     placeholder="Detailed section content..."
                   />
                 </div>
@@ -878,6 +892,49 @@ export default function Blogs() {
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title} Preview</h3>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center bg-slate-50/50 min-h-[220px]">
+              <img
+                src={getStorageUrl(previewImage.url)}
+                alt={previewImage.title}
+                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain bg-white p-1"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                  const parent = (e.target as HTMLElement).parentElement;
+                  if (parent && !parent.querySelector('.img-error-msg')) {
+                    const msg = document.createElement('div');
+                    msg.className = 'img-error-msg text-xs text-rose-500 font-medium py-4 text-center';
+                    msg.innerText = 'Unable to load image from storage.';
+                    parent.appendChild(msg);
+                  }
+                }}
+              />
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline mt-4 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

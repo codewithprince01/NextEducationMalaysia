@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import Pagination from '@/components/common/Pagination';
 import {
   Building2,
@@ -80,8 +81,8 @@ export default function Universities() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const univRes = await fetch('/api/v1/admin/universities');
       const univJson = await univRes.json();
@@ -94,7 +95,7 @@ export default function Universities() {
     } catch {
       showToast('error', 'Network error while fetching data');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -122,42 +123,41 @@ export default function Universities() {
     const csvContent =
       'data:text/csv;charset=utf-8,' +
       'name,city,state,rank,shortnote\n' +
-      '"Universiti Malaya (UM)","Kuala Lumpur","Wilayah Persekutuan","1","Leading public research university in Malaysia."\n' +
-      '"Taylor\'s University","Subang Jaya","Selangor","5","Premier private university in Malaysia."';
+      'Sunway University,Bandar Sunway,Selangor,1,Leading private university\n' +
+      'Taylor\'s University,Subang Jaya,Selangor,2,Top ranked private university in Malaysia';
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'university_import_format.csv');
+    link.setAttribute('download', 'universities_format.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const handleImport = async () => {
+  const handleBulkImport = async () => {
     if (!importFile) {
-      showToast('error', 'Please choose an Excel or CSV file first');
+      showToast('error', 'Please select a CSV or Excel file to import');
       return;
     }
     setImporting(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', importFile);
+    const formData = new FormData();
+    formData.append('file', importFile);
 
+    try {
       const res = await fetch('/api/v1/admin/universities/import', {
         method: 'POST',
-        body: fd,
+        body: formData,
       });
-
       const json = await res.json();
-      if (res.ok && json.status) {
-        showToast('success', json.message || 'Import successful');
+      if (res.ok && (json.status || json.success)) {
+        showToast('success', json.message || 'Bulk data imported successfully');
         setImportFile(null);
-        fetchData();
+        fetchData(false);
       } else {
-        showToast('error', json.message || 'Import failed');
+        showToast('error', json.message || 'Failed to import data');
       }
     } catch {
-      showToast('error', 'Network error during import');
+      showToast('error', 'Network error during bulk import');
     } finally {
       setImporting(false);
     }
@@ -170,17 +170,23 @@ export default function Universities() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic removal: instantly vanishes from UI with 0ms delay
+    setUniversities((prev) => prev.filter((item) => item.id !== id));
+    setSelectedIds((prev) => prev.filter((item) => item !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/universities/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         showToast('success', 'University deleted successfully');
-        fetchData();
+        fetchData(false);
       } else {
         showToast('error', json.message || 'Failed to delete university');
+        fetchData(false);
       }
     } catch {
       showToast('error', 'Network error while deleting university');
+      fetchData(false);
     }
   };
 
@@ -221,9 +227,8 @@ export default function Universities() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -251,7 +256,7 @@ export default function Universities() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             title="Refresh list"
           >
@@ -282,7 +287,7 @@ export default function Universities() {
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
             <button
-              onClick={handleImport}
+              onClick={handleBulkImport}
               disabled={importing || !importFile}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
             >
@@ -712,21 +717,35 @@ export default function Universities() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title}</h3>
+              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title} Preview</h3>
               <button onClick={() => setPreviewImage(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 flex flex-col items-center">
+            <div className="p-6 flex flex-col items-center justify-center bg-slate-50/50 min-h-[220px]">
               <img
-                src={`/${previewImage.url}`}
+                src={getStorageUrl(previewImage.url)}
                 alt={previewImage.title}
-                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain"
+                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain bg-white p-1"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
+                  const parent = (e.target as HTMLElement).parentElement;
+                  if (parent && !parent.querySelector('.img-error-msg')) {
+                    const msg = document.createElement('div');
+                    msg.className = 'img-error-msg text-xs text-rose-500 font-medium py-4 text-center';
+                    msg.innerText = 'Unable to load image from storage.';
+                    parent.appendChild(msg);
+                  }
                 }}
               />
-              <span className="text-xs font-mono text-slate-500 mt-3">{previewImage.url}</span>
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline mt-4 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

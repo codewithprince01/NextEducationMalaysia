@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -22,6 +23,7 @@ import {
   Briefcase,
   Users
 } from 'lucide-react';
+import { uploadFileToStorage } from '@/lib/uploadHelper';
 
 interface PartnerItem {
   id: number;
@@ -94,6 +96,7 @@ export default function OurPartners() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     designation: '',
@@ -144,6 +147,7 @@ export default function OurPartners() {
 
   const handleOpenAdd = () => {
     setEditingId(null);
+    setProfileImageFile(null);
     setFormData({
       name: '',
       designation: '',
@@ -166,6 +170,7 @@ export default function OurPartners() {
 
   const handleOpenEdit = (item: PartnerItem) => {
     setEditingId(item.id);
+    setProfileImageFile(null);
     setFormData({
       name: item.name || '',
       designation: item.designation || '',
@@ -218,6 +223,12 @@ export default function OurPartners() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (profileImageFile) {
+        const res = await uploadFileToStorage(profileImageFile, 'our-partners');
+        currentFormData.profile_image = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/our-partners/${editingId}`
         : '/api/v1/admin/our-partners';
@@ -226,7 +237,7 @@ export default function OurPartners() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -353,7 +364,7 @@ export default function OurPartners() {
                     <td className="py-3.5 px-4 font-medium text-slate-400">#{item.id}</td>
                     <td className="py-3.5 px-4 font-semibold text-slate-800 flex items-center gap-2">
                       {item.profile_image ? (
-                        <img src={item.profile_image} alt={item.name} className="w-8 h-8 rounded-full object-cover border" />
+                        <img src={getStorageUrl(item.profile_image)} alt={item.name} className="w-8 h-8 rounded-full object-cover border" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
                           {item.name ? item.name.charAt(0).toUpperCase() : 'P'}
@@ -624,15 +635,22 @@ export default function OurPartners() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase mb-1.5">
-                  Profile Image URL / Path
+                  Profile Image
                 </label>
                 <input
-                  type="text"
-                  placeholder="/uploads/our-partners/alex.jpg"
-                  value={formData.profile_image}
-                  onChange={(e) => setFormData({ ...formData, profile_image: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-mono"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    setProfileImageFile(file);
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
+                {(profileImageFile || formData.profile_image) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                    {profileImageFile ? `Selected: ${profileImageFile.name}` : `Current: ${formData.profile_image}`}
+                  </span>
+                )}
               </div>
 
               <div>

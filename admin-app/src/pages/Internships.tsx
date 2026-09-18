@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { getStorageUrl, uploadFileToStorage } from '@/lib/uploadHelper';
 import {
   Plus,
   Search,
@@ -18,7 +19,8 @@ import {
   ChevronUp,
   HelpCircle,
   Layers,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ExternalLink
 } from 'lucide-react';
 
 interface InternshipItem {
@@ -68,6 +70,8 @@ export default function Internships() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -90,6 +94,7 @@ export default function Internships() {
   // View Modals
   const [shortnoteModalItem, setShortnoteModalItem] = useState<InternshipItem | null>(null);
   const [seoModalItem, setSeoModalItem] = useState<InternshipItem | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
 
   // Content Manager Modal
   const [contentManagerItem, setContentManagerItem] = useState<InternshipItem | null>(null);
@@ -137,6 +142,8 @@ export default function Internships() {
 
   const handleResetForm = () => {
     setEditingId(null);
+    setThumbnailFile(null);
+    setOgImageFile(null);
     setFormData({
       title: '',
       slug: '',
@@ -162,6 +169,8 @@ export default function Internships() {
   const handleStartEdit = (item: InternshipItem) => {
     setEditingId(item.id);
     setFormOpen(true);
+    setThumbnailFile(null);
+    setOgImageFile(null);
     setFormData({
       title: item.title || '',
       slug: item.slug || '',
@@ -188,6 +197,16 @@ export default function Internships() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'internships');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/internships/${editingId}`
         : '/api/v1/admin/internships';
@@ -196,7 +215,7 @@ export default function Internships() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -493,16 +512,14 @@ export default function Internships() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData({ ...formData, thumbnail_path: file.name });
-                    }
+                    const file = e.target.files?.[0] || null;
+                    setThumbnailFile(file);
                   }}
                   className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                 />
-                {formData.thumbnail_path && (
-                  <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                    Current / Selected: {formData.thumbnail_path}
+                {(thumbnailFile || formData.thumbnail_path) && (
+                  <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                    {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                   </span>
                 )}
               </div>
@@ -604,16 +621,14 @@ export default function Internships() {
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setFormData({ ...formData, og_image_path: file.name });
-                      }
+                      const file = e.target.files?.[0] || null;
+                      setOgImageFile(file);
                     }}
                     className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-lg bg-slate-50"
                   />
-                  {formData.og_image_path && (
-                    <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                      Current / Selected: {formData.og_image_path}
+                  {(ogImageFile || formData.og_image_path) && (
+                    <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                      {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                     </span>
                   )}
                 </div>
@@ -722,14 +737,18 @@ export default function Internships() {
                       </td>
                       <td className="py-3.5 px-4">
                         {item.thumbnail_path ? (
-                          <a
-                            href={item.thumbnail_path}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold"
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPreviewImage({
+                                title: item.title || 'Internship Thumbnail',
+                                url: item.thumbnail_path!,
+                              })
+                            }
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold cursor-pointer transition-colors"
                           >
                             <ImageIcon className="w-3 h-3" /> View Image
-                          </a>
+                          </button>
                         ) : (
                           <span className="text-slate-400">N/A</span>
                         )}
@@ -1171,6 +1190,49 @@ export default function Internships() {
               >
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title} Preview</h3>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center bg-slate-50/50 min-h-[220px]">
+              <img
+                src={getStorageUrl(previewImage.url)}
+                alt={previewImage.title}
+                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain bg-white p-1"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                  const parent = (e.target as HTMLElement).parentElement;
+                  if (parent && !parent.querySelector('.img-error-msg')) {
+                    const msg = document.createElement('div');
+                    msg.className = 'img-error-msg text-xs text-rose-500 font-medium py-4 text-center';
+                    msg.innerText = 'Unable to load image from storage.';
+                    parent.appendChild(msg);
+                  }
+                }}
+              />
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline mt-4 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

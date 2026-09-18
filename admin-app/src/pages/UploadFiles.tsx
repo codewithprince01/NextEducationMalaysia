@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   UploadCloud,
   Search,
@@ -297,7 +298,8 @@ export default function UploadFiles() {
                 </tr>
               ) : (
                 paginated.map((item, index) => {
-                  const fullUrl = window.location.origin + (item.file_path.startsWith('/') ? item.file_path : `/${item.file_path}`);
+                  const storagePath = getStorageUrl(item.file_path);
+                  const fullUrl = window.location.origin + storagePath;
                   const srNo = (currentPage - 1) * itemsPerPage + index + 1;
 
                   return (
@@ -311,7 +313,7 @@ export default function UploadFiles() {
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2">
                           <a
-                            href={item.file_path}
+                            href={storagePath}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 px-2.5 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded text-xs font-semibold transition-colors"
@@ -319,7 +321,7 @@ export default function UploadFiles() {
                             <ExternalLink className="w-3 h-3" /> View
                           </a>
                           <a
-                            href={item.file_path}
+                            href={storagePath}
                             download
                             className="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-xs font-semibold transition-colors"
                           >

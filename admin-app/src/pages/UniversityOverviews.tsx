@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import RichTextEditor from '@/components/common/RichTextEditor';
 import Pagination from '@/components/common/Pagination';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import {
   Building2,
   Plus,
@@ -14,7 +15,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
-  Search
+  Search,
+  ExternalLink
 } from 'lucide-react';
 
 interface UniversityOverviewItem {
@@ -57,10 +59,12 @@ export default function UniversityOverviews() {
 
   // View Description Modal
   const [viewingDescription, setViewingDescription] = useState<{ title: string; html: string } | null>(null);
+  const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
 
   // Form State
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     university_id: '',
     title: '',
@@ -76,7 +80,7 @@ export default function UniversityOverviews() {
 
   const fetchUniversities = async () => {
     try {
-      const res = await fetch('/api/v1/admin/universities');
+      const res = await fetch('/api/v1/admin/universities?minimal=true');
       const json = await res.json();
       if (res.ok && (json.status || json.success)) {
         setUniversities(json.data || []);
@@ -86,15 +90,15 @@ export default function UniversityOverviews() {
     }
   };
 
-  const fetchOverviews = async (targetUnivId?: string) => {
+  const fetchOverviews = async (targetUnivId?: string, showLoading = true) => {
     const univId = targetUnivId !== undefined ? targetUnivId : selectedUnivId;
     if (!univId) {
       setOverviews([]);
-      setLoading(false);
+      if (showLoading) setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (showLoading) setLoading(true);
     try {
       const res = await fetch(`/api/v1/admin/university-overviews?university_id=${univId}`);
       const json = await res.json();
@@ -112,7 +116,7 @@ export default function UniversityOverviews() {
     } catch {
       showToast('error', 'Network error while fetching overviews');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -135,6 +139,7 @@ export default function UniversityOverviews() {
 
   const handleResetForm = () => {
     setEditingId(null);
+    setThumbnailFile(null);
     setFormData({
       university_id: selectedUnivId,
       title: '',
@@ -146,6 +151,7 @@ export default function UniversityOverviews() {
 
   const handleEditClick = (item: UniversityOverviewItem) => {
     setEditingId(item.id);
+    setThumbnailFile(null);
     setFormData({
       university_id: item.university_id.toString(),
       title: item.title || item.tab || '',
@@ -170,6 +176,12 @@ export default function UniversityOverviews() {
 
     setSubmitting(true);
     try {
+      let thumbnailPath = formData.thumbnail_path;
+      if (thumbnailFile) {
+        const uploadRes = await uploadFileToStorage(thumbnailFile, 'university');
+        thumbnailPath = uploadRes.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/university-overviews/${editingId}`
         : '/api/v1/admin/university-overviews';
@@ -184,6 +196,7 @@ export default function UniversityOverviews() {
           tab: formData.title,
           description: formData.description,
           position: formData.position,
+          thumbnail_path: thumbnailPath,
         }),
       });
       const json = await res.json();
@@ -206,6 +219,9 @@ export default function UniversityOverviews() {
     const confirmed = await confirmDelete(item.title || item.tab || 'Overview Record');
     if (!confirmed) return;
 
+    // Optimistic removal: instantly vanishes from UI
+    setOverviews((prev) => prev.filter((o) => o.id !== item.id));
+
     try {
       const res = await fetch(`/api/v1/admin/university-overviews/${item.id}`, {
         method: 'DELETE',
@@ -213,12 +229,14 @@ export default function UniversityOverviews() {
       const json = await res.json();
       if (res.ok && json.success) {
         showToast('success', 'Overview deleted successfully');
-        fetchOverviews(selectedUnivId);
+        fetchOverviews(selectedUnivId, false);
       } else {
         showToast('error', json.error || 'Failed to delete overview');
+        fetchOverviews(selectedUnivId, false);
       }
     } catch {
       showToast('error', 'Error deleting overview');
+      fetchOverviews(selectedUnivId, false);
     }
   };
 
@@ -253,9 +271,8 @@ export default function UniversityOverviews() {
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium text-white transition-all ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium text-white transition-all ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -374,7 +391,7 @@ export default function UniversityOverviews() {
                       required
                       placeholder="Title"
                       value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
                       className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -385,9 +402,25 @@ export default function UniversityOverviews() {
                     </label>
                     <input
                       type="file"
-                      disabled
-                      className="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 border border-slate-300 rounded-md bg-slate-50 cursor-not-allowed"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setThumbnailFile(file);
+                        if (file) {
+                          const autoTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                          setFormData((prev) => ({
+                            ...prev,
+                            title: prev.title.trim() ? prev.title : autoTitle,
+                          }));
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-300 rounded-md bg-slate-50"
                     />
+                    {(thumbnailFile || formData.thumbnail_path) && (
+                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
+                        {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
+                      </span>
+                    )}
                   </div>
 
                   <div className="sm:col-span-2">
@@ -397,7 +430,7 @@ export default function UniversityOverviews() {
                     <input
                       type="number"
                       value={formData.position}
-                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, position: e.target.value }))}
                       className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
                     />
                   </div>
@@ -409,7 +442,7 @@ export default function UniversityOverviews() {
                   </label>
                   <RichTextEditor
                     value={formData.description}
-                    onChange={(val) => setFormData({ ...formData, description: val })}
+                    onChange={(val) => setFormData((prev) => ({ ...prev, description: val }))}
                     placeholder="Enter description content..."
                   />
                 </div>
@@ -511,7 +544,18 @@ export default function UniversityOverviews() {
                               <Eye className="w-3 h-3" /> View
                             </button>
                           </td>
-                          <td className="py-3.5 px-4 text-slate-400 font-semibold">N/A</td>
+                          <td className="py-3.5 px-4 font-semibold text-xs">
+                            {item.thumbnail_path ? (
+                              <button
+                                onClick={() => setPreviewImage({ title: item.title || item.tab || 'Thumbnail', url: item.thumbnail_path! })}
+                                className="inline-flex items-center gap-1 text-indigo-600 font-bold hover:underline cursor-pointer"
+                              >
+                                View <ExternalLink className="w-2.5 h-2.5" />
+                              </button>
+                            ) : (
+                              <span className="text-slate-400">N/A</span>
+                            )}
+                          </td>
                           <td className="py-3.5 px-4 text-[11px] text-slate-500 space-y-0.5">
                             <div>Created at : {formatDateString(item.created_at)}</div>
                             <div>Updated at : {formatDateString(item.updated_at || item.created_at)}</div>
@@ -586,6 +630,38 @@ export default function UniversityOverviews() {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title} Preview</h3>
+              <button onClick={() => setPreviewImage(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center bg-slate-50/50 min-h-[220px]">
+              <img
+                src={getStorageUrl(previewImage.url)}
+                alt={previewImage.title}
+                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain bg-white p-1"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                }}
+              />
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline mt-4 break-all flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>

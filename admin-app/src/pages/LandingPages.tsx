@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
+import { getStorageUrl } from '@/lib/uploadHelper';
 import {
   Layout,
   Search,
@@ -373,13 +374,13 @@ export default function LandingPages() {
                       <td className="py-3.5 px-4">
                         {item.date_and_address_image ? (
                           <a
-                            href={item.date_and_address_image}
+                            href={getStorageUrl(item.date_and_address_image)}
                             target="_blank"
                             rel="noreferrer"
                             className="inline-block hover:opacity-80 transition-opacity"
                           >
                             <img
-                              src={item.date_and_address_image}
+                              src={getStorageUrl(item.date_and_address_image)}
                               alt={item.page_name}
                               className="w-8 h-8 object-cover rounded border border-slate-200 shadow-sm"
                             />

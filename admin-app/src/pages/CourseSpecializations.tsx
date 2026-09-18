@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { confirmDelete } from '@/lib/swal';
 import Pagination from '@/components/common/Pagination';
 import RichTextEditor from '@/components/common/RichTextEditor';
+import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 import {
   GraduationCap,
   Plus,
@@ -110,6 +111,11 @@ export default function CourseSpecializations() {
     status: 1,
   });
 
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [contentImageFile, setContentImageFile] = useState<File | null>(null);
+  const [ogImageFile, setOgImageFile] = useState<File | null>(null);
+
   // Preview Modals
   const [previewSeo, setPreviewSeo] = useState<SpecializationItem | null>(null);
   const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
@@ -175,8 +181,8 @@ export default function CourseSpecializations() {
     }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
       const [specRes, catRes, authRes] = await Promise.all([
         fetch('/api/v1/admin/course-specializations'),
@@ -198,9 +204,9 @@ export default function CourseSpecializations() {
         setAuthors(authJson.data || []);
       }
     } catch {
-      showToast('error', 'Connection error while fetching specializations');
+      if (showLoading) showToast('error', 'Connection error while fetching specializations');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -239,6 +245,10 @@ export default function CourseSpecializations() {
   const handleOpenAddModal = () => {
     setEditingId(null);
     setActiveTab('basic');
+    setThumbnailFile(null);
+    setBannerFile(null);
+    setContentImageFile(null);
+    setOgImageFile(null);
     setFormData({
       name: '',
       course_category_id: categories.length > 0 ? String(categories[0].id) : '',
@@ -265,6 +275,10 @@ export default function CourseSpecializations() {
   const handleOpenEditModal = (item: SpecializationItem) => {
     setEditingId(item.id);
     setActiveTab('basic');
+    setThumbnailFile(null);
+    setBannerFile(null);
+    setContentImageFile(null);
+    setOgImageFile(null);
     setFormData({
       name: item.name || '',
       course_category_id: item.course_category_id ? String(item.course_category_id) : '',
@@ -297,6 +311,24 @@ export default function CourseSpecializations() {
 
     setSubmitting(true);
     try {
+      const currentFormData = { ...formData };
+      if (thumbnailFile) {
+        const res = await uploadFileToStorage(thumbnailFile, 'specializations');
+        currentFormData.thumbnail_path = res.file_path;
+      }
+      if (bannerFile) {
+        const res = await uploadFileToStorage(bannerFile, 'specializations');
+        currentFormData.banner_path = res.file_path;
+      }
+      if (contentImageFile) {
+        const res = await uploadFileToStorage(contentImageFile, 'specializations');
+        currentFormData.content_image_path = res.file_path;
+      }
+      if (ogImageFile) {
+        const res = await uploadFileToStorage(ogImageFile, 'seo');
+        currentFormData.og_image_path = res.file_path;
+      }
+
       const url = editingId
         ? `/api/v1/admin/course-specializations/${editingId}`
         : '/api/v1/admin/course-specializations';
@@ -305,7 +337,7 @@ export default function CourseSpecializations() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(currentFormData),
       });
 
       const json = await res.json();
@@ -331,17 +363,22 @@ export default function CourseSpecializations() {
     );
     if (!isConfirmed) return;
 
+    // Optimistic UI update
+    setSpecializations((prev) => prev.filter((s) => s.id !== id));
+
     try {
       const res = await fetch(`/api/v1/admin/course-specializations/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (res.ok && json.status) {
         showToast('success', `Specialization "${name}" deleted successfully`);
-        fetchData();
+        fetchData(false);
       } else {
         showToast('error', json.message || 'Failed to delete specialization');
+        fetchData(false);
       }
     } catch {
       showToast('error', 'Connection error while deleting specialization');
+      fetchData(false);
     }
   };
 
@@ -444,9 +481,8 @@ export default function CourseSpecializations() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           <span>{toast.message}</span>
@@ -474,7 +510,7 @@ export default function CourseSpecializations() {
 
         <div className="flex items-center gap-2.5">
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="p-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             title="Refresh list"
           >
@@ -779,33 +815,30 @@ export default function CourseSpecializations() {
               <button
                 type="button"
                 onClick={() => setActiveTab('basic')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'basic'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'basic'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
               >
                 Basic Information
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('seo')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'seo'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'seo'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
               >
                 SEO Metadata
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('images')}
-                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${
-                  activeTab === 'images'
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
+                className={`px-4 py-2.5 text-xs font-bold border-b-2 transition-colors cursor-pointer ${activeTab === 'images'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  }`}
               >
                 Media Assets
               </button>
@@ -973,17 +1006,12 @@ export default function CourseSpecializations() {
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setFormData({ ...formData, og_image_path: file.name });
-                          }
-                        }}
+                        onChange={(e) => setOgImageFile(e.target.files?.[0] || null)}
                         className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                       />
-                      {formData.og_image_path && (
+                      {(ogImageFile?.name || formData.og_image_path) && (
                         <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                          Current / Selected: {formData.og_image_path}
+                          {ogImageFile ? `Selected: ${ogImageFile.name}` : `Current: ${formData.og_image_path}`}
                         </span>
                       )}
                     </div>
@@ -998,17 +1026,12 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFormData({ ...formData, thumbnail_path: file.name });
-                        }
-                      }}
+                      onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.thumbnail_path && (
+                    {(thumbnailFile?.name || formData.thumbnail_path) && (
                       <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.thumbnail_path}
+                        {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
                       </span>
                     )}
                   </div>
@@ -1018,17 +1041,12 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFormData({ ...formData, banner_path: file.name });
-                        }
-                      }}
+                      onChange={(e) => setBannerFile(e.target.files?.[0] || null)}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.banner_path && (
+                    {(bannerFile?.name || formData.banner_path) && (
                       <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.banner_path}
+                        {bannerFile ? `Selected: ${bannerFile.name}` : `Current: ${formData.banner_path}`}
                       </span>
                     )}
                   </div>
@@ -1038,17 +1056,12 @@ export default function CourseSpecializations() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setFormData({ ...formData, content_image_path: file.name });
-                        }
-                      }}
+                      onChange={(e) => setContentImageFile(e.target.files?.[0] || null)}
                       className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-200 rounded-xl bg-slate-50"
                     />
-                    {formData.content_image_path && (
+                    {(contentImageFile?.name || formData.content_image_path) && (
                       <span className="text-[11px] text-slate-500 mt-1 block truncate">
-                        Current / Selected: {formData.content_image_path}
+                        {contentImageFile ? `Selected: ${contentImageFile.name}` : `Current: ${formData.content_image_path}`}
                       </span>
                     )}
                   </div>
@@ -1286,7 +1299,7 @@ export default function CourseSpecializations() {
             <div className="p-6 flex flex-col items-center">
               <div className="bg-slate-100 p-2 rounded-xl border border-slate-200 mb-3 w-full flex justify-center">
                 <img
-                  src={previewImage.url.startsWith('http') ? previewImage.url : `/${previewImage.url}`}
+                  src={getStorageUrl(previewImage.url)}
                   alt={previewImage.title}
                   className="max-h-80 object-contain rounded-lg shadow-xs"
                   onError={(e) => {
@@ -1294,7 +1307,14 @@ export default function CourseSpecializations() {
                   }}
                 />
               </div>
-              <p className="text-xs font-mono text-slate-600 break-all text-center">{previewImage.url}</p>
+              <a
+                href={getStorageUrl(previewImage.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-mono text-indigo-600 hover:underline break-all text-center flex items-center gap-1 font-semibold"
+              >
+                {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
+              </a>
             </div>
           </div>
         </div>
