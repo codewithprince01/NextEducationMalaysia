@@ -426,14 +426,14 @@ export default function PageBanners() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
             <thead>
-              <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
-                <th className="py-3.5 px-4 w-16 text-center text-stone-600">Sr. No.</th>
-                <th className="py-3.5 px-4 text-stone-900">Page Route</th>
-                <th className="py-3.5 px-4 text-stone-900">Alt Text</th>
-                <th className="py-3.5 px-4 text-stone-900">Banner Graphic</th>
-                <th className="py-3.5 px-4 text-stone-900">Headline Title</th>
-                <th className="py-3.5 px-4 text-stone-900">Description</th>
-                <th className="py-3.5 px-4 text-right text-stone-900">Actions</th>
+              <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
+                <th className="py-3.5 px-4 w-16 text-center text-blue-700">Sr. No.</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Page Route</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Alt Text</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Banner Graphic</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Headline Title</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Description</th>
+                <th className="py-3.5 px-4 text-right text-[#1e40af]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

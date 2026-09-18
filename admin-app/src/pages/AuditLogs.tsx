@@ -385,15 +385,15 @@ export default function AuditLogs() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
             <thead>
-              <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold text-[11px] uppercase tracking-wider">
-                <th className="py-3.5 px-4 w-12 text-center text-stone-600">#</th>
-                <th className="py-3.5 px-4 text-stone-900">Admin User</th>
-                <th className="py-3.5 px-4 text-stone-900">Action</th>
-                <th className="py-3.5 px-4 text-stone-900">Module & Target</th>
-                <th className="py-3.5 px-4 text-stone-900">Description</th>
-                <th className="py-3.5 px-4 text-stone-900">Client Info (IP & OS)</th>
-                <th className="py-3.5 px-4 text-stone-900">Timestamp (MYT)</th>
-                <th className="py-3.5 px-4 text-right text-stone-900">Inspect</th>
+              <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold text-[11px] uppercase tracking-wider">
+                <th className="py-3.5 px-4 w-12 text-center text-blue-700">#</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Admin User</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Action</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Module & Target</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Description</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Client Info (IP & OS)</th>
+                <th className="py-3.5 px-4 text-[#1e40af]">Timestamp (MYT)</th>
+                <th className="py-3.5 px-4 text-right text-[#1e40af]">Inspect</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

@@ -332,7 +332,7 @@ export default function Addresses() {
         <div className="bg-white rounded-3xl border border-stone-200/90 shadow-sm p-6 sm:p-7 relative transition-all duration-300">
           <div className="flex items-center justify-between border-b border-stone-100 pb-4 mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#ece5d8] border border-stone-300/90 flex items-center justify-center text-stone-900 shadow-2xs">
+              <div className="w-9 h-9 rounded-xl bg-[#eef5ff] border border-[#cfe0fc] flex items-center justify-center text-[#1e40af] shadow-2xs">
                 {editingId ? <Edit2 className="w-4.5 h-4.5" /> : <Plus className="w-4.5 h-4.5" />}
               </div>
               <div>
@@ -552,7 +552,7 @@ export default function Addresses() {
         {/* Table View */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-600">
-            <thead className="bg-[#ece5d8] border-b border-stone-300/90 text-stone-900 font-extrabold uppercase text-[10.5px] tracking-wider">
+            <thead className="bg-[#eef5ff] border-b border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase text-[10.5px] tracking-wider">
               <tr>
                 <th className="py-3.5 px-4 w-16">Sr. No.</th>
                 <th className="py-3.5 px-4">Country</th>
@@ -600,13 +600,13 @@ export default function Addresses() {
                     <tr
                       key={item.id}
                       className={`transition-colors ${
-                        isEditingThis ? 'bg-amber-50/70' : 'hover:bg-[#faf8f4]/80'
+                        isEditingThis ? 'bg-blue-50/60' : 'hover:bg-[#faf8f4]/80'
                       }`}
                     >
                       <td className="py-3.5 px-4 font-bold text-stone-400">{srNo}</td>
                       <td className="py-3.5 px-4">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 border border-stone-200/80 font-bold text-stone-900 text-xs">
-                          <Globe2 className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                          <Globe2 className="w-3.5 h-3.5 text-blue-700 shrink-0" />
                           <span>{item.country}</span>
                         </span>
                       </td>
@@ -630,7 +630,7 @@ export default function Addresses() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 bg-[#ece5d8] text-stone-800 hover:bg-stone-300 rounded-lg transition-colors cursor-pointer shadow-2xs"
+                            className="p-1.5 bg-[#eef5ff] text-[#1e40af] hover:bg-[#dbeafe] rounded-lg transition-colors cursor-pointer shadow-2xs"
                             title="Edit Address"
                           >
                             <Edit2 className="w-3.5 h-3.5" />

@@ -474,16 +474,16 @@ export default function Blogs() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
-                  <th className="py-3.5 px-4 w-12 text-center text-stone-600">#</th>
-                  <th className="py-3.5 px-4 min-w-[140px] text-stone-900">Category</th>
-                  <th className="py-3.5 px-4 min-w-[240px] text-stone-900">Article Title</th>
-                  <th className="py-3.5 px-4 w-24 text-stone-900">Description</th>
-                  <th className="py-3.5 px-4 w-28 text-stone-900">Thumbnail</th>
-                  <th className="py-3.5 px-4 min-w-[140px] text-stone-900">Author</th>
-                  <th className="py-3.5 px-4 text-center w-24 text-stone-900">Status</th>
-                  <th className="py-3.5 px-4 min-w-[140px] text-stone-900">Sub Modules</th>
-                  <th className="py-3.5 px-4 text-right w-24 text-stone-900">Actions</th>
+                <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-12 text-center text-blue-700">#</th>
+                  <th className="py-3.5 px-4 min-w-[140px] text-[#1e40af]">Category</th>
+                  <th className="py-3.5 px-4 min-w-[240px] text-[#1e40af]">Article Title</th>
+                  <th className="py-3.5 px-4 w-24 text-[#1e40af]">Description</th>
+                  <th className="py-3.5 px-4 w-28 text-[#1e40af]">Thumbnail</th>
+                  <th className="py-3.5 px-4 min-w-[140px] text-[#1e40af]">Author</th>
+                  <th className="py-3.5 px-4 text-center w-24 text-[#1e40af]">Status</th>
+                  <th className="py-3.5 px-4 min-w-[140px] text-[#1e40af]">Sub Modules</th>
+                  <th className="py-3.5 px-4 text-right w-24 text-[#1e40af]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

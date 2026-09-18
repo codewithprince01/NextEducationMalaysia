@@ -560,14 +560,14 @@ export default function UniversityGallery() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-600">
                 <thead>
-                  <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
-                    <th className="py-3.5 px-5 w-16 text-center text-stone-600">ID</th>
-                    <th className="py-3.5 px-4 w-20 text-center text-stone-900">Preview</th>
-                    <th className="py-3.5 px-5 text-stone-900">Photo Title / Caption</th>
-                    <th className="py-3.5 px-5 text-stone-900">Media Actions</th>
-                    <th className="py-3.5 px-5 text-stone-900">Status</th>
-                    <th className="py-3.5 px-5 text-stone-900">Timestamps</th>
-                    <th className="py-3.5 px-5 w-24 text-right text-stone-900">Actions</th>
+                  <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-5 w-16 text-center text-blue-700">ID</th>
+                    <th className="py-3.5 px-4 w-20 text-center text-[#1e40af]">Preview</th>
+                    <th className="py-3.5 px-5 text-[#1e40af]">Photo Title / Caption</th>
+                    <th className="py-3.5 px-5 text-[#1e40af]">Media Actions</th>
+                    <th className="py-3.5 px-5 text-[#1e40af]">Status</th>
+                    <th className="py-3.5 px-5 text-[#1e40af]">Timestamps</th>
+                    <th className="py-3.5 px-5 w-24 text-right text-[#1e40af]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
@@ -679,12 +679,12 @@ export default function UniversityGallery() {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-600">
                 <thead>
-                  <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
-                    <th className="py-3.5 px-5 w-16 text-center text-stone-600">ID</th>
-                    <th className="py-3.5 px-5 text-stone-900">Video Title</th>
-                    <th className="py-3.5 px-5 text-stone-900">Video Media Stream</th>
-                    <th className="py-3.5 px-5 text-stone-900">Timestamps</th>
-                    <th className="py-3.5 px-5 w-24 text-right text-stone-900">Actions</th>
+                  <tr className="bg-[#eef5ff] border-b-2 border-[#cfe0fc] text-[#1e40af] font-extrabold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-5 w-16 text-center text-blue-700">ID</th>
+                    <th className="py-3.5 px-5 text-[#1e40af]">Video Title</th>
+                    <th className="py-3.5 px-5 text-[#1e40af]">Video Media Stream</th>
+                    <th className="py-3.5 px-5 text-[#1e40af]">Timestamps</th>
+                    <th className="py-3.5 px-5 w-24 text-right text-[#1e40af]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
