@@ -374,38 +374,26 @@ export default function Blogs() {
           </div>
         </div>
 
-        {/* ── CLASSIC METRIC STAT CARDS ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Articles</div>
-            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
-              {loading ? '...' : blogs.length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-stone-600 mt-1">Published & drafts</div>
+        {/* ── COMPACT METRIC STAT PILLS ── */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3.5 border-t border-stone-100 text-xs">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#faf8f4] border border-stone-200/90 text-stone-700">
+            <span className="text-stone-500 text-[11px] font-medium uppercase tracking-wider">Total Articles:</span>
+            <span className="font-extrabold text-stone-900">{loading ? '...' : blogs.length}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Live Published</div>
-            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
-              {loading ? '...' : blogs.filter((b) => b.status === 1).length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Approved & visible</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-emerald-900">
+            <span className="text-emerald-700 text-[11px] font-medium uppercase tracking-wider">Published:</span>
+            <span className="font-extrabold text-emerald-800">{loading ? '...' : blogs.filter((b) => b.status === 1).length}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Categories</div>
-            <div className="text-2xl font-black text-amber-800 tracking-tight mt-0.5">
-              {categories.length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Editorial topics</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900">
+            <span className="text-amber-700 text-[11px] font-medium uppercase tracking-wider">Topics:</span>
+            <span className="font-extrabold text-amber-900">{categories.length}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Drafts Pending</div>
-            <div className="text-2xl font-black text-indigo-900 tracking-tight mt-0.5">
-              {loading ? '...' : blogs.filter((b) => b.status !== 1).length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-indigo-700 mt-1">In review pipeline</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50/70 border border-indigo-200/80 text-indigo-900">
+            <span className="text-indigo-700 text-[11px] font-medium uppercase tracking-wider">Drafts:</span>
+            <span className="font-extrabold text-indigo-900">{loading ? '...' : blogs.filter((b) => b.status !== 1).length}</span>
           </div>
         </div>
       </div>
@@ -486,16 +474,16 @@ export default function Blogs() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                  <th className="py-4 px-4 w-12 text-center text-stone-300">#</th>
-                  <th className="py-4 px-4 min-w-[140px] text-stone-100">Category</th>
-                  <th className="py-4 px-4 min-w-[240px] text-stone-100">Article Title</th>
-                  <th className="py-4 px-4 w-24 text-stone-100">Description</th>
-                  <th className="py-4 px-4 w-28 text-stone-100">Thumbnail</th>
-                  <th className="py-4 px-4 min-w-[140px] text-stone-100">Author</th>
-                  <th className="py-4 px-4 text-center w-24 text-stone-100">Status</th>
-                  <th className="py-4 px-4 min-w-[140px] text-stone-100">Sub Modules</th>
-                  <th className="py-4 px-4 text-right w-24 text-stone-100">Actions</th>
+                <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-12 text-center text-stone-600">#</th>
+                  <th className="py-3.5 px-4 min-w-[140px] text-stone-900">Category</th>
+                  <th className="py-3.5 px-4 min-w-[240px] text-stone-900">Article Title</th>
+                  <th className="py-3.5 px-4 w-24 text-stone-900">Description</th>
+                  <th className="py-3.5 px-4 w-28 text-stone-900">Thumbnail</th>
+                  <th className="py-3.5 px-4 min-w-[140px] text-stone-900">Author</th>
+                  <th className="py-3.5 px-4 text-center w-24 text-stone-900">Status</th>
+                  <th className="py-3.5 px-4 min-w-[140px] text-stone-900">Sub Modules</th>
+                  <th className="py-3.5 px-4 text-right w-24 text-stone-900">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

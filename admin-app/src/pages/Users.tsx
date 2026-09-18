@@ -452,38 +452,26 @@ export default function Users() {
           </div>
         </div>
 
-        {/* ── CLASSIC METRIC STAT CARDS ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Active Staff Users</div>
-            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
-              {loading ? '...' : items.filter((u) => Number(u.status) === 1).length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Authenticated accounts</div>
+        {/* ── COMPACT METRIC STAT PILLS ── */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3.5 border-t border-stone-100 text-xs">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#faf8f4] border border-stone-200/90 text-stone-700">
+            <span className="text-stone-500 text-[11px] font-medium uppercase tracking-wider">Active Staff:</span>
+            <span className="font-extrabold text-stone-900">{loading ? '...' : items.filter((u) => Number(u.status) === 1).length}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Administrators</div>
-            <div className="text-2xl font-black text-amber-800 tracking-tight mt-0.5">
-              {loading ? '...' : items.filter((u) => (u.role || '').toLowerCase() === 'admin').length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Full control roles</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900">
+            <span className="text-amber-700 text-[11px] font-medium uppercase tracking-wider">Admins:</span>
+            <span className="font-extrabold text-amber-900">{loading ? '...' : items.filter((u) => (u.role || '').toLowerCase() === 'admin').length}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Sub Admins / Staff</div>
-            <div className="text-2xl font-black text-indigo-900 tracking-tight mt-0.5">
-              {loading ? '...' : items.filter((u) => (u.role || '').toLowerCase() !== 'admin' && Number(u.status) === 1).length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-indigo-700 mt-1">Delegated access</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50/70 border border-indigo-200/80 text-indigo-900">
+            <span className="text-indigo-700 text-[11px] font-medium uppercase tracking-wider">Delegated:</span>
+            <span className="font-extrabold text-indigo-900">{loading ? '...' : items.filter((u) => (u.role || '').toLowerCase() !== 'admin' && Number(u.status) === 1).length}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Modules</div>
-            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
-              {PERMISSION_MODULES.length}
-            </div>
-            <div className="text-[10.5px] font-semibold text-stone-600 mt-1">Granular RBAC items</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-100/70 border border-stone-200 text-stone-800">
+            <span className="text-stone-600 text-[11px] font-medium uppercase tracking-wider">Modules:</span>
+            <span className="font-extrabold text-stone-900">{PERMISSION_MODULES.length}</span>
           </div>
         </div>
       </div>
@@ -559,14 +547,14 @@ export default function Users() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                <th className="py-4 px-4 w-14 text-center text-stone-300">#</th>
-                <th className="py-4 px-4 text-stone-100">User Profile</th>
-                <th className="py-4 px-4 text-stone-100">Email Address</th>
-                <th className="py-4 px-4 text-stone-100">Contact Phone</th>
-                <th className="py-4 px-4 text-stone-100">System Role</th>
-                <th className="py-4 px-4 text-center text-stone-100">Access Permissions</th>
-                <th className="py-4 px-4 text-right w-28 text-stone-100">Actions</th>
+              <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                <th className="py-3.5 px-4 w-14 text-center text-stone-600">#</th>
+                <th className="py-3.5 px-4 text-stone-900">User Profile</th>
+                <th className="py-3.5 px-4 text-stone-900">Email Address</th>
+                <th className="py-3.5 px-4 text-stone-900">Contact Phone</th>
+                <th className="py-3.5 px-4 text-stone-900">System Role</th>
+                <th className="py-3.5 px-4 text-center text-stone-900">Access Permissions</th>
+                <th className="py-3.5 px-4 text-right w-28 text-stone-900">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

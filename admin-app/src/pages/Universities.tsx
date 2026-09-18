@@ -328,38 +328,26 @@ export default function Universities() {
           </div>
         </div>
 
-        {/* ── CLASSIC METRIC STAT CARDS ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Total Institutions</div>
-            <div className="text-2xl font-black text-stone-900 tracking-tight mt-0.5">
-              {loading ? '...' : summaryStats.total}
-            </div>
-            <div className="text-[10.5px] font-semibold text-stone-600 mt-1">Listed in directory</div>
+        {/* ── COMPACT METRIC STAT PILLS ── */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3.5 border-t border-stone-100 text-xs">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#faf8f4] border border-stone-200/90 text-stone-700">
+            <span className="text-stone-500 text-[11px] font-medium uppercase tracking-wider">Total:</span>
+            <span className="font-extrabold text-stone-900">{loading ? '...' : summaryStats.total}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Active Published</div>
-            <div className="text-2xl font-black text-emerald-800 tracking-tight mt-0.5">
-              {loading ? '...' : summaryStats.active}
-            </div>
-            <div className="text-[10.5px] font-semibold text-emerald-700 mt-1">Visible on live portal</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-emerald-900">
+            <span className="text-emerald-700 text-[11px] font-medium uppercase tracking-wider">Active:</span>
+            <span className="font-extrabold text-emerald-800">{loading ? '...' : summaryStats.active}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">QS Ranked</div>
-            <div className="text-2xl font-black text-amber-800 tracking-tight mt-0.5">
-              {loading ? '...' : summaryStats.qsRanked}
-            </div>
-            <div className="text-[10.5px] font-semibold text-amber-700 mt-1">Rankings verified</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900">
+            <span className="text-amber-700 text-[11px] font-medium uppercase tracking-wider">QS Ranked:</span>
+            <span className="font-extrabold text-amber-900">{loading ? '...' : summaryStats.qsRanked}</span>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Linked Programs</div>
-            <div className="text-2xl font-black text-indigo-900 tracking-tight mt-0.5">
-              {loading ? '...' : summaryStats.totalPrograms}
-            </div>
-            <div className="text-[10.5px] font-semibold text-indigo-700 mt-1">Course offerings</div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50/70 border border-indigo-200/80 text-indigo-900">
+            <span className="text-indigo-700 text-[11px] font-medium uppercase tracking-wider">Linked Programs:</span>
+            <span className="font-extrabold text-indigo-900">{loading ? '...' : summaryStats.totalPrograms}</span>
           </div>
         </div>
       </div>
@@ -523,24 +511,24 @@ export default function Universities() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                  <th className="py-4 px-3 w-10 text-center">
+                <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-3 w-10 text-center">
                     <input
                       type="checkbox"
                       onChange={handleSelectAll}
                       checked={selectedIds.length === paginated.length && paginated.length > 0}
-                      className="rounded border-stone-600 bg-stone-800 text-amber-500 focus:ring-amber-400"
+                      className="rounded border-stone-300 bg-white text-amber-600 focus:ring-amber-500"
                     />
                   </th>
-                  <th className="py-4 px-3 w-12 text-center text-stone-300">#</th>
-                  <th className="py-4 px-4 min-w-[280px] text-stone-100">Institution Profile</th>
-                  <th className="py-4 px-4 min-w-[150px] text-stone-100">Location</th>
-                  <th className="py-4 px-4 min-w-[170px] text-stone-100">Rankings & Accreditations</th>
-                  <th className="py-4 px-4 min-w-[120px] text-stone-100">Media</th>
-                  <th className="py-4 px-4 text-center min-w-[130px] text-stone-100">Status</th>
-                  <th className="py-4 px-4 text-center min-w-[150px] text-stone-100">Content Modules</th>
-                  <th className="py-4 px-4 min-w-[130px] text-stone-100">Updated</th>
-                  <th className="py-4 px-4 text-right min-w-[120px] text-stone-100">Actions</th>
+                  <th className="py-3.5 px-3 w-12 text-center text-stone-600">#</th>
+                  <th className="py-3.5 px-4 min-w-[280px] text-stone-900">Institution Profile</th>
+                  <th className="py-3.5 px-4 min-w-[150px] text-stone-900">Location</th>
+                  <th className="py-3.5 px-4 min-w-[170px] text-stone-900">Rankings & Accreditations</th>
+                  <th className="py-3.5 px-4 min-w-[120px] text-stone-900">Media</th>
+                  <th className="py-3.5 px-4 text-center min-w-[130px] text-stone-900">Status</th>
+                  <th className="py-3.5 px-4 text-center min-w-[150px] text-stone-900">Content Modules</th>
+                  <th className="py-3.5 px-4 min-w-[130px] text-stone-900">Updated</th>
+                  <th className="py-3.5 px-4 text-right min-w-[120px] text-stone-900">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

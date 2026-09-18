@@ -248,32 +248,31 @@ export default function AuditLogs() {
           </div>
         </div>
 
-        {/* ── KPI METRICS RIBBON (5 CARDS) ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5 mt-6 pt-6 border-t border-stone-100">
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Total Logs</span>
-            <span className="text-2xl font-black text-stone-900 mt-0.5 block">{stats.total.toLocaleString()}</span>
-            <span className="text-[10.5px] font-semibold text-stone-500 mt-0.5 block">Recorded events</span>
+        {/* ── COMPACT METRIC STAT PILLS ── */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3.5 border-t border-stone-100 text-xs">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#faf8f4] border border-stone-200/90 text-stone-700">
+            <span className="text-stone-500 text-[11px] font-medium uppercase tracking-wider">Total Logs:</span>
+            <span className="font-extrabold text-stone-900">{stats.total.toLocaleString()}</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Created</span>
-            <span className="text-2xl font-black text-emerald-800 mt-0.5 block">{stats.create.toLocaleString()}</span>
-            <span className="text-[10.5px] font-semibold text-emerald-700 mt-0.5 block">New records</span>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-emerald-900">
+            <span className="text-emerald-700 text-[11px] font-medium uppercase tracking-wider">Created:</span>
+            <span className="font-extrabold text-emerald-800">{stats.create.toLocaleString()}</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">Updated</span>
-            <span className="text-2xl font-black text-amber-900 mt-0.5 block">{stats.update.toLocaleString()}</span>
-            <span className="text-[10.5px] font-semibold text-amber-800 mt-0.5 block">Modifications</span>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900">
+            <span className="text-amber-700 text-[11px] font-medium uppercase tracking-wider">Updated:</span>
+            <span className="font-extrabold text-amber-900">{stats.update.toLocaleString()}</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-            <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Deleted</span>
-            <span className="text-2xl font-black text-rose-800 mt-0.5 block">{stats.delete.toLocaleString()}</span>
-            <span className="text-[10.5px] font-semibold text-rose-700 mt-0.5 block">Removed records</span>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-50/70 border border-rose-200/80 text-rose-900">
+            <span className="text-rose-700 text-[11px] font-medium uppercase tracking-wider">Deleted:</span>
+            <span className="font-extrabold text-rose-800">{stats.delete.toLocaleString()}</span>
           </div>
-          <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80 col-span-2 sm:col-span-1">
-            <span className="text-[10px] font-bold text-indigo-950 uppercase tracking-wider block">Staff Admins</span>
-            <span className="text-2xl font-black text-indigo-950 mt-0.5 block">{stats.activeAdmins.toLocaleString()}</span>
-            <span className="text-[10.5px] font-semibold text-indigo-800 mt-0.5 block">Active actors</span>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50/70 border border-indigo-200/80 text-indigo-900">
+            <span className="text-indigo-700 text-[11px] font-medium uppercase tracking-wider">Staff Admins:</span>
+            <span className="font-extrabold text-indigo-900">{stats.activeAdmins.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -385,16 +384,16 @@ export default function AuditLogs() {
       <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
-            <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black text-[10.5px] uppercase tracking-wider font-serif">
-              <tr>
-                <th className="py-4 px-4 w-12 text-center text-stone-300">#</th>
-                <th className="py-4 px-4 text-stone-100">Admin User</th>
-                <th className="py-4 px-4 text-stone-100">Action</th>
-                <th className="py-4 px-4 text-stone-100">Module & Target</th>
-                <th className="py-4 px-4 text-stone-100">Description</th>
-                <th className="py-4 px-4 text-stone-100">Client Info (IP & OS)</th>
-                <th className="py-4 px-4 text-stone-100">Timestamp (MYT)</th>
-                <th className="py-4 px-4 text-right text-stone-100">Inspect</th>
+            <thead>
+              <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold text-[11px] uppercase tracking-wider">
+                <th className="py-3.5 px-4 w-12 text-center text-stone-600">#</th>
+                <th className="py-3.5 px-4 text-stone-900">Admin User</th>
+                <th className="py-3.5 px-4 text-stone-900">Action</th>
+                <th className="py-3.5 px-4 text-stone-900">Module & Target</th>
+                <th className="py-3.5 px-4 text-stone-900">Description</th>
+                <th className="py-3.5 px-4 text-stone-900">Client Info (IP & OS)</th>
+                <th className="py-3.5 px-4 text-stone-900">Timestamp (MYT)</th>
+                <th className="py-3.5 px-4 text-right text-stone-900">Inspect</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

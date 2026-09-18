@@ -292,14 +292,14 @@ export default function Levels() {
           ) : (
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-stone-900 border-b border-stone-800 text-[10.5px] font-black text-stone-100 uppercase tracking-wider font-serif">
-                  <th className="py-4 px-6 w-16 text-center text-stone-300">Sr. No.</th>
-                  <th className="py-4 px-6 w-16 text-center text-stone-300">ID</th>
-                  <th className="py-4 px-6 text-stone-100">Level Title</th>
-                  <th className="py-4 px-6 text-stone-100">URL Slug</th>
-                  <th className="py-4 px-6 text-stone-100">Short Name</th>
-                  <th className="py-4 px-6 text-stone-100">SEO Name</th>
-                  <th className="py-4 px-6 text-right text-stone-100">Actions</th>
+                <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-[11px] font-extrabold text-stone-800 uppercase tracking-wider">
+                  <th className="py-3.5 px-6 w-16 text-center text-stone-600">Sr. No.</th>
+                  <th className="py-3.5 px-6 w-16 text-center text-stone-600">ID</th>
+                  <th className="py-3.5 px-6 text-stone-900">Level Title</th>
+                  <th className="py-3.5 px-6 text-stone-900">URL Slug</th>
+                  <th className="py-3.5 px-6 text-stone-900">Short Name</th>
+                  <th className="py-3.5 px-6 text-stone-900">SEO Name</th>
+                  <th className="py-3.5 px-6 text-right text-stone-900">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

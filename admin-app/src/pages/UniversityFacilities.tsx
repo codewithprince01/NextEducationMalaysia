@@ -16,13 +16,10 @@ import {
   Eye,
   Search,
   RotateCcw,
-  Sparkles,
-  Layers,
   GraduationCap,
   Image as ImageIcon,
   FileText,
-  Trophy,
-  Check
+  Trophy
 } from 'lucide-react';
 
 interface FacilityItem {
@@ -357,47 +354,27 @@ export default function UniversityFacilities() {
           </div>
         )}
 
-        {/* ── KPI METRICS CARDS ── */}
+        {/* ── COMPACT METRIC STAT PILLS ── */}
         {selectedUnivId && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Total Facilities</span>
-                <Building2 className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif">
-                {facilities.length}
-              </div>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3.5 border-t border-stone-100 text-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#faf8f4] border border-stone-200/90 text-stone-700">
+              <span className="text-stone-500 text-[11px] font-medium uppercase tracking-wider">Total Facilities:</span>
+              <span className="font-extrabold text-stone-900">{facilities.length}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">With Details</span>
-                <Layers className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif">
-                {facilities.filter((f) => Boolean(f.description)).length}
-              </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-emerald-900">
+              <span className="text-emerald-700 text-[11px] font-medium uppercase tracking-wider">With Details:</span>
+              <span className="font-extrabold text-emerald-800">{facilities.filter((f) => Boolean(f.description)).length}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Word Density</span>
-                <Sparkles className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif">
-                {totalWordsCount.toLocaleString()} <span className="text-xs font-normal text-stone-500">words</span>
-              </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900">
+              <span className="text-amber-700 text-[11px] font-medium uppercase tracking-wider">Words:</span>
+              <span className="font-extrabold text-amber-900">{totalWordsCount.toLocaleString()}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Next Entry</span>
-                <Check className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif">
-                #{facilities.length + 1}
-              </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50/70 border border-indigo-200/80 text-indigo-900">
+              <span className="text-indigo-700 text-[11px] font-medium uppercase tracking-wider">Selected Univ:</span>
+              <span className="font-extrabold text-indigo-900">#{selectedUnivId}</span>
             </div>
           </div>
         )}
@@ -526,12 +503,12 @@ export default function UniversityFacilities() {
             {/* Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-600">
-                <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                  <tr>
-                    <th className="py-4 px-5 w-16 text-center text-stone-300">#</th>
-                    <th className="py-4 px-5">Facility Title</th>
-                    <th className="py-4 px-5">Description Preview</th>
-                    <th className="py-4 px-5 w-28 text-right text-stone-100">Actions</th>
+                <thead>
+                  <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-5 w-16 text-center text-stone-600">#</th>
+                    <th className="py-3.5 px-5 text-stone-900">Facility Title</th>
+                    <th className="py-3.5 px-5 text-stone-900">Description Preview</th>
+                    <th className="py-3.5 px-5 w-28 text-right text-stone-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

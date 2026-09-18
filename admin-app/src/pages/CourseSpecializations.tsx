@@ -646,16 +646,16 @@ export default function CourseSpecializations() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                  <th className="py-4 px-4 w-14 text-center text-stone-300">Sr. No.</th>
-                  <th className="py-4 px-4 w-14 text-center text-stone-300">ID</th>
-                  <th className="py-4 px-5 text-stone-100">Specialization & Slug</th>
-                  <th className="py-4 px-5 text-stone-100">Category</th>
-                  <th className="py-4 px-4 text-stone-100">SEO</th>
-                  <th className="py-4 px-5 text-stone-100">Images</th>
-                  <th className="py-4 px-5 text-stone-100">Sub-Modules</th>
-                  <th className="py-4 px-5 text-stone-100">More Details</th>
-                  <th className="py-4 px-5 text-right text-stone-100">Actions</th>
+                <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                  <th className="py-3.5 px-4 w-14 text-center text-stone-600">Sr. No.</th>
+                  <th className="py-3.5 px-4 w-14 text-center text-stone-600">ID</th>
+                  <th className="py-3.5 px-5 text-stone-900">Specialization & Slug</th>
+                  <th className="py-3.5 px-5 text-stone-900">Category</th>
+                  <th className="py-3.5 px-4 text-stone-900">SEO</th>
+                  <th className="py-3.5 px-5 text-stone-900">Images</th>
+                  <th className="py-3.5 px-5 text-stone-900">Sub-Modules</th>
+                  <th className="py-3.5 px-5 text-stone-900">More Details</th>
+                  <th className="py-3.5 px-5 text-right text-stone-900">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

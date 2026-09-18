@@ -9,12 +9,10 @@ import {
   Send,
   SlidersHorizontal,
   ShieldCheck,
-  Server,
   Zap,
   Check,
   AtSign,
-  User,
-  Radio
+  User
 } from 'lucide-react';
 
 export default function SystemSettings() {
@@ -190,100 +188,29 @@ export default function SystemSettings() {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* KPI Stat Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Active Dispatch Mode */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-              Active Mode
-            </span>
-            <span
-              className={`p-2 rounded-xl ${
-                emailMode === 'main'
-                  ? 'bg-emerald-500/10 text-emerald-700'
-                  : 'bg-amber-500/10 text-amber-700'
-              }`}
-            >
-              <Radio className="w-4 h-4" />
+        {/* ── COMPACT METRIC STAT PILLS ── */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-5 pt-4 border-t border-stone-100 text-xs">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#faf8f4] border border-stone-200/90 text-stone-700">
+            <span className="text-stone-500 text-[11px] font-medium uppercase tracking-wider">Mode:</span>
+            <span className={`font-extrabold capitalize ${emailMode === 'main' ? 'text-emerald-800' : 'text-amber-800'}`}>
+              {emailMode === 'main' ? 'Production' : 'Sandbox Testing'}
             </span>
           </div>
-          <div className="mt-3">
-            <span className="text-xl font-serif font-bold text-stone-900 capitalize">
-              {emailMode === 'main' ? 'Main Production' : 'Testing Sandbox'}
-            </span>
-            <div className="mt-1 flex items-center gap-1.5">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  emailMode === 'main' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-                }`}
-              />
-              <span className="text-xs text-stone-500">
-                {emailMode === 'main' ? 'Live student inquiries' : 'Redirected to QA testboxes'}
-              </span>
-            </div>
-          </div>
-        </div>
 
-        {/* Card 2: Main Primary Recipient */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-              Main Lead Target
-            </span>
-            <span className="p-2 rounded-xl bg-blue-500/10 text-blue-700">
-              <Mail className="w-4 h-4" />
-            </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-50/70 border border-blue-200/80 text-blue-900">
+            <span className="text-blue-700 text-[11px] font-medium uppercase tracking-wider">Main TO:</span>
+            <span className="font-extrabold font-mono text-[11px] text-blue-900">{mainSettings.main_to_email || 'None'}</span>
           </div>
-          <div className="mt-3">
-            <span className="text-sm font-mono font-semibold text-stone-900 truncate block" title={mainSettings.main_to_email}>
-              {mainSettings.main_to_email || 'Not configured'}
-            </span>
-            <span className="text-xs text-stone-500 mt-1 block truncate">
-              {mainSettings.main_to_name || 'Primary Counselor'}
-            </span>
-          </div>
-        </div>
 
-        {/* Card 3: Testing Sandbox Target */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-              Testing Recipient
-            </span>
-            <span className="p-2 rounded-xl bg-purple-500/10 text-purple-700">
-              <Send className="w-4 h-4" />
-            </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-purple-50/70 border border-purple-200/80 text-purple-900">
+            <span className="text-purple-700 text-[11px] font-medium uppercase tracking-wider">Testing TO:</span>
+            <span className="font-extrabold font-mono text-[11px] text-purple-900">{testingSettings.testing_to_email || 'None'}</span>
           </div>
-          <div className="mt-3">
-            <span className="text-sm font-mono font-semibold text-stone-900 truncate block" title={testingSettings.testing_to_email}>
-              {testingSettings.testing_to_email || 'Not configured'}
-            </span>
-            <span className="text-xs text-stone-500 mt-1 block truncate">
-              {testingSettings.testing_to_name || 'QA / Dev Mailbox'}
-            </span>
-          </div>
-        </div>
 
-        {/* Card 4: System Parameters */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-stone-200/80 p-5 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
-              System Parameters
-            </span>
-            <span className="p-2 rounded-xl bg-stone-500/10 text-stone-700">
-              <Server className="w-4 h-4" />
-            </span>
-          </div>
-          <div className="mt-3">
-            <span className="text-xl font-serif font-bold text-stone-900">
-              {totalKeys} Key Pairs
-            </span>
-            <span className="text-xs text-stone-500 mt-1 flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 inline" /> MySQL Backed &amp; Audited
-            </span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-100/70 border border-stone-200 text-stone-800">
+            <span className="text-stone-600 text-[11px] font-medium uppercase tracking-wider">Parameters:</span>
+            <span className="font-extrabold text-stone-900">{totalKeys} Keys</span>
           </div>
         </div>
       </div>

@@ -14,7 +14,6 @@ import {
   Eye,
   Download,
   RotateCcw,
-  Sparkles,
   ExternalLink,
   Search,
   Calendar,
@@ -417,47 +416,27 @@ export default function UniversityGallery() {
           </div>
         )}
 
-        {/* ── KPI METRICS CARDS ── */}
+        {/* ── COMPACT METRIC STAT PILLS ── */}
         {selectedUnivId && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Campus Photos</span>
-                <ImageIcon className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif">
-                {photos.length}
-              </div>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-4 pt-3.5 border-t border-stone-100 text-xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#faf8f4] border border-stone-200/90 text-stone-700">
+              <span className="text-stone-500 text-[11px] font-medium uppercase tracking-wider">Campus Photos:</span>
+              <span className="font-extrabold text-stone-900">{photos.length}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Featured Photos</span>
-                <Star className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif">
-                {featuredPhotosCount}
-              </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900">
+              <span className="text-amber-700 text-[11px] font-medium uppercase tracking-wider">Featured:</span>
+              <span className="font-extrabold text-amber-900">{featuredPhotosCount}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Video Tours</span>
-                <VideoIcon className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif">
-                {videos.length}
-              </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-emerald-900">
+              <span className="text-emerald-700 text-[11px] font-medium uppercase tracking-wider">Video Tours:</span>
+              <span className="font-extrabold text-emerald-800">{videos.length}</span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
-              <div className="flex items-center justify-between text-stone-500 mb-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Active Mode</span>
-                <Sparkles className="w-3.5 h-3.5 text-amber-800" />
-              </div>
-              <div className="text-xl font-black text-stone-900 font-serif capitalize">
-                {activeTab}
-              </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50/70 border border-indigo-200/80 text-indigo-900">
+              <span className="text-indigo-700 text-[11px] font-medium uppercase tracking-wider">Media Total:</span>
+              <span className="font-extrabold text-indigo-900">{photos.length + videos.length}</span>
             </div>
           </div>
         )}
@@ -580,15 +559,15 @@ export default function UniversityGallery() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-600">
-                <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                  <tr>
-                    <th className="py-4 px-5 w-16 text-center text-stone-300">ID</th>
-                    <th className="py-4 px-4 w-20 text-center text-stone-100">Preview</th>
-                    <th className="py-4 px-5 text-stone-100">Photo Title / Caption</th>
-                    <th className="py-4 px-5 text-stone-100">Media Actions</th>
-                    <th className="py-4 px-5 text-stone-100">Status</th>
-                    <th className="py-4 px-5 text-stone-100">Timestamps</th>
-                    <th className="py-4 px-5 w-24 text-right text-stone-100">Actions</th>
+                <thead>
+                  <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-5 w-16 text-center text-stone-600">ID</th>
+                    <th className="py-3.5 px-4 w-20 text-center text-stone-900">Preview</th>
+                    <th className="py-3.5 px-5 text-stone-900">Photo Title / Caption</th>
+                    <th className="py-3.5 px-5 text-stone-900">Media Actions</th>
+                    <th className="py-3.5 px-5 text-stone-900">Status</th>
+                    <th className="py-3.5 px-5 text-stone-900">Timestamps</th>
+                    <th className="py-3.5 px-5 w-24 text-right text-stone-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
@@ -699,13 +678,13 @@ export default function UniversityGallery() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-stone-600">
-                <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-                  <tr>
-                    <th className="py-4 px-5 w-16 text-center text-stone-300">ID</th>
-                    <th className="py-4 px-5 text-stone-100">Video Title</th>
-                    <th className="py-4 px-5 text-stone-100">Video Media Stream</th>
-                    <th className="py-4 px-5 text-stone-100">Timestamps</th>
-                    <th className="py-4 px-5 w-24 text-right text-stone-100">Actions</th>
+                <thead>
+                  <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                    <th className="py-3.5 px-5 w-16 text-center text-stone-600">ID</th>
+                    <th className="py-3.5 px-5 text-stone-900">Video Title</th>
+                    <th className="py-3.5 px-5 text-stone-900">Video Media Stream</th>
+                    <th className="py-3.5 px-5 text-stone-900">Timestamps</th>
+                    <th className="py-3.5 px-5 w-24 text-right text-stone-900">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 font-medium text-stone-700">

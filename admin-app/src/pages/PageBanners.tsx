@@ -425,15 +425,15 @@ export default function PageBanners() {
         {/* ── DATA TABLE ── */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-stone-700">
-            <thead className="bg-stone-900 border-b border-stone-800 text-stone-100 font-black uppercase tracking-wider text-[10.5px] font-serif">
-              <tr>
-                <th className="py-4 px-4 w-16 text-center text-stone-300">Sr. No.</th>
-                <th className="py-4 px-4 text-stone-100">Page Route</th>
-                <th className="py-4 px-4 text-stone-100">Alt Text</th>
-                <th className="py-4 px-4 text-stone-100">Banner Graphic</th>
-                <th className="py-4 px-4 text-stone-100">Headline Title</th>
-                <th className="py-4 px-4 text-stone-100">Description</th>
-                <th className="py-4 px-4 text-right text-stone-100">Actions</th>
+            <thead>
+              <tr className="bg-[#ece5d8] border-b-2 border-stone-300 text-stone-800 font-extrabold uppercase tracking-wider text-[11px]">
+                <th className="py-3.5 px-4 w-16 text-center text-stone-600">Sr. No.</th>
+                <th className="py-3.5 px-4 text-stone-900">Page Route</th>
+                <th className="py-3.5 px-4 text-stone-900">Alt Text</th>
+                <th className="py-3.5 px-4 text-stone-900">Banner Graphic</th>
+                <th className="py-3.5 px-4 text-stone-900">Headline Title</th>
+                <th className="py-3.5 px-4 text-stone-900">Description</th>
+                <th className="py-3.5 px-4 text-right text-stone-900">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 font-medium text-stone-700">
