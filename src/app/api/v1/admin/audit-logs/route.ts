@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
-import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: NextRequest) {
   try {
@@ -44,12 +43,12 @@ export async function GET(req: NextRequest) {
 
     if (startDate.trim()) {
       conditions.push('created_at >= ?');
-      params.push(new Date(startDate.trim()));
+      params.push(`${startDate.trim()} 00:00:00`);
     }
 
     if (endDate.trim()) {
       conditions.push('created_at <= ?');
-      params.push(new Date(endDate.trim() + ' 23:59:59'));
+      params.push(`${endDate.trim()} 23:59:59`);
     }
 
     const whereClause = conditions.join(' AND ');
@@ -107,6 +106,12 @@ export async function GET(req: NextRequest) {
       FROM admin_audit_logs
     `);
 
+    // Available modules
+    const modulesRes: any[] = await prisma.$queryRawUnsafe(`
+      SELECT DISTINCT module FROM admin_audit_logs WHERE module IS NOT NULL AND module != '' ORDER BY module ASC
+    `);
+    const availableModules = modulesRes.map((m) => m.module);
+
     const stats = {
       total: Number(statsRes?.total_count || 0),
       create: Number(statsRes?.create_count || 0),
@@ -128,6 +133,7 @@ export async function GET(req: NextRequest) {
         totalPages: Math.ceil(total / limit) || 1,
       },
       stats,
+      availableModules,
     });
   } catch (error: any) {
     console.error('Error fetching audit logs:', error);

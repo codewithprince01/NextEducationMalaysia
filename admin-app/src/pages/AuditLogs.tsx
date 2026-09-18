@@ -72,6 +72,8 @@ export default function AuditLogs() {
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 20;
 
+  const [availableModules, setAvailableModules] = useState<string[]>([]);
+
   // Stats
   const [stats, setStats] = useState<AuditStats>({
     total: 0,
@@ -115,6 +117,9 @@ export default function AuditLogs() {
           }
           if (json.stats) {
             setStats(json.stats);
+          }
+          if (json.availableModules && Array.isArray(json.availableModules)) {
+            setAvailableModules(json.availableModules);
           }
         } else {
           setLogs([]);
@@ -315,17 +320,26 @@ export default function AuditLogs() {
                 setModuleFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all"
+              className="w-full px-3 py-2 text-xs font-bold bg-stone-50/70 border border-stone-200/90 rounded-xl text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white transition-all capitalize"
             >
               <option value="">All Modules</option>
-              <option value="auth">Auth & Login</option>
-              <option value="users">Users</option>
-              <option value="permissions">Permissions</option>
-              <option value="page-banners">Page Banners</option>
-              <option value="university">Universities</option>
-              <option value="programs">Programs</option>
-              <option value="blogs">Blogs</option>
-              <option value="seo">SEO</option>
+              {availableModules.length > 0 ? (
+                availableModules.map((mod) => (
+                  <option key={mod} value={mod}>
+                    {mod.replace(/-/g, ' ')}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="auth">Auth & Login</option>
+                  <option value="system-settings">System Settings</option>
+                  <option value="users">Users</option>
+                  <option value="page-banners">Page Banners</option>
+                  <option value="universities">Universities</option>
+                  <option value="programs">Programs</option>
+                  <option value="blogs">Blogs</option>
+                </>
+              )}
             </select>
           </div>
 
