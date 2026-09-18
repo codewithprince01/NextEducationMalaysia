@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAccessToken } from '@/backend/utils/auth';
 import { apiSuccess, apiError } from '@/backend/utils/response';
+import bcrypt from 'bcryptjs';
 
 export async function GET(req: NextRequest) {
   try {
@@ -57,6 +58,12 @@ export async function GET(req: NextRequest) {
       created_at: user.created_at,
     };
 
+    return apiSuccess({ user: userPayload }, 'Admin profile fetched successfully.');
+  } catch (error: any) {
+    return apiError(error.message || 'Failed to fetch admin profile.', 500);
+  }
+}
+
 export async function PUT(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization');
@@ -98,7 +105,6 @@ export async function PUT(req: NextRequest) {
       if (!existing || existing.length === 0) {
         return apiError('User not found.', 404);
       }
-      const bcrypt = (await import('bcryptjs')).default;
       const isMatch = await bcrypt.compare(current_password, existing[0].password || '');
       if (!isMatch) {
         return apiError('Current password does not match.', 400);
@@ -157,4 +163,3 @@ export async function PUT(req: NextRequest) {
     return apiError(error.message || 'Failed to update profile.', 500);
   }
 }
-
