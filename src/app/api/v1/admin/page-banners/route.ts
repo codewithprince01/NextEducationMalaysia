@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { serializeBigInt } from "@/lib/utils";
 import { saveUploadedFile } from "@/lib/fileStorage";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function GET() {
   try {
@@ -85,6 +86,22 @@ export async function POST(req: Request) {
       banner_name,
       banner_path,
     );
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'page-banners',
+      description: `Created page banner for page '${page}' with alt text '${alt_text}'`,
+      newValues: {
+        website: 'MYS',
+        page,
+        alt_text,
+        title,
+        description,
+        banner_name,
+        banner_path,
+      },
+    });
 
     return NextResponse.json({
       status: true,

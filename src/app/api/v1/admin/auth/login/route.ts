@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyPassword, issueAccessToken } from '@/backend/utils/auth';
 import { apiError } from '@/backend/utils/response';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -97,6 +98,27 @@ export async function POST(req: NextRequest) {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
+    });
+
+    await recordAuditLog({
+      req,
+      user: {
+        id: Number(user.id),
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      action: 'LOGIN',
+      module: 'auth',
+      recordId: Number(user.id),
+      description: `Admin user '${user.name}' (${user.email}) logged into the admin console`,
+      newValues: {
+        id: Number(user.id),
+        email: user.email,
+        role: user.role,
+        login_count: loginCount,
+        last_login: now.toISOString(),
+      },
     });
 
     return res;

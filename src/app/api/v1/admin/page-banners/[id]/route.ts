@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { serializeBigInt } from "@/lib/utils";
 import { saveUploadedFile, deleteUploadedFile } from "@/lib/fileStorage";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function GET(
   req: Request,
@@ -117,6 +118,30 @@ export async function PUT(
       id,
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'page-banners',
+      recordId: id,
+      description: `Updated page banner for page '${page}' (ID: ${id})`,
+      oldValues: {
+        id,
+        page: existing.page,
+        alt_text: existing.alt_text,
+        title: existing.title,
+        description: existing.description,
+        banner_name: existing.banner_name,
+      },
+      newValues: {
+        id,
+        page,
+        alt_text,
+        title,
+        description,
+        banner_name,
+      },
+    });
+
     return NextResponse.json({
       status: true,
       message: "Page banner updated successfully",
@@ -163,6 +188,15 @@ export async function DELETE(
       `DELETE FROM page_banners WHERE id = ? AND website = 'MYS'`,
       id,
     );
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'page-banners',
+      recordId: id,
+      description: `Deleted page banner for page '${row.page}' (ID: ${id})`,
+      oldValues: row,
+    });
 
     return NextResponse.json({
       status: true,

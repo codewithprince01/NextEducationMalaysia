@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
 import bcrypt from 'bcryptjs';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET() {
   try {
@@ -88,6 +89,23 @@ export async function POST(req: Request) {
       now,
       now
     );
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'users',
+      recordId: nextId,
+      description: `Created user account '${name}' (${email}) with role '${role || 'subadmin'}'`,
+      newValues: {
+        id: nextId,
+        name,
+        email,
+        mobile: mobile || '',
+        role: role || 'subadmin',
+        department: department || null,
+        status: status !== undefined ? parseInt(status, 10) : 1,
+      },
+    });
 
     return NextResponse.json({ status: true, message: 'Admin user created successfully' });
   } catch (error: any) {

@@ -57,6 +57,7 @@ import SystemSettings from '@/pages/SystemSettings';
 import LandingPages from '@/pages/LandingPages';
 import Scholarships from '@/pages/Scholarships';
 import PageBanners from '@/pages/PageBanners';
+import AuditLogs from '@/pages/AuditLogs';
 import NotFound from '@/pages/NotFound';
 import AccessDenied from '@/components/common/AccessDenied';
 
@@ -196,6 +197,7 @@ export default function App() {
               <Route path="/landing-pages" element={<PermissionRoute module="landing-pages" moduleName="Landing Pages"><LandingPages /></PermissionRoute>} />
               <Route path="/scholarships" element={<PermissionRoute module="scholarships" moduleName="Scholarships"><Scholarships /></PermissionRoute>} />
               <Route path="/page-banners" element={<PermissionRoute module="page-banners" moduleName="Page Banners"><PageBanners /></PermissionRoute>} />
+              <Route path="/audit-logs" element={<PermissionRoute module="users" moduleName="Audit Trail"><AuditLogs /></PermissionRoute>} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
