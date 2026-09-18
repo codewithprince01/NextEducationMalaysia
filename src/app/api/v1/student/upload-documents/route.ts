@@ -48,11 +48,18 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
     
     const requestOrigin = (() => {
       try {
-        const host = request.headers.get('host') || '';
+        const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || process.env.DOMAIN_URL;
+        if (envSiteUrl && /^https?:\/\//i.test(envSiteUrl) && !/localhost|127\.0\.0\.1/i.test(envSiteUrl)) {
+          return envSiteUrl.replace(/\/+$/, '');
+        }
+        const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
         const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
-        return host ? `${forwardedProto}://${host}` : DOMAIN;
+        if (host && !/localhost|127\.0\.0\.1/i.test(host)) {
+          return `${forwardedProto}://${host}`.replace(/\/+$/, '');
+        }
+        return 'https://www.educationmalaysia.in';
       } catch {
-        return DOMAIN;
+        return 'https://www.educationmalaysia.in';
       }
     })();
 

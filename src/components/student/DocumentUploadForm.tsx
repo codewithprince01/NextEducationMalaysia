@@ -359,7 +359,7 @@ export default function DocumentUploadForm() {
   }
 
   const getFullUrl = (doc: any) => {
-    const raw = doc?.imgpath || ''
+    const raw = doc?.imgpath || doc?.imgname || ''
     if (!raw) return '#'
     if (/^https?:\/\//i.test(raw)) return raw
 
@@ -368,11 +368,14 @@ export default function DocumentUploadForm() {
       return /^https?:\/\//i.test(value) ? value : `https://${value}`
     }
 
-    const cleaned = raw.startsWith('/') ? raw.slice(1) : raw
+    const cleaned = raw.replace(/\\/g, '/').replace(/^\/+/, '')
 
     const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : ''
     const isLocalRuntime = /localhost|127\.0\.0\.1/i.test(runtimeOrigin)
-    const uploadSource = normalizeOrigin(String(doc?.upload_source || '').trim())
+    const rawUploadSource = String(doc?.upload_source || '').trim()
+    const uploadSource = (rawUploadSource && rawUploadSource.toLowerCase() !== 'crm')
+      ? normalizeOrigin(rawUploadSource)
+      : ''
     const imageBase = normalizeOrigin(process.env.NEXT_PUBLIC_IMAGE_BASE_URL || '')
     const siteUrl = normalizeOrigin(process.env.NEXT_PUBLIC_SITE_URL || '')
 
@@ -383,9 +386,10 @@ export default function DocumentUploadForm() {
       ? cleaned
       : cleaned.startsWith('uploads/')
         ? `storage/${cleaned}`
-        : cleaned
+        : `storage/uploads/${cleaned}`
 
-    return `${candidateOrigins[0]}/${basePath}`
+    const baseDomain = candidateOrigins[0] || 'https://www.educationmalaysia.in'
+    return `${baseDomain.replace(/\/+$/, '')}/${basePath}`
   }
 
   return (

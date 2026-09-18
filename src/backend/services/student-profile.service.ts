@@ -471,8 +471,13 @@ export class StudentProfileService {
   /**
    * Add document record.
    */
-  async addDocument(studentId: number, docName: string, imgName: string, imgPath: string, siteUrl: string): Promise<ApiResponse> {
+  async addDocument(studentId: number, docName: string, imgName: string, imgPath: string, siteUrl?: string): Promise<ApiResponse> {
     try {
+      const defaultDomain = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.educationmalaysia.in';
+      const cleanUploadSource = (siteUrl && siteUrl.trim() && siteUrl.trim().toLowerCase() !== 'crm' && !siteUrl.includes('localhost') && !siteUrl.includes('127.0.0.1'))
+        ? siteUrl.trim().replace(/\/+$/, '')
+        : defaultDomain.trim().replace(/\/+$/, '');
+
       const maxRes = (await prisma.$queryRawUnsafe(
         `SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM student_documents`
       )) as Array<{ next_id: bigint | number }>;
@@ -486,7 +491,7 @@ export class StudentProfileService {
         docName,
         imgName,
         imgPath,
-        siteUrl,
+        cleanUploadSource,
       );
 
       // Sync application_requirements status to 'Reviewing'
@@ -510,14 +515,19 @@ export class StudentProfileService {
       return { status: true, message: 'Document uploaded successfully' };
     } catch (err: any) {
       console.error('Error in addDocument with explicit ID:', err);
+      const defaultDomain = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.educationmalaysia.in';
+      const cleanUploadSource = (siteUrl && siteUrl.trim() && siteUrl.trim().toLowerCase() !== 'crm' && !siteUrl.includes('localhost') && !siteUrl.includes('127.0.0.1'))
+        ? siteUrl.trim().replace(/\/+$/, '')
+        : defaultDomain.trim().replace(/\/+$/, '');
+
       await prisma.$executeRawUnsafe(
-        `INSERT INTO student_documents (std_id, doc_name, imgname, imgpath, upload_source, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, 1, NOW(), NOW())`,
+        `INSERT INTO student_documents (std_id, doc_name, imgname, imgpath, upload_source, doc_status, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 'Reviewing', 1, NOW(), NOW())`,
         Number(studentId),
         docName,
         imgName,
         imgPath,
-        siteUrl,
+        cleanUploadSource,
       );
       return { status: true, message: 'Document uploaded successfully' };
     }
