@@ -165,50 +165,50 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* ── ELEGANT HERO BANNER WITH VIBRANT DEPTH ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 p-6 sm:p-8 text-white shadow-lg border border-indigo-900/40">
-        {/* Ambient background glow accents */}
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
+      {/* ── ELEGANT LIGHT HERO BANNER ── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#eef5ff] via-[#f7faff] to-[#edf4fe] p-6 sm:p-8 border border-[#cfe0fc] shadow-xs">
+        {/* Subtle ambient background glow accents */}
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/25 border border-indigo-400/30 text-indigo-200 text-xs font-bold backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 border border-[#cfe0fc] text-[#1e40af] text-xs font-bold shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                 <span>Overview Dashboard</span>
               </span>
 
               {isSuperAdmin ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold">
-                  <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                   Super Admin
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300 text-[11px] font-bold">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-stone-200 text-stone-700 text-[11px] font-bold">
                   Staff
                 </span>
               )}
 
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300 text-[11px] font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/90 border border-stone-200 text-stone-600 text-[11px] font-medium shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                 <span>System Active</span>
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 font-serif">
               Welcome back, {user?.name || 'Administrator'} 👋
             </h1>
 
-            <p className="text-slate-300 text-xs sm:text-sm font-medium leading-relaxed">
+            <p className="text-stone-600 text-xs sm:text-sm font-medium leading-relaxed">
               Administrative management center for universities, academic degree programs, and published editorial media.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Live MYT Clock Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 text-slate-200 text-xs font-semibold backdrop-blur-md shadow-2xs">
-              <Clock className="w-3.5 h-3.5 text-blue-300" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#cfe0fc] text-stone-700 text-xs font-bold shadow-2xs">
+              <Clock className="w-3.5 h-3.5 text-blue-600" />
               <span>MYT {currentTime || '--:--:--'}</span>
             </div>
 
@@ -216,10 +216,10 @@ export default function Dashboard() {
               type="button"
               onClick={() => fetchStats(true)}
               disabled={refreshing}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+              className="p-2.5 rounded-xl bg-white hover:bg-blue-50 border border-[#cfe0fc] text-stone-700 hover:text-[#1e40af] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
               title="Refresh statistics"
             >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-blue-300' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-blue-600' : ''}`} />
             </button>
 
             {quickActions.map((action) => {
@@ -228,7 +228,7 @@ export default function Dashboard() {
                 <Link
                   key={action.href}
                   to={action.href}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${action.bg}`}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shadow-sm ${action.bg}`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{action.label}</span>
