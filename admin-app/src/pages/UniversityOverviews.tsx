@@ -16,7 +16,18 @@ import {
   AlertCircle,
   Eye,
   Search,
-  ExternalLink
+  ExternalLink,
+  FileText,
+  Image as ImageIcon,
+  RotateCcw,
+  Sparkles,
+  Layers,
+  Clock,
+  Calendar,
+  Upload,
+  GraduationCap,
+  Trophy,
+  Check
 } from 'lucide-react';
 
 interface UniversityOverviewItem {
@@ -57,7 +68,7 @@ export default function UniversityOverviews() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // View Description Modal
+  // View Description Modal & Image Preview Modal
   const [viewingDescription, setViewingDescription] = useState<{ title: string; html: string } | null>(null);
   const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
 
@@ -65,6 +76,7 @@ export default function UniversityOverviews() {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     university_id: '',
     title: '',
@@ -105,11 +117,13 @@ export default function UniversityOverviews() {
       if (res.ok && json.success) {
         const data: UniversityOverviewItem[] = json.data || [];
         setOverviews(data);
-        setFormData((prev) => ({
-          ...prev,
-          university_id: univId,
-          position: (data.length + 1).toString(),
-        }));
+        if (!editingId) {
+          setFormData((prev) => ({
+            ...prev,
+            university_id: univId,
+            position: (data.length + 1).toString(),
+          }));
+        }
       } else {
         showToast('error', json.error || 'Failed to fetch overviews');
       }
@@ -134,12 +148,14 @@ export default function UniversityOverviews() {
     if (val) {
       navigate(`/university-overviews?university_id=${val}`);
     }
+    handleResetForm();
     fetchOverviews(val);
   };
 
   const handleResetForm = () => {
     setEditingId(null);
     setThumbnailFile(null);
+    setThumbnailPreviewUrl(null);
     setFormData({
       university_id: selectedUnivId,
       title: '',
@@ -152,6 +168,7 @@ export default function UniversityOverviews() {
   const handleEditClick = (item: UniversityOverviewItem) => {
     setEditingId(item.id);
     setThumbnailFile(null);
+    setThumbnailPreviewUrl(null);
     setFormData({
       university_id: item.university_id.toString(),
       title: item.title || item.tab || '',
@@ -160,7 +177,7 @@ export default function UniversityOverviews() {
       thumbnail_path: item.thumbnail_path || '',
     });
     setIsFormOpen(true);
-    window.scrollTo({ top: 200, behavior: 'smooth' });
+    window.scrollTo({ top: 320, behavior: 'smooth' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -202,7 +219,7 @@ export default function UniversityOverviews() {
       const json = await res.json();
 
       if (res.ok && json.success) {
-        showToast('success', editingId ? 'Updated successfully' : 'Created successfully');
+        showToast('success', editingId ? 'Overview updated successfully' : 'Overview created successfully');
         handleResetForm();
         fetchOverviews(selectedUnivId);
       } else {
@@ -216,10 +233,13 @@ export default function UniversityOverviews() {
   };
 
   const handleDelete = async (item: UniversityOverviewItem) => {
-    const confirmed = await confirmDelete(item.title || item.tab || 'Overview Record');
+    const confirmed = await confirmDelete(
+      'Delete Overview Tab?',
+      `Are you sure you want to delete tab "${item.title || item.tab || 'Overview Record'}"? This action cannot be undone.`
+    );
     if (!confirmed) return;
 
-    // Optimistic removal: instantly vanishes from UI
+    // Optimistic removal
     setOverviews((prev) => prev.filter((o) => o.id !== item.id));
 
     try {
@@ -228,7 +248,7 @@ export default function UniversityOverviews() {
       });
       const json = await res.json();
       if (res.ok && json.success) {
-        showToast('success', 'Overview deleted successfully');
+        showToast('success', 'Overview tab deleted successfully');
         fetchOverviews(selectedUnivId, false);
       } else {
         showToast('error', json.error || 'Failed to delete overview');
@@ -241,24 +261,31 @@ export default function UniversityOverviews() {
   };
 
   const formatDateString = (dateStr?: string) => {
-    if (!dateStr) return 'Created at : N/A';
+    if (!dateStr) return 'N/A';
     try {
       const d = new Date(dateStr);
-      if (isNaN(d.getTime())) return `Created at : ${dateStr}`;
+      if (isNaN(d.getTime())) return dateStr;
       const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
       const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const month = d.toLocaleString('en-US', { month: 'short' });
       const year = d.getFullYear();
-      return `${timeStr} - ${day}-${month}-${year}`;
+      return `${day} ${month} ${year}, ${timeStr}`;
     } catch {
-      return `Created at : ${dateStr}`;
+      return dateStr;
     }
+  };
+
+  const getCleanSnippet = (htmlStr?: string) => {
+    if (!htmlStr) return 'No content provided';
+    const clean = htmlStr.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+    return clean.length > 90 ? clean.substring(0, 90) + '...' : clean || 'No content provided';
   };
 
   const selectedUniv = universities.find((u) => u.id.toString() === selectedUnivId);
 
   const filtered = overviews.filter((item) =>
-    (item.title || item.tab || '').toLowerCase().includes(searchQuery.toLowerCase())
+    (item.title || item.tab || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const paginated = filtered.slice(
@@ -266,272 +293,428 @@ export default function UniversityOverviews() {
     currentPage * itemsPerPage
   );
 
+  const totalWordsCount = overviews.reduce((acc, curr) => {
+    const text = (curr.description || '').replace(/<[^>]+>/g, ' ').trim();
+    return acc + (text ? text.split(/\s+/).filter(Boolean).length : 0);
+  }, 0);
+
+  const withThumbnailsCount = overviews.filter((o) => Boolean(o.thumbnail_path)).length;
+
   return (
-    <div className="space-y-2 max-w-[1600px] mx-auto text-slate-700">
+    <div className="space-y-6 max-w-[1600px] mx-auto pb-10">
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 text-sm font-medium text-white transition-all ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
+            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
+          }`}
         >
-          {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Unified Header, University Dropdown & Navigation Bar */}
-      <div className="bg-white p-3 sm:p-3.5 rounded-xl border border-slate-200 shadow-xs space-y-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-4.5 h-4.5 text-indigo-600 shrink-0" />
-            <h1 className="text-base font-bold text-slate-800 tracking-tight">
-              University Overview{' '}
-              <span className="text-rose-600 font-extrabold">
-                ({selectedUniv ? selectedUniv.name : 'Select a University'})
+      {/* ── CLASSIC EDITORIAL HEADER ── */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/90 shadow-xs relative overflow-hidden">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-900 text-[11px] font-bold tracking-wider uppercase">
+                <FileText className="w-3 h-3 text-amber-700" />
+                <span>Institutional Profile Sections</span>
               </span>
+              {selectedUniv && (
+                <span className="text-[11px] font-bold text-stone-700 bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
+                  {selectedUniv.name}
+                </span>
+              )}
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
+              University Overviews & Tabs
             </h1>
+            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
+              Curate comprehensive institutional profiles, campus life descriptions, facilities highlights, admission requirements, and content tabs.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-slate-700 shrink-0">
-              Select University:
-            </label>
-            <select
-              value={selectedUnivId}
-              onChange={handleUniversityChange}
-              className="w-full sm:w-80 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-800 text-xs font-bold bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
+            {/* Select University Dropdown */}
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-amber-800 shrink-0" />
+              <select
+                value={selectedUnivId}
+                onChange={handleUniversityChange}
+                className="w-full sm:w-72 bg-stone-50/70 border border-stone-200/90 rounded-xl px-3 py-2 text-xs font-bold text-stone-800 focus:outline-none focus:border-amber-600 focus:bg-white cursor-pointer shadow-2xs"
+              >
+                <option value="">-- Select a University ({universities.length}) --</option>
+                {universities.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={() => fetchOverviews(selectedUnivId)}
+              disabled={loading || !selectedUnivId}
+              className="p-2.5 rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-stone-700 transition-colors cursor-pointer disabled:opacity-40 shadow-2xs self-start sm:self-auto"
+              title="Refresh overview items"
             >
-              <option value="">-- Select a University --</option>
-              {universities.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+              <RotateCcw className={`w-4 h-4 ${loading ? 'animate-spin text-stone-600' : ''}`} />
+            </button>
           </div>
         </div>
 
+        {/* University Sub-Navigation Bar */}
         {selectedUnivId && (
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-2 mt-5 pt-4 border-t border-stone-100">
             <button
               onClick={() => navigate(`/university-overviews?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md bg-indigo-600 text-white text-xs font-bold shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-stone-900 text-white shadow-xs transition-all"
             >
-              Overview
+              <FileText className="w-3.5 h-3.5 text-amber-300" />
+              <span>Overview Tabs ({overviews.length})</span>
             </button>
             <button
               onClick={() => navigate(`/programs?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Courses
+              <GraduationCap className="w-3.5 h-3.5 text-stone-500" />
+              <span>Programs</span>
             </button>
             <button
               onClick={() => navigate(`/university-gallery?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Gallery
-            </button>
-            <button
-              onClick={() => navigate(`/university-gallery?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
-            >
-              Videos
+              <ImageIcon className="w-3.5 h-3.5 text-stone-500" />
+              <span>Gallery</span>
             </button>
             <button
               onClick={() => navigate(`/university-facilities?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Facilities
+              <Building2 className="w-3.5 h-3.5 text-stone-500" />
+              <span>Facilities</span>
             </button>
             <button
               onClick={() => navigate(`/university-reviews?university_id=${selectedUnivId}`)}
-              className="px-3 py-1 rounded-md border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
-              Rankings
+              <Trophy className="w-3.5 h-3.5 text-amber-600" />
+              <span>Rankings & Reviews</span>
             </button>
+          </div>
+        )}
+
+        {/* ── KPI METRICS CARDS ── */}
+        {selectedUnivId && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-6 pt-6 border-t border-stone-100">
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Overview Tabs</span>
+                <Layers className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                {overviews.length}
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">With Thumbnail</span>
+                <ImageIcon className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                {withThumbnailsCount}
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Word Density</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                {totalWordsCount.toLocaleString()} <span className="text-xs font-normal text-stone-500">words</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#faf8f4] border border-stone-200/80">
+              <div className="flex items-center justify-between text-stone-500 mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-serif">Next Position</span>
+                <Check className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div className="text-xl font-black text-stone-900 font-serif">
+                #{overviews.length + 1}
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {!selectedUnivId ? (
-        <div className="bg-white p-16 rounded-xl border border-slate-200 text-center flex flex-col items-center justify-center text-slate-400">
-          <Building2 className="w-12 h-12 mb-3 text-slate-300 animate-bounce" />
-          <h3 className="text-base font-bold text-slate-700">No University Selected</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-md">
-            Please select a university from the dropdown list above to manage its overview tabs.
+        /* Empty State: No University Selected */
+        <div className="bg-white rounded-3xl p-16 border border-stone-200/90 text-center flex flex-col items-center justify-center max-w-2xl mx-auto shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-800 mb-4 shadow-inner">
+            <Building2 className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-black text-stone-900 font-serif">Select an Institution</h3>
+          <p className="text-xs sm:text-sm text-stone-500 mt-1.5 max-w-md font-medium leading-relaxed">
+            Please choose a university from the dropdown header above to manage its overview sections, campus descriptions, and custom tabs.
           </p>
         </div>
       ) : (
         <>
-          {/* Card 1: Add New Record / Edit Record Form */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+          {/* ── CARD 1: FORM SECTION (ADD / EDIT RECORD) ── */}
+          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
             <div
-              className="flex items-center justify-between p-4 bg-slate-50/80 border-b border-slate-200 cursor-pointer select-none"
+              className="flex items-center justify-between p-5 sm:p-6 bg-[#faf8f4] border-b border-stone-200/90 cursor-pointer select-none"
               onClick={() => setIsFormOpen(!isFormOpen)}
             >
-              <h2 className="text-sm font-bold text-slate-800">
-                {editingId ? 'Edit Record' : 'Add New Record'}
-              </h2>
+              <div className="flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-center justify-center">
+                  {editingId ? <Edit2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                </span>
+                <div>
+                  <h2 className="text-base font-black text-stone-900 font-serif">
+                    {editingId ? 'Edit Overview Tab' : 'Create New Overview Tab'}
+                  </h2>
+                  <p className="text-[11px] text-stone-500 font-medium">
+                    {editingId ? 'Update existing content, thumbnail, or display position' : 'Add a new rich content tab to this university profile'}
+                  </p>
+                </div>
+              </div>
+
               <button
                 type="button"
-                className="p-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+                className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 transition-colors"
+                title={isFormOpen ? 'Collapse form' : 'Expand form'}
               >
                 {isFormOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
               </button>
             </div>
 
             {isFormOpen && (
-              <form onSubmit={handleSubmit} className="p-5 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-5">
+                  {/* Title */}
                   <div className="sm:col-span-6">
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Title
+                    <label className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider font-serif">
+                      Tab Title / Header <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Title"
+                      placeholder="e.g. About University, Campus Life, Accommodation, Scholarships..."
                       value={formData.title}
                       onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full px-4 py-2.5 text-xs sm:text-sm bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-600 focus:bg-white transition-all text-stone-800 font-medium"
                     />
                   </div>
 
-                  <div className="sm:col-span-4">
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Thumbnail
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null;
-                        setThumbnailFile(file);
-                        if (file) {
-                          const autoTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-                          setFormData((prev) => ({
-                            ...prev,
-                            title: prev.title.trim() ? prev.title : autoTitle,
-                          }));
-                        }
-                      }}
-                      className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 cursor-pointer border border-slate-300 rounded-md bg-slate-50"
-                    />
-                    {(thumbnailFile || formData.thumbnail_path) && (
-                      <span className="text-[11px] text-slate-600 mt-1 block truncate">
-                        {thumbnailFile ? `Selected: ${thumbnailFile.name}` : `Current: ${formData.thumbnail_path}`}
-                      </span>
-                    )}
-                  </div>
-
+                  {/* Position */}
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Position
+                    <label className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider font-serif">
+                      Display Position
                     </label>
                     <input
                       type="number"
                       value={formData.position}
                       onChange={(e) => setFormData((prev) => ({ ...prev, position: e.target.value }))}
-                      className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono"
+                      className="w-full px-4 py-2.5 text-xs sm:text-sm bg-stone-50/50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-600 focus:bg-white transition-all text-stone-800 font-mono font-bold"
+                    />
+                  </div>
+
+                  {/* Thumbnail File / Image */}
+                  <div className="sm:col-span-4">
+                    <label className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider font-serif">
+                      Section Thumbnail
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-50 hover:bg-stone-100 border border-dashed border-stone-300 rounded-xl cursor-pointer text-xs font-bold text-stone-700 transition-colors">
+                        <Upload className="w-3.5 h-3.5 text-stone-500" />
+                        <span>{thumbnailFile ? thumbnailFile.name : 'Upload Image'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] || null;
+                            setThumbnailFile(file);
+                            if (file) {
+                              setThumbnailPreviewUrl(URL.createObjectURL(file));
+                              const autoTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                              setFormData((prev) => ({
+                                ...prev,
+                                title: prev.title.trim() ? prev.title : autoTitle,
+                              }));
+                            } else {
+                              setThumbnailPreviewUrl(null);
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {/* Current / Preview Thumbnail Badge */}
+                      {(thumbnailPreviewUrl || formData.thumbnail_path) && (
+                        <div className="relative group shrink-0">
+                          <img
+                            src={thumbnailPreviewUrl || getStorageUrl(formData.thumbnail_path)}
+                            alt="Thumbnail Preview"
+                            className="w-10 h-10 rounded-xl object-cover border border-stone-200 shadow-xs cursor-pointer"
+                            onClick={() => {
+                              const url = thumbnailPreviewUrl || formData.thumbnail_path;
+                              if (url) setPreviewImage({ title: formData.title || 'Thumbnail', url });
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setThumbnailFile(null);
+                              setThumbnailPreviewUrl(null);
+                              setFormData((prev) => ({ ...prev, thumbnail_path: '' }));
+                            }}
+                            className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 bg-rose-600 text-white rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shadow-xs"
+                            title="Remove image"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description Rich Text Editor */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 mb-2 uppercase tracking-wider font-serif">
+                    Overview Tab Description Content
+                  </label>
+                  <div className="border border-stone-200 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                    <RichTextEditor
+                      value={formData.description}
+                      onChange={(val) => setFormData((prev) => ({ ...prev, description: val }))}
+                      placeholder="Write comprehensive profile information, admission requirements, highlights, campus facilities..."
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    Description
-                  </label>
-                  <RichTextEditor
-                    value={formData.description}
-                    onChange={(val) => setFormData((prev) => ({ ...prev, description: val }))}
-                    placeholder="Enter description content..."
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 pt-2">
+                {/* Submit & Reset Buttons */}
+                <div className="flex items-center justify-between pt-3 border-t border-stone-100">
                   <button
                     type="button"
                     onClick={handleResetForm}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-md shadow-xs transition-colors"
+                    className="px-5 py-2.5 rounded-xl border border-stone-200 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition-colors cursor-pointer"
                   >
-                    Reset
+                    Reset Form
                   </button>
+
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex items-center gap-1.5 px-5 py-2 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-semibold rounded-md shadow-xs transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition-all disabled:opacity-50 cursor-pointer"
                   >
-                    {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    <span>{editingId ? 'Update' : 'Submit'}</span>
+                    {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />}
+                    <span>{editingId ? 'Update Overview' : 'Create Overview Tab'}</span>
                   </button>
                 </div>
               </form>
             )}
           </div>
 
-          {/* Card 2: University Overview List Table */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-4 bg-slate-50/80 border-b border-slate-200">
-              <h2 className="text-sm font-bold text-slate-800">University Overview List</h2>
-            </div>
-
-            {/* Controls */}
-            <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <span>Show</span>
-                <span className="font-semibold text-slate-800 px-2 py-1 bg-slate-100 border border-slate-200 rounded">10</span>
-                <span>entries</span>
+          {/* ── CARD 2: DATA TABLE SECTION ── */}
+          <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
+            {/* Table Header Bar */}
+            <div className="p-5 sm:p-6 bg-[#faf8f4] border-b border-stone-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <span className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-900 flex items-center justify-center">
+                  <Layers className="w-3.5 h-3.5" />
+                </span>
+                <div>
+                  <h2 className="text-base font-black text-stone-900 font-serif">University Overview Tabs</h2>
+                  <p className="text-[11px] text-stone-500 font-medium">
+                    {filtered.length} tab{filtered.length !== 1 ? 's' : ''} configured for this institution
+                  </p>
+                </div>
               </div>
-              <div className="relative w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+
+              {/* Search Toolbar */}
+              <div className="relative w-full sm:w-72">
+                <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search overview tabs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full pl-9 pr-4 py-2 text-xs bg-white border border-stone-200 rounded-xl focus:outline-none focus:border-amber-600 transition-all text-stone-800 placeholder-stone-400 shadow-2xs font-medium"
                 />
               </div>
             </div>
 
             {/* Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase text-[11px] tracking-wider">
+              <table className="w-full text-left text-xs text-stone-600">
+                <thead className="bg-[#faf8f4] border-b border-stone-200 text-stone-600 font-black uppercase tracking-wider text-[10.5px] font-serif">
                   <tr>
-                    <th className="py-3 px-4 w-16">Sr. No.</th>
-                    <th className="py-3 px-4 w-20">Position</th>
-                    <th className="py-3 px-4">Title</th>
-                    <th className="py-3 px-4 w-28">Description</th>
-                    <th className="py-3 px-4 w-24">Thumbnail</th>
-                    <th className="py-3 px-4 w-64">Date</th>
-                    <th className="py-3 px-4 w-24 text-right">Action</th>
+                    <th className="py-3.5 px-5 w-16 text-center">#</th>
+                    <th className="py-3.5 px-4 w-20 text-center">Pos</th>
+                    <th className="py-3.5 px-5">Tab / Title</th>
+                    <th className="py-3.5 px-5">Content Preview</th>
+                    <th className="py-3.5 px-5 w-32 text-center">Thumbnail</th>
+                    <th className="py-3.5 px-5 w-48">Timestamps</th>
+                    <th className="py-3.5 px-5 w-28 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-stone-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400">
-                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-indigo-600" />
-                        Loading overviews...
+                      <td colSpan={7} className="py-16 text-center text-stone-400 font-medium">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-800" />
+                        Loading overview content...
                       </td>
                     </tr>
                   ) : paginated.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400">
-                        No overview entries found.
+                      <td colSpan={7} className="py-16 text-center text-stone-400 font-medium">
+                        {searchQuery ? 'No overview tabs matched your search.' : 'No overview sections configured yet for this university.'}
                       </td>
                     </tr>
                   ) : (
                     paginated.map((item, index) => {
                       const srNo = (currentPage - 1) * itemsPerPage + index + 1;
+                      const cleanSnippet = getCleanSnippet(item.description);
+
                       return (
-                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-medium text-slate-500">{srNo}</td>
-                          <td className="py-3.5 px-4 font-medium text-slate-700">{item.position}</td>
-                          <td className="py-3.5 px-4 font-medium text-slate-800">
-                            {item.title || item.tab}
+                        <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
+                          {/* Sr. No */}
+                          <td className="py-4 px-5 text-center font-bold text-stone-400 font-mono text-[11px]">
+                            {srNo}
                           </td>
-                          <td className="py-3.5 px-4">
+
+                          {/* Position Badge */}
+                          <td className="py-4 px-4 text-center">
+                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-lg bg-stone-100 border border-stone-200 text-stone-800 font-mono font-bold text-[11px]">
+                              #{item.position}
+                            </span>
+                          </td>
+
+                          {/* Title / Tab Name */}
+                          <td className="py-4 px-5">
+                            <div className="font-bold text-stone-900 text-xs sm:text-sm font-serif">
+                              {item.title || item.tab}
+                            </div>
+                            <div className="text-[10.5px] text-stone-400 font-mono mt-0.5">
+                              ID: #{item.id}
+                            </div>
+                          </td>
+
+                          {/* Content & View Modal Trigger */}
+                          <td className="py-4 px-5 max-w-xs">
+                            <p className="text-[11px] text-stone-500 truncate leading-relaxed">
+                              {cleanSnippet}
+                            </p>
                             <button
                               onClick={() =>
                                 setViewingDescription({
@@ -539,40 +722,60 @@ export default function UniversityOverviews() {
                                   html: item.description || '<p>No content provided.</p>',
                                 })
                               }
-                              className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-sky-600 border border-sky-500 hover:bg-sky-50 rounded transition-colors"
+                              className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold text-amber-900 hover:text-amber-800 hover:underline cursor-pointer"
                             >
-                              <Eye className="w-3 h-3" /> View
+                              <Eye className="w-3 h-3" /> Read Full Content
                             </button>
                           </td>
-                          <td className="py-3.5 px-4 font-semibold text-xs">
+
+                          {/* Thumbnail */}
+                          <td className="py-4 px-5 text-center">
                             {item.thumbnail_path ? (
                               <button
                                 onClick={() => setPreviewImage({ title: item.title || item.tab || 'Thumbnail', url: item.thumbnail_path! })}
-                                className="inline-flex items-center gap-1 text-indigo-600 font-bold hover:underline cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 text-[11px] font-bold text-stone-700 transition-colors cursor-pointer group-hover:border-amber-400"
                               >
-                                View <ExternalLink className="w-2.5 h-2.5" />
+                                <img
+                                  src={getStorageUrl(item.thumbnail_path)}
+                                  alt="Thumb"
+                                  className="w-4 h-4 rounded object-cover"
+                                />
+                                <span>Preview</span>
+                                <ExternalLink className="w-2.5 h-2.5 text-stone-400" />
                               </button>
                             ) : (
-                              <span className="text-slate-400">N/A</span>
+                              <span className="text-[11px] font-medium text-stone-300">—</span>
                             )}
                           </td>
-                          <td className="py-3.5 px-4 text-[11px] text-slate-500 space-y-0.5">
-                            <div>Created at : {formatDateString(item.created_at)}</div>
-                            <div>Updated at : {formatDateString(item.updated_at || item.created_at)}</div>
+
+                          {/* Timestamps */}
+                          <td className="py-4 px-5 text-[11px] text-stone-500 space-y-1">
+                            <div className="flex items-center gap-1 text-stone-600 font-medium">
+                              <Calendar className="w-3 h-3 text-stone-400 shrink-0" />
+                              <span>{formatDateString(item.created_at)}</span>
+                            </div>
+                            {item.updated_at && item.updated_at !== item.created_at && (
+                              <div className="flex items-center gap-1 text-[10px] text-stone-400">
+                                <Clock className="w-2.5 h-2.5 text-stone-400 shrink-0" />
+                                <span>Updated: {formatDateString(item.updated_at)}</span>
+                              </div>
+                            )}
                           </td>
-                          <td className="py-3.5 px-4 text-right">
+
+                          {/* Actions */}
+                          <td className="py-4 px-5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => handleEditClick(item)}
-                                className="p-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded text-xs transition-colors"
-                                title="Edit"
+                                className="p-2 bg-stone-100 hover:bg-stone-900 text-stone-700 hover:text-white rounded-xl transition-all shadow-2xs cursor-pointer"
+                                title="Edit Overview Tab"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDelete(item)}
-                                className="p-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded text-xs transition-colors"
-                                title="Delete"
+                                className="p-2 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white rounded-xl transition-all shadow-2xs cursor-pointer"
+                                title="Delete Tab"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -588,10 +791,11 @@ export default function UniversityOverviews() {
 
             {/* Pagination Footer */}
             {!loading && filtered.length > 0 && (
-              <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+              <div className="p-5 bg-[#faf8f4] border-t border-stone-200/90 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-stone-500 font-medium">
                 <div>
-                  Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                  {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length} entries
+                  Showing <span className="font-bold text-stone-800">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+                  <span className="font-bold text-stone-800">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of{' '}
+                  <span className="font-bold text-stone-800">{filtered.length}</span> tabs
                 </div>
                 <Pagination
                   currentPage={currentPage}
@@ -606,50 +810,59 @@ export default function UniversityOverviews() {
         </>
       )}
 
-      {/* Description Preview Modal */}
+      {/* ── DESCRIPTION PREVIEW MODAL ── */}
       {viewingDescription && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white rounded-xl border border-slate-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between p-4 bg-slate-50 border-b border-slate-200">
-              <h3 className="text-sm font-bold text-slate-800">{viewingDescription.title}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl border border-stone-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-5 bg-[#faf8f4] border-b border-stone-200">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-800" />
+                <h3 className="text-base font-black text-stone-900 font-serif">{viewingDescription.title}</h3>
+              </div>
               <button
                 onClick={() => setViewingDescription(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors"
+                className="p-1.5 text-stone-400 hover:text-stone-700 rounded-xl hover:bg-stone-200/60 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <div
-              className="p-6 overflow-y-auto prose prose-slate max-w-none text-xs leading-relaxed"
+              className="p-6 sm:p-8 overflow-y-auto prose prose-stone max-w-none text-xs sm:text-sm leading-relaxed text-stone-700"
               dangerouslySetInnerHTML={{ __html: viewingDescription.html }}
             />
-            <div className="p-3 bg-slate-50 border-t border-slate-200 text-right">
+            <div className="p-4 bg-[#faf8f4] border-t border-stone-200 text-right">
               <button
                 onClick={() => setViewingDescription(null)}
-                className="px-4 py-1.5 bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded transition-colors"
+                className="px-5 py-2 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer shadow-xs"
               >
-                Close
+                Close Preview
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Image Preview Modal */}
+      {/* ── IMAGE PREVIEW MODAL ── */}
       {previewImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-150">
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="font-extrabold text-slate-900 text-sm">{previewImage.title} Preview</h3>
-              <button onClick={() => setPreviewImage(null)} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/40 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-stone-200 overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-stone-200 flex items-center justify-between bg-[#faf8f4]">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-amber-800" />
+                <h3 className="font-black text-stone-900 text-sm font-serif">{previewImage.title} Preview</h3>
+              </div>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="text-stone-400 hover:text-stone-700 p-1.5 rounded-xl hover:bg-stone-200/60 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-6 flex flex-col items-center justify-center bg-slate-50/50 min-h-[220px]">
+            <div className="p-6 flex flex-col items-center justify-center bg-stone-50/50 min-h-[240px]">
               <img
                 src={getStorageUrl(previewImage.url)}
                 alt={previewImage.title}
-                className="max-h-80 w-auto rounded-xl shadow-md border border-slate-200 object-contain bg-white p-1"
+                className="max-h-80 w-auto rounded-2xl shadow-sm border border-stone-200 object-contain bg-white p-1"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';
                 }}
@@ -658,7 +871,7 @@ export default function UniversityOverviews() {
                 href={getStorageUrl(previewImage.url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-mono text-indigo-600 hover:underline mt-4 break-all flex items-center gap-1 font-semibold"
+                className="text-xs font-mono text-amber-900 hover:underline mt-4 break-all flex items-center gap-1 font-bold"
               >
                 {getStorageUrl(previewImage.url)} <ExternalLink className="w-3 h-3 shrink-0" />
               </a>
@@ -669,3 +882,4 @@ export default function UniversityOverviews() {
     </div>
   );
 }
+
