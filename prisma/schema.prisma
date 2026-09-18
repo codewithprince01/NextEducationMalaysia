@@ -977,5 +977,30 @@ model User {
   @@map("users")
 }
 
+model AdminAuditLog {
+  id          BigInt    @id @default(autoincrement())
+  user_id     Int?
+  user_name   String?   @db.VarChar(255)
+  user_email  String?   @db.VarChar(255)
+  user_role   String?   @db.VarChar(100)
+  action      String    @db.VarChar(50)
+  module      String    @db.VarChar(100)
+  record_id   String?   @db.VarChar(100)
+  description String?   @db.Text
+  old_values  String?   @db.LongText
+  new_values  String?   @db.LongText
+  diff_values String?   @db.LongText
+  ip_address  String?   @db.VarChar(100)
+  user_agent  String?   @db.Text
+  browser     String?   @db.VarChar(100)
+  os          String?   @db.VarChar(100)
+  device      String?   @db.VarChar(100)
+  status      String?   @default("success") @db.VarChar(20)
+  created_at  DateTime? @default(now())
 
-
+  @@index([user_id])
+  @@index([module])
+  @@index([action])
+  @@index([created_at])
+  @@map("admin_audit_logs")
+}
