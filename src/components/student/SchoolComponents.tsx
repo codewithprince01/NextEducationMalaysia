@@ -312,6 +312,8 @@ export const SchoolFormFields: React.FC<SchoolFormFieldsProps> = ({ formData, ha
             <label className="block text-xs font-semibold text-slate-700">Zip / Postal Code</label>
             <input
               type="text"
+              inputMode="numeric"
+              maxLength={10}
               name="zipcode"
               value={formData.zipcode}
               onChange={handleChange}

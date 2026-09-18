@@ -2,6 +2,7 @@
 
 import React from "react";
 import { User, MapPin } from "lucide-react";
+import { getMaxDateOfBirth } from "@/utils/validation";
 
 const FieldError = ({ msg }: { msg?: string }) =>
   msg ? (
@@ -178,6 +179,7 @@ const PersonalInfoForm = ({
         <input
           type="date"
           name="dob"
+          max={getMaxDateOfBirth()}
           value={formData.dob || ''}
           onChange={onChange}
           onBlur={onBlur}
@@ -395,6 +397,8 @@ const PersonalInfoForm = ({
           </label>
           <input
             type="text"
+            inputMode="numeric"
+            maxLength={10}
             name="zipcode"
             placeholder="Enter Zipcode"
             value={formData.zipcode || ''}

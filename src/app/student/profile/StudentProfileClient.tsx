@@ -248,9 +248,12 @@ export default function StudentProfileClient() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((p: any) => ({ ...p, [name]: value }));
+    // Postal codes are digits only, so letters are dropped as they are typed
+    // rather than only being rejected on save.
+    const nextValue = name === "zipcode" ? value.replace(/\D/g, "").slice(0, 10) : value;
+    setFormData((p: any) => ({ ...p, [name]: nextValue }));
     if (errors[name]) setErrors((p: any) => ({ ...p, [name]: "" }));
-    if (touched[name]) validateField(name, value);
+    if (touched[name]) validateField(name, nextValue);
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {

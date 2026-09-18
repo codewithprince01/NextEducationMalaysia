@@ -132,6 +132,30 @@ const parseFlexibleDate = (raw: string) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
+export const MIN_AGE_YEARS = 16;
+
+/**
+ * Subtracting the years alone counts someone as a year older than they are
+ * until their birthday comes round, which would let a 15-year-old past a
+ * 16-year minimum, so the birthday itself decides.
+ */
+const getAgeInYears = (birthDate: Date, today: Date): number => {
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age -= 1;
+  }
+  return age;
+};
+
+/** Latest date of birth that still satisfies MIN_AGE_YEARS, as YYYY-MM-DD. */
+export const getMaxDateOfBirth = (today: Date = new Date()): string => {
+  const limit = new Date(today.getFullYear() - MIN_AGE_YEARS, today.getMonth(), today.getDate());
+  const month = String(limit.getMonth() + 1).padStart(2, "0");
+  const day = String(limit.getDate()).padStart(2, "0");
+  return `${limit.getFullYear()}-${month}-${day}`;
+};
+
 export const validateDateOfBirth = (date: string | number, fieldName: string = "Date of birth") => {
   const dateValue = String(date ?? "").trim();
   if (!dateValue) {
@@ -143,14 +167,15 @@ export const validateDateOfBirth = (date: string | number, fieldName: string = "
     return `Please enter a valid ${fieldName.toLowerCase()}`;
   }
   const today = new Date();
-  const age = today.getFullYear() - selectedDate.getFullYear();
 
   if (selectedDate > today) {
     return `${fieldName} cannot be in the future`;
   }
 
-  if (age < 10) {
-    return "You must be at least 10 years old";
+  const age = getAgeInYears(selectedDate, today);
+
+  if (age < MIN_AGE_YEARS) {
+    return `You must be at least ${MIN_AGE_YEARS} years old`;
   }
 
   if (age > 120) {
@@ -166,9 +191,9 @@ export const validateZipcode = (zipcode: string | number) => {
     return "Zipcode/Postal code is required";
   }
 
-  const zipcodeRegex = /^[A-Z0-9\s\-]{3,10}$/i;
+  const zipcodeRegex = /^\d{3,10}$/;
   if (!zipcodeRegex.test(zipcodeValue)) {
-    return "Invalid zipcode format";
+    return "Zipcode/Postal code must be 3-10 digits, no letters";
   }
 
   return "";

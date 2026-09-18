@@ -740,7 +740,10 @@ export default function EducationForm() {
               formData={schoolFormData}
               handleChange={(e: any) => {
                 const { name, value, type, checked } = e.target;
-                setSchoolFormData((prev: any) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+                // Postal codes are digits only, so letters are dropped as they
+                // are typed rather than only being rejected on save.
+                const nextValue = name === "zipcode" ? value.replace(/\D/g, "").slice(0, 10) : value;
+                setSchoolFormData((prev: any) => ({ ...prev, [name]: type === "checkbox" ? checked : nextValue }));
                 if (schoolErrors[name]) {
                   setSchoolErrors((prev: any) => ({ ...prev, [name]: "" }));
                 }
