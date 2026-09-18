@@ -101,7 +101,9 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
       {/* Main Area: Top Bar + Content */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Sleek Dashboard Top Navbar */}
-        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between shadow-2xs">
+        {/* Sticks below the 76px fixed site navbar, matching the sidebar — at
+            top-0 it slid underneath the navbar and disappeared on scroll. */}
+        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-[76px] z-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-3 sm:gap-3.5">
             {/* Mobile Hamburger */}
             <button

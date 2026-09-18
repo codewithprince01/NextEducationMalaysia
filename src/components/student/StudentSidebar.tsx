@@ -252,8 +252,11 @@ export default function StudentSidebar({
   ];
 
   const sidebarContent = (
-    <div className="h-full flex flex-col justify-between select-none">
-      <div>
+    <div className="h-full flex flex-col select-none">
+      {/* Scrolls on its own once the menu is taller than the viewport. Without
+          it the content overflows the fixed-height sidebar and spills over the
+          page footer on short screens. */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
         {/* Hidden File Input for Avatar Upload */}
         <input
           ref={fileInputRef}
@@ -435,8 +438,8 @@ export default function StudentSidebar({
         </div>
       </div>
 
-      {/* Footer Section */}
-      <div className={`p-3 border-t border-slate-100 space-y-2 ${isCollapsed ? "px-2" : "px-3"}`}>
+      {/* Footer Section — stays pinned to the bottom of the sidebar */}
+      <div className={`shrink-0 p-3 border-t border-slate-100 space-y-2 ${isCollapsed ? "px-2" : "px-3"}`}>
         {/* Sign Out Button */}
         <button
           onClick={handleLogout}
@@ -466,18 +469,23 @@ export default function StudentSidebar({
 
   return (
     <>
-      {/* Mobile Sliding Drawer */}
+      {/* Mobile Sliding Drawer.
+          Starts below the site navbar (fixed, 76px) so its close button is not
+          buried underneath it. */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl border-r border-slate-200 transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed top-[76px] bottom-0 left-0 z-50 w-72 bg-white shadow-2xl border-r border-slate-200 transition-transform duration-300 ease-in-out lg:hidden ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {sidebarContent}
       </aside>
 
-      {/* Desktop Sticky Flush-Left Sidebar */}
+      {/* Desktop Sticky Flush-Left Sidebar.
+          Sticks below the 76px fixed navbar and is exactly as tall as the space
+          left under it — `top-0 h-screen` hid the profile header behind the
+          navbar and pushed the sign-out button a navbar's height past the fold. */}
       <aside
-        className={`hidden lg:flex flex-col sticky top-0 h-screen bg-white border-r border-slate-200/80 z-30 transition-all duration-300 ease-in-out shrink-0 ${
+        className={`hidden lg:flex flex-col sticky top-[76px] h-[calc(100vh-76px)] bg-white border-r border-slate-200/80 z-30 transition-all duration-300 ease-in-out shrink-0 ${
           isCollapsed ? "w-[76px]" : "w-64 xl:w-72"
         }`}
       >
