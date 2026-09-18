@@ -19,6 +19,7 @@ import {
 
 interface PageBannerItem {
   id: number;
+  website?: string;
   page: string;
   alt_text: string;
   title?: string;
@@ -69,7 +70,9 @@ export default function PageBanners() {
       if (res.ok) {
         const json = await res.json();
         if (json.status || json.success) {
-          setItems(json.data || []);
+          const rawItems: PageBannerItem[] = json.data || [];
+          // Strict filter to only include website = 'MYS'
+          setItems(rawItems.filter((item) => !item.website || item.website === 'MYS'));
         } else {
           setItems([]);
         }
@@ -153,6 +156,7 @@ export default function PageBanners() {
     setSubmitting(true);
     try {
       const payload = new FormData();
+      payload.append('website', 'MYS');
       payload.append('page', formData.page);
       payload.append('alt_text', formData.alt_text);
       payload.append('title', formData.title);
@@ -189,11 +193,14 @@ export default function PageBanners() {
     }
   };
 
-  const filtered = items.filter((item) =>
-    (item.alt_text || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.page || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = items.filter((item) => {
+    const matchesWebsite = !item.website || item.website === 'MYS';
+    const matchesQuery =
+      (item.alt_text || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.page || '').toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesWebsite && matchesQuery;
+  });
 
   const paginated = filtered.slice(
     (currentPage - 1) * itemsPerPage,
@@ -205,8 +212,9 @@ export default function PageBanners() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
-            }`}
+          className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white text-sm font-medium transition-all duration-300 ${
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+          }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           <span>{toast.message}</span>
@@ -216,11 +224,16 @@ export default function PageBanners() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <ImageIcon className="w-6 h-6 text-indigo-600" /> Page Banners
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+              <ImageIcon className="w-6 h-6 text-indigo-600" /> Page Banners
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wide">
+              Website: MYS
+            </span>
+          </div>
           <p className="text-sm text-slate-500 mt-1">
-            Manage top hero sliders, alt texts, title headlines, and banner images for main landing pages.
+            Manage top hero sliders, alt texts, title headlines, and banner images for Malaysia (MYS) pages.
           </p>
         </div>
         <div className="flex items-center gap-3">

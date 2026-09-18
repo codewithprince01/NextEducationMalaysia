@@ -11,7 +11,7 @@ export async function GET(
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM page_banners WHERE id = ? LIMIT 1`,
+      `SELECT * FROM page_banners WHERE id = ? AND website = 'MYS' LIMIT 1`,
       id,
     );
 
@@ -54,7 +54,7 @@ export async function PUT(
     const id = parseInt(rawId, 10);
 
     const existingRows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM page_banners WHERE id = ? LIMIT 1`,
+      `SELECT * FROM page_banners WHERE id = ? AND website = 'MYS' LIMIT 1`,
       id,
     );
 
@@ -107,7 +107,7 @@ export async function PUT(
     }
 
     await prisma.$executeRawUnsafe(
-      `UPDATE page_banners SET page = ?, alt_text = ?, title = ?, description = ?, banner_name = ?, banner_path = ? WHERE id = ?`,
+      `UPDATE page_banners SET website = 'MYS', page = ?, alt_text = ?, title = ?, description = ?, banner_name = ?, banner_path = ? WHERE id = ? AND website = 'MYS'`,
       page,
       alt_text,
       title,
@@ -143,7 +143,7 @@ export async function DELETE(
     const id = parseInt(rawId, 10);
 
     const existingRows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT * FROM page_banners WHERE id = ? LIMIT 1`,
+      `SELECT * FROM page_banners WHERE id = ? AND website = 'MYS' LIMIT 1`,
       id,
     );
 
@@ -159,7 +159,10 @@ export async function DELETE(
       await deleteUploadedFile(row.banner_path);
     }
 
-    await prisma.$executeRawUnsafe(`DELETE FROM page_banners WHERE id = ?`, id);
+    await prisma.$executeRawUnsafe(
+      `DELETE FROM page_banners WHERE id = ? AND website = 'MYS'`,
+      id,
+    );
 
     return NextResponse.json({
       status: true,
