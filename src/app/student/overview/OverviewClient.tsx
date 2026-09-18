@@ -184,14 +184,17 @@ export default function OverviewClient() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
-              <Compass className="w-6 h-6 text-amber-600" />
+            <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
+              <Compass className="w-5 h-5 text-amber-600" />
             </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+            <div className="min-w-0">
+              {/* One fixed size, `!` to beat the global h2 rule — see the note on
+                  the applications cards below. 17px keeps this page-level header
+                  a step above the 15px section cards. */}
+              <h2 className="!text-[17px] !font-bold !leading-tight text-slate-900 tracking-tight">
                 My Progress
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium">
+              <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5">
                 Track your full journey from profile completion to arriving in Malaysia
               </p>
             </div>
@@ -377,23 +380,27 @@ export default function OverviewClient() {
         {/* Module 1: My Applications (Paid Universities) */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
+            <div className="flex items-start justify-between gap-3 pb-4 mb-5 border-b border-slate-100">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4" />
                 </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                <div className="min-w-0">
+                  {/* The `!` prefixes are needed to beat `h2:not(.text-white)` in
+                      globals.css, which forces every h2 to 1.875rem. One fixed
+                      size (no breakpoint jump) so the header reads identically
+                      on every screen. */}
+                  <h2 className="!text-[15px] !font-bold !leading-tight text-slate-900">
                     My Applications (Paid)
                   </h2>
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5">
                     Universities with confirmed admission fee payment
                   </p>
                 </div>
               </div>
               <Link
                 href="/student/my-applications"
-                className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
+                className="shrink-0 whitespace-nowrap mt-0.5 text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
               >
                 View All ({paidApps.length}) <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
@@ -479,23 +486,24 @@ export default function OverviewClient() {
         {/* Module 2: Unpaid Applications (Payment Pending) */}
         <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center">
+            <div className="flex items-start justify-between gap-3 pb-4 mb-5 border-b border-slate-100">
+              <div className="flex items-start gap-2.5 min-w-0">
+                <div className="w-8 h-8 shrink-0 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center">
                   <CreditCard className="w-4 h-4" />
                 </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                <div className="min-w-0">
+                  {/* Same fixed sizing as the paid card — see the note there. */}
+                  <h2 className="!text-[15px] !font-bold !leading-tight text-slate-900">
                     Unpaid Applications
                   </h2>
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5">
                     Applications submitted with pending fee payment
                   </p>
                 </div>
               </div>
               <Link
                 href="/student/unpaid-applications"
-                className="text-xs text-amber-700 hover:text-amber-900 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
+                className="shrink-0 whitespace-nowrap mt-0.5 text-[11px] text-amber-700 hover:text-amber-900 font-semibold inline-flex items-center gap-1 hover:gap-1.5 transition-all"
               >
                 View All ({unpaidApps.length}) <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
@@ -582,8 +590,9 @@ export default function OverviewClient() {
       {/* Quick Actions Card Grid */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
         <div className="pb-4 mb-5 border-b border-slate-100">
-          <h2 className="text-base sm:text-lg font-bold text-slate-900">Quick Dashboard Actions</h2>
-          <p className="text-xs text-slate-500">Shortcuts to manage your applications, profile, and counselor guidance</p>
+          {/* Same fixed sizing as the applications cards — see the note there. */}
+          <h2 className="!text-[15px] !font-bold !leading-tight text-slate-900">Quick Dashboard Actions</h2>
+          <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5">Shortcuts to manage your applications, profile, and counselor guidance</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">

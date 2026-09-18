@@ -26,9 +26,14 @@ function buildTransporter(config?: { port?: number; secure?: boolean; requireTLS
     port: config?.port ?? port,
     secure: config?.secure ?? secure,
     requireTLS: config?.requireTLS ?? (!secure && encryption === 'tls'),
-    connectionTimeout: 8000,
-    greetingTimeout: 8000,
-    socketTimeout: 12000,
+    // The shared Exim host takes ~10s to send its SMTP banner, so the previous
+    // 8s greetingTimeout aborted every send with "Greeting never received"
+    // (ETIMEDOUT on CONN) before the server had said anything at all — on the
+    // retry and the 465<->587 fallback too, since each port greets just as
+    // slowly. Sends are dispatched in the background, so waiting is cheap.
+    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 20000),
+    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT_MS || 20000),
+    socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 30000),
     auth: {
       user,
       pass,

@@ -1,12 +1,23 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from "react";
-import { FaEnvelope, FaArrowRight, FaArrowLeft, FaLock } from "react-icons/fa";
+import { FaEnvelope, FaArrowRight, FaArrowLeft, FaLock, FaEye, FaEyeSlash, FaCheck } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '');
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || "";
+
+// Mirrors `strongPassword` in src/backend/validators/auth.ts. The server rejects
+// anything these miss, so showing them up front saves a round trip — keep the
+// two lists in step.
+const PASSWORD_RULES: { id: string; label: string; test: (value: string) => boolean }[] = [
+  { id: "length", label: "At least 8 characters", test: (v) => v.length >= 8 },
+  { id: "upper", label: "One uppercase letter (A-Z)", test: (v) => /[A-Z]/.test(v) },
+  { id: "lower", label: "One lowercase letter (a-z)", test: (v) => /[a-z]/.test(v) },
+  { id: "number", label: "One number (0-9)", test: (v) => /\d/.test(v) },
+  { id: "special", label: "One special character (! @ # $ % & …)", test: (v) => /[^A-Za-z0-9]/.test(v) },
+];
 
 const ModernInput = ({
   label,
@@ -15,8 +26,12 @@ const ModernInput = ({
   placeholder,
   value,
   onChange,
+  onBlur,
   icon,
   required,
+  error,
+  isVisible,
+  onToggleVisibility,
 }: {
   label: string;
   type: string;
@@ -24,8 +39,12 @@ const ModernInput = ({
   placeholder: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: () => void;
   icon: React.ReactNode;
   required?: boolean;
+  error?: string;
+  isVisible?: boolean;
+  onToggleVisibility?: () => void;
 }) => (
   <div className="space-y-1.5">
     <label className="text-sm font-semibold text-gray-700 ml-1">{label}</label>
@@ -39,10 +58,35 @@ const ModernInput = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         required={required}
-        className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-sm font-medium"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${name}-error` : undefined}
+        className={`w-full pl-11 ${onToggleVisibility ? "pr-12" : "pr-4"} py-3.5 border rounded-xl text-gray-900 placeholder:text-gray-400 focus:bg-white focus:ring-4 transition-all outline-none text-sm font-medium ${
+          error
+            ? "bg-red-50/40 border-red-300 focus:border-red-500 focus:ring-red-500/10"
+            : "bg-gray-50 border-gray-200 focus:border-blue-500 focus:ring-blue-500/10"
+        }`}
       />
+      {onToggleVisibility && (
+        <button
+          type="button"
+          onClick={onToggleVisibility}
+          tabIndex={-1}
+          aria-label={isVisible ? "Hide password" : "Show password"}
+          title={isVisible ? "Hide password" : "Show password"}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors cursor-pointer"
+        >
+          {isVisible ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+        </button>
+      )}
     </div>
+    {error && (
+      <p id={`${name}-error`} className="flex items-center gap-1.5 text-xs font-medium text-red-600 ml-1">
+        <span className="w-1 h-1 rounded-full bg-red-600 shrink-0" />
+        {error}
+      </p>
+    )}
   </div>
 );
 
@@ -59,6 +103,24 @@ export default function ResetPasswordClient() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [touched, setTouched] = useState<{ newPassword?: boolean; confirmNewPassword?: boolean }>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
+  const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(newPassword));
+  const passwordsMatch = newPassword === confirmNewPassword;
+
+  // Held back until the field has been left or the form submitted, so the
+  // errors do not fire on the very first keystroke.
+  const newPasswordError =
+    (submitAttempted || touched.newPassword) && newPassword.length > 0 && failedRules.length > 0
+      ? "Password does not meet the requirements below."
+      : "";
+  const confirmPasswordError =
+    (submitAttempted || touched.confirmNewPassword) && confirmNewPassword.length > 0 && !passwordsMatch
+      ? "Passwords don't match."
+      : "";
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -96,21 +158,17 @@ export default function ResetPasswordClient() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitAttempted(true);
     setMessage("");
     setError("");
 
-    if (newPassword.length < 8) {
-      setLoading(false);
-      setError("Password must be at least 8 characters.");
+    // The inline field errors and the checklist above the button already say
+    // what is wrong, so the form simply refuses to submit.
+    if (failedRules.length > 0 || !passwordsMatch) {
       return;
     }
 
-    if (newPassword !== confirmNewPassword) {
-      setLoading(false);
-      setError("Passwords don't match.");
-      return;
-    }
+    setLoading(true);
 
     try {
       const response = await fetch(`${API_BASE}/student/reset-password`, {
@@ -209,9 +267,13 @@ export default function ResetPasswordClient() {
                   icon={<FaLock />}
                   placeholder="Enter new password"
                   name="new_password"
-                  type="password"
+                  type={showNewPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, newPassword: true }))}
+                  error={newPasswordError}
+                  isVisible={showNewPassword}
+                  onToggleVisibility={() => setShowNewPassword((v) => !v)}
                   required
                 />
                 <ModernInput
@@ -219,12 +281,57 @@ export default function ResetPasswordClient() {
                   icon={<FaLock />}
                   placeholder="Confirm new password"
                   name="confirm_new_password"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, confirmNewPassword: true }))}
+                  error={confirmPasswordError}
+                  isVisible={showConfirmPassword}
+                  onToggleVisibility={() => setShowConfirmPassword((v) => !v)}
                   required
                 />
+
+                {/* Requirements, right above the submit button, ticking off as
+                    they are met. */}
+                <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4">
+                  <p className="text-xs font-semibold text-gray-700 mb-2.5">Your password must contain:</p>
+                  <ul className="space-y-1.5">
+                    {PASSWORD_RULES.map((rule) => {
+                      const passed = rule.test(newPassword);
+                      return (
+                        <li
+                          key={rule.id}
+                          className={`flex items-center gap-2 text-xs font-medium transition-colors ${
+                            passed ? "text-green-600" : "text-gray-500"
+                          }`}
+                        >
+                          {passed ? (
+                            <FaCheck size={10} className="shrink-0" />
+                          ) : (
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0" />
+                          )}
+                          {rule.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               </>
+            )}
+
+            {/* Server-side outcome sits above the button so it is not missed
+                below the fold. */}
+            {message && (
+              <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                {message}
+              </div>
+            )}
+            {error && (
+              <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                {error}
+              </div>
             )}
 
             <button
@@ -240,19 +347,6 @@ export default function ResetPasswordClient() {
                 </>
               )}
             </button>
-
-            {message && (
-              <div className="p-4 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                {message}
-              </div>
-            )}
-            {error && (
-              <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                {error}
-              </div>
-            )}
           </form>
         </div>
       </div>
