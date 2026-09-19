@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from 'react-toastify'
+import { matchesDocumentRequirement, getFullDocUrl } from '@/utils/studentChecklist'
 import {
   FileUp,
   FileText,
@@ -208,37 +209,50 @@ export default function DocumentUploadForm() {
 
   useEffect(() => {
     fetchDocuments()
+    const handleDocsUpdated = () => {
+      fetchDocuments()
+    }
+    window.addEventListener('student_documents_updated', handleDocsUpdated)
+    return () => window.removeEventListener('student_documents_updated', handleDocsUpdated)
   }, [])
 
   // Use dynamic server requirements from CRM when available, otherwise fallback to official defaults
   const allRequiredDocuments = useMemo(() => {
     if (Array.isArray(serverRequirements) && serverRequirements.length > 0) {
-      return serverRequirements.map((sr) => {
-        const titleClean = String(sr.title || '').trim()
-        const officialMatch = OFFICIAL_REQUIRED_DOCUMENTS.find(
-          (std) => std.match(titleClean) || std.title.toLowerCase() === titleClean.toLowerCase()
-        )
-        if (officialMatch) {
-          return {
-            ...officialMatch,
-            priority: (sr.tag as any) || officialMatch.priority,
-          }
-        }
-        const key = `custom_${titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
-        return {
-          key,
-          dbName: titleClean,
-          title: titleClean,
-          description: sr.description || `Required document for university admission verification: ${titleClean}`,
-          category: sr.tag || 'Admission Requirement',
-          priority: (sr.tag as any) || 'Required',
-          match: (name: string) => {
-            const lower = name.toLowerCase().trim()
-            const reqLower = titleClean.toLowerCase()
-            return lower === reqLower || lower.includes(reqLower) || reqLower.includes(lower)
-          },
-        }
+      // Filter out pure profile action items like 'Parent Details & Date of Birth'
+      const docRequirements = serverRequirements.filter((sr) => {
+        const titleLower = String(sr.title || '').toLowerCase()
+        const actionType = String(sr.action_type || '').toLowerCase()
+        if (actionType === 'profile') return false
+        if (titleLower.includes('parent') || titleLower.includes('date of birth') || titleLower.includes('address')) return false
+        return true
       })
+
+      if (docRequirements.length > 0) {
+        return docRequirements.map((sr) => {
+          const titleClean = String(sr.title || '').trim()
+          const officialMatch = OFFICIAL_REQUIRED_DOCUMENTS.find(
+            (std) => matchesDocumentRequirement(std.title, titleClean) || matchesDocumentRequirement(std.dbName, titleClean) || std.match(titleClean)
+          )
+          if (officialMatch) {
+            return {
+              ...officialMatch,
+              title: officialMatch.title,
+              priority: (sr.tag as any) || officialMatch.priority,
+            }
+          }
+          const key = `custom_${titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`
+          return {
+            key,
+            dbName: titleClean,
+            title: titleClean,
+            description: sr.description || `Required document for university admission verification: ${titleClean}`,
+            category: sr.tag || 'Admission Requirement',
+            priority: (sr.tag as any) || 'Required',
+            match: (name: string) => matchesDocumentRequirement(titleClean, name),
+          }
+        })
+      }
     }
 
     return OFFICIAL_REQUIRED_DOCUMENTS
@@ -248,7 +262,7 @@ export default function DocumentUploadForm() {
   const findMatchingUploadedDoc = (req: RequiredDocConfig) => {
     return documents.find(d => {
       const name = String(d?.document_name || d?.doc_name || d?.imgname || '')
-      return req.match(name)
+      return matchesDocumentRequirement(req.title, name) || matchesDocumentRequirement(req.dbName, name) || req.match(name)
     })
   }
 
@@ -350,6 +364,10 @@ export default function DocumentUploadForm() {
 
       // Refetch documents to immediately remove the item from Missing list
       await fetchDocuments()
+      try {
+        localStorage.setItem('student_documents_updated', String(Date.now()))
+        window.dispatchEvent(new Event('student_documents_updated'))
+      } catch {}
     } catch (error: any) {
       console.error('Upload error:', error)
       setModalError('Network error while uploading. Please try again.')
@@ -359,37 +377,7 @@ export default function DocumentUploadForm() {
   }
 
   const getFullUrl = (doc: any) => {
-    const raw = doc?.imgpath || doc?.imgname || ''
-    if (!raw) return '#'
-    if (/^https?:\/\//i.test(raw)) return raw
-
-    const normalizeOrigin = (value: string) => {
-      if (!value) return ''
-      return /^https?:\/\//i.test(value) ? value : `https://${value}`
-    }
-
-    const cleaned = raw.replace(/\\/g, '/').replace(/^\/+/, '')
-
-    const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-    const isLocalRuntime = /localhost|127\.0\.0\.1/i.test(runtimeOrigin)
-    const rawUploadSource = String(doc?.upload_source || '').trim()
-    const uploadSource = (rawUploadSource && rawUploadSource.toLowerCase() !== 'crm')
-      ? normalizeOrigin(rawUploadSource)
-      : ''
-    const imageBase = normalizeOrigin(process.env.NEXT_PUBLIC_IMAGE_BASE_URL || '')
-    const siteUrl = normalizeOrigin(process.env.NEXT_PUBLIC_SITE_URL || '')
-
-    const candidateOrigins = isLocalRuntime
-      ? [runtimeOrigin, uploadSource, imageBase, siteUrl].filter(Boolean)
-      : [imageBase, uploadSource, siteUrl, runtimeOrigin].filter(Boolean)
-    const basePath = cleaned.startsWith('storage/')
-      ? cleaned
-      : cleaned.startsWith('uploads/')
-        ? `storage/${cleaned}`
-        : `storage/uploads/${cleaned}`
-
-    const baseDomain = candidateOrigins[0] || 'https://www.educationmalaysia.in'
-    return `${baseDomain.replace(/\/+$/, '')}/${basePath}`
+    return getFullDocUrl(doc)
   }
 
   return (

@@ -10,6 +10,7 @@ export interface ChecklistItem {
   actionType: 'upload' | 'profile' | 'photo'
   actionLabel: string
   documentName: string
+  documentUrl?: string
   targetTab?: string
   completedInfo?: string
 }
@@ -22,6 +23,66 @@ export interface StudentChecklistResult {
   progressPercent: number
   completedItems: ChecklistItem[]
   missingItems: ChecklistItem[]
+}
+
+/**
+ * Centralized matcher that accurately correlates document titles, database names,
+ * and user-uploaded filenames across /student/profile, /student/tasks, and /student/applications/[id].
+ */
+export function matchesDocumentRequirement(requirementTitle: string, uploadedDocName: string): boolean {
+  const req = String(requirementTitle || '').toLowerCase().trim()
+  const doc = String(uploadedDocName || '').toLowerCase().trim()
+  if (!req || !doc) return false
+  if (req === doc) return true
+
+  // Passport: International Passport Copy, Passport Copy, Passport
+  const isReqPassport = req.includes('passport') && !req.includes('photo') && !req.includes('photograph') && !req.includes('size') && !req.includes('pic')
+  const isDocPassport = doc.includes('passport') && !doc.includes('photo') && !doc.includes('photograph') && !doc.includes('size') && !doc.includes('pic')
+  if (isReqPassport && isDocPassport) return true
+
+  // Grade 12 / High School
+  const isReq12 = req.includes('12th') || req.includes('grade 12') || req.includes('high school') || req.includes('senior secondary') || req.includes('intermediate') || req.includes('a-level') || req.includes('a level')
+  const isDoc12 = doc.includes('12th') || doc.includes('grade 12') || doc.includes('high school') || doc.includes('senior secondary') || doc.includes('intermediate') || doc.includes('a-level') || doc.includes('a level')
+  if (isReq12 && isDoc12) return true
+
+  // Grade 10 / Secondary
+  const isReq10 = req.includes('10th') || req.includes('grade 10') || req.includes('secondary') || req.includes('matric') || req.includes('o-level') || req.includes('o level')
+  const isDoc10 = doc.includes('10th') || doc.includes('grade 10') || doc.includes('secondary') || doc.includes('matric') || doc.includes('o-level') || doc.includes('o level')
+  if (isReq10 && isDoc10) return true
+
+  // Photo
+  const isReqPhoto = req.includes('photo') || req.includes('photograph') || req.includes('picture')
+  const isDocPhoto = doc.includes('photo') || doc.includes('photograph') || doc.includes('picture')
+  if (isReqPhoto && isDocPhoto) return true
+
+  // English Language Proficiency
+  const isReqEnglish = req.includes('english') || req.includes('ielts') || req.includes('toefl') || req.includes('pte') || req.includes('duolingo') || req.includes('moi') || req.includes('language')
+  const isDocEnglish = doc.includes('english') || doc.includes('ielts') || doc.includes('toefl') || doc.includes('pte') || doc.includes('duolingo') || doc.includes('moi') || doc.includes('language')
+  if (isReqEnglish && isDocEnglish) return true
+
+  // Resume / CV
+  const isReqResume = req.includes('resume') || req.includes('cv') || req.includes('curriculum')
+  const isDocResume = doc.includes('resume') || doc.includes('cv') || doc.includes('curriculum')
+  if (isReqResume && isDocResume) return true
+
+  // Health Declaration
+  const isReqHealth = req.includes('health') || req.includes('medical')
+  const isDocHealth = doc.includes('health') || doc.includes('medical')
+  if (isReqHealth && isDocHealth) return true
+
+  // Substring fallback
+  return req.includes(doc) || doc.includes(req)
+}
+
+/**
+ * Searches documents array for any item that matches the given requirement title.
+ */
+export function findMatchingUploadedDoc(requirementTitle: string, documents: any[] = []): any | undefined {
+  if (!Array.isArray(documents)) return undefined
+  return documents.find((d: any) => {
+    const docName = String(d?.doc_name || d?.document_name || d?.title || d?.imgname || '').trim()
+    return matchesDocumentRequirement(requirementTitle, docName)
+  })
 }
 
 /**
@@ -40,19 +101,28 @@ export function evaluateStudentChecklist(
   if (Array.isArray(serverRequirements) && serverRequirements.length > 0) {
     const dynamicChecklist: ChecklistItem[] = serverRequirements.map((r: any) => {
       const titleClean = String(r.title || '').trim()
-      const uploadedDoc = docList.find(d => {
-        const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-        const reqName = titleClean.toLowerCase()
-        if (!name || !reqName) return false
-        return name === reqName || name.includes(reqName) || reqName.includes(name)
-      })
+      const uploadedDoc = findMatchingUploadedDoc(titleClean, docList)
 
-      const isCompleted = Boolean(uploadedDoc || r.doc_status === 'Approved' || r.doc_status === 'Completed')
       const isProfile =
         r.action_type === 'profile' ||
         titleClean.toLowerCase().includes('parent') ||
         titleClean.toLowerCase().includes('date of birth') ||
         titleClean.toLowerCase().includes('address')
+
+      let isCompleted = false
+      if (isProfile) {
+        const hasFather = Boolean(student?.father && String(student.father).trim() !== '')
+        const hasMother = Boolean(student?.mother && String(student.mother).trim() !== '')
+        const hasDOB = Boolean(student?.dob && String(student.dob).trim() !== '')
+        isCompleted = hasFather && hasMother && hasDOB
+      } else {
+        isCompleted = Boolean(
+          uploadedDoc ||
+          r.doc_status === 'Approved' ||
+          r.doc_status === 'Completed' ||
+          r.doc_status === 'Reviewing'
+        )
+      }
 
       return {
         id: `dyn_${r.id || titleClean.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
@@ -64,10 +134,13 @@ export function evaluateStudentChecklist(
         priority: (r.tag === 'Required' ? 'high' : 'recommended') as any,
         isCompleted,
         actionType: isProfile ? 'profile' : 'upload',
-        actionLabel: isCompleted ? 'View Document' : isProfile ? 'Update Profile' : `Upload ${titleClean}`,
+        actionLabel: isCompleted ? (isProfile ? 'View Profile' : 'View Document') : (isProfile ? 'Update Profile' : `Upload ${titleClean}`),
         documentName: titleClean,
+        documentUrl: uploadedDoc ? getFullDocUrl(uploadedDoc) : undefined,
         targetTab: isProfile ? 'general' : 'Upload Documents',
-        completedInfo: isCompleted ? `Uploaded: ${uploadedDoc?.document_name || uploadedDoc?.doc_name || uploadedDoc?.imgname || titleClean}` : undefined,
+        completedInfo: isCompleted
+          ? (isProfile ? 'Profile details submitted' : `Uploaded: ${uploadedDoc?.document_name || uploadedDoc?.doc_name || uploadedDoc?.imgname || titleClean}`)
+          : undefined,
       }
     })
 
@@ -101,85 +174,32 @@ export function evaluateStudentChecklist(
         )
 
   // 1. Passport Copy (Mandatory for International Visa)
-  const passportDoc = docList.find(d => {
-    const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-    if (name === 'passport') return true
-    return name.includes('passport') && !name.includes('photo') && !name.includes('size') && !name.includes('pic')
-  })
+  // 1. Passport Copy (Mandatory for International Visa)
+  const passportDoc = findMatchingUploadedDoc('Passport', docList)
   const isPassportComplete = Boolean(passportDoc)
 
   // 2. 12th / High School Marksheet & Certificate
-  const highSchoolDoc = docList.find(d => {
-    const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-    if (name === '12th certificate' || name === 'grade 12/high school') return true
-    return (
-      name.includes('12th') ||
-      name.includes('high school') ||
-      name.includes('senior secondary') ||
-      name.includes('intermediate') ||
-      name.includes('a-level') ||
-      name.includes('a level') ||
-      name.includes('grade 12')
-    )
-  })
+  const highSchoolDoc = findMatchingUploadedDoc('12th Certificate', docList)
   const isHighSchoolComplete = Boolean(highSchoolDoc)
 
   // 3. 10th / Secondary School Certificate
-  const secondaryDoc = docList.find(d => {
-    const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-    if (name === '10th certificate') return true
-    return (
-      name.includes('10th') ||
-      name.includes('secondary') ||
-      name.includes('matric') ||
-      name.includes('o-level') ||
-      name.includes('o level') ||
-      name.includes('grade 10')
-    )
-  })
+  const secondaryDoc = findMatchingUploadedDoc('10th Certificate', docList)
   const isSecondaryComplete = Boolean(secondaryDoc)
 
   // 4. Passport Size Photo (White Background)
-  const photoDoc = docList.find(d => {
-    const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-    if (name === 'passport size photo') return true
-    return (
-      name.includes('photo') ||
-      name.includes('picture') ||
-      (name.includes('passport') && (name.includes('photo') || name.includes('size') || name.includes('pic')))
-    )
-  })
+  const photoDoc = findMatchingUploadedDoc('Passport Size Photo', docList)
   const isPhotoComplete = Boolean(hasAvatar || photoDoc)
 
   // 5. English Language Proficiency (IELTS / TOEFL / MOI)
-  const englishDoc = docList.find(d => {
-    const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-    if (name === 'english language') return true
-    return (
-      name.includes('english') ||
-      name.includes('ielts') ||
-      name.includes('toefl') ||
-      name.includes('pte') ||
-      name.includes('duolingo') ||
-      name.includes('moi')
-    )
-  })
+  const englishDoc = findMatchingUploadedDoc('English Language', docList)
   const isEnglishComplete = Boolean(englishDoc)
 
   // 6. Resume / Curriculum Vitae (CV)
-  const resumeDoc = docList.find(d => {
-    const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-    if (name === 'resume' || name === 'cv') return true
-    return name.includes('resume') || name.includes('cv') || name.includes('curriculum')
-  })
+  const resumeDoc = findMatchingUploadedDoc('Resume', docList)
   const isResumeComplete = Boolean(resumeDoc)
 
   // 7. Health declaration form
-  const healthDoc = docList.find(d => {
-    const name = String(d?.document_name || d?.doc_name || d?.imgname || '').toLowerCase().trim()
-    if (name === 'health declaration form') return true
-    return name.includes('health') || name.includes('medical')
-  })
+  const healthDoc = findMatchingUploadedDoc('Health Declaration Form', docList)
   const isHealthComplete = Boolean(healthDoc)
 
   // 8. General Personal Information (Father, Mother, DOB, Gender, Nationality)
@@ -213,6 +233,7 @@ export function evaluateStudentChecklist(
       actionType: 'upload',
       actionLabel: 'Upload Passport Now',
       documentName: 'Passport',
+      documentUrl: passportDoc ? getFullDocUrl(passportDoc) : undefined,
       targetTab: 'Upload Documents',
       completedInfo: passportDoc ? `Uploaded: ${passportDoc.doc_name || passportDoc.document_name || 'Passport'}` : 'Passport file uploaded',
     },
@@ -228,6 +249,7 @@ export function evaluateStudentChecklist(
       actionType: 'upload',
       actionLabel: 'Upload 12th Marksheet',
       documentName: '12th Certificate',
+      documentUrl: highSchoolDoc ? getFullDocUrl(highSchoolDoc) : undefined,
       targetTab: 'Upload Documents',
       completedInfo: highSchoolDoc ? `Uploaded: ${highSchoolDoc.doc_name || highSchoolDoc.document_name || '12th Certificate'}` : 'Document uploaded',
     },
@@ -243,6 +265,7 @@ export function evaluateStudentChecklist(
       actionType: 'upload',
       actionLabel: 'Upload Photo Now',
       documentName: 'Passport Size Photo',
+      documentUrl: photoDoc ? getFullDocUrl(photoDoc) : undefined,
       targetTab: 'Upload Documents',
       completedInfo: photoDoc ? `Uploaded: ${photoDoc.doc_name || photoDoc.document_name || 'Photo'}` : 'Profile photo active',
     },
@@ -258,6 +281,7 @@ export function evaluateStudentChecklist(
       actionType: 'upload',
       actionLabel: 'Upload 10th Certificate',
       documentName: '10th Certificate',
+      documentUrl: secondaryDoc ? getFullDocUrl(secondaryDoc) : undefined,
       targetTab: 'Upload Documents',
       completedInfo: secondaryDoc ? `Uploaded: ${secondaryDoc.doc_name || secondaryDoc.document_name || '10th Certificate'}` : 'Document uploaded',
     },
@@ -273,6 +297,7 @@ export function evaluateStudentChecklist(
       actionType: 'upload',
       actionLabel: 'Upload English Proof',
       documentName: 'English Language',
+      documentUrl: englishDoc ? getFullDocUrl(englishDoc) : undefined,
       targetTab: 'Upload Documents',
       completedInfo: englishDoc ? `Uploaded: ${englishDoc.doc_name || englishDoc.document_name || 'English Proof'}` : 'Certificate uploaded',
     },
@@ -288,6 +313,7 @@ export function evaluateStudentChecklist(
       actionType: 'upload',
       actionLabel: 'Upload Resume / CV',
       documentName: 'Resume',
+      documentUrl: resumeDoc ? getFullDocUrl(resumeDoc) : undefined,
       targetTab: 'Upload Documents',
       completedInfo: resumeDoc ? `Uploaded: ${resumeDoc.doc_name || resumeDoc.document_name || 'Resume'}` : 'Resume added',
     },
@@ -303,6 +329,7 @@ export function evaluateStudentChecklist(
       actionType: 'upload',
       actionLabel: 'Upload Health Form',
       documentName: 'Health declaration form',
+      documentUrl: healthDoc ? getFullDocUrl(healthDoc) : undefined,
       targetTab: 'Upload Documents',
       completedInfo: healthDoc ? `Uploaded: ${healthDoc.doc_name || healthDoc.document_name || 'Health Form'}` : 'Health form uploaded',
     },
@@ -369,4 +396,37 @@ export function evaluateStudentChecklist(
     completedItems,
     missingItems,
   }
+}
+
+/**
+ * Resolves full document file URL for preview across local dev and production.
+ */
+export function getFullDocUrl(doc: any): string {
+  const raw = String(doc?.imgpath || doc?.imgname || '').trim()
+  if (!raw) return '#'
+  if (/^https?:\/\//i.test(raw)) return raw
+
+  const cleaned = raw.replace(/\\/g, '/').replace(/^\/+/, '')
+  const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : ''
+  const isLocalRuntime = /localhost|127\.0\.0\.1/i.test(runtimeOrigin)
+
+  const rawUploadSource = String(doc?.upload_source || '').trim()
+  const uploadSource = (rawUploadSource && rawUploadSource.toLowerCase() !== 'crm')
+    ? rawUploadSource.replace(/\/+$/, '')
+    : ''
+  const imageBase = (process.env.NEXT_PUBLIC_IMAGE_BASE_URL || '').trim().replace(/\/+$/, '')
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/+$/, '')
+
+  const candidateOrigins = isLocalRuntime
+    ? [runtimeOrigin, uploadSource, imageBase, siteUrl].filter(Boolean)
+    : [imageBase, uploadSource, siteUrl, runtimeOrigin].filter(Boolean)
+
+  const basePath = cleaned.startsWith('storage/')
+    ? cleaned
+    : cleaned.startsWith('uploads/')
+      ? `storage/${cleaned}`
+      : `storage/uploads/${cleaned}`
+
+  const baseDomain = candidateOrigins[0] || 'https://www.educationmalaysia.in'
+  return `${baseDomain.replace(/\/+$/, '')}/${basePath}`
 }

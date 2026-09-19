@@ -13,6 +13,7 @@ import {
 import { verifyPassword, hashPassword } from '../utils/auth';
 import { serializeBigInt } from '@/lib/utils';
 import { ApiResponse, Student, StudentSchool, StudentDocument } from '../types';
+import { matchesDocumentRequirement } from '@/utils/studentChecklist';
 
 /**
  * Service to handle student profile management, education history, and documents.
@@ -461,9 +462,26 @@ export class StudentProfileService {
     let reqs: any[] = [];
     try {
       reqs = (await prisma.$queryRawUnsafe(
-        `SELECT DISTINCT title, tag, stage_tag, action_type, doc_status, rejection_note FROM application_requirements WHERE std_id = ?`,
+        `SELECT DISTINCT id, app_id, title, tag, stage_tag, action_type, doc_status, rejection_note FROM application_requirements WHERE std_id = ?`,
         Number(studentId),
       )) as any[];
+
+      // Ensure any requirement that has a matching uploaded document in student_documents is marked as 'Reviewing'
+      if (Array.isArray(reqs) && Array.isArray(docs) && docs.length > 0) {
+        reqs = reqs.map((r: any) => {
+          const hasUploadedDoc = docs.some((d: any) => matchesDocumentRequirement(r.title, d.doc_name));
+          if (hasUploadedDoc && (!r.doc_status || r.doc_status === 'Pending')) {
+            if (r.id) {
+              prisma.$executeRawUnsafe(
+                `UPDATE application_requirements SET doc_status = 'Reviewing', rejection_note = NULL WHERE id = ?`,
+                Number(r.id)
+              ).catch(() => null);
+            }
+            return { ...r, doc_status: 'Reviewing' };
+          }
+          return r;
+        });
+      }
     } catch (e) {
       reqs = [];
     }
@@ -482,9 +500,35 @@ export class StudentProfileService {
    * Add document record.
    */
   async addDocument(studentId: number, docName: string, imgName: string, imgPath: string, siteUrl?: string): Promise<ApiResponse> {
+    const syncRequirements = async () => {
+      try {
+        const studentReqs = (await prisma.$queryRawUnsafe(
+          `SELECT id, title FROM application_requirements WHERE std_id = ?`,
+          Number(studentId)
+        )) as any[];
+
+        if (Array.isArray(studentReqs) && studentReqs.length > 0) {
+          const matchingIds = studentReqs
+            .filter((req) => matchesDocumentRequirement(req.title, docName))
+            .map((req) => Number(req.id))
+            .filter((id) => !isNaN(id) && id > 0);
+
+          if (matchingIds.length > 0) {
+            await prisma.$executeRawUnsafe(
+              `UPDATE application_requirements 
+               SET doc_status = 'Reviewing', rejection_note = NULL 
+               WHERE id IN (${matchingIds.join(',')})`
+            );
+          }
+        }
+      } catch (syncErr) {
+        console.error('Error syncing application requirements for doc upload:', syncErr);
+      }
+    };
+
     try {
       const defaultDomain = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.educationmalaysia.in';
-      const cleanUploadSource = (siteUrl && siteUrl.trim() && siteUrl.trim().toLowerCase() !== 'crm' && !siteUrl.includes('localhost') && !siteUrl.includes('127.0.0.1'))
+      const cleanUploadSource = (siteUrl && siteUrl.trim() && siteUrl.trim().toLowerCase() !== 'crm')
         ? siteUrl.trim().replace(/\/+$/, '')
         : defaultDomain.trim().replace(/\/+$/, '');
 
@@ -498,29 +542,12 @@ export class StudentProfileService {
         cleanUploadSource,
       );
 
-      // Sync application_requirements status to 'Reviewing'
-      const cleanTitle = (docName || '').trim().toLowerCase();
-      if (cleanTitle) {
-        await prisma.$executeRawUnsafe(
-          `UPDATE application_requirements 
-           SET doc_status = 'Reviewing', rejection_note = NULL 
-           WHERE std_id = ? AND (
-             LOWER(TRIM(title)) = ? OR 
-             LOWER(TRIM(title)) LIKE CONCAT('%', ?, '%') OR 
-             ? LIKE CONCAT('%', LOWER(TRIM(title)), '%')
-           )`,
-          Number(studentId),
-          cleanTitle,
-          cleanTitle,
-          cleanTitle
-        );
-      }
-
+      await syncRequirements();
       return { status: true, message: 'Document uploaded successfully' };
     } catch (err: any) {
-      console.error('Error in addDocument with explicit ID:', err);
+      console.error('Error in addDocument:', err);
       const defaultDomain = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.educationmalaysia.in';
-      const cleanUploadSource = (siteUrl && siteUrl.trim() && siteUrl.trim().toLowerCase() !== 'crm' && !siteUrl.includes('localhost') && !siteUrl.includes('127.0.0.1'))
+      const cleanUploadSource = (siteUrl && siteUrl.trim() && siteUrl.trim().toLowerCase() !== 'crm')
         ? siteUrl.trim().replace(/\/+$/, '')
         : defaultDomain.trim().replace(/\/+$/, '');
 
@@ -533,6 +560,7 @@ export class StudentProfileService {
         imgPath,
         cleanUploadSource,
       );
+      await syncRequirements();
       return { status: true, message: 'Document uploaded successfully' };
     }
   }
@@ -877,6 +905,32 @@ export class StudentProfileService {
             `SELECT id, app_id, std_id, title, tag, stage_tag, action_type, doc_status, rejection_note, created_at FROM application_requirements WHERE app_id = ? ORDER BY id ASC`,
             Number(appId)
           )) as any[];
+        }
+      }
+
+      if (stdId > 0 && Array.isArray(rows) && rows.length > 0) {
+        try {
+          const docs = (await prisma.$queryRawUnsafe(
+            `SELECT doc_name FROM student_documents WHERE std_id = ?`,
+            Number(stdId)
+          )) as any[];
+
+          if (Array.isArray(docs) && docs.length > 0) {
+            for (const r of rows) {
+              const hasUploadedDoc = docs.some((d: any) => matchesDocumentRequirement(r.title, d.doc_name));
+              if (hasUploadedDoc && (!r.doc_status || r.doc_status === 'Pending')) {
+                r.doc_status = 'Reviewing';
+                if (r.id) {
+                  prisma.$executeRawUnsafe(
+                    `UPDATE application_requirements SET doc_status = 'Reviewing', rejection_note = NULL WHERE id = ?`,
+                    Number(r.id)
+                  ).catch(() => null);
+                }
+              }
+            }
+          }
+        } catch (syncDocErr) {
+          console.error('Error syncing existing student documents to application requirements:', syncDocErr);
         }
       }
 

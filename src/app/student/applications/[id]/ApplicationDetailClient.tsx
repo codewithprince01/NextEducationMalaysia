@@ -38,7 +38,7 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import { toast } from 'react-toastify'
-import { evaluateStudentChecklist, ChecklistItem } from '@/utils/studentChecklist'
+import { evaluateStudentChecklist, ChecklistItem, findMatchingUploadedDoc, matchesDocumentRequirement, getFullDocUrl } from '@/utils/studentChecklist'
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -180,6 +180,14 @@ export default function ApplicationDetailClient({ applicationId }: { application
     loadData()
   }, [applicationId])
 
+  useEffect(() => {
+    const handleDocsUpdated = () => {
+      loadData()
+    }
+    window.addEventListener('student_documents_updated', handleDocsUpdated)
+    return () => window.removeEventListener('student_documents_updated', handleDocsUpdated)
+  }, [])
+
   // Evaluated checklist
   const evaluatedChecklist = useMemo(() => {
     return evaluateStudentChecklist(student, documents)
@@ -189,38 +197,46 @@ export default function ApplicationDetailClient({ applicationId }: { application
   const requirementsList: RequirementItem[] = useMemo(() => {
     if (serverRequirements.length > 0) {
       return serverRequirements.map((r: any) => {
-        const uploadedDoc = documents.find(
-          (d: any) => String(d.doc_name || '').toLowerCase().trim() === String(r.title || '').toLowerCase().trim()
-        )
+        const uploadedDoc = findMatchingUploadedDoc(r.title, documents)
 
         let statusType: 'pending' | 'approved' | 'rejected' | 'in_review' = 'pending'
         let isCompleted = false
 
-        if (r.doc_status === 'Not Approved' || r.doc_status === 'Rejected') {
+        const isProfileItem =
+          r.action_type === 'profile' ||
+          String(r.title || '').toLowerCase().includes('parent') ||
+          String(r.title || '').toLowerCase().includes('date of birth')
+
+        if (isProfileItem) {
+          const hasFather = Boolean(student?.father && String(student.father).trim() !== '')
+          const hasMother = Boolean(student?.mother && String(student.mother).trim() !== '')
+          const hasDOB = Boolean(student?.dob && String(student.dob).trim() !== '')
+          if (hasFather && hasMother && hasDOB) {
+            isCompleted = true
+            statusType = 'approved'
+          } else {
+            isCompleted = false
+            statusType = 'pending'
+          }
+        } else if (r.doc_status === 'Not Approved' || r.doc_status === 'Rejected') {
           statusType = 'rejected'
           isCompleted = false // Re-upload required!
         } else if (r.doc_status === 'Approved' || r.doc_status === 'Completed') {
           statusType = 'approved'
           isCompleted = true
-        } else if (r.doc_status === 'Reviewing') {
+        } else if (r.doc_status === 'Reviewing' || uploadedDoc) {
           statusType = 'in_review'
-          isCompleted = false
+          isCompleted = true // Uploaded! In review, so task is completed and removed from pending!
         } else {
-          // r.doc_status is 'Pending'
-          if (uploadedDoc) {
-            statusType = 'in_review'
-            isCompleted = false
-          } else {
-            statusType = 'pending'
-            isCompleted = false
-          }
+          statusType = 'pending'
+          isCompleted = false
         }
 
-        const actionType = (r.action_type || (r.title.includes('Parent') ? 'profile' : 'upload')) as 'upload' | 'profile'
+        const actionType = (isProfileItem ? 'profile' : (r.action_type || 'upload')) as 'upload' | 'profile'
 
         let actionText = 'Upload'
         if (statusType === 'rejected') actionText = 'Upload Again'
-        else if (statusType === 'approved') actionText = 'Approved'
+        else if (statusType === 'approved') actionText = isProfileItem ? 'Completed' : 'Approved'
         else if (statusType === 'in_review') actionText = 'Under Review'
         else if (actionType === 'profile') actionText = 'Go to profile'
 
@@ -596,9 +612,7 @@ export default function ApplicationDetailClient({ applicationId }: { application
     if (Array.isArray(documents) && documents.length > 0) {
       documents.forEach((doc, idx) => {
         const docName = doc.document_name || doc.doc_name || doc.imgname || `Document #${idx + 1}`
-        const fileUrl = doc.imgname
-          ? (doc.imgname.startsWith('http') ? doc.imgname : `https://admin.educationmalaysia.in/storage/uploads/documents/${doc.imgname}`)
-          : undefined
+        const fileUrl = doc.imgname ? getFullDocUrl(doc) : undefined
         list.push({
           id: `doc_${doc.id || idx}`,
           type: 'document',
@@ -1286,7 +1300,7 @@ export default function ApplicationDetailClient({ applicationId }: { application
                       </div>
                       {doc.imgname && (
                         <a
-                          href={doc.imgname.startsWith('http') ? doc.imgname : `https://admin.educationmalaysia.in/storage/uploads/documents/${doc.imgname}`}
+                          href={getFullDocUrl(doc)}
                           target="_blank"
                           rel="noreferrer"
                           className="text-xs font-bold text-blue-600 hover:text-blue-800 shrink-0 ml-2 inline-flex items-center gap-1"

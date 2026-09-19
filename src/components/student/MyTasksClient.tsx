@@ -136,6 +136,11 @@ export default function MyTasksClient() {
 
   useEffect(() => {
     loadData()
+    const handleDocsUpdated = () => {
+      loadData()
+    }
+    window.addEventListener('student_documents_updated', handleDocsUpdated)
+    return () => window.removeEventListener('student_documents_updated', handleDocsUpdated)
   }, [])
 
   useEffect(() => {
@@ -222,6 +227,10 @@ export default function MyTasksClient() {
       setUploadModalOpen(false)
       setUploadFile(null)
       loadData()
+      try {
+        localStorage.setItem('student_documents_updated', String(Date.now()))
+        window.dispatchEvent(new Event('student_documents_updated'))
+      } catch {}
     } catch (err) {
       toast.error('Network error while uploading document')
     } finally {
@@ -480,19 +489,32 @@ export default function MyTasksClient() {
                     <span>{item.actionLabel}</span>
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (item.actionType === 'upload') {
-                        handleOpenUpload(item)
-                      } else {
-                        handleActionClick(item)
-                      }
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shrink-0"
-                  >
-                    <span>Re-upload</span>
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {item.documentUrl && (
+                      <a
+                        href={item.documentUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 hover:bg-blue-100 text-blue-700 transition cursor-pointer"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>View</span>
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (item.actionType === 'upload') {
+                          handleOpenUpload(item)
+                        } else {
+                          handleActionClick(item)
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shrink-0"
+                    >
+                      <span>{item.actionType === 'upload' ? 'Re-upload' : 'Edit'}</span>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

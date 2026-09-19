@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { 
   withMiddleware, checkApiKey, requireAuth, apiSuccess, apiError, studentProfileService } from '@/backend';
+import { sendDocumentUploadEmail } from '@/backend/email/send-document-email';
 import { DOMAIN } from '@/backend/utils/constants';
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
@@ -41,21 +42,23 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
     await mkdir(uploadDir, { recursive: true });
 
     const fileBuffer = Buffer.from(await docFile.arrayBuffer());
-    await writeFile([uploadDir, fileName].join(path.sep), fileBuffer);
+    const fullFilePath = [uploadDir, fileName].join(path.sep);
+    await writeFile(fullFilePath, fileBuffer);
 
     // Persist path shape compatible with old project
     const filePath = `storage/uploads/documents/${fileName}`;
     
     const requestOrigin = (() => {
       try {
-        const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || process.env.DOMAIN_URL;
-        if (envSiteUrl && /^https?:\/\//i.test(envSiteUrl) && !/localhost|127\.0\.0\.1/i.test(envSiteUrl)) {
-          return envSiteUrl.replace(/\/+$/, '');
-        }
-        const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || '';
-        const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
-        if (host && !/localhost|127\.0\.0\.1/i.test(host)) {
+        const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+        if (host) {
+          const isLocal = /localhost|127\.0\.0\.1/i.test(host);
+          const forwardedProto = request.headers.get('x-forwarded-proto') || (isLocal ? 'http' : 'https');
           return `${forwardedProto}://${host}`.replace(/\/+$/, '');
+        }
+        const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || process.env.DOMAIN_URL;
+        if (envSiteUrl && /^https?:\/\//i.test(envSiteUrl)) {
+          return envSiteUrl.replace(/\/+$/, '');
         }
         return 'https://www.educationmalaysia.in';
       } catch {
@@ -72,6 +75,20 @@ export const POST = withMiddleware(checkApiKey)(async (request: Request) => {
     );
 
     if (!result.status) return apiError(result.message, 400);
+
+    // Trigger background email with attachment to ADMIN_TO, ADMIN_CC, ADMIN_BCC
+    void sendDocumentUploadEmail({
+      studentId: authResult.student.sub,
+      docName,
+      fileName,
+      originalFileName: docFile.name || fileName,
+      fileSize: docFile.size,
+      mimeType: docFile.type,
+      fullFilePath,
+      requestOrigin,
+    }).catch((emailErr) => {
+      console.error('[upload-documents] Background notification email failed:', emailErr);
+    });
 
     return apiSuccess(null, result.message);
   } catch (error: any) {
