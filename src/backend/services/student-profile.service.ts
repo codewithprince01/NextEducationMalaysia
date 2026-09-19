@@ -466,6 +466,37 @@ export class StudentProfileService {
         Number(studentId),
       )) as any[];
 
+      if (reqs.length === 0 && Number(studentId) > 0) {
+        const configuredDefaults = (await prisma.$queryRawUnsafe(
+          `SELECT docs_name, docs_type, level FROM required_documents WHERE status = 1 OR status = true ORDER BY id ASC`
+        )) as Array<{ docs_name: string; docs_type: string; level: string }>;
+
+        if (configuredDefaults && configuredDefaults.length > 0) {
+          const seen = new Set<string>();
+          for (const d of configuredDefaults) {
+            const title = String(d.docs_name || '').trim();
+            if (!title || seen.has(title.toLowerCase())) continue;
+            seen.add(title.toLowerCase());
+
+            const tag = d.docs_type === 'optional' ? 'Optional now, required later' : 'Required';
+            const stageTag = d.docs_type === 'optional' ? 'Before visa' : 'Before payment';
+
+            await prisma.$executeRawUnsafe(
+              `INSERT INTO application_requirements (app_id, std_id, title, tag, stage_tag, action_type, doc_status) VALUES (0, ?, ?, ?, ?, 'upload', 'Pending')`,
+              Number(studentId),
+              title,
+              tag,
+              stageTag
+            );
+          }
+
+          reqs = (await prisma.$queryRawUnsafe(
+            `SELECT DISTINCT id, app_id, title, tag, stage_tag, action_type, doc_status, rejection_note FROM application_requirements WHERE std_id = ?`,
+            Number(studentId),
+          )) as any[];
+        }
+      }
+
       // Ensure any requirement that has a matching uploaded document in student_documents is marked as 'Reviewing'
       if (Array.isArray(reqs) && Array.isArray(docs) && docs.length > 0) {
         reqs = reqs.map((r: any) => {
@@ -852,26 +883,38 @@ export class StudentProfileService {
             );
           }
         } else {
-          const defaults = [
-            { title: 'International Passport Copy', tag: 'Required', stage_tag: 'Before payment', action_type: 'upload' },
-            { title: 'Grade 12 / High School Certificate & Transcript', tag: 'Required', stage_tag: 'Before payment', action_type: 'upload' },
-            { title: 'Passport-Sized Photograph (White Background)', tag: 'Required', stage_tag: 'Before payment', action_type: 'upload' },
-            { title: 'Grade 10 / Secondary School Certificate', tag: 'Required', stage_tag: 'Before payment', action_type: 'upload' },
-            { title: 'English Language Proficiency Proof', tag: 'Required', stage_tag: 'Before payment', action_type: 'upload' },
-            { title: 'Resume / Curriculum Vitae (CV)', tag: 'Optional now, required later', stage_tag: 'Before visa', action_type: 'upload' },
-            { title: 'Health Declaration Form', tag: 'Optional now, required later', stage_tag: 'Before visa', action_type: 'upload' },
-            { title: 'Parent Details & Date of Birth', tag: 'Required', stage_tag: 'Profile', action_type: 'profile' },
-          ];
+          let configuredDefaults = (await prisma.$queryRawUnsafe(
+            `SELECT docs_name, docs_type, level FROM required_documents WHERE status = 1 OR status = true ORDER BY id ASC`
+          )) as Array<{ docs_name: string; docs_type: string; level: string }>;
 
-          for (const req of defaults) {
+          if (!configuredDefaults || configuredDefaults.length === 0) {
+            configuredDefaults = [
+              { docs_name: 'International Passport Copy', docs_type: 'required', level: 'All' },
+              { docs_name: 'Grade 12 / High School Certificate & Transcript', docs_type: 'required', level: 'All' },
+              { docs_name: 'Passport-Sized Photograph (White Background)', docs_type: 'required', level: 'All' },
+              { docs_name: 'Grade 10 / Secondary School Certificate', docs_type: 'required', level: 'All' },
+              { docs_name: 'English Language Proficiency Proof', docs_type: 'required', level: 'All' },
+              { docs_name: 'Resume / Curriculum Vitae (CV)', docs_type: 'optional', level: 'All' },
+              { docs_name: 'Health Declaration Form', docs_type: 'optional', level: 'All' },
+            ];
+          }
+
+          const seenTitles = new Set<string>();
+          for (const d of configuredDefaults) {
+            const title = String(d.docs_name || '').trim();
+            if (!title || seenTitles.has(title.toLowerCase())) continue;
+            seenTitles.add(title.toLowerCase());
+
+            const tag = d.docs_type === 'optional' ? 'Optional now, required later' : 'Required';
+            const stageTag = d.docs_type === 'optional' ? 'Before visa' : 'Before payment';
+
             await prisma.$executeRawUnsafe(
-              `INSERT INTO application_requirements (app_id, std_id, title, tag, stage_tag, action_type, doc_status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
+              `INSERT INTO application_requirements (app_id, std_id, title, tag, stage_tag, action_type, doc_status) VALUES (?, ?, ?, ?, ?, 'upload', 'Pending')`,
               Number(appId),
               Number(stdId),
-              req.title,
-              req.tag,
-              req.stage_tag,
-              req.action_type
+              title,
+              tag,
+              stageTag
             );
           }
         }

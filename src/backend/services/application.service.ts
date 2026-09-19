@@ -70,6 +70,89 @@ export class ApplicationService {
       Number(studentId),
       Number(progId)
     ) as any[];
+
+    const newApp = createdRows[0];
+    if (newApp?.id) {
+      try {
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS application_requirements (
+            id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            app_id BIGINT UNSIGNED NOT NULL,
+            std_id BIGINT UNSIGNED NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            tag VARCHAR(50) DEFAULT 'Required',
+            stage_tag VARCHAR(50) DEFAULT 'Before payment',
+            action_type VARCHAR(50) DEFAULT 'upload',
+            doc_status VARCHAR(50) DEFAULT 'Pending',
+            rejection_note TEXT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX (app_id),
+            INDEX (std_id)
+          ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        `);
+
+        let defaults = (await prisma.$queryRawUnsafe(
+          `SELECT docs_name, docs_type, level FROM required_documents WHERE status = 1 OR status = true ORDER BY id ASC`
+        )) as Array<{ docs_name: string; docs_type: string; level: string }>;
+
+        if (!defaults || defaults.length === 0) {
+          defaults = [
+            { docs_name: 'International Passport Copy', docs_type: 'required', level: 'All' },
+            { docs_name: 'Grade 12 / High School Certificate & Transcript', docs_type: 'required', level: 'All' },
+            { docs_name: 'Passport-Sized Photograph (White Background)', docs_type: 'required', level: 'All' },
+            { docs_name: 'Grade 10 / Secondary School Certificate', docs_type: 'required', level: 'All' },
+            { docs_name: 'English Language Proficiency Proof', docs_type: 'required', level: 'All' },
+            { docs_name: 'Resume / Curriculum Vitae (CV)', docs_type: 'optional', level: 'All' },
+            { docs_name: 'Health Declaration Form', docs_type: 'optional', level: 'All' },
+          ];
+        }
+
+        const seen = new Set<string>();
+        for (const d of defaults) {
+          const title = String(d.docs_name || '').trim();
+          if (!title || seen.has(title.toLowerCase())) continue;
+          seen.add(title.toLowerCase());
+
+          const tag = d.docs_type === 'optional' ? 'Optional now, required later' : 'Required';
+          const stageTag = d.docs_type === 'optional' ? 'Before visa' : 'Before payment';
+
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO application_requirements (app_id, std_id, title, tag, stage_tag, action_type, doc_status) VALUES (?, ?, ?, ?, ?, 'upload', 'Pending')`,
+            Number(newApp.id),
+            Number(studentId),
+            title,
+            tag,
+            stageTag
+          );
+        }
+
+        const existingCustom = (await prisma.$queryRawUnsafe(
+          `SELECT DISTINCT title, tag, stage_tag, action_type FROM application_requirements WHERE std_id = ? AND app_id != ?`,
+          Number(studentId),
+          Number(newApp.id)
+        )) as Array<{ title: string; tag: string; stage_tag: string; action_type: string }>;
+
+        for (const ec of existingCustom) {
+          const t = String(ec.title || '').trim();
+          if (!t || seen.has(t.toLowerCase())) continue;
+          seen.add(t.toLowerCase());
+
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO application_requirements (app_id, std_id, title, tag, stage_tag, action_type, doc_status) VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
+            Number(newApp.id),
+            Number(studentId),
+            t,
+            ec.tag || 'Required',
+            ec.stage_tag || 'Before payment',
+            ec.action_type || 'upload'
+          );
+        }
+      } catch (err) {
+        console.error('Failed to auto-assign default requirements on applyProgram:', err);
+      }
+    }
+
     return createdRows[0] || null;
   }
 
