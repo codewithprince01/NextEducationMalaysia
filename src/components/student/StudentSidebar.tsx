@@ -133,6 +133,15 @@ export default function StudentSidebar({
 
   const displayName = mounted ? (studentData?.name || user?.name || "Student") : "Student";
   const displayEmail = mounted ? (studentData?.email || user?.email || "") : "";
+  const studentId = mounted
+    ? String(
+        studentData?.student_id ||
+        studentData?.id ||
+        user?.id ||
+        (typeof window !== "undefined" ? localStorage.getItem("student_id") : "") ||
+        ""
+      )
+    : "";
 
   // Generate initials for avatar
   const initials = displayName
@@ -301,8 +310,11 @@ export default function StudentSidebar({
 
     return (
       <div className="h-full flex flex-col select-none">
-        {/* Scrolls on its own once the menu is taller than the viewport. */}
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden">
+        {/* Scrolls on its own once the menu is taller than the viewport without visible slider/scrollbar */}
+        <div
+          className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           {/* Hidden File Input for Avatar Upload */}
           <input
             ref={fileInputRef}
@@ -387,10 +399,21 @@ export default function StudentSidebar({
                 </button>
               </div>
 
+              {/* Student ID (Above Name, Normal without background) */}
+              {studentId && (
+                <p
+                  suppressHydrationWarning
+                  className="mt-2 text-xs font-medium text-blue-100 tracking-wider"
+                  title={`Student ID: #${studentId}`}
+                >
+                  ID: #{studentId}
+                </p>
+              )}
+
               {/* Student Name & Email */}
               <h2
                 suppressHydrationWarning
-                className="mt-3.5 font-bold text-xl text-white tracking-tight leading-snug truncate whitespace-nowrap px-1"
+                className={`${studentId ? "mt-1" : "mt-3.5"} font-bold text-xl text-white tracking-tight leading-snug truncate whitespace-nowrap px-1`}
               >
                 {displayName}
               </h2>
