@@ -52,6 +52,7 @@ const socials = [
 
 
 export default function Footer() {
+  const pathname = usePathname()
   // Guard against skewed system clocks set to future dates (e.g. 2026)
   const [year, setYear] = useState(2025)
 
@@ -59,6 +60,11 @@ export default function Footer() {
     const y = new Date().getFullYear()
     setYear(y > 2025 ? 2025 : y)
   }, [])
+
+  // Hide marketing website footer inside authenticated student dashboard & admin portals
+  if (pathname?.startsWith('/student') || pathname?.startsWith('/admin')) {
+    return null
+  }
 
   return (
     <footer className="overflow-hidden bg-gradient-to-b from-white via-slate-50 to-blue-50/20 border-t border-slate-200/80" style={{ contain: 'layout', willChange: 'auto' }}>

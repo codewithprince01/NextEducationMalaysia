@@ -412,12 +412,12 @@ export default function StudentProfileClient() {
   };
 
   return (
-    <div className="relative w-full space-y-6">
+    <div className="relative w-full">
 
-      {/* Sticky Quick-Nav Tabs */}
-      <div className="sticky top-16 md:top-20 z-20 -mx-1 px-1 sm:mx-0 sm:px-0">
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 p-1.5 shadow-sm">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
+      {/* Sticky Quick-Nav Tabs - Attached Flush directly below 76px Navbar */}
+      <div className="sticky top-[76px] z-20 -mt-4 sm:-mt-6 lg:-mt-8 xl:-mt-8 2xl:-mt-10 -mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 xl:px-8 2xl:px-10 py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+        <div className="flex items-center justify-between gap-3 w-full">
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
             {TABS.map(({ id, label }) => {
               const isActive = activeTab === id;
               const isUploadTab = id === "Upload Documents";
@@ -449,10 +449,26 @@ export default function StudentProfileClient() {
               );
             })}
           </div>
+
+          {/* Quick Right Side Status Indicator */}
+          <div className="hidden lg:flex items-center gap-2 shrink-0 px-3.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs font-semibold">
+            {missingDocs.length > 0 ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                <span className="text-amber-900 font-bold">{missingDocs.length} Document{missingDocs.length > 1 ? 's' : ''} Pending</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <span className="text-emerald-700 font-bold">Profile 100% Complete</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Missing Required Documents Alert Banner */}
+      <div className="pt-6 space-y-6">
+        {/* Missing Required Documents Alert Banner */}
       {missingDocs.length > 0 && (
         <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-start gap-3.5">
@@ -521,6 +537,7 @@ export default function StudentProfileClient() {
           <DocumentUploadForm />
         </div>
       </div>
+    </div>
     </div>
   );
 }

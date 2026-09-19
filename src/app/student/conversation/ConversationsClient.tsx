@@ -31,10 +31,15 @@ export default function ConversationsClient() {
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   // Auto-scroll only while the reader is already at the bottom, so scrolling up
   // to read older messages is not undone by the next poll.
   const stickToBottomRef = useRef(true)
   const hasAutoScrolledRef = useRef(false)
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const fetchConversation = async (silent = false) => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -76,6 +81,18 @@ export default function ConversationsClient() {
     }, 4000)
 
     return () => clearInterval(interval)
+  }, [])
+
+  // Lock outer document & body from scrolling so only the inner chat messages scroll
+  useEffect(() => {
+    const prevBody = document.body.style.overflow
+    const prevHtml = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevBody
+      document.documentElement.style.overflow = prevHtml
+    }
   }, [])
 
   // Track whether the reader is parked at the bottom of the thread.
@@ -123,6 +140,11 @@ export default function ConversationsClient() {
     ])
     setNewMsg('')
 
+    // Immediately keep focus locked on message box
+    requestAnimationFrame(() => {
+      inputRef.current?.focus()
+    })
+
     try {
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
@@ -145,44 +167,30 @@ export default function ConversationsClient() {
       toast.error(err.message || 'Failed to send message.')
     } finally {
       setSending(false)
+      // Keep focus on input after send finishes
+      requestAnimationFrame(() => {
+        inputRef.current?.focus()
+      })
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
+      inputRef.current?.focus()
     }
   }
 
-  // Height is the viewport minus the 76px fixed site navbar and the 4rem
-  // dashboard header. Leaving the navbar out made this 76px too tall, so the
-  // page itself had room to scroll — which is what the auto-scroll then moved.
   return (
-    <div className="w-full h-[calc(100vh-4rem-76px)] flex flex-col bg-white overflow-hidden">
-      {/* Header — Full Width */}
-      <div className="px-6 py-4 flex items-center justify-between bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-xs shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-xs">
-            <GraduationCap className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold tracking-tight">Conversation</h2>
-            <p className="text-xs text-blue-100 font-normal">Student & Advisor Communication Desk</p>
-          </div>
-        </div>
+    <div className="w-full h-full min-h-0 flex flex-col bg-slate-50 overflow-hidden relative">
 
-        <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full text-xs font-semibold">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Advisor Desk Active</span>
-        </div>
-      </div>
-
-      {/* Chat Area — Full Width & Height with auto-scroll */}
+      {/* Chat Area — Full Width & Height (Only this scrolls) */}
       <div
         ref={chatContainerRef}
         onScroll={handleChatScroll}
-        className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-8 lg:px-12 py-6 space-y-6 bg-slate-50/60 scrollbar-thin"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-8 md:px-16 lg:px-24 py-5 space-y-4 bg-slate-50/70"
+        style={{ overscrollBehavior: 'contain' }}
       >
         {loading ? (
           <div className="flex flex-col items-center justify-center h-48 gap-2 text-slate-400">
@@ -193,11 +201,11 @@ export default function ConversationsClient() {
           messages.map((msg) => {
             if (msg.sender === 'update') {
               return (
-                <div key={msg.id} className="flex flex-col items-center my-3">
-                  <div className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-900 border border-amber-200/90 px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold shadow-xs">
+                <div key={msg.id} className="flex flex-col items-center my-2">
+                  <div className="bg-slate-100 text-slate-700 border border-slate-200/80 px-4 py-1.5 rounded-full text-xs font-medium shadow-2xs">
                     {msg.text}
                   </div>
-                  <span className="text-[11px] text-slate-400 mt-1 italic">{msg.time}</span>
+                  <span className="text-[10px] text-slate-400 mt-1">{msg.time}</span>
                 </div>
               )
             }
@@ -215,15 +223,15 @@ export default function ConversationsClient() {
                   </span>
                 )}
                 <div
-                  className={`max-w-[85%] sm:max-w-[70%] md:max-w-[55%] px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs ${
+                  className={`max-w-[85%] sm:max-w-[70%] md:max-w-[55%] px-4 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs ${
                     isStudent
-                      ? 'bg-blue-600 text-white rounded-br-xs font-medium'
-                      : 'bg-white text-slate-800 border border-slate-200/80 rounded-bl-xs font-medium'
+                      ? 'bg-blue-600 text-white rounded-tr-xs font-normal'
+                      : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-xs font-normal'
                   }`}
                 >
                   {msg.text}
                 </div>
-                <span className="text-[11px] text-slate-400 mt-1 px-1 italic">{msg.time}</span>
+                <span className="text-[10px] text-slate-400 mt-0.5 px-1">{msg.time}</span>
               </div>
             )
           })
@@ -231,30 +239,30 @@ export default function ConversationsClient() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area — Full Width Bottom Bar */}
-      <div className="p-4 sm:p-5 bg-white border-t border-slate-200/80 shrink-0">
-        <div className="flex items-center gap-3 w-full">
+      {/* Input Area — Fixed to bottom of screen, never scrolls */}
+      <div className="shrink-0 w-full bg-white border-t border-slate-200 p-3 sm:p-4 z-10 shadow-xs">
+        <div className="max-w-4xl mx-auto flex items-center gap-2.5 w-full">
           <input
+            ref={inputRef}
             type="text"
             value={newMsg}
             onChange={(e) => setNewMsg(e.target.value)}
             onKeyDown={handleKeyPress}
             placeholder="Type your message to counsellor / admin..."
-            disabled={sending}
-            className="flex-1 bg-slate-100 hover:bg-slate-100/80 focus:bg-white border border-slate-200/90 rounded-2xl px-5 py-3 text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition placeholder:text-slate-400 shadow-2xs disabled:opacity-60"
+            className="flex-1 bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition placeholder:text-slate-400 shadow-2xs"
           />
           <button
             type="button"
             onClick={handleSend}
             disabled={sending || !newMsg.trim()}
-            className="px-5 py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-2xl shadow-sm transition-all flex items-center gap-2 font-semibold text-xs sm:text-sm cursor-pointer shrink-0 disabled:opacity-50"
+            className="px-5 py-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl shadow-xs transition-all flex items-center gap-2 font-bold text-xs sm:text-sm cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {sending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <>
                 <span>Send</span>
-                <Send className="w-4 h-4" />
+                <Send className="w-3.5 h-3.5" />
               </>
             )}
           </button>

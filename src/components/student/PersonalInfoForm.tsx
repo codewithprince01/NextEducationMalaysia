@@ -44,7 +44,7 @@ const PersonalInfoForm = ({
   onSave,
   onCancel,
 }: PersonalInfoFormProps) => (
-  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7">
+  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 w-full">
     {/* Section Header */}
     <div className="flex items-center gap-3 pb-4 mb-6 border-b border-slate-100">
       <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0">
@@ -61,7 +61,7 @@ const PersonalInfoForm = ({
     </div>
 
     {/* Form Fields Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
       {/* Full Name */}
       <div>
         <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -317,8 +317,8 @@ const PersonalInfoForm = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-        <div className="col-span-1 md:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+        <div className="col-span-1 md:col-span-2 xl:col-span-3">
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Home Address <span className="text-rose-500">*</span>
           </label>

@@ -2,11 +2,10 @@
 
 import React, { Suspense, useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import Link from 'next/link'
 import StudentSidebar from '../student/StudentSidebar'
 import RequireAuth from '../auth/RequireAuth'
 import AuthSplash from '../auth/AuthSplash'
-import { Menu, PanelLeftClose, PanelLeftOpen, Compass, ChevronRight, LayoutDashboard, ArrowUpRight } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 export default function StudentDashboardLayout({ children }: { children: React.ReactNode }) {
@@ -23,7 +22,7 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isPinned, setIsPinned] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -32,12 +31,17 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  // Read saved collapsed state from localStorage
+  // Read saved pinned state from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('student_sidebar_collapsed');
+      const saved = localStorage.getItem('student_sidebar_pinned');
       if (saved !== null) {
-        setIsCollapsed(saved === 'true');
+        setIsPinned(saved === 'true');
+      } else {
+        const legacy = localStorage.getItem('student_sidebar_collapsed');
+        if (legacy !== null) {
+          setIsPinned(legacy !== 'true');
+        }
       }
     } catch {
       // ignore storage access errors
@@ -56,11 +60,11 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  const handleToggleCollapse = () => {
-    setIsCollapsed((prev) => {
+  const handleTogglePin = () => {
+    setIsPinned((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem('student_sidebar_collapsed', String(next));
+        localStorage.setItem('student_sidebar_pinned', String(next));
       } catch {
         // ignore
       }
@@ -68,20 +72,16 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // Human-friendly title for the breadcrumb
-  const getPageTitle = () => {
-    if (pathname?.includes('/tasks')) return 'My Tasks';
-    if (pathname?.includes('/profile')) return 'My Profile';
-    if (pathname?.includes('/my-applications') || pathname?.includes('/applied-colleges')) return 'My Applications';
-    if (pathname?.includes('/unpaid-applications')) return 'Unpaid Applications';
-    if (pathname?.includes('/applications')) return 'Application Details';
-    if (pathname?.includes('/conversation')) return 'Conversations';
-    if (pathname?.includes('/change-password')) return 'Change Password';
-    return 'Overview';
-  };
+  const isConversation = pathname?.includes('/conversation');
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-row relative antialiased">
+    <div
+      className={`bg-slate-50 flex flex-row relative antialiased ${
+        isConversation
+          ? 'h-screen h-[100dvh] overflow-hidden pt-[76px]'
+          : 'min-h-screen'
+      }`}
+    >
       {/* Mobile Backdrop Overlay */}
       {mobileOpen && (
         <div
@@ -90,81 +90,39 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Collapsible Flush-Left Sidebar */}
+      {/* Collapsible Flush-Left Sidebar with Pin & Hover Expand */}
       <StudentSidebar
-        isCollapsed={isCollapsed}
-        onToggleCollapse={handleToggleCollapse}
+        isPinned={isPinned}
+        onTogglePin={handleTogglePin}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />
 
-      {/* Main Area: Top Bar + Content */}
-      {/* `min-h-screen` here sat below the body's 76px navbar padding, so every
-          dashboard page was 76px taller than the viewport and always had a
-          stray scrollbar. */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-[calc(100vh-76px)]">
-        {/* Sleek Dashboard Top Navbar */}
-        {/* Sticks below the 76px fixed site navbar, matching the sidebar — at
-            top-0 it slid underneath the navbar and disappeared on scroll. */}
-        <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-[76px] z-20 px-4 sm:px-6 lg:px-8 flex items-center justify-between shadow-2xs">
-          <div className="flex items-center gap-3 sm:gap-3.5">
-            {/* Mobile Hamburger */}
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
-              aria-label="Open sidebar"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+      {/* Mobile-only floating sidebar trigger */}
+      <button
+        type="button"
+        onClick={() => setMobileOpen(true)}
+        className="lg:hidden fixed bottom-5 left-5 z-40 p-3 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-600/40 hover:bg-blue-700 transition active:scale-95 cursor-pointer"
+        aria-label="Open sidebar"
+        title="Open menu"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
 
-            {/* Desktop Collapse Toggle - Single, sleek button */}
-            <button
-              type="button"
-              onClick={handleToggleCollapse}
-              className="hidden lg:flex items-center justify-center w-9 h-9 rounded-xl border border-slate-200/80 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-300 text-slate-600 hover:text-blue-600 transition shadow-2xs cursor-pointer active:scale-95"
-              title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-            </button>
-
-            {/* Vertical divider */}
-            <div className="hidden lg:block h-6 w-px bg-slate-200/80" />
-
-            {/* Modern Breadcrumb / Page Title */}
-            <div className="flex items-center gap-2 text-xs sm:text-sm">
-              <div className="hidden sm:flex items-center gap-1.5 text-slate-400 font-medium">
-                <LayoutDashboard className="w-3.5 h-3.5 text-slate-400" />
-                <span>Dashboard</span>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-slate-300 hidden sm:block" />
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 border border-blue-100 text-blue-700 font-bold text-xs sm:text-sm shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
-                <span>{getPageTitle()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Action Icons - Premium Browse Courses Button */}
-          <div className="flex items-center gap-3">
-            <Link
-              href="/courses-in-malaysia"
-              className="group inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-xs shadow-blue-500/20 hover:shadow-md hover:shadow-blue-500/30 transition-all active:scale-[0.98]"
-            >
-              <Compass className="w-4 h-4 transition-transform group-hover:rotate-45" />
-              <span className="font-semibold">Browse Courses</span>
-              <ArrowUpRight className="w-3.5 h-3.5 text-blue-200 group-hover:text-white transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 hidden sm:inline-block" />
-            </Link>
-          </div>
-        </header>
-
+      {/* Main Area: Content */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
+          isConversation
+            ? 'h-full min-h-0 overflow-hidden'
+            : 'min-h-[calc(100vh-76px)]'
+        }`}
+      >
         {/* Dashboard Main Content Body */}
         <main
           className={`flex-1 w-full ${
-            pathname?.includes('/conversation')
-              ? 'p-0 flex flex-col min-w-0'
-              : 'p-4 sm:p-6 lg:p-8 w-full max-w-7xl'
+            isConversation
+              ? 'p-0 flex flex-col min-w-0 min-h-0 h-full overflow-hidden'
+              : 'p-4 sm:p-6 lg:p-8 xl:p-8 2xl:p-10 w-full'
           }`}
         >
           {children}

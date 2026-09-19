@@ -18,6 +18,8 @@ import {
   SquarePen,
   ListTodo,
   CreditCard,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -25,6 +27,8 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
 
 interface StudentSidebarProps {
+  isPinned?: boolean;
+  onTogglePin?: () => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
   mobileOpen?: boolean;
@@ -32,7 +36,9 @@ interface StudentSidebarProps {
 }
 
 export default function StudentSidebar({
-  isCollapsed = false,
+  isPinned = true,
+  onTogglePin,
+  isCollapsed: legacyCollapsed,
   onToggleCollapse,
   mobileOpen = false,
   onCloseMobile,
@@ -41,6 +47,45 @@ export default function StudentSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const [studentData, setStudentData] = useState<any>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    if (!isPinned) {
+      setIsHovered(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      if (!isPinned) {
+        setIsHovered(false);
+      }
+    }, 150);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isPinned) {
+      setIsHovered(false);
+    }
+  }, [isPinned]);
+
+  const isExpanded = isPinned || isHovered;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -251,246 +296,280 @@ export default function StudentSidebar({
     { href: "/student/change-password", icon: Lock, label: "Change Password" },
   ];
 
-  const sidebarContent = (
-    <div className="h-full flex flex-col select-none">
-      {/* Scrolls on its own once the menu is taller than the viewport. Without
-          it the content overflows the fixed-height sidebar and spills over the
-          page footer on short screens. */}
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
-        {/* Hidden File Input for Avatar Upload */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoUpload}
-          className="hidden"
-        />
+  const renderSidebarContent = (forceExpanded = false) => {
+    const isCollapsed = forceExpanded ? false : !isExpanded;
 
-        {/* Profile Header (Matching exact screenshot design) */}
-        {!isCollapsed ? (
-          <div className="bg-blue-600 px-5 pt-8 pb-6 text-center relative shrink-0">
-            {/* Mobile close button (mobile drawer only) */}
-            {onCloseMobile && (
-              <button
-                type="button"
-                onClick={onCloseMobile}
-                className="lg:hidden p-1.5 rounded-lg bg-black/15 text-white hover:bg-black/30 transition absolute top-2.5 right-2.5 cursor-pointer z-20"
-                aria-label="Close sidebar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
+    return (
+      <div className="h-full flex flex-col select-none">
+        {/* Scrolls on its own once the menu is taller than the viewport. */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden">
+          {/* Hidden File Input for Avatar Upload */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
 
-            {/* Circular Profile Image with Upload Badge */}
-            <div className="relative w-24 h-24 mx-auto group">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="w-24 h-24 rounded-full bg-white shadow-lg overflow-hidden flex items-center justify-center cursor-pointer ring-4 ring-white/20 transition hover:ring-white/40"
-                title="Click to upload profile photo"
-              >
-                {profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt={displayName}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                ) : (
-                  <div className="w-full h-full p-2.5 flex items-center justify-center">
-                    <svg
-                      viewBox="0 0 100 100"
-                      className="w-full h-full text-blue-600 fill-current"
-                      preserveAspectRatio="xMidYMid meet"
-                    >
-                      <circle cx="50" cy="36" r="18" />
-                      <path d="M 22 86 C 22 66, 34 55, 50 55 C 66 55, 78 66, 78 86 Z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Upload Pencil Badge Button */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white text-blue-600 shadow-md border border-slate-200/80 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition transform hover:scale-105 active:scale-95 z-10"
-                title="Upload profile photo"
-                aria-label="Upload profile photo"
-              >
-                <SquarePen className="w-4 h-4 text-blue-600" />
-              </button>
-            </div>
-
-            {/* Student Name & Email */}
-            <h2
-              suppressHydrationWarning
-              className="mt-3.5 font-bold text-xl text-white tracking-tight leading-snug truncate px-1"
-            >
-              {displayName}
-            </h2>
-            <p
-              suppressHydrationWarning
-              className="text-xs text-blue-100 truncate mt-0.5 px-1 font-normal opacity-90"
-            >
-              {displayEmail}
-            </p>
-          </div>
-        ) : (
-          <div className="bg-blue-600 py-4 px-2 text-center relative shrink-0">
-            <div className="relative w-11 h-11 mx-auto group">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="w-11 h-11 rounded-full bg-white shadow-md overflow-hidden flex items-center justify-center cursor-pointer ring-2 ring-white/30"
-                title={`${displayName} (${displayEmail}) - Click to upload photo`}
-                suppressHydrationWarning
-              >
-                {profileImage ? (
-                  <img
-                    src={profileImage}
-                    alt={displayName}
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                ) : (
-                  <div className="w-full h-full p-1 flex items-center justify-center">
-                    <svg
-                      viewBox="0 0 100 100"
-                      className="w-full h-full text-blue-600 fill-current"
-                      preserveAspectRatio="xMidYMid meet"
-                    >
-                      <circle cx="50" cy="36" r="18" />
-                      <path d="M 22 86 C 22 66, 34 55, 50 55 C 66 55, 78 66, 78 86 Z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Tiny pencil badge */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-blue-600 shadow-xs border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-blue-50"
-                title="Upload photo"
-              >
-                <SquarePen className="w-2.5 h-2.5 text-blue-600" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Navigation Links */}
-        <div className={`py-3 ${isCollapsed ? "px-2" : "px-3"}`}>
-          {!isCollapsed && (
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
-              Dashboard Menu
-            </p>
-          )}
-          <nav className="space-y-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href || (link.href !== "/student/overview" && pathname?.startsWith(link.href));
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
+          {/* Profile Header (Matching exact screenshot design) */}
+          {!isCollapsed ? (
+            <div className="bg-blue-600 px-5 pt-8 pb-6 text-center relative shrink-0">
+              {/* Mobile close button (mobile drawer only) */}
+              {onCloseMobile && (
+                <button
+                  type="button"
                   onClick={onCloseMobile}
-                  title={isCollapsed ? link.label : undefined}
-                  className={`flex items-center rounded-xl text-xs sm:text-sm font-semibold transition-all relative ${
-                    isCollapsed ? "justify-center p-2.5" : "gap-3 px-3.5 py-2.5"
-                  } ${
-                    isActive
-                      ? isCollapsed
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "bg-blue-50 text-blue-700 font-bold border-l-3 border-l-blue-600 shadow-2xs"
-                      : isCollapsed
-                      ? "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                  }`}
+                  className="lg:hidden p-1.5 rounded-lg bg-black/15 text-white hover:bg-black/30 transition absolute top-2.5 right-2.5 cursor-pointer z-20"
+                  aria-label="Close sidebar"
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? (isCollapsed ? "text-white" : "text-blue-600") : "text-slate-400"}`} />
-                  {!isCollapsed && <span className="truncate">{link.label}</span>}
+                  <X className="w-4 h-4" />
+                </button>
+              )}
 
-                  {/* Badges */}
-                  {!isCollapsed && link.href === "/student/my-applications" && appCounts && appCounts.paid > 0 && (
-                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      {appCounts.paid} Paid
-                    </span>
+              {/* Desktop Pin / Unpin Button */}
+              {onTogglePin && (
+                <button
+                  type="button"
+                  onClick={onTogglePin}
+                  className={`hidden lg:flex items-center justify-center w-8 h-8 rounded-xl transition-all cursor-pointer absolute top-2.5 right-2.5 z-20 ${
+                    isPinned
+                      ? "bg-white/20 text-white hover:bg-white/30 shadow-xs ring-1 ring-white/30"
+                      : "bg-black/20 text-blue-100 hover:text-white hover:bg-black/30 ring-1 ring-white/10"
+                  }`}
+                  title={isPinned ? "Unpin sidebar (auto-collapse when mouse leaves)" : "Pin sidebar (keep open permanently)"}
+                  aria-label={isPinned ? "Unpin sidebar" : "Pin sidebar"}
+                >
+                  {isPinned ? (
+                    <Pin className="w-4 h-4 fill-white text-white transition-transform" />
+                  ) : (
+                    <PinOff className="w-4 h-4 text-white transition-transform hover:scale-110" />
                   )}
-                  {!isCollapsed && link.href === "/student/unpaid-applications" && appCounts && appCounts.unpaid > 0 && (
-                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                      {appCounts.unpaid} Unpaid
-                    </span>
-                  )}
-                  {isCollapsed && link.href === "/student/unpaid-applications" && appCounts && appCounts.unpaid > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
-                  )}
+                </button>
+              )}
 
-                  {!isCollapsed && link.href === "/student/tasks" && (
-                    <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200/60">
-                      Checklist
-                    </span>
+              {/* Circular Profile Image with Upload Badge */}
+              <div className="relative w-24 h-24 mx-auto group">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-24 h-24 rounded-full bg-white shadow-lg overflow-hidden flex items-center justify-center cursor-pointer ring-4 ring-white/20 transition hover:ring-white/40"
+                  title="Click to upload profile photo"
+                >
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt={displayName}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-2.5 flex items-center justify-center">
+                      <svg
+                        viewBox="0 0 100 100"
+                        className="w-full h-full text-blue-600 fill-current"
+                        preserveAspectRatio="xMidYMid meet"
+                      >
+                        <circle cx="50" cy="36" r="18" />
+                        <path d="M 22 86 C 22 66, 34 55, 50 55 C 66 55, 78 66, 78 86 Z" />
+                      </svg>
+                    </div>
                   )}
-                  {isCollapsed && link.href === "/student/tasks" && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white" />
+                </div>
+
+                {/* Upload Pencil Badge Button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white text-blue-600 shadow-md border border-slate-200/80 flex items-center justify-center cursor-pointer hover:bg-blue-50 transition transform hover:scale-105 active:scale-95 z-10"
+                  title="Upload profile photo"
+                  aria-label="Upload profile photo"
+                >
+                  <SquarePen className="w-4 h-4 text-blue-600" />
+                </button>
+              </div>
+
+              {/* Student Name & Email */}
+              <h2
+                suppressHydrationWarning
+                className="mt-3.5 font-bold text-xl text-white tracking-tight leading-snug truncate whitespace-nowrap px-1"
+              >
+                {displayName}
+              </h2>
+              <p
+                suppressHydrationWarning
+                className="text-xs text-blue-100 truncate whitespace-nowrap mt-0.5 px-1 font-normal opacity-90"
+              >
+                {displayEmail}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-blue-600 py-3.5 px-2 text-center relative shrink-0 flex flex-col items-center">
+              {/* Mini Pin Button */}
+              {onTogglePin && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTogglePin();
+                  }}
+                  className="hidden lg:flex items-center justify-center w-7 h-7 mb-2 rounded-lg bg-white/15 hover:bg-white/25 text-white transition cursor-pointer"
+                  title="Pin sidebar open"
+                  aria-label="Pin sidebar open"
+                >
+                  <Pin className="w-3.5 h-3.5 text-white/80" />
+                </button>
+              )}
+
+              <div className="relative w-11 h-11 mx-auto group">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-11 h-11 rounded-full bg-white shadow-md overflow-hidden flex items-center justify-center cursor-pointer ring-2 ring-white/30"
+                  title={`${displayName} (${displayEmail}) - Click to upload photo`}
+                  suppressHydrationWarning
+                >
+                  {profileImage ? (
+                    <img
+                      src={profileImage}
+                      alt={displayName}
+                      className="w-full h-full object-cover rounded-full"
+                    />
+                  ) : (
+                    <div className="w-full h-full p-1 flex items-center justify-center">
+                      <svg
+                        viewBox="0 0 100 100"
+                        className="w-full h-full text-blue-600 fill-current"
+                        preserveAspectRatio="xMidYMid meet"
+                      >
+                        <circle cx="50" cy="36" r="18" />
+                        <path d="M 22 86 C 22 66, 34 55, 50 55 C 66 55, 78 66, 78 86 Z" />
+                      </svg>
+                    </div>
                   )}
-                </Link>
-              );
-            })}
-          </nav>
+                </div>
+
+                {/* Tiny pencil badge */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-blue-600 shadow-xs border border-slate-200 flex items-center justify-center cursor-pointer hover:bg-blue-50"
+                  title="Upload photo"
+                >
+                  <SquarePen className="w-2.5 h-2.5 text-blue-600" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Links */}
+          <div className={`py-3 ${isCollapsed ? "px-2" : "px-3"}`}>
+            {!isCollapsed && (
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 py-1.5">
+                Dashboard Menu
+              </p>
+            )}
+            <nav className="space-y-1">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = pathname === link.href || (link.href !== "/student/overview" && pathname?.startsWith(link.href));
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={onCloseMobile}
+                    title={isCollapsed ? link.label : undefined}
+                    className={`flex items-center rounded-xl text-xs sm:text-sm font-semibold transition-all relative ${
+                      isCollapsed ? "justify-center p-2.5" : "gap-3 px-3.5 py-2.5"
+                    } ${
+                      isActive
+                        ? isCollapsed
+                          ? "bg-blue-600 text-white shadow-xs"
+                          : "bg-blue-50 text-blue-700 font-bold border-l-3 border-l-blue-600 shadow-2xs"
+                        : isCollapsed
+                        ? "text-slate-500 hover:text-slate-900 hover:bg-slate-100"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? (isCollapsed ? "text-white" : "text-blue-600") : "text-slate-400"}`} />
+                    {!isCollapsed && <span className="truncate whitespace-nowrap">{link.label}</span>}
+
+                    {/* Badges */}
+                    {!isCollapsed && link.href === "/student/my-applications" && appCounts && appCounts.paid > 0 && (
+                      <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        {appCounts.paid} Paid
+                      </span>
+                    )}
+                    {!isCollapsed && link.href === "/student/unpaid-applications" && appCounts && appCounts.unpaid > 0 && (
+                      <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        {appCounts.unpaid} Unpaid
+                      </span>
+                    )}
+                    {isCollapsed && link.href === "/student/unpaid-applications" && appCounts && appCounts.unpaid > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
+                    )}
+
+                    {!isCollapsed && link.href === "/student/tasks" && (
+                      <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200/60">
+                        Checklist
+                      </span>
+                    )}
+                    {isCollapsed && link.href === "/student/tasks" && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white" />
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
+        {/* Footer Section — stays pinned to the bottom of the sidebar */}
+        <div className={`shrink-0 p-3 border-t border-slate-100 space-y-2 ${isCollapsed ? "px-2" : "px-3"}`}>
+          {/* Sign Out Button */}
+          <button
+            onClick={handleLogout}
+            title={isCollapsed ? "Sign Out" : undefined}
+            className={`flex items-center justify-center rounded-xl text-xs sm:text-sm font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-all cursor-pointer w-full ${
+              isCollapsed ? "p-2.5" : "gap-2 py-2.5 px-3.5 border border-rose-100"
+            }`}
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!isCollapsed && <span className="whitespace-nowrap">Sign Out</span>}
+          </button>
         </div>
       </div>
-
-      {/* Footer Section — stays pinned to the bottom of the sidebar */}
-      <div className={`shrink-0 p-3 border-t border-slate-100 space-y-2 ${isCollapsed ? "px-2" : "px-3"}`}>
-        {/* Sign Out Button */}
-        <button
-          onClick={handleLogout}
-          title={isCollapsed ? "Sign Out" : undefined}
-          className={`flex items-center justify-center rounded-xl text-xs sm:text-sm font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-all cursor-pointer w-full ${
-            isCollapsed ? "p-2.5" : "gap-2 py-2.5 px-3.5 border border-rose-100"
-          }`}
-        >
-          <LogOut className="w-4 h-4 shrink-0" />
-          {!isCollapsed && <span>Sign Out</span>}
-        </button>
-
-        {/* Collapse toggle at bottom (if collapsed on desktop) */}
-        {isCollapsed && onToggleCollapse && (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="hidden lg:flex items-center justify-center w-full p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-            title="Expand sidebar"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
-      {/* Mobile Sliding Drawer.
-          Starts below the site navbar (fixed, 76px) so its close button is not
-          buried underneath it. */}
+      {/* Mobile Sliding Drawer */}
       <aside
         className={`fixed top-[76px] bottom-0 left-0 z-50 w-72 bg-white shadow-2xl border-r border-slate-200 transition-transform duration-300 ease-in-out lg:hidden ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {sidebarContent}
+        {renderSidebarContent(true)}
       </aside>
 
-      {/* Desktop Sticky Flush-Left Sidebar.
-          Sticks below the 76px fixed navbar and is exactly as tall as the space
-          left under it — `top-0 h-screen` hid the profile header behind the
-          navbar and pushed the sign-out button a navbar's height past the fold. */}
-      <aside
-        className={`hidden lg:flex flex-col sticky top-[76px] h-[calc(100vh-76px)] bg-white border-r border-slate-200/80 z-30 transition-all duration-300 ease-in-out shrink-0 ${
-          isCollapsed ? "w-[76px]" : "w-64 xl:w-72"
+      {/* Desktop Sticky Flush-Left Sidebar with Pinning & Hover Expand */}
+      <div
+        className={`hidden lg:block shrink-0 transition-[width] duration-300 ease-in-out relative ${
+          isExpanded ? "w-64 xl:w-72" : "w-[76px]"
         }`}
       >
-        {sidebarContent}
-      </aside>
+        <aside
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          className={`fixed top-[76px] bottom-0 left-0 h-[calc(100vh-76px)] bg-white border-r border-slate-200/80 transition-all duration-300 ease-in-out overflow-x-hidden ${
+            isExpanded
+              ? isPinned
+                ? "w-64 xl:w-72 z-30"
+                : "w-64 xl:w-72 shadow-2xl z-40"
+              : "w-[76px] z-30"
+          }`}
+        >
+          {renderSidebarContent(false)}
+        </aside>
+      </div>
     </>
   );
 }

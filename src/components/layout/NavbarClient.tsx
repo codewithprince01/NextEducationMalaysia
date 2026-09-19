@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
+import StudentNotificationDrawer from '@/components/student/StudentNotificationDrawer'
 // Inline SVGs — eliminates lucide-react from the critical navbar bundle
 const ChevronDown = ({ className, size = 16 }: { className?: string; size?: number }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -296,7 +297,10 @@ export default function NavbarClient() {
 
             {/* CTA — User profile when logged in, or Get Started */}
             {!mounted || isAuthLoading ? null : isLoggedIn ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
+                {/* Notification Bell with Drawer Trigger */}
+                <StudentNotificationDrawer />
+
                 {/* Vertical separator line matching screenshot */}
                 <div className="h-8 w-[1px] bg-slate-200 shrink-0" aria-hidden="true" />
 
@@ -332,14 +336,17 @@ export default function NavbarClient() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="lg:hidden text-blue-600 p-2 rounded-xl hover:bg-slate-100 transition-colors z-60 cursor-pointer"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {menuOpen ? <XIcon size={26} /> : <MenuIcon size={26} />}
-          </button>
+          {/* Mobile actions & hamburger */}
+          <div className="flex items-center gap-2 lg:hidden">
+            {mounted && isLoggedIn && <StudentNotificationDrawer isMobile />}
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="text-blue-600 p-2 rounded-xl hover:bg-slate-100 transition-colors z-60 cursor-pointer"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {menuOpen ? <XIcon size={26} /> : <MenuIcon size={26} />}
+            </button>
+          </div>
         </div>
       </nav>
 
