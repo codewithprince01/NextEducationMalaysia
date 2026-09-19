@@ -43,3 +43,14 @@ export class InternalServerError extends AppError {
     super(message, 500, extra);
   }
 }
+
+/**
+ * Safely extracts the first readable validation message from a ZodError
+ * across Zod v3 (error.errors) and Zod v4 (error.issues).
+ */
+export function formatZodError(error: any): string {
+  if (!error) return 'Validation error';
+  const first = error?.issues?.[0]?.message || error?.errors?.[0]?.message || error?.message;
+  return typeof first === 'string' && first.trim() ? first.trim() : 'Validation error';
+}
+

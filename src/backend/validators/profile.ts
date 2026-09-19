@@ -5,27 +5,40 @@ import { z } from 'zod';
 // Zod schemas for student profile management.
 // ============================================================
 
+const safeString = z.preprocess((val) => {
+  if (val === null || val === undefined) return '';
+  return String(val).trim();
+}, z.string().optional().default(''));
+
+const safeDate = z.preprocess((val) => {
+  if (!val || val === '' || val === null || val === undefined || val === 'null' || val === 'undefined') return null;
+  return String(val).trim();
+}, z.string().or(z.date()).nullable().optional());
+
 export const personalInfoSchema = z.object({
-  name: z.string().regex(/^[a-zA-Z ]*$/, 'Name should only contain letters and spaces').min(2),
-  email: z.string().email(),
-  country_code: z.string(),
-  mobile: z.string(),
-  father: z.string(),
-  mother: z.string(),
-  dob: z.string().or(z.date()),
-  first_language: z.string(),
-  nationality: z.string(),
-  passport_number: z.string(),
-  passport_expiry: z.string().or(z.date()),
-  marital_status: z.string(),
-  gender: z.string(),
-  home_address: z.string(),
-  city: z.string().regex(/^[a-zA-Z ]*$/).optional(),
-  state: z.string().regex(/^[a-zA-Z ]*$/).optional(),
-  country: z.string().regex(/^[a-zA-Z ]*$/).optional(),
-  zipcode: z.number().or(z.string()),
-  home_contact_number: z.string(),
-});
+  name: z.preprocess((val) => (val === null || val === undefined ? '' : String(val).trim()), z.string().min(1, 'Name is required')),
+  email: z.preprocess((val) => (val === null || val === undefined ? '' : String(val).trim()), z.string().optional().default('')),
+  country_code: safeString,
+  mobile: safeString,
+  father: safeString,
+  mother: safeString,
+  dob: safeDate,
+  first_language: safeString,
+  nationality: safeString,
+  passport_number: safeString,
+  passport_expiry: safeDate,
+  marital_status: safeString,
+  gender: safeString,
+  home_address: safeString,
+  city: safeString,
+  state: safeString,
+  country: safeString,
+  zipcode: z.preprocess((val) => {
+    if (val === null || val === undefined) return '';
+    return String(val).trim();
+  }, z.string().or(z.number()).optional().default('')),
+  home_contact_number: safeString,
+}).passthrough();
 
 export const eduSummarySchema = z.object({
   country_of_education: z.string(),

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { 
-  withMiddleware, checkApiKey, requireAuth, apiSuccess, apiError, studentProfileService } from '@/backend';
+  withMiddleware, checkApiKey, requireAuth, apiSuccess, apiError, studentProfileService, formatZodError } from '@/backend';
 import { personalInfoSchema } from '@/backend/validators/profile';
 
 /**
@@ -36,7 +36,8 @@ export const POST = withMiddleware(checkApiKey)(async (request: NextRequest) => 
     return apiSuccess(null, result.message);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return apiError(error.errors[0].message, 422);
+      const msg = formatZodError(error);
+      return apiError(msg, 422);
     }
     return apiError(error.message || 'Failed to update profile', 500);
   }

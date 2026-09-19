@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { 
-  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService, authRateLimit, setRefreshCookie } from '@/backend';
+  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService, authRateLimit, setRefreshCookie, formatZodError } from '@/backend';
 import { otpVerifySchema } from '@/backend/validators/auth';
 
 export const POST = withMiddleware(checkApiKey, authRateLimit)(async (request: NextRequest) => {
@@ -28,7 +28,8 @@ export const POST = withMiddleware(checkApiKey, authRateLimit)(async (request: N
     return response;
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return apiError(error.errors[0].message, 422);
+      const msg = formatZodError(error);
+      return apiError(msg, 422);
     }
     return apiError(error.message || 'Verification failed', 500);
   }

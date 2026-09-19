@@ -122,7 +122,7 @@ function StudentDashboardShell({ children }: { children: React.ReactNode }) {
           className={`flex-1 w-full ${
             isFixedPage
               ? 'p-0 flex flex-col min-w-0 min-h-0 h-full overflow-hidden'
-              : 'p-4 sm:p-6 lg:p-8 xl:p-8 2xl:p-10 w-full'
+              : 'p-3.5 sm:p-5 lg:p-6 w-full'
           }`}
         >
           {children}

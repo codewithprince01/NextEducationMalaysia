@@ -4,10 +4,15 @@ import {
 
 export const POST = withMiddleware(checkApiKey, authRateLimit)(async (request: NextRequest) => {
   try {
-    const { id, email } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const { id, email } = body;
     if (!id && !email) return apiError('id or email is required', 422);
 
-    const result = await studentAuthService.resendOtp(id ? Number(id) : email);
+    const hasNumericId = id !== undefined && id !== null && id !== '' && !isNaN(Number(id)) && Number(id) > 0;
+    const identifier = hasNumericId ? Number(id) : (email ? String(email).trim() : String(id).trim());
+    const fallbackEmail = email && String(email).trim() ? String(email).trim() : undefined;
+
+    const result = await studentAuthService.resendOtp(identifier, fallbackEmail);
 
     if (!result.status) {
       return apiError(result.message, 400);

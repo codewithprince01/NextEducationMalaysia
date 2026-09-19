@@ -35,11 +35,20 @@ export const studentLoginSchema = z.object({
 });
 
 export const otpVerifySchema = z.object({
-  id: z.coerce.number().int().positive().optional(),
-  email: z.string().email('Invalid email address').optional(),
-  otp: z.string().length(6, 'OTP must be 6 digits'),
+  id: z.preprocess((val) => {
+    if (val === '' || val === null || val === undefined) return undefined;
+    const num = Number(val);
+    return !isNaN(num) && num > 0 ? num : undefined;
+  }, z.number().int().positive().optional()),
+  email: z.preprocess((val) => {
+    if (typeof val === 'string' && val.trim()) return val.trim().toLowerCase();
+    return undefined;
+  }, z.string().email('Invalid email address').optional()),
+  otp: z.preprocess((val) => {
+    return String(val ?? '').trim();
+  }, z.string().min(4, 'OTP must be at least 4 digits').max(10, 'OTP is too long')),
 }).refine((data) => Boolean(data.id || data.email), {
-  message: 'Either id or email is required',
+  message: 'Either student ID or email is required',
   path: ['id'],
 });
 

@@ -45,3 +45,4 @@ export default async function UniversityLayout({ children, params }: Props) {
     </div>
   )
 }
+
