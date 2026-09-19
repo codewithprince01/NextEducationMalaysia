@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { 
-  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService, authRateLimit } from '@/backend';
+  withMiddleware, checkApiKey, apiSuccess, apiError, studentAuthService, authRateLimit, formatZodError } from '@/backend';
 import { studentRegisterSchema } from '@/backend/validators/auth';
 
 export const POST = withMiddleware(checkApiKey, authRateLimit)(async (request: NextRequest) => {
@@ -23,7 +23,8 @@ export const POST = withMiddleware(checkApiKey, authRateLimit)(async (request: N
     return apiSuccess(result.data ?? null, result.message);
   } catch (error: any) {
     if (error.name === 'ZodError') {
-      return apiError(error.errors[0].message, 422);
+      const msg = formatZodError(error);
+      return apiError(msg, 422);
     }
     return apiError(error.message || 'Registration failed', 500);
   }

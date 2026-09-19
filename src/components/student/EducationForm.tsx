@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { SchoolListItem, SchoolFormFields } from "./SchoolComponents";
 import { GreForm, GmatForm, SatForm } from "./QualificationForms";
 import { validateRequired, validateScore, validateSelect, validateZipcode } from "@/utils/validation";
-import { GraduationCap, Plus, Check, School, BookOpen, Trash2, X } from "lucide-react";
+import { GraduationCap, Plus, Check, School, BookOpen, Trash2, X, Loader2 } from "lucide-react";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -39,6 +39,7 @@ export default function EducationForm() {
   const [gradeAverage, setGradeAverage] = useState("");
 
   const [schools, setSchools] = useState<any[]>([]);
+  const [isSavingSchool, setIsSavingSchool] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingDeleteSchoolId, setPendingDeleteSchoolId] = useState<number | null>(null);
   const [showSchoolForm, setShowSchoolForm] = useState(false);
@@ -393,10 +394,12 @@ export default function EducationForm() {
   };
 
   const handleSchoolAddOrEdit = async () => {
+    if (isSavingSchool) return;
     if (!validateSchoolForm()) {
       toast.error("Please fill all required fields correctly");
       return;
     }
+    setIsSavingSchool(true);
     try {
       const token = localStorage.getItem("token");
       const endpoint = editingSchoolId ? `${API_BASE}/student/update-school` : `${API_BASE}/student/add-school`;
@@ -429,6 +432,8 @@ export default function EducationForm() {
       fetchSchools();
     } catch {
       toast.error("Failed to save school details");
+    } finally {
+      setIsSavingSchool(false);
     }
   };
 
@@ -763,10 +768,20 @@ export default function EducationForm() {
               <button
                 type="button"
                 onClick={handleSchoolAddOrEdit}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                disabled={isSavingSchool}
+                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-xs sm:text-sm shadow-xs hover:shadow transition active:scale-95 flex items-center gap-2 cursor-pointer"
               >
-                <Check className="w-4 h-4" />
-                {editingSchoolId ? "Update School" : "Save School"}
+                {isSavingSchool ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    {editingSchoolId ? "Update School" : "Save School"}
+                  </>
+                )}
               </button>
             </div>
           </div>

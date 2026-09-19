@@ -156,11 +156,14 @@ export default function StudentProfileClient() {
           return;
         }
 
-        const studentData = profileRes.data?.student || profileRes.student;
+        const studentData = profileRes.data?.student || profileRes.student || {};
         setStudent(studentData);
+        const safeData: any = { ...INITIAL_FORM };
+        for (const [k, v] of Object.entries(studentData)) {
+          safeData[k] = v === null || v === undefined ? "" : v;
+        }
         setFormData({
-          ...INITIAL_FORM,
-          ...studentData,
+          ...safeData,
           dob: normalizeDateForInput(studentData?.dob),
           passport_expiry: normalizeDateForInput(studentData?.passport_expiry),
           c_code: studentData.c_code || studentData.country_code || "",
@@ -341,10 +344,14 @@ export default function StudentProfileClient() {
     }
     const token = localStorage.getItem("token");
     if (!token) return;
+    const sanitized: any = {};
+    for (const [k, v] of Object.entries(formData)) {
+      sanitized[k] = v === null || v === undefined ? "" : v;
+    }
     const payload = {
-      ...formData,
-      dob: normalizeDateForInput(formData?.dob),
-      passport_expiry: normalizeDateForInput(formData?.passport_expiry),
+      ...sanitized,
+      dob: normalizeDateForInput(formData?.dob) || null,
+      passport_expiry: normalizeDateForInput(formData?.passport_expiry) || null,
       country_code: formData.country_code || formData.c_code || "",
     };
 

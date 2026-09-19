@@ -55,10 +55,16 @@ export class StudentProfileService {
    * Update personal information.
    */
   async updatePersonalInfo(studentId: number, input: PersonalInfoInput): Promise<ApiResponse> {
-    const dob = input.dob ? new Date(input.dob as any) : null;
-    const passportExpiry = input.passport_expiry ? new Date(input.passport_expiry as any) : null;
-    const zipcode =
-      typeof input.zipcode === 'string' ? parseInt(input.zipcode || '0', 10) : input.zipcode;
+    const parseDateSafe = (d: any): Date | null => {
+      if (!d) return null;
+      const parsed = new Date(d);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    };
+    const dob = parseDateSafe(input.dob);
+    const passportExpiry = parseDateSafe(input.passport_expiry);
+    const zipcode = input.zipcode !== undefined && input.zipcode !== null && input.zipcode !== ''
+      ? parseInt(String(input.zipcode).replace(/\D/g, ''), 10) || null
+      : null;
 
     await prisma.$executeRawUnsafe(
       `UPDATE leads SET
@@ -83,26 +89,26 @@ export class StudentProfileService {
         home_contact_number = ?,
         updated_at = NOW()
       WHERE id = ?`,
-      input.name,
-      input.email,
-      input.country_code,
-      input.mobile,
-      input.father,
-      input.mother,
+      input.name || null,
+      input.email || null,
+      input.country_code || null,
+      input.mobile || null,
+      input.father || null,
+      input.mother || null,
       dob,
-      input.first_language,
-      input.nationality,
-      input.passport_number,
+      input.first_language || null,
+      input.nationality || null,
+      input.passport_number || null,
       passportExpiry,
-      input.marital_status,
-      input.gender,
-      input.home_address,
-      input.city ?? null,
-      input.state ?? null,
-      input.country ?? null,
-      zipcode as any,
-      input.home_contact_number,
-      studentId,
+      input.marital_status || null,
+      input.gender || null,
+      input.home_address || null,
+      input.city || null,
+      input.state || null,
+      input.country || null,
+      zipcode,
+      input.home_contact_number || null,
+      Number(studentId),
     );
 
     return { status: true, message: 'Personal information updated successfully' };
@@ -154,14 +160,19 @@ export class StudentProfileService {
    */
   async addSchool(studentId: number, input: SchoolInput): Promise<ApiResponse> {
     try {
-      const maxRes = (await prisma.$queryRawUnsafe(
-        `SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM student_schools`
-      )) as Array<{ next_id: bigint | number }>;
-      const nextId = Number(maxRes[0]?.next_id ?? 1);
+      if (input.id) {
+        const existing = (await prisma.$queryRawUnsafe(
+          'SELECT id FROM student_schools WHERE id = ? AND std_id = ? LIMIT 1',
+          Number(input.id),
+          Number(studentId)
+        )) as any[];
+        if (existing.length > 0) {
+          return this.updateSchool(studentId, input);
+        }
+      }
 
       await prisma.$executeRawUnsafe(
         `INSERT INTO student_schools (
-            id,
             std_id,
             country_of_institution,
             name_of_institution,
@@ -178,8 +189,7 @@ export class StudentProfileService {
             zipcode,
             created_at,
             updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-        nextId,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
         Number(studentId),
         input.country_of_institution || '',
         input.name_of_institution || '',
@@ -478,15 +488,9 @@ export class StudentProfileService {
         ? siteUrl.trim().replace(/\/+$/, '')
         : defaultDomain.trim().replace(/\/+$/, '');
 
-      const maxRes = (await prisma.$queryRawUnsafe(
-        `SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM student_documents`
-      )) as Array<{ next_id: bigint | number }>;
-      const nextId = Number(maxRes[0]?.next_id ?? 1);
-
       await prisma.$executeRawUnsafe(
-        `INSERT INTO student_documents (id, std_id, doc_name, imgname, imgpath, upload_source, doc_status, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, 'Reviewing', 1, NOW(), NOW())`,
-        nextId,
+        `INSERT INTO student_documents (std_id, doc_name, imgname, imgpath, upload_source, doc_status, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, 'Reviewing', 1, NOW(), NOW())`,
         Number(studentId),
         docName,
         imgName,

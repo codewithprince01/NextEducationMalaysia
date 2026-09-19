@@ -61,19 +61,22 @@ export class StudentAuthService {
   }
 
   private async findLeadByEmail(email: string): Promise<LeadRow | null> {
+    if (!email || typeof email !== 'string') return null;
+    const clean = email.trim().toLowerCase();
+    if (!clean) return null;
     const rows = (await prisma.$queryRawUnsafe(
-      'SELECT * FROM leads WHERE email = ? AND website = ? LIMIT 1',
-      email,
-      SITE_VAR,
+      'SELECT * FROM leads WHERE LOWER(email) = ? ORDER BY id DESC LIMIT 1',
+      clean,
     )) as LeadRow[];
     return rows[0] ?? null;
   }
 
   private async findLeadById(id: number): Promise<LeadRow | null> {
+    const numId = Number(id);
+    if (!numId || isNaN(numId) || numId <= 0) return null;
     const rows = (await prisma.$queryRawUnsafe(
-      'SELECT * FROM leads WHERE id = ? AND website = ? LIMIT 1',
-      id,
-      SITE_VAR,
+      'SELECT * FROM leads WHERE id = ? LIMIT 1',
+      numId,
     )) as LeadRow[];
     return rows[0] ?? null;
   }
@@ -306,12 +309,16 @@ export class StudentAuthService {
     input: OtpVerifyInput,
     meta?: AuthClientMeta
   ): Promise<ApiResponse<{ token: string; refresh_token: string; student: any }>> {
-    const student = input.id
-      ? await this.findLeadById(Number(input.id))
-      : await this.findLeadByEmail(String(input.email || ''));
+    let student: LeadRow | null = null;
+    if (input.id && !isNaN(Number(input.id)) && Number(input.id) > 0) {
+      student = await this.findLeadById(Number(input.id));
+    }
+    if (!student && input.email) {
+      student = await this.findLeadByEmail(String(input.email).trim());
+    }
 
     if (!student) {
-      return { status: false, message: 'Student record not found.' };
+      return { status: false, message: 'Student record not found. Please register or check your email.' };
     }
 
     if (Number(student.otp || 0) !== Number(String(input.otp).trim())) {
@@ -418,14 +425,27 @@ export class StudentAuthService {
     };
   }
 
-  async resendOtp(identifier: string | number): Promise<ApiResponse> {
-    const student =
-      typeof identifier === 'number'
-        ? await this.findLeadById(Number(identifier))
-        : await this.findLeadByEmail(identifier);
+  async resendOtp(identifier: string | number, fallbackEmail?: string): Promise<ApiResponse> {
+    let student: LeadRow | null = null;
+
+    const asStr = String(identifier ?? '').trim();
+    // If identifier looks like a numeric ID
+    if (asStr && !asStr.includes('@') && !isNaN(Number(asStr)) && Number(asStr) > 0) {
+      student = await this.findLeadById(Number(asStr));
+    }
+
+    // If identifier is an email
+    if (!student && asStr && asStr.includes('@')) {
+      student = await this.findLeadByEmail(asStr);
+    }
+
+    // Try fallbackEmail if provided
+    if (!student && fallbackEmail && String(fallbackEmail).trim().includes('@')) {
+      student = await this.findLeadByEmail(String(fallbackEmail).trim());
+    }
 
     if (!student) {
-      return { status: false, message: 'Email not found.' };
+      return { status: false, message: 'Student account not found. Please register or check your email.' };
     }
 
     const otp = generateOtp();

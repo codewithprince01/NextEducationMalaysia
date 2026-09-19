@@ -25,6 +25,7 @@ export default function ConfirmedEmailClient() {
   const [message, setMessage] = useState('')
   const [errorVisible, setErrorVisible] = useState(false)
   const [studentEmail, setStudentEmail] = useState('')
+  const [inputEmail, setInputEmail] = useState('')
   const [studentName, setStudentName] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
   const router = useRouter()
@@ -33,17 +34,33 @@ export default function ConfirmedEmailClient() {
   const redirectTo = sanitizeRedirect(searchParams.get('next')) || DEFAULT_AUTHENTICATED_ROUTE
 
   useEffect(() => {
-    const studentId = typeof window !== 'undefined' ? localStorage.getItem('student_id') : null
-    const email = typeof window !== 'undefined' ? localStorage.getItem('student_email') : null
-    const name = typeof window !== 'undefined' ? localStorage.getItem('student_name') : null
-    if (email) setStudentEmail(email)
-    if (name) setStudentName(name)
+    const queryEmail = searchParams.get('email')
+    const queryId = searchParams.get('id')
+    const localId = typeof window !== 'undefined' ? localStorage.getItem('student_id') : null
+    const localEmail = typeof window !== 'undefined' ? localStorage.getItem('student_email') : null
+    const localName = typeof window !== 'undefined' ? localStorage.getItem('student_name') : null
 
-    if (!studentId) {
-      setMessage('No registration data found. Please register or log in first.')
-      setErrorVisible(true)
+    const resolvedEmail = queryEmail || localEmail || ''
+    const resolvedId = queryId || localId || ''
+    const resolvedName = localName || ''
+
+    if (resolvedEmail) {
+      setStudentEmail(resolvedEmail)
+      setInputEmail(resolvedEmail)
+      try { localStorage.setItem('student_email', resolvedEmail) } catch {}
     }
-  }, [])
+    if (resolvedId && resolvedId !== 'undefined' && resolvedId !== 'null') {
+      try { localStorage.setItem('student_id', resolvedId) } catch {}
+    }
+    if (resolvedName) {
+      setStudentName(resolvedName)
+    }
+
+    if (!resolvedId && !resolvedEmail) {
+      setMessage('Please enter your email and verification code below.')
+      setErrorVisible(false)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -66,12 +83,22 @@ export default function ConfirmedEmailClient() {
     setErrorVisible(false)
 
     try {
-      const studentId = localStorage.getItem('student_id')
-      if (!studentId) {
-        setMessage('No student ID found. Please register or log in first.')
+      const studentId = typeof window !== 'undefined' ? localStorage.getItem('student_id') : null
+      const email = studentEmail.trim() || inputEmail.trim() || (typeof window !== 'undefined' ? localStorage.getItem('student_email') : null)
+
+      if (!studentId && !email) {
+        setMessage('Please provide your registered email address.')
         setErrorVisible(true)
         setLoading(false)
         return
+      }
+
+      const payload: any = { otp: otp.trim() }
+      if (studentId && !isNaN(Number(studentId)) && Number(studentId) > 0) {
+        payload.id = Number(studentId)
+      }
+      if (email && email.includes('@')) {
+        payload.email = email.trim()
       }
 
       const response = await fetch(`${API_BASE}/student/verify-otp`, {
@@ -80,10 +107,10 @@ export default function ConfirmedEmailClient() {
           'Content-Type': 'application/json',
           ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
         },
-        body: JSON.stringify({ id: studentId, otp: otp.trim() }),
+        body: JSON.stringify(payload),
       })
 
-      const resData = await response.json()
+      const resData = await response.json().catch(() => ({}))
       const responseName =
         resData?.data?.name ||
         resData?.data?.student?.name ||
@@ -94,8 +121,8 @@ export default function ConfirmedEmailClient() {
       if (response.ok && resData?.data?.token) {
         login(
           resData.data.token,
-          String(resData?.data?.id || localStorage.getItem('student_id') || ''),
-          resData?.data?.email || '',
+          String(resData?.data?.id || studentId || ''),
+          resData?.data?.email || email || '',
           responseName
         )
         
@@ -108,12 +135,13 @@ export default function ConfirmedEmailClient() {
           router.refresh()
         }, 1200)
       } else {
-        setMessage(resData?.message || 'OTP Verification Failed. Please check the code.')
+        const errorMsg = resData?.message || resData?.error || 'OTP Verification Failed. Please check the code.'
+        setMessage(errorMsg)
         setErrorVisible(true)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('OTP Verification failed:', error)
-      setMessage('Network error. Please check your internet connection.')
+      setMessage(error?.message || 'Network error. Please check your internet connection.')
       setErrorVisible(true)
     } finally {
       setLoading(false)
@@ -123,17 +151,26 @@ export default function ConfirmedEmailClient() {
   const handleResend = async () => {
     if (resendCooldown > 0) return
 
+    const studentId = typeof window !== 'undefined' ? localStorage.getItem('student_id') : null
+    const email = studentEmail.trim() || inputEmail.trim() || (typeof window !== 'undefined' ? localStorage.getItem('student_email') : null)
+
+    if (!studentId && !email) {
+      setMessage('Please enter your registered email to resend verification code.')
+      setErrorVisible(true)
+      return
+    }
+
     setResending(true)
     setMessage('')
     setErrorVisible(false)
 
     try {
-      const studentId = localStorage.getItem('student_id')
-      if (!studentId) {
-        setMessage('No student ID found. Please register first.')
-        setErrorVisible(true)
-        setResending(false)
-        return
+      const payload: any = {}
+      if (studentId && !isNaN(Number(studentId)) && Number(studentId) > 0) {
+        payload.id = Number(studentId)
+      }
+      if (email && email.includes('@')) {
+        payload.email = email.trim()
       }
 
       const response = await fetch(`${API_BASE}/student/resend-otp`, {
@@ -142,22 +179,22 @@ export default function ConfirmedEmailClient() {
           'Content-Type': 'application/json',
           ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
         },
-        body: JSON.stringify({ id: studentId }),
+        body: JSON.stringify(payload),
       })
 
-      const resData = await response.json()
+      const resData = await response.json().catch(() => ({}))
       if (response.ok) {
-        toast.success('New OTP sent to your registered email!')
-        setMessage('📩 A fresh OTP code has been sent to your email.')
+        toast.success(resData?.message || 'New OTP sent to your registered email!')
+        setMessage(resData?.message || '📩 A fresh OTP code has been sent to your email.')
         setErrorVisible(false)
         setResendCooldown(60)
       } else {
-        setMessage(resData?.message || 'Failed to resend OTP. Please try again.')
+        setMessage(resData?.message || 'Failed to resend OTP. Please check your email and try again.')
         setErrorVisible(true)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Resend OTP failed:', error)
-      setMessage('Failed to resend OTP. Please try again later.')
+      setMessage(error?.message || 'Failed to resend OTP. Please try again later.')
       setErrorVisible(true)
     } finally {
       setResending(false)
@@ -250,12 +287,23 @@ export default function ConfirmedEmailClient() {
               <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
                 An authentication OTP has been sent to your registered email
               </p>
-              {studentEmail && (
+              {studentEmail ? (
                 <div className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-700">
                   <Mail className="w-3.5 h-3.5 text-blue-600" />
                   <span>{studentEmail}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInputEmail(studentEmail)
+                      setStudentEmail('')
+                    }}
+                    className="ml-1.5 text-[11px] text-blue-600 hover:text-blue-800 font-medium underline cursor-pointer"
+                    title="Change email address"
+                  >
+                    Change
+                  </button>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Status Messages */}
@@ -273,6 +321,25 @@ export default function ConfirmedEmailClient() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {!studentEmail && (
+                <ModernInput
+                  label="Registered Email Address"
+                  type="email"
+                  name="email"
+                  placeholder="Enter your registered email"
+                  value={inputEmail}
+                  onChange={(e) => setInputEmail(e.target.value)}
+                  onBlur={() => {
+                    if (inputEmail.includes('@')) {
+                      setStudentEmail(inputEmail.trim())
+                      try { localStorage.setItem('student_email', inputEmail.trim()) } catch {}
+                    }
+                  }}
+                  icon={<Mail />}
+                  required
+                />
+              )}
+
               <ModernInput
                 label="Verification Code (OTP)"
                 type="text"
