@@ -26,6 +26,46 @@ export interface StudentChecklistResult {
 }
 
 /**
+ * Centralized helpers to distinguish official staff/CRM issued documents (e.g. Joining Letter,
+ * Offer Letter, VAL, Fee Receipts) from student-uploaded admission credentials.
+ */
+export function isStaffDocTitle(name: string): boolean {
+  const n = String(name || '').toLowerCase().trim()
+  return (
+    n.includes('offer letter') ||
+    n.includes('conditional offer') ||
+    n.includes('joining letter') ||
+    n.includes('visa approval letter') ||
+    n === 'val' ||
+    n.includes('val copy') ||
+    n.includes('pre-arrival') ||
+    n.includes('emgs payment receipt') ||
+    n.includes('tuition fee invoice') ||
+    n.includes('fee invoice')
+  )
+}
+
+export function isStaffUploaded(doc: any): boolean {
+  if (!doc) return false
+  if (doc?.upload_by != null && Number(doc.upload_by) > 0) return true
+  const src = String(doc?.upload_source || '').toLowerCase().trim()
+  if (
+    src.includes('crm') ||
+    src.includes('portal.britannicaoverseas') ||
+    src.includes(':3010') ||
+    src.includes(':5173')
+  ) {
+    return true
+  }
+  const imgPath = String(doc?.imgpath || '').toLowerCase().trim()
+  if (imgPath.startsWith('student-documents/')) {
+    return true
+  }
+  const title = String(doc?.document_name || doc?.doc_name || doc?.imgname || '')
+  return isStaffDocTitle(title)
+}
+
+/**
  * Centralized matcher that accurately correlates document titles, database names,
  * and user-uploaded filenames across /student/profile, /student/tasks, and /student/applications/[id].
  */
@@ -35,42 +75,55 @@ export function matchesDocumentRequirement(requirementTitle: string, uploadedDoc
   if (!req || !doc) return false
   if (req === doc) return true
 
-  // Passport: International Passport Copy, Passport Copy, Passport
-  const isReqPassport = req.includes('passport') && !req.includes('photo') && !req.includes('photograph') && !req.includes('size') && !req.includes('pic')
-  const isDocPassport = doc.includes('passport') && !doc.includes('photo') && !doc.includes('photograph') && !doc.includes('size') && !doc.includes('pic')
-  if (isReqPassport && isDocPassport) return true
+  // 1. Photo isolation: if one is photo/photograph/pic and the other is not, NEVER match
+  const isReqPhoto = req.includes('photo') || req.includes('photograph') || req.includes('picture') || req.includes('pic')
+  const isDocPhoto = doc.includes('photo') || doc.includes('photograph') || doc.includes('picture') || doc.includes('pic')
+  if (isReqPhoto || isDocPhoto) {
+    return isReqPhoto && isDocPhoto
+  }
 
-  // Grade 12 / High School
+  // 2. Passport (non-photo): International Passport Copy, Passport Copy, Passport
+  const isReqPassport = req.includes('passport')
+  const isDocPassport = doc.includes('passport')
+  if (isReqPassport || isDocPassport) {
+    return isReqPassport && isDocPassport
+  }
+
+  // 3. Grade 12 / High School vs Grade 10 / Secondary isolation
   const isReq12 = req.includes('12th') || req.includes('grade 12') || req.includes('high school') || req.includes('senior secondary') || req.includes('intermediate') || req.includes('a-level') || req.includes('a level')
   const isDoc12 = doc.includes('12th') || doc.includes('grade 12') || doc.includes('high school') || doc.includes('senior secondary') || doc.includes('intermediate') || doc.includes('a-level') || doc.includes('a level')
-  if (isReq12 && isDoc12) return true
 
-  // Grade 10 / Secondary
   const isReq10 = req.includes('10th') || req.includes('grade 10') || req.includes('secondary') || req.includes('matric') || req.includes('o-level') || req.includes('o level')
   const isDoc10 = doc.includes('10th') || doc.includes('grade 10') || doc.includes('secondary') || doc.includes('matric') || doc.includes('o-level') || doc.includes('o level')
-  if (isReq10 && isDoc10) return true
 
-  // Photo
-  const isReqPhoto = req.includes('photo') || req.includes('photograph') || req.includes('picture')
-  const isDocPhoto = doc.includes('photo') || doc.includes('photograph') || doc.includes('picture')
-  if (isReqPhoto && isDocPhoto) return true
+  if (isReq12 || isDoc12 || isReq10 || isDoc10) {
+    if (isReq12 && isDoc12) return true
+    if (isReq10 && isDoc10) return true
+    return false
+  }
 
-  // English Language Proficiency
+  // 4. English Language Proficiency
   const isReqEnglish = req.includes('english') || req.includes('ielts') || req.includes('toefl') || req.includes('pte') || req.includes('duolingo') || req.includes('moi') || req.includes('language')
   const isDocEnglish = doc.includes('english') || doc.includes('ielts') || doc.includes('toefl') || doc.includes('pte') || doc.includes('duolingo') || doc.includes('moi') || doc.includes('language')
-  if (isReqEnglish && isDocEnglish) return true
+  if (isReqEnglish || isDocEnglish) {
+    return isReqEnglish && isDocEnglish
+  }
 
-  // Resume / CV
+  // 5. Resume / CV
   const isReqResume = req.includes('resume') || req.includes('cv') || req.includes('curriculum')
   const isDocResume = doc.includes('resume') || doc.includes('cv') || doc.includes('curriculum')
-  if (isReqResume && isDocResume) return true
+  if (isReqResume || isDocResume) {
+    return isReqResume && isDocResume
+  }
 
-  // Health Declaration
+  // 6. Health Declaration
   const isReqHealth = req.includes('health') || req.includes('medical')
   const isDocHealth = doc.includes('health') || doc.includes('medical')
-  if (isReqHealth && isDocHealth) return true
+  if (isReqHealth || isDocHealth) {
+    return isReqHealth && isDocHealth
+  }
 
-  // Substring fallback
+  // 7. Substring fallback for other custom document types
   return req.includes(doc) || doc.includes(req)
 }
 
@@ -408,18 +461,37 @@ export function getFullDocUrl(doc: any): string {
 
   const cleaned = raw.replace(/\\/g, '/').replace(/^\/+/, '')
   const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : ''
-  const isLocalRuntime = /localhost|127\.0\.0\.1/i.test(runtimeOrigin)
+  const isLocalRuntime = typeof window !== 'undefined' 
+    ? /localhost|127\.0\.0\.1/i.test(window.location.hostname)
+    : process.env.NODE_ENV !== 'production'
 
   const rawUploadSource = String(doc?.upload_source || '').trim()
-  const uploadSource = (rawUploadSource && rawUploadSource.toLowerCase() !== 'crm')
-    ? rawUploadSource.replace(/\/+$/, '')
-    : ''
-  const imageBase = (process.env.NEXT_PUBLIC_IMAGE_BASE_URL || '').trim().replace(/\/+$/, '')
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/+$/, '')
 
-  const candidateOrigins = isLocalRuntime
-    ? [runtimeOrigin, uploadSource, imageBase, siteUrl].filter(Boolean)
-    : [imageBase, uploadSource, siteUrl, runtimeOrigin].filter(Boolean)
+  // 1. Detect if this document was uploaded via CRM / Admissions
+  const isCrmDoc =
+    cleaned.startsWith('student-documents/') ||
+    rawUploadSource.includes('3010') ||
+    rawUploadSource.toLowerCase().includes('crm') ||
+    rawUploadSource.toLowerCase().includes('portal.britannicaoverseas') ||
+    (doc?.upload_by != null && Number(doc?.upload_by) > 0)
+
+  if (isCrmDoc) {
+    let crmBase = ''
+    if (/^https?:\/\//i.test(rawUploadSource) && !rawUploadSource.includes('3000') && !rawUploadSource.includes('educationmalaysia.in')) {
+      crmBase = rawUploadSource.replace(/\/+$/, '')
+    } else if (isLocalRuntime) {
+      crmBase = 'http://localhost:3010'
+    } else {
+      crmBase = (process.env.NEXT_PUBLIC_CRM_PUBLIC_URL || process.env.NEXT_PUBLIC_CRM_API_URL || 'https://portal.britannicaoverseas.com').replace(/\/+$/, '')
+    }
+
+    const crmRelativePath = cleaned.replace(/^(uploads\/|storage\/)+/, '')
+    return `${crmBase}/uploads/${crmRelativePath}`
+  }
+
+  // 2. Student-uploaded documents hosted on NextEducationMalaysia
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').trim().replace(/\/+$/, '')
+  const baseDomain = runtimeOrigin || siteUrl || 'https://www.educationmalaysia.in'
 
   const basePath = cleaned.startsWith('storage/')
     ? cleaned
@@ -427,6 +499,5 @@ export function getFullDocUrl(doc: any): string {
       ? `storage/${cleaned}`
       : `storage/uploads/${cleaned}`
 
-  const baseDomain = candidateOrigins[0] || 'https://www.educationmalaysia.in'
   return `${baseDomain.replace(/\/+$/, '')}/${basePath}`
 }

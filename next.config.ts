@@ -133,6 +133,14 @@ const nextConfig: NextConfig = {
     return {
       beforeFiles: [
         {
+          source: "/uploads/student-documents/:path*",
+          destination: `${process.env.CRM_API_URL || "http://localhost:3010"}/uploads/student-documents/:path*`,
+        },
+        {
+          source: "/storage/student-documents/:path*",
+          destination: `${process.env.CRM_API_URL || "http://localhost:3010"}/uploads/student-documents/:path*`,
+        },
+        {
           source: "/admin/uploads/:path*",
           destination: "/storage/uploads/:path*",
         },
