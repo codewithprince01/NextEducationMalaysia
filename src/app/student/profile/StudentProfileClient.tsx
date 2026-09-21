@@ -243,6 +243,23 @@ export default function StudentProfileClient() {
   }, []);
 
   useEffect(() => {
+    if (loading) return;
+    if (typeof window === 'undefined') return;
+
+    const hash = decodeURIComponent(window.location.hash || '');
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasDocParam = Boolean(urlParams.get('doc') || urlParams.get('reupload'));
+    const tabParam = urlParams.get('tab');
+
+    if (hash.includes('Upload Documents') || tabParam === 'Upload Documents' || hasDocParam) {
+      setTimeout(() => {
+        refs['Upload Documents'].current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveTab('Upload Documents');
+      }, 250);
+    }
+  }, [loading]);
+
+  useEffect(() => {
     const handler = () => {
       for (const [id, ref] of Object.entries(refs)) {
         const el = ref.current;

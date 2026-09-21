@@ -165,6 +165,7 @@ export default function DocumentUploadForm() {
 
   // Filter view: 'missing' | 'uploaded' | 'official'
   const [activeTab, setActiveTab] = useState<'missing' | 'uploaded' | 'official'>('missing')
+  const [highlightedDocKey, setHighlightedDocKey] = useState<string | null>(null)
 
   // Upload Modal state
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -442,6 +443,115 @@ export default function DocumentUploadForm() {
       setActiveTab('uploaded')
     }
   }, [missingDocuments.length, studentUploadedDocs.length, loading])
+
+  // Helper to highlight, switch tab, smooth-scroll and optionally open upload modal for a target document
+  const focusAndScrollToDocument = (targetDocName?: string | null, shouldOpenModal = false) => {
+    if (!targetDocName) return
+    const cleanTarget = targetDocName.trim()
+    if (!cleanTarget) return
+
+    // Check if target matches missingDocuments
+    const missingMatch = missingDocuments.find(
+      (m) =>
+        matchesDocumentRequirement(m.title, cleanTarget) ||
+        matchesDocumentRequirement(m.dbName, cleanTarget) ||
+        m.match(cleanTarget)
+    )
+
+    // Check if target matches completedRequiredDocuments
+    const completedMatch = completedRequiredDocuments.find(
+      (c) =>
+        matchesDocumentRequirement(c.title, cleanTarget) ||
+        matchesDocumentRequirement(c.doc?.document_name || c.doc?.doc_name || '', cleanTarget) ||
+        (c.matchingReq && (matchesDocumentRequirement(c.matchingReq.title, cleanTarget) || c.matchingReq.match(cleanTarget)))
+    )
+
+    if (missingMatch) {
+      setActiveTab('missing')
+      const targetKey = missingMatch.key || missingMatch.title
+      setHighlightedDocKey(targetKey)
+
+      setTimeout(() => {
+        const el = document.getElementById(`doc-missing-${targetKey}`)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+        if (shouldOpenModal) {
+          handleOpenUploadModal(missingMatch)
+        }
+      }, 200)
+
+      setTimeout(() => {
+        setHighlightedDocKey((prev) => (prev === targetKey ? null : prev))
+      }, 4000)
+      return
+    }
+
+    if (completedMatch) {
+      setActiveTab('uploaded')
+      const targetKey = completedMatch.key || completedMatch.title
+      setHighlightedDocKey(targetKey)
+
+      setTimeout(() => {
+        const el = document.getElementById(`doc-uploaded-${targetKey}`)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+        if (shouldOpenModal && completedMatch.matchingReq) {
+          handleOpenUploadModal(completedMatch.matchingReq)
+        }
+      }, 200)
+
+      setTimeout(() => {
+        setHighlightedDocKey((prev) => (prev === targetKey ? null : prev))
+      }, 4000)
+      return
+    }
+
+    // Fallback: search across allRequiredDocuments
+    const anyReq = allRequiredDocuments.find(
+      (r) =>
+        matchesDocumentRequirement(r.title, cleanTarget) ||
+        matchesDocumentRequirement(r.dbName, cleanTarget) ||
+        r.match(cleanTarget)
+    )
+    if (anyReq) {
+      if (shouldOpenModal) {
+        handleOpenUploadModal(anyReq)
+      }
+    }
+  }
+
+  // Handle URL query params (?doc=... or ?reupload=...) on initial mount or update
+  useEffect(() => {
+    if (loading) return
+    if (typeof window === 'undefined') return
+
+    const urlParams = new URLSearchParams(window.location.search)
+    const targetDoc = urlParams.get('doc') || urlParams.get('reupload')
+    const isReupload = Boolean(urlParams.get('reupload')) || window.location.hash.includes('reupload')
+
+    if (targetDoc) {
+      const timer = setTimeout(() => {
+        focusAndScrollToDocument(targetDoc, isReupload)
+      }, 350)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, missingDocuments.length, completedRequiredDocuments.length])
+
+  // Handle custom window event `student_focus_document` for immediate drawer interaction
+  useEffect(() => {
+    const handleFocusEvent = (e: any) => {
+      const docName = e.detail?.docName
+      const shouldOpenModal = e.detail?.action === 'Re-upload' || e.detail?.shouldOpenModal
+      if (docName) {
+        focusAndScrollToDocument(docName, shouldOpenModal)
+      }
+    }
+
+    window.addEventListener('student_focus_document', handleFocusEvent)
+    return () => window.removeEventListener('student_focus_document', handleFocusEvent)
+  }, [missingDocuments, completedRequiredDocuments])
 
   // Open modal for a specific required document
   const handleOpenUploadModal = (req: RequiredDocConfig) => {
@@ -727,49 +837,61 @@ export default function DocumentUploadForm() {
 
           {missingDocuments.length > 0 ? (
             <div className="space-y-2.5">
-              {missingDocuments.map((req, idx) => (
-                <div
-                  key={`missing_doc_${req.key || req.title}_${idx}`}
-                  className="bg-white rounded-xl border border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/20 p-3.5 sm:p-4 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs group"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <AlertCircle className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
-                          {req.title}
-                        </h5>
-                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
-                          {req.category}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200/60">
-                          {req.priority}
-                        </span>
+              {missingDocuments.map((req, idx) => {
+                const missingKey = req.key || req.title
+                const isTargetHighlighted =
+                  highlightedDocKey === missingKey ||
+                  highlightedDocKey === req.title ||
+                  highlightedDocKey === req.dbName
+                return (
+                  <div
+                    key={`missing_doc_${missingKey}_${idx}`}
+                    id={`doc-missing-${missingKey}`}
+                    className={`bg-white rounded-xl border p-3.5 sm:p-4 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs group ${
+                      isTargetHighlighted
+                        ? 'border-blue-500 ring-4 ring-blue-500/25 bg-blue-50/40 shadow-md scale-[1.01]'
+                        : 'border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/20'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <AlertCircle className="w-4 h-4" />
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                        {req.description}
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
+                            {req.title}
+                          </h5>
+                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                            {req.category}
+                          </span>
+                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200/60">
+                            {req.priority}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                          {req.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Upload Action */}
+                    <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                      <span className="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md hidden sm:inline-block">
+                        Not Uploaded
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenUploadModal(req)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs transition cursor-pointer"
+                      >
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        <span>Upload File</span>
+                      </button>
                     </div>
                   </div>
-
-                  {/* Upload Action */}
-                  <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                    <span className="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md hidden sm:inline-block">
-                      Not Uploaded
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenUploadModal(req)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs transition cursor-pointer"
-                    >
-                      <UploadCloud className="w-3.5 h-3.5" />
-                      <span>Upload File</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-5 text-center shadow-2xs">
@@ -839,8 +961,22 @@ export default function DocumentUploadForm() {
                         ? 'Reviewing' 
                         : (doc.doc_status || 'Reviewing')
 
+                      const rowKey = key || title
+                      const isTargetHighlighted =
+                        highlightedDocKey === rowKey ||
+                        highlightedDocKey === title ||
+                        (matchingReq && (highlightedDocKey === matchingReq.key || highlightedDocKey === matchingReq.title || highlightedDocKey === matchingReq.dbName))
+
                       return (
-                        <tr key={`cred_doc_${key}_${doc.id || 'doc'}_${index}`} className="hover:bg-slate-50/70 transition">
+                        <tr
+                          key={`cred_doc_${key}_${doc.id || 'doc'}_${index}`}
+                          id={`doc-uploaded-${rowKey}`}
+                          className={`transition-all duration-300 ${
+                            isTargetHighlighted
+                              ? 'bg-blue-50/90 ring-2 ring-inset ring-blue-500 font-semibold'
+                              : 'hover:bg-slate-50/70'
+                          }`}
+                        >
                           <td className="px-4 py-3 font-medium text-slate-400">
                             {index + 1}
                           </td>

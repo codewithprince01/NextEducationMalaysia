@@ -29,6 +29,7 @@ export interface NotificationItem {
   subtitle: string
   message: string
   type: 'document' | 'application' | 'message' | 'alert' | 'system'
+  category?: string
   timestamp: string
   timeAgo: string
   read: boolean
@@ -183,6 +184,7 @@ export default function StudentNotificationDrawer({ isMobile = false }: { isMobi
             subtitle: item.subtitle || '',
             message: item.message,
             type: mapCategoryToType(item.category),
+            category: item.category || undefined,
             timestamp: item.timestamp,
             timeAgo: formatTimeAgo(item.timestamp),
             read: Boolean(item.read),
@@ -331,6 +333,51 @@ export default function StudentNotificationDrawer({ isMobile = false }: { isMobi
   const handleActionClick = (notif: NotificationItem) => {
     void markAsRead(notif.id)
     setIsOpen(false)
+
+    let docName: string | null = null
+    const titleLower = (notif.title || '').toLowerCase()
+
+    // 1. Check if link already contains doc=...
+    if (notif.link && notif.link.includes('doc=')) {
+      const match = notif.link.match(/doc=([^&#]+)/)
+      if (match && match[1]) {
+        docName = decodeURIComponent(match[1])
+      }
+    }
+
+    // 2. If not in link, extract from title or message
+    if (!docName && (titleLower.includes('document') || notif.type === 'document')) {
+      const colonMatch = notif.title.match(/:\s*(.+)$/)
+      if (colonMatch && colonMatch[1]) {
+        docName = colonMatch[1].trim()
+      } else {
+        const quoteMatch = notif.message.match(/"([^"]+)"/)
+        if (quoteMatch && quoteMatch[1]) {
+          docName = quoteMatch[1].trim()
+        }
+      }
+    }
+
+    if (notif.type === 'document' || notif.category === 'document_status_changed' || titleLower.includes('document') || docName) {
+      const targetDoc = docName || 'Document'
+      const targetLink = `/student/profile?doc=${encodeURIComponent(targetDoc)}#Upload Documents`
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('student_focus_document', {
+            detail: {
+              docName: targetDoc,
+              action: notif.actionLabel,
+              shouldOpenModal: notif.actionLabel === 'Re-upload',
+            },
+          })
+        )
+      }
+
+      router.push(targetLink)
+      return
+    }
+
     if (notif.link) {
       let targetLink = notif.link
       const match = targetLink.match(/#app-(\d+)/)
