@@ -87,7 +87,7 @@ export class NotificationService {
         }
       }
 
-      // 3. Insert notification row for each staff member
+      // 3. Insert notification row for each eligible staff member (Admin & assigned counsellor ONLY)
       for (const staffId of recipientIds) {
         await prisma.$executeRawUnsafe(
           `INSERT INTO notifications 
@@ -106,23 +106,6 @@ export class NotificationService {
           params.priority ?? 'normal'
         );
       }
-
-      // 4. Also insert general staff broadcast notification (recipient_id = NULL)
-      await prisma.$executeRawUnsafe(
-        `INSERT INTO notifications 
-          (recipient_type, recipient_id, lead_id, app_id, category, title, subtitle, message, link, action_label, priority, is_read, created_at)
-         VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())`,
-        'staff',
-        leadId,
-        params.appId ? Number(params.appId) : null,
-        params.category,
-        params.title,
-        params.subtitle ?? null,
-        params.message,
-        params.link ?? null,
-        params.actionLabel ?? null,
-        params.priority ?? 'normal'
-      );
     } catch (err) {
       console.error('Failed to notify staff from student portal:', err);
     }
