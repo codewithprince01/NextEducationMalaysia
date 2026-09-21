@@ -575,22 +575,39 @@ export class StudentProfileService {
           if (matchedDoc) {
             const reqStatus = String(r.doc_status || '').trim();
             const uploadedStatus = String(matchedDoc.doc_status || '').trim();
+            const uploadedStatusLower = uploadedStatus.toLowerCase();
+            const reqStatusLower = reqStatus.toLowerCase();
 
-            if (reqStatus === 'Approved' || reqStatus === 'Completed') {
+            const isDocApproved = uploadedStatusLower === 'completed' || uploadedStatusLower === 'approved';
+            const isDocRejected = uploadedStatusLower === 'not approved' || uploadedStatusLower === 'rejected';
+
+            if (isDocApproved) {
               matchedDoc.doc_status = 'Completed';
-              return { ...r, doc_status: 'Approved' };
+              if (r.doc_status !== 'Approved' || r.rejection_note) {
+                if (r.id) {
+                  prisma.$executeRawUnsafe(
+                    `UPDATE application_requirements SET doc_status = 'Approved', rejection_note = NULL WHERE id = ?`,
+                    Number(r.id)
+                  ).catch(() => null);
+                }
+              }
+              return { ...r, doc_status: 'Approved', rejection_note: null };
             }
-            if (reqStatus === 'Not Approved' || reqStatus === 'Rejected') {
+
+            if (isDocRejected) {
               matchedDoc.doc_status = 'Not Approved';
               return { ...r, doc_status: 'Not Approved' };
             }
 
-            if (uploadedStatus === 'Approved' || uploadedStatus === 'Completed') {
-              return { ...r, doc_status: 'Approved' };
+            if (reqStatusLower === 'approved' || reqStatusLower === 'completed') {
+              matchedDoc.doc_status = 'Completed';
+              return { ...r, doc_status: 'Approved', rejection_note: null };
             }
-            if (uploadedStatus === 'Not Approved' || uploadedStatus === 'Rejected') {
+            if (reqStatusLower === 'not approved' || reqStatusLower === 'rejected') {
+              matchedDoc.doc_status = 'Not Approved';
               return { ...r, doc_status: 'Not Approved' };
             }
+
             if (!r.doc_status || r.doc_status === 'Pending') {
               if (r.id) {
                 prisma.$executeRawUnsafe(

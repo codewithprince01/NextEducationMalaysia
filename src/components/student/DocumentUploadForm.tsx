@@ -362,6 +362,25 @@ export default function DocumentUploadForm() {
       const match = findMatchingUploadedDoc(req, matchedDocIds)
       if (match) {
         if (match.id) matchedDocIds.add(match.id)
+
+        const matchStatusRaw = String(match.doc_status || '').trim().toLowerCase()
+        const reqStatusRaw = String((req as any).serverReq?.doc_status || '').trim().toLowerCase()
+
+        let finalStatus = 'Reviewing'
+        let finalRejectionNote: string | undefined = undefined
+
+        if (matchStatusRaw === 'completed' || matchStatusRaw === 'approved' || reqStatusRaw === 'completed' || reqStatusRaw === 'approved') {
+          finalStatus = 'Approved'
+          finalRejectionNote = undefined
+        } else if (matchStatusRaw === 'not approved' || matchStatusRaw === 'rejected' || reqStatusRaw === 'not approved' || reqStatusRaw === 'rejected') {
+          finalStatus = 'Not Approved'
+          finalRejectionNote = match.rejection_note || (req as any).serverReq?.rejection_note || undefined
+        } else if (matchStatusRaw === 'reviewing' || reqStatusRaw === 'reviewing') {
+          finalStatus = 'Reviewing'
+        } else {
+          finalStatus = match.doc_status || (req as any).serverReq?.doc_status || 'Reviewing'
+        }
+
         list.push({
           key: req.key || req.title,
           title: req.title,
@@ -371,8 +390,8 @@ export default function DocumentUploadForm() {
             ...match,
             document_name: req.title,
             doc_name: req.title,
-            doc_status: (req as any).serverReq?.doc_status || match.doc_status || 'Completed',
-            rejection_note: (req as any).serverReq?.rejection_note || match.rejection_note,
+            doc_status: finalStatus,
+            rejection_note: finalRejectionNote,
           },
           matchingReq: req,
         })
