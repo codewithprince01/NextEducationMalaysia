@@ -1,10 +1,10 @@
-import { prisma } from '@/lib/db';
+import { prisma } from "@/lib/db";
 import {
   StudentRegisterInput,
   StudentLoginInput,
   OtpVerifyInput,
   ResetPasswordInput,
-} from '../validators/auth';
+} from "../validators/auth";
 import {
   hashPassword,
   verifyPassword,
@@ -13,16 +13,16 @@ import {
   issueRefreshToken,
   verifyRefreshToken,
   sha256,
-} from '../utils/auth';
-import { sendMail } from '../email/sender';
-import { otpEmailHtml } from '../email/templates/otp';
-import { forgotPasswordLinkEmailHtml } from '../email/templates/forgot-password-link';
-import { ApiResponse } from '../types';
-import { serializeBigInt } from '@/lib/utils';
-import crypto from 'crypto';
-import { buildLeadSource } from '../utils/lead-source';
+} from "../utils/auth";
+import { sendMail } from "../email/sender";
+import { otpEmailHtml } from "../email/templates/otp";
+import { forgotPasswordLinkEmailHtml } from "../email/templates/forgot-password-link";
+import { ApiResponse } from "../types";
+import { serializeBigInt } from "@/lib/utils";
+import crypto from "crypto";
+import { buildLeadSource } from "../utils/lead-source";
 
-const SITE_VAR = process.env.SITE_VAR || 'MYS';
+const SITE_VAR = process.env.SITE_VAR || "MYS";
 
 type LeadRow = {
   id: bigint | number;
@@ -61,11 +61,18 @@ export class StudentAuthService {
   }
 
   private async findLeadByEmail(email: string): Promise<LeadRow | null> {
-    if (!email || typeof email !== 'string') return null;
+    if (!email || typeof email !== "string") return null;
     const clean = email.trim().toLowerCase();
     if (!clean) return null;
     const rows = (await prisma.$queryRawUnsafe(
-      'SELECT * FROM leads WHERE LOWER(email) = ? ORDER BY id DESC LIMIT 1',
+      `SELECT * FROM leads 
+       WHERE LOWER(email) = ? 
+       ORDER BY 
+         (CASE WHEN password IS NOT NULL AND TRIM(password) != '' THEN 1 ELSE 0 END) DESC,
+         (CASE WHEN email_verified = 1 OR email_verify = 1 OR email_verified_at IS NOT NULL THEN 1 ELSE 0 END) DESC,
+         (CASE WHEN status = 1 OR registered = 1 THEN 1 ELSE 0 END) DESC,
+         id DESC 
+       LIMIT 1`,
       clean,
     )) as LeadRow[];
     return rows[0] ?? null;
@@ -75,7 +82,7 @@ export class StudentAuthService {
     const numId = Number(id);
     if (!numId || isNaN(numId) || numId <= 0) return null;
     const rows = (await prisma.$queryRawUnsafe(
-      'SELECT * FROM leads WHERE id = ? LIMIT 1',
+      "SELECT * FROM leads WHERE id = ? LIMIT 1",
       numId,
     )) as LeadRow[];
     return rows[0] ?? null;
@@ -87,8 +94,9 @@ export class StudentAuthService {
       return;
     }
 
-    this.refreshTableReady = prisma.$executeRawUnsafe(
-      `CREATE TABLE IF NOT EXISTS student_refresh_tokens (
+    this.refreshTableReady = prisma
+      .$executeRawUnsafe(
+        `CREATE TABLE IF NOT EXISTS student_refresh_tokens (
          id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
          student_id BIGINT NOT NULL,
          token_hash CHAR(64) NOT NULL,
@@ -105,8 +113,9 @@ export class StudentAuthService {
          KEY idx_student_refresh_tokens_student (student_id),
          KEY idx_student_refresh_tokens_jti (token_jti),
          KEY idx_student_refresh_tokens_expires (expires_at)
-       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
-    ).then(() => undefined);
+       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+      )
+      .then(() => undefined);
 
     await this.refreshTableReady;
   }
@@ -118,10 +127,16 @@ export class StudentAuthService {
     return new Date(ms);
   }
 
-  private async persistRefreshToken(studentId: number, refreshToken: string, meta?: AuthClientMeta): Promise<void> {
+  private async persistRefreshToken(
+    studentId: number,
+    refreshToken: string,
+    meta?: AuthClientMeta,
+  ): Promise<void> {
     await this.ensureRefreshTokenTable();
     const tokenHash = sha256(refreshToken);
-    const jti = String((verifyRefreshToken(refreshToken) as any).jti || crypto.randomUUID());
+    const jti = String(
+      (verifyRefreshToken(refreshToken) as any).jti || crypto.randomUUID(),
+    );
     const expiresAt = this.extractRefreshExpiryDate(refreshToken);
 
     await prisma.$executeRawUnsafe(
@@ -133,59 +148,84 @@ export class StudentAuthService {
       jti,
       expiresAt,
       meta?.userAgent || null,
-      meta?.ipAddress || null
+      meta?.ipAddress || null,
     );
   }
 
-  private async issueAuthTokens(student: Pick<LeadRow, 'id' | 'email'>, meta?: AuthClientMeta): Promise<AuthTokens> {
+  private async issueAuthTokens(
+    student: Pick<LeadRow, "id" | "email">,
+    meta?: AuthClientMeta,
+  ): Promise<AuthTokens> {
     const sub = Number(student.id);
-    const email = String(student.email || '');
+    const email = String(student.email || "");
     const accessToken = issueAccessToken({ sub, email });
     const refreshToken = issueRefreshToken({ sub, email }, crypto.randomUUID());
     await this.persistRefreshToken(sub, refreshToken, meta);
     return { accessToken, refreshToken };
   }
 
-  async refreshAccessToken(refreshToken: string, meta?: AuthClientMeta): Promise<ApiResponse<{ token: string; refresh_token: string; id: number; email: string | null; student: any }>> {
+  async refreshAccessToken(
+    refreshToken: string,
+    meta?: AuthClientMeta,
+  ): Promise<
+    ApiResponse<{
+      token: string;
+      refresh_token: string;
+      id: number;
+      email: string | null;
+      student: any;
+    }>
+  > {
     await this.ensureRefreshTokenTable();
     let payload: { sub: number; email?: string; jti?: string; exp?: number };
     try {
       payload = verifyRefreshToken(refreshToken) as any;
     } catch {
-      return { status: false, message: 'Invalid refresh token.' };
+      return { status: false, message: "Invalid refresh token." };
     }
 
     const tokenHash = sha256(refreshToken);
-    const rows = await prisma.$queryRawUnsafe<Array<{
-      id: bigint | number;
-      student_id: bigint | number;
-      revoked_at: Date | null;
-      expires_at: Date | string;
-    }>>(
+    const rows = await prisma.$queryRawUnsafe<
+      Array<{
+        id: bigint | number;
+        student_id: bigint | number;
+        revoked_at: Date | null;
+        expires_at: Date | string;
+      }>
+    >(
       `SELECT id, student_id, revoked_at, expires_at
        FROM student_refresh_tokens
        WHERE token_hash = ?
        LIMIT 1`,
-      tokenHash
+      tokenHash,
     );
 
     const session = rows[0];
-    if (!session) return { status: false, message: 'Refresh session not found.' };
-    if (session.revoked_at) return { status: false, message: 'Refresh session revoked.' };
+    if (!session)
+      return { status: false, message: "Refresh session not found." };
+    if (session.revoked_at)
+      return { status: false, message: "Refresh session revoked." };
 
     const expiresAt = new Date(session.expires_at);
-    if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() < Date.now()) {
-      return { status: false, message: 'Refresh token expired.' };
+    if (
+      !Number.isFinite(expiresAt.getTime()) ||
+      expiresAt.getTime() < Date.now()
+    ) {
+      return { status: false, message: "Refresh token expired." };
     }
 
     const studentId = Number(session.student_id);
     if (!studentId || Number(payload.sub) !== studentId) {
-      return { status: false, message: 'Invalid refresh token subject.' };
+      return { status: false, message: "Invalid refresh token subject." };
     }
 
     const student = await this.findLeadById(studentId);
-    if (!student || Number(student.status || 0) !== 1 || Number(student.email_verify || 0) !== 1) {
-      return { status: false, message: 'Student account is not active.' };
+    if (
+      !student ||
+      Number(student.status || 0) !== 1 ||
+      Number(student.email_verify || 0) !== 1
+    ) {
+      return { status: false, message: "Student account is not active." };
     }
 
     const nextTokens = await this.issueAuthTokens(student, meta);
@@ -196,12 +236,12 @@ export class StudentAuthService {
        SET revoked_at = NOW(), replaced_by_hash = ?, last_used_at = NOW()
        WHERE id = ?`,
       nextHash,
-      Number(session.id)
+      Number(session.id),
     );
 
     return {
       status: true,
-      message: 'Token refreshed successfully.',
+      message: "Token refreshed successfully.",
       data: {
         token: nextTokens.accessToken,
         refresh_token: nextTokens.refreshToken,
@@ -220,22 +260,32 @@ export class StudentAuthService {
       `UPDATE student_refresh_tokens
        SET revoked_at = COALESCE(revoked_at, NOW()), last_used_at = NOW()
        WHERE token_hash = ?`,
-      tokenHash
+      tokenHash,
     );
   }
 
   async register(input: StudentRegisterInput): Promise<ApiResponse> {
     const signupSourceMeta = buildLeadSource({
-      formType: 'Signup',
-      source: 'Signup',
-      requestfor: 'signup',
-      sourcePath: input.source_path || '/',
-      sourceUrl: input.source_path || '/',
+      formType: "Signup",
+      source: "Signup",
+      requestfor: "signup",
+      sourcePath: input.source_path || "/",
+      sourceUrl: input.source_path || "/",
     });
 
     const existing = await this.findLeadByEmail(input.email);
-    if (existing && Number(existing.email_verify || 0) === 1) {
-      return { status: false, message: 'Email already registered and verified. Please log in.' };
+    const existingVerified =
+      existing &&
+      (Number(existing.email_verified || 0) === 1 ||
+        Number(existing.email_verify || 0) === 1 ||
+        Boolean(existing.email_verified_at) ||
+        Number(existing.registered || 0) === 1 ||
+        Number(existing.status || 0) === 1);
+    if (existing && existingVerified && existing.password) {
+      return {
+        status: false,
+        message: "Email already registered and verified. Please log in.",
+      };
     }
 
     const otp = generateOtp();
@@ -291,13 +341,14 @@ export class StudentAuthService {
     void sendMail({
       to: input.email,
       toName: input.name,
-      subject: 'Your Verification Code - Education Malaysia',
+      subject: "Your Verification Code - Education Malaysia",
       html: otpEmailHtml(input.name, otp),
-    }).catch((err) => console.error('Failed to send OTP email:', err));
+    }).catch((err) => console.error("Failed to send OTP email:", err));
 
     return {
       status: true,
-      message: 'OTP sent to your email. Please verify to complete registration.',
+      message:
+        "OTP sent to your email. Please verify to complete registration.",
       data: {
         id: saved ? Number(saved.id) : null,
         email: input.email,
@@ -307,8 +358,10 @@ export class StudentAuthService {
 
   async verifyOtp(
     input: OtpVerifyInput,
-    meta?: AuthClientMeta
-  ): Promise<ApiResponse<{ token: string; refresh_token: string; student: any }>> {
+    meta?: AuthClientMeta,
+  ): Promise<
+    ApiResponse<{ token: string; refresh_token: string; student: any }>
+  > {
     let student: LeadRow | null = null;
     if (input.id && !isNaN(Number(input.id)) && Number(input.id) > 0) {
       student = await this.findLeadById(Number(input.id));
@@ -318,11 +371,15 @@ export class StudentAuthService {
     }
 
     if (!student) {
-      return { status: false, message: 'Student record not found. Please register or check your email.' };
+      return {
+        status: false,
+        message:
+          "Student record not found. Please register or check your email.",
+      };
     }
 
     if (Number(student.otp || 0) !== Number(String(input.otp).trim())) {
-      return { status: false, message: 'Invalid OTP code.' };
+      return { status: false, message: "Invalid OTP code." };
     }
     const validRows = (await prisma.$queryRawUnsafe(
       `SELECT id FROM leads
@@ -332,26 +389,41 @@ export class StudentAuthService {
       Number(String(input.otp).trim()),
     )) as Array<{ id: number | bigint }>;
     if (!validRows.length) {
-      return { status: false, message: 'OTP has expired. Please request a new one.' };
+      return {
+        status: false,
+        message: "OTP has expired. Please request a new one.",
+      };
     }
 
-    await prisma.$executeRawUnsafe(
-      `UPDATE leads
-       SET email_verify = 1, email_verified = 1, registered = 1, status = 1,
-           otp = NULL, otp_expire_at = NULL, email_verified_at = NOW(), updated_at = NOW()
-       WHERE id = ?`,
-      Number(student.id),
-    );
+    const studentEmail = (student.email || "").trim().toLowerCase();
+    if (studentEmail) {
+      await prisma.$executeRawUnsafe(
+        `UPDATE leads
+         SET email_verify = 1, email_verified = 1, registered = 1, status = 1,
+             otp = NULL, otp_expire_at = NULL, email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW()
+         WHERE id = ? OR LOWER(email) = ?`,
+        Number(student.id),
+        studentEmail,
+      );
+    } else {
+      await prisma.$executeRawUnsafe(
+        `UPDATE leads
+         SET email_verify = 1, email_verified = 1, registered = 1, status = 1,
+             otp = NULL, otp_expire_at = NULL, email_verified_at = COALESCE(email_verified_at, NOW()), updated_at = NOW()
+         WHERE id = ?`,
+        Number(student.id),
+      );
+    }
 
     const updated = await this.findLeadById(Number(student.id));
     const tokens = await this.issueAuthTokens(
-      { id: Number(student.id), email: updated?.email ?? '' } as any,
-      meta
+      { id: Number(student.id), email: updated?.email ?? "" } as any,
+      meta,
     );
 
     return {
       status: true,
-      message: 'Email verified successfully.',
+      message: "Email verified successfully.",
       data: {
         token: tokens.accessToken,
         refresh_token: tokens.refreshToken,
@@ -364,31 +436,47 @@ export class StudentAuthService {
 
   async login(
     input: StudentLoginInput,
-    meta?: AuthClientMeta
-  ): Promise<ApiResponse<{ token: string; refresh_token: string; student: any }>> {
+    meta?: AuthClientMeta,
+  ): Promise<
+    ApiResponse<{ token: string; refresh_token: string; student: any }>
+  > {
     const student = await this.findLeadByEmail(input.email);
-    if (!student) {
-      return { status: false, message: 'Invalid email or password.' };
+    if (!student || !student.password) {
+      return { status: false, message: "Invalid email or password." };
     }
 
-    const verified = Number(student.email_verify || 0) === 1;
-    const active = Number(student.status || 0) === 1;
-    if (!verified || !active) {
+    const storedPassword = student.password ?? "";
+    const isMatch = await verifyPassword(input.password, storedPassword);
+    if (!isMatch) {
+      return { status: false, message: "Invalid email or password." };
+    }
+
+    const verified =
+      Number(student.email_verified || 0) === 1 ||
+      Number(student.email_verify || 0) === 1 ||
+      Boolean(student.email_verified_at) ||
+      Number(student.registered || 0) === 1 ||
+      Number(student.status || 0) === 1;
+
+    if (!verified) {
       const otp = generateOtp();
       await prisma.$executeRawUnsafe(
-        'UPDATE leads SET otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), updated_at = NOW() WHERE id = ?',
+        "UPDATE leads SET otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), updated_at = NOW() WHERE id = ?",
         otp,
         Number(student.id),
       );
       void sendMail({
-        to: student.email || '',
-        toName: student.name || 'Student',
-        subject: 'Your OTP Code - Education Malaysia',
-        html: otpEmailHtml(student.name || 'Student', otp),
-      }).catch((err) => console.error('Failed to send OTP email on unverified login:', err));
+        to: student.email || "",
+        toName: student.name || "Student",
+        subject: "Your OTP Code - Education Malaysia",
+        html: otpEmailHtml(student.name || "Student", otp),
+      }).catch((err) =>
+        console.error("Failed to send OTP email on unverified login:", err),
+      );
       return {
         status: true,
-        message: 'Account not verified. Please verify your email. OTP sent to your email.',
+        message:
+          "Account not verified. Please verify your email. OTP sent to your email.",
         data: {
           id: Number(student.id),
           email: student.email,
@@ -398,14 +486,11 @@ export class StudentAuthService {
       };
     }
 
-    const storedPassword = student.password ?? '';
-    const isMatch = await verifyPassword(input.password, storedPassword);
-    if (!isMatch) {
-      return { status: false, message: 'Invalid email or password.' };
-    }
-
     await prisma.$executeRawUnsafe(
-      'UPDATE leads SET login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), updated_at = NOW() WHERE id = ?',
+      `UPDATE leads 
+       SET email_verify = 1, email_verified = 1, status = 1, registered = 1,
+           login_count = COALESCE(login_count, 0) + 1, last_login = NOW(), updated_at = NOW() 
+       WHERE id = ?`,
       Number(student.id),
     );
 
@@ -414,7 +499,7 @@ export class StudentAuthService {
 
     return {
       status: true,
-      message: 'Logged in successfully.',
+      message: "Logged in successfully.",
       data: {
         token: tokens.accessToken,
         refresh_token: tokens.refreshToken,
@@ -425,83 +510,109 @@ export class StudentAuthService {
     };
   }
 
-  async resendOtp(identifier: string | number, fallbackEmail?: string): Promise<ApiResponse> {
+  async resendOtp(
+    identifier: string | number,
+    fallbackEmail?: string,
+  ): Promise<ApiResponse> {
     let student: LeadRow | null = null;
 
-    const asStr = String(identifier ?? '').trim();
+    const asStr = String(identifier ?? "").trim();
     // If identifier looks like a numeric ID
-    if (asStr && !asStr.includes('@') && !isNaN(Number(asStr)) && Number(asStr) > 0) {
+    if (
+      asStr &&
+      !asStr.includes("@") &&
+      !isNaN(Number(asStr)) &&
+      Number(asStr) > 0
+    ) {
       student = await this.findLeadById(Number(asStr));
     }
 
     // If identifier is an email
-    if (!student && asStr && asStr.includes('@')) {
+    if (!student && asStr && asStr.includes("@")) {
       student = await this.findLeadByEmail(asStr);
     }
 
     // Try fallbackEmail if provided
-    if (!student && fallbackEmail && String(fallbackEmail).trim().includes('@')) {
+    if (
+      !student &&
+      fallbackEmail &&
+      String(fallbackEmail).trim().includes("@")
+    ) {
       student = await this.findLeadByEmail(String(fallbackEmail).trim());
     }
 
     if (!student) {
-      return { status: false, message: 'Student account not found. Please register or check your email.' };
+      return {
+        status: false,
+        message:
+          "Student account not found. Please register or check your email.",
+      };
     }
 
     const otp = generateOtp();
 
     await prisma.$executeRawUnsafe(
-      'UPDATE leads SET otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), updated_at = NOW() WHERE id = ?',
+      "UPDATE leads SET otp = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 15 MINUTE), updated_at = NOW() WHERE id = ?",
       otp,
       Number(student.id),
     );
 
     void sendMail({
-      to: student.email || '',
-      toName: student.name || 'Student',
-      subject: 'Your New Verification Code - Education Malaysia',
-      html: otpEmailHtml(student.name || 'Student', otp),
-    }).catch((err) => console.error('Failed to send resend OTP email:', err));
+      to: student.email || "",
+      toName: student.name || "Student",
+      subject: "Your New Verification Code - Education Malaysia",
+      html: otpEmailHtml(student.name || "Student", otp),
+    }).catch((err) => console.error("Failed to send resend OTP email:", err));
 
     return {
       status: true,
-      message: 'A new OTP has been sent to your email.',
+      message: "A new OTP has been sent to your email.",
     };
   }
 
   async forgotPassword(email: string, baseUrl?: string): Promise<ApiResponse> {
     const student = await this.findLeadByEmail(email);
     if (!student) {
-      return { status: false, message: 'Entered wrong email address. Please check.' };
+      return {
+        status: false,
+        message: "Entered wrong email address. Please check.",
+      };
     }
 
-    const rememberToken = crypto.randomBytes(24).toString('hex');
-    const siteUrl = (baseUrl || process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    const rememberToken = crypto.randomBytes(24).toString("hex");
+    const siteUrl = (
+      baseUrl ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.SITE_URL ||
+      "http://localhost:3000"
+    ).replace(/\/+$/, "");
     const resetPath = `/password/reset?uid=${Number(student.id)}&token=${rememberToken}`;
     const resetLink = `${siteUrl}${resetPath}`;
     const loginLink = `${siteUrl}/login`;
 
     await prisma.$executeRawUnsafe(
-      'UPDATE leads SET remember_token = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 30 MINUTE), updated_at = NOW() WHERE id = ?',
+      "UPDATE leads SET remember_token = ?, otp_expire_at = DATE_ADD(NOW(), INTERVAL 30 MINUTE), updated_at = NOW() WHERE id = ?",
       rememberToken,
       Number(student.id),
     );
     const tokenExpiry = new Date(Date.now() + 30 * 60 * 1000);
 
     void sendMail({
-      to: student.email || '',
-      toName: student.name || 'Student',
-      subject: 'Password Reset',
+      to: student.email || "",
+      toName: student.name || "Student",
+      subject: "Password Reset",
       html: forgotPasswordLinkEmailHtml({
-        name: student.name || 'Student',
+        name: student.name || "Student",
         resetPasswordLink: resetLink,
         loginLink,
       }),
-    }).catch((err) => console.error('Failed to send password reset link email:', err));
+    }).catch((err) =>
+      console.error("Failed to send password reset link email:", err),
+    );
 
     return {
       status: true,
-      message: 'Password reset email sent successfully.',
+      message: "Password reset email sent successfully.",
       data: {
         email,
         reset_link: resetLink,
@@ -513,11 +624,11 @@ export class StudentAuthService {
   async resetPassword(input: ResetPasswordInput): Promise<ApiResponse> {
     const student = await this.findLeadById(Number(input.uid));
     if (!student) {
-      return { status: false, message: 'Invalid password reset link.' };
+      return { status: false, message: "Invalid password reset link." };
     }
 
-    if ((student.remember_token || '') !== input.token) {
-      return { status: false, message: 'Invalid password reset link.' };
+    if ((student.remember_token || "") !== input.token) {
+      return { status: false, message: "Invalid password reset link." };
     }
 
     const validRows = (await prisma.$queryRawUnsafe(
@@ -528,7 +639,10 @@ export class StudentAuthService {
       String(input.token),
     )) as Array<{ id: number | bigint }>;
     if (!validRows.length) {
-      return { status: false, message: 'This reset link has expired. Please request a new one.' };
+      return {
+        status: false,
+        message: "This reset link has expired. Please request a new one.",
+      };
     }
 
     const hashedPassword = await hashPassword(input.new_password);
@@ -543,7 +657,10 @@ export class StudentAuthService {
       Number(student.id),
     );
 
-    return { status: true, message: 'Password reset successful. You are now logged in.' };
+    return {
+      status: true,
+      message: "Password reset successful. You are now logged in.",
+    };
   }
 }
 
