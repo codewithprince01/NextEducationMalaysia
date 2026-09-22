@@ -73,9 +73,9 @@ export class NotificationService {
     const recipientIds = new Set<number>();
 
     try {
-      // 1. Get all active admin & staff leadership users in CRM
+      // 1. Get all active admin users in CRM (admin and super-admin ONLY)
       const admins = await prisma.$queryRawUnsafe<Array<{ id: number | bigint }>>(
-        `SELECT id FROM users WHERE (role = 'admin' OR role = 'super-admin' OR role = 'dev-head') AND status = 1`
+        `SELECT id FROM users WHERE (role = 'admin' OR role = 'super-admin') AND status = 1`
       );
       for (const a of admins) {
         recipientIds.add(Number(a.id));
