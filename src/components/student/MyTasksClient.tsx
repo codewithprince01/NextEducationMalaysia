@@ -96,8 +96,8 @@ export default function MyTasksClient() {
       const courses = Array.isArray(appRes?.data?.applied_programs)
         ? appRes.data.applied_programs
         : Array.isArray(appRes?.applied_programs)
-        ? appRes.applied_programs
-        : []
+          ? appRes.applied_programs
+          : []
 
       if (courses.length > 0) {
         const reqPromises = courses.map((app: any) =>
@@ -110,8 +110,8 @@ export default function MyTasksClient() {
           const list = Array.isArray(reqJson?.data?.requirements)
             ? reqJson.data.requirements
             : Array.isArray(reqJson?.requirements)
-            ? reqJson.requirements
-            : []
+              ? reqJson.requirements
+              : []
           allServerReqs.push(...list)
         })
       }
@@ -230,7 +230,7 @@ export default function MyTasksClient() {
       try {
         localStorage.setItem('student_documents_updated', String(Date.now()))
         window.dispatchEvent(new Event('student_documents_updated'))
-      } catch {}
+      } catch { }
     } catch (err) {
       toast.error('Network error while uploading document')
     } finally {
@@ -288,9 +288,8 @@ export default function MyTasksClient() {
             {/* Compact Progress Bar */}
             <div className="w-full h-2 rounded-full bg-slate-200/80 overflow-hidden mb-2">
               <div
-                className={`h-full rounded-full transition-all duration-500 ease-out ${
-                  progressPercent === 100 ? 'bg-emerald-500' : 'bg-blue-600'
-                }`}
+                className={`h-full rounded-full transition-all duration-500 ease-out ${progressPercent === 100 ? 'bg-emerald-500' : 'bg-blue-600'
+                  }`}
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -335,17 +334,15 @@ export default function MyTasksClient() {
           <button
             type="button"
             onClick={() => setActiveView('missing')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeView === 'missing'
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${activeView === 'missing'
+              ? 'bg-rose-600 text-white shadow-2xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
           >
             <AlertCircle className="w-3.5 h-3.5" />
             <span>Pending Requirements</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-              activeView === 'missing' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'
-            }`}>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${activeView === 'missing' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'
+              }`}>
               {missingCount}
             </span>
           </button>
@@ -353,17 +350,15 @@ export default function MyTasksClient() {
           <button
             type="button"
             onClick={() => setActiveView('completed')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-              activeView === 'completed'
-                ? 'bg-emerald-600 text-white shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${activeView === 'completed'
+              ? 'bg-emerald-600 text-white shadow-2xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Completed Items</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-              activeView === 'completed' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-700'
-            }`}>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${activeView === 'completed' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-700'
+              }`}>
               {completedCount}
             </span>
           </button>
@@ -371,11 +366,10 @@ export default function MyTasksClient() {
           <button
             type="button"
             onClick={() => setActiveView('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-              activeView === 'all'
-                ? 'bg-blue-600 text-white shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeView === 'all'
+              ? 'bg-blue-600 text-white shadow-2xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
           >
             All Items ({totalCount})
           </button>
@@ -413,13 +407,12 @@ export default function MyTasksClient() {
           return (
             <div
               key={item.id}
-              className={`rounded-xl border p-4 sm:p-4.5 transition-all flex flex-col justify-between group ${
-                item.isCompleted
-                  ? 'bg-white border-emerald-200/70 hover:border-emerald-300 shadow-2xs'
-                  : item.priority === 'high'
+              className={`rounded-xl border p-4 sm:p-4.5 transition-all flex flex-col justify-between group ${item.isCompleted
+                ? 'bg-white border-emerald-200/70 hover:border-emerald-300 shadow-2xs'
+                : item.priority === 'high'
                   ? 'bg-white border-rose-200/80 hover:border-rose-300 shadow-2xs hover:shadow-xs'
                   : 'bg-white border-amber-200/80 hover:border-amber-300 shadow-2xs hover:shadow-xs'
-              }`}
+                }`}
             >
               <div>
                 {/* Header: Category & Status */}
@@ -430,11 +423,10 @@ export default function MyTasksClient() {
                     </span>
 
                     {!item.isCompleted && (
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
-                        item.priority === 'high'
-                          ? 'bg-rose-50 text-rose-700 border border-rose-200/60'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200/60'
-                      }`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${item.priority === 'high'
+                        ? 'bg-rose-50 text-rose-700 border border-rose-200/60'
+                        : 'bg-amber-50 text-amber-700 border border-amber-200/60'
+                        }`}>
                         {item.priority === 'high' ? 'Mandatory' : 'Required'}
                       </span>
                     )}
@@ -455,9 +447,8 @@ export default function MyTasksClient() {
                 </div>
 
                 {/* Title & Description */}
-                <h3 className={`font-bold text-sm leading-snug mb-1 ${
-                  item.isCompleted ? 'text-slate-800' : 'text-slate-900 group-hover:text-blue-600 transition'
-                }`}>
+                <h3 className={`font-bold text-sm leading-snug mb-1 ${item.isCompleted ? 'text-slate-800' : 'text-slate-900 group-hover:text-blue-600 transition'
+                  }`}>
                   {item.isCompleted ? item.title : item.missingTitle}
                 </h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-normal mb-3 line-clamp-2">
@@ -501,19 +492,21 @@ export default function MyTasksClient() {
                         <span>View</span>
                       </a>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (item.actionType === 'upload') {
-                          handleOpenUpload(item)
-                        } else {
-                          handleActionClick(item)
-                        }
-                      }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shrink-0"
-                    >
-                      <span>{item.actionType === 'upload' ? 'Re-upload' : 'Edit'}</span>
-                    </button>
+                    {(!item.isApproved || item.actionType !== 'upload') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (item.actionType === 'upload') {
+                            handleOpenUpload(item)
+                          } else {
+                            handleActionClick(item)
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer shrink-0"
+                      >
+                        <span>{item.actionType === 'upload' ? 'Re-upload' : 'Edit'}</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

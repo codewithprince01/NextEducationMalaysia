@@ -374,12 +374,12 @@ export default function Programs() {
 
   const filteredSpecializations = formData.course_category_id
     ? specializations
-        .filter(
-          (s) =>
-            String(s.course_category_id) === String(formData.course_category_id) &&
-            (!s.website || s.website === 'MYS')
-        )
-        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .filter(
+        (s) =>
+          String(s.course_category_id) === String(formData.course_category_id) &&
+          (!s.website || s.website === 'MYS')
+      )
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     : [];
 
   const selectedStudyModes = (formData.study_mode || '')
@@ -987,9 +987,8 @@ export default function Programs() {
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
@@ -1015,9 +1014,6 @@ export default function Programs() {
             <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
               Programs & Courses Directory
             </h1>
-            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
-              Manage undergraduate and postgraduate academic courses, specializations, international tuition schedules, and entry requirements.
-            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
@@ -1208,54 +1204,48 @@ export default function Programs() {
               <button
                 type="button"
                 onClick={() => setActiveFormTab('basic')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'basic' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeFormTab === 'basic' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
               >
                 <Info className="w-3.5 h-3.5" /> Basic Info
               </button>
               <button
                 type="button"
                 onClick={() => setActiveFormTab('overview')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'overview' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeFormTab === 'overview' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
               >
                 <FileText className="w-3.5 h-3.5" /> Overview & Descriptions
               </button>
               <button
                 type="button"
                 onClick={() => setActiveFormTab('intl_fees')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'intl_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeFormTab === 'intl_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
               >
                 <DollarSign className="w-3.5 h-3.5" /> International Fees
               </button>
               <button
                 type="button"
                 onClick={() => setActiveFormTab('local_fees')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'local_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeFormTab === 'local_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
               >
                 <Building2 className="w-3.5 h-3.5" /> Local Fees
               </button>
               <button
                 type="button"
                 onClick={() => setActiveFormTab('other_fees')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'other_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeFormTab === 'other_fees' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
               >
                 <Tag className="w-3.5 h-3.5" /> Other Fees
               </button>
               <button
                 type="button"
                 onClick={() => setActiveFormTab('seo')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  activeFormTab === 'seo' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${activeFormTab === 'seo' ? 'bg-stone-900 text-white shadow-xs' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  }`}
               >
                 <Globe className="w-3.5 h-3.5" /> SEO Settings
               </button>
@@ -1322,8 +1312,8 @@ export default function Programs() {
                         {!formData.course_category_id
                           ? '-- Select Category First --'
                           : filteredSpecializations.length === 0
-                          ? '-- No Specializations Found --'
-                          : '-- Select Specialization --'}
+                            ? '-- No Specializations Found --'
+                            : '-- Select Specialization --'}
                       </option>
                       {filteredSpecializations.map((s) => (
                         <option key={s.id} value={s.id}>
@@ -1405,11 +1395,10 @@ export default function Programs() {
                               type="button"
                               key={sm.id}
                               onClick={() => toggleStudyMode(sm.study_mode)}
-                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${
-                                isSelected
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 border ${isSelected
                                   ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                                   : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
-                              }`}
+                                }`}
                             >
                               {isSelected ? <Check className="w-3.5 h-3.5 text-white" /> : <Plus className="w-3 h-3 text-slate-400" />}
                               {sm.study_mode}
@@ -1432,11 +1421,10 @@ export default function Programs() {
                             type="button"
                             key={m}
                             onClick={() => toggleIntake(m)}
-                            className={`px-2 py-1 rounded-md text-xs font-bold transition-all cursor-pointer border ${
-                              isSelected
+                            className={`px-2 py-1 rounded-md text-xs font-bold transition-all cursor-pointer border ${isSelected
                                 ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100 hover:border-slate-400'
-                            }`}
+                              }`}
                           >
                             {m}
                           </button>

@@ -30,10 +30,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
         onClose();
         return;
       }
-      // Default to signup for new users
-      setAuthStep("signup");
     }
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -98,13 +96,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
 
   const handleSignUpSuccess = (sId: any) => {
     setStudentId(sId);
-    setAuthStep("otp");
+    if (courseId) {
+      try { localStorage.setItem("pending_apply_course_id", String(courseId)); } catch { }
+    }
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/student/overview';
+    const nextParam = encodeURIComponent(currentPath);
+    const courseParam = courseId ? `&courseId=${encodeURIComponent(String(courseId))}` : '';
+    window.location.href = `/confirmed-email?id=${sId || ''}${courseParam}&next=${nextParam}`;
   };
 
   const handleLoginSuccess = (data: any) => {
     if (data.needsOTP) {
       setStudentId(data.studentId);
-      setAuthStep("otp");
+      if (courseId) {
+        try { localStorage.setItem("pending_apply_course_id", String(courseId)); } catch { }
+      }
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/student/overview';
+      const nextParam = encodeURIComponent(currentPath);
+      const courseParam = courseId ? `&courseId=${encodeURIComponent(String(courseId))}` : '';
+      window.location.href = `/confirmed-email?id=${data.studentId || ''}${courseParam}&next=${nextParam}`;
     } else if (data.token) {
       toast.success("Login successfully!");
       onClose();
@@ -127,7 +137,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
   return (
     <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg sm:max-w-xl my-auto border border-slate-200 overflow-hidden animate-fadeIn max-h-[95vh] flex flex-col">
-        
+
         {/* Close Button */}
         <button
           type="button"
@@ -158,22 +168,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, courseId, course
             <button
               type="button"
               onClick={() => setAuthStep("signup")}
-              className={`pb-2 pt-0.5 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
-                authStep === "signup"
+              className={`pb-2 pt-0.5 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${authStep === "signup"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-slate-400 hover:text-slate-700"
-              }`}
+                }`}
             >
               Create Account
             </button>
             <button
               type="button"
               onClick={() => setAuthStep("login")}
-              className={`pb-2 pt-0.5 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${
-                authStep === "login"
+              className={`pb-2 pt-0.5 text-xs sm:text-[13px] font-bold border-b-2 transition-all outline-none focus:outline-none select-none cursor-pointer ${authStep === "login"
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-slate-400 hover:text-slate-700"
-              }`}
+                }`}
             >
               Sign In
             </button>

@@ -22,6 +22,7 @@ import {
   Download,
   UserCheck,
   ShieldCheck,
+  RotateCcw,
 } from 'lucide-react'
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
@@ -620,7 +621,7 @@ export default function DocumentUploadForm() {
       try {
         localStorage.setItem('student_documents_updated', String(Date.now()))
         window.dispatchEvent(new Event('student_documents_updated'))
-      } catch {}
+      } catch { }
     } catch (error: any) {
       console.error('Upload error:', error)
       setModalError('Network error while uploading. Please try again.')
@@ -754,13 +755,12 @@ export default function DocumentUploadForm() {
 
           <div className="w-full h-2 bg-slate-200/80 rounded-full overflow-hidden mb-3">
             <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                progressPercent === 100
-                  ? 'bg-emerald-500'
-                  : progressPercent > 50
+              className={`h-full transition-all duration-500 rounded-full ${progressPercent === 100
+                ? 'bg-emerald-500'
+                : progressPercent > 50
                   ? 'bg-blue-600'
                   : 'bg-amber-500'
-              }`}
+                }`}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -770,17 +770,15 @@ export default function DocumentUploadForm() {
             <button
               type="button"
               onClick={() => setActiveTab('missing')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                activeTab === 'missing'
-                  ? 'bg-rose-600 text-white shadow-2xs'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-              }`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${activeTab === 'missing'
+                ? 'bg-rose-600 text-white shadow-2xs'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
             >
               <AlertCircle className="w-3.5 h-3.5" />
               <span>Missing Documents</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                activeViewMissingCountBadge(activeTab === 'missing', missingDocuments.length)
-              }`}>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeViewMissingCountBadge(activeTab === 'missing', missingDocuments.length)
+                }`}>
                 {missingDocuments.length}
               </span>
             </button>
@@ -788,17 +786,15 @@ export default function DocumentUploadForm() {
             <button
               type="button"
               onClick={() => setActiveTab('uploaded')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                activeTab === 'uploaded'
-                  ? 'bg-emerald-600 text-white shadow-2xs'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-              }`}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${activeTab === 'uploaded'
+                ? 'bg-emerald-600 text-white shadow-2xs'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>My Uploaded Credentials</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                activeTab === 'uploaded' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-800'
-              }`}>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${activeTab === 'uploaded' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-800'
+                }`}>
                 {completedRequiredDocuments.length}
               </span>
             </button>
@@ -807,11 +803,10 @@ export default function DocumentUploadForm() {
               <button
                 type="button"
                 onClick={() => setActiveTab('official')}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                  activeTab === 'official'
-                    ? 'bg-indigo-600 text-white shadow-2xs'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${activeTab === 'official'
+                  ? 'bg-indigo-600 text-white shadow-2xs'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                  }`}
               >
                 <Building2 className="w-3.5 h-3.5" />
                 <span>Official Issued ({staffIssuedDocs.length})</span>
@@ -820,391 +815,387 @@ export default function DocumentUploadForm() {
           </div>
         </div>
 
-      {/* VIEW: MISSING DOCUMENTS (Action Required) */}
-      {activeTab === 'missing' && (
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Pending Documents ({missingDocuments.length})
-              </h4>
+        {/* VIEW: MISSING DOCUMENTS (Action Required) */}
+        {activeTab === 'missing' && (
+          <div className="space-y-3 mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Pending Documents ({missingDocuments.length})
+                </h4>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                Uploaded files will automatically move to completed
+              </span>
             </div>
-            <span className="text-[11px] text-slate-400">
-              Uploaded files will automatically move to completed
-            </span>
-          </div>
 
-          {missingDocuments.length > 0 ? (
-            <div className="space-y-2.5">
-              {missingDocuments.map((req, idx) => {
-                const missingKey = req.key || req.title
-                const isTargetHighlighted =
-                  highlightedDocKey === missingKey ||
-                  highlightedDocKey === req.title ||
-                  highlightedDocKey === req.dbName
-                return (
-                  <div
-                    key={`missing_doc_${missingKey}_${idx}`}
-                    id={`doc-missing-${missingKey}`}
-                    className={`bg-white rounded-xl border p-3.5 sm:p-4 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs group ${
-                      isTargetHighlighted
+            {missingDocuments.length > 0 ? (
+              <div className="space-y-2.5">
+                {missingDocuments.map((req, idx) => {
+                  const missingKey = req.key || req.title
+                  const isTargetHighlighted =
+                    highlightedDocKey === missingKey ||
+                    highlightedDocKey === req.title ||
+                    highlightedDocKey === req.dbName
+                  return (
+                    <div
+                      key={`missing_doc_${missingKey}_${idx}`}
+                      id={`doc-missing-${missingKey}`}
+                      className={`bg-white rounded-xl border p-3.5 sm:p-4 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs group ${isTargetHighlighted
                         ? 'border-blue-500 ring-4 ring-blue-500/25 bg-blue-50/40 shadow-md scale-[1.01]'
                         : 'border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/20'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
-                        <AlertCircle className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
-                            {req.title}
-                          </h5>
-                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
-                            {req.category}
-                          </span>
-                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200/60">
-                            {req.priority}
-                          </span>
+                        }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                          <AlertCircle className="w-4 h-4" />
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                          {req.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Upload Action */}
-                    <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                      <span className="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md hidden sm:inline-block">
-                        Not Uploaded
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenUploadModal(req)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs transition cursor-pointer"
-                      >
-                        <UploadCloud className="w-3.5 h-3.5" />
-                        <span>Upload File</span>
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-5 text-center shadow-2xs">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-2">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <h5 className="text-sm font-bold text-emerald-900">
-                All Required Documents Uploaded! 🎉
-              </h5>
-              <p className="text-xs text-emerald-700 mt-0.5">
-                You have uploaded all mandatory admission credentials. Your profile is complete.
-              </p>
-              <button
-                type="button"
-                onClick={() => setActiveTab('uploaded')}
-                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition cursor-pointer"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>View Uploaded Files ({completedRequiredDocuments.length})</span>
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* VIEW: UPLOADED DOCUMENTS (Completed Credentials) */}
-      {activeTab === 'uploaded' && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Uploaded Credentials ({completedRequiredDocuments.length})
-              </h4>
-            </div>
-            <span className="text-[11px] text-slate-400">
-              Verified & pending review files
-            </span>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
-                  <tr>
-                    <th className="px-4 py-2.5 w-12 text-slate-400">#</th>
-                    <th className="px-4 py-2.5">Document Details</th>
-                    <th className="px-4 py-2.5">File & Upload Date</th>
-                    <th className="px-4 py-2.5">Status</th>
-                    <th className="px-4 py-2.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {completedRequiredDocuments.length > 0 ? (
-                    completedRequiredDocuments.map(({ key, title, priority, doc, matchingReq }, index) => {
-                      const fullUrl = getFullUrl(doc)
-                      const rawStatus = (doc.doc_status || '').trim().toLowerCase()
-                      const isApproved = rawStatus === 'completed' || rawStatus === 'approved'
-                      const isRejected = rawStatus === 'not approved' || rawStatus === 'rejected' || rawStatus.includes('not app') || rawStatus.includes('reject')
-                      const isReviewing = rawStatus === 'reviewing' || rawStatus === 'in review' || rawStatus === 'in_review' || rawStatus === 'under review'
-                      
-                      const displayStatus = isApproved 
-                        ? 'Approved' 
-                        : isRejected 
-                        ? 'Not Approved' 
-                        : isReviewing 
-                        ? 'Reviewing' 
-                        : (doc.doc_status || 'Reviewing')
-
-                      const rowKey = key || title
-                      const isTargetHighlighted =
-                        highlightedDocKey === rowKey ||
-                        highlightedDocKey === title ||
-                        (matchingReq && (highlightedDocKey === matchingReq.key || highlightedDocKey === matchingReq.title || highlightedDocKey === matchingReq.dbName))
-
-                      return (
-                        <tr
-                          key={`cred_doc_${key}_${doc.id || 'doc'}_${index}`}
-                          id={`doc-uploaded-${rowKey}`}
-                          className={`transition-all duration-300 ${
-                            isTargetHighlighted
-                              ? 'bg-blue-50/90 ring-2 ring-inset ring-blue-500 font-semibold'
-                              : 'hover:bg-slate-50/70'
-                          }`}
-                        >
-                          <td className="px-4 py-3 font-medium text-slate-400">
-                            {index + 1}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                                isApproved 
-                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                  : isRejected
-                                  ? 'bg-rose-50 text-rose-600 border-rose-100'
-                                  : 'bg-amber-50 text-amber-600 border-amber-100'
-                              }`}>
-                                <FileCheck2 className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <p className="font-bold text-slate-900 leading-tight">
-                                  {title || doc.document_name || doc.doc_name || 'Document'}
-                                </p>
-                                {isRejected && doc.rejection_note && (
-                                  <p className="text-[11px] text-rose-600 font-medium mt-0.5">
-                                    Reason: {doc.rejection_note}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">
-                            <div className="truncate max-w-[170px] font-medium text-slate-700">
-                              {doc.imgname || 'Uploaded File'}
-                            </div>
-                            {doc.created_at && (
-                              <div className="text-[10px] text-slate-400 mt-0.5">
-                                {new Date(doc.created_at).toLocaleDateString(undefined, {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                                isApproved
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : isRejected
-                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-                              }`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${
-                                  isApproved
-                                    ? 'bg-emerald-500'
-                                    : isRejected
-                                    ? 'bg-rose-500'
-                                    : 'bg-amber-500'
-                                }`}
-                              />
-                              {displayStatus}
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h5 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
+                              {req.title}
+                            </h5>
+                            <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                              {req.category}
                             </span>
-                          </td>
-                          <td className="px-4 py-3 text-right space-x-1.5">
-                            {fullUrl !== '#' ? (
-                              <a
-                                href={fullUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white text-xs font-semibold transition"
-                              >
-                                <Eye className="w-3 h-3" />
-                                <span>View</span>
-                              </a>
-                            ) : null}
-
-                            {matchingReq && (
-                              <button
-                                type="button"
-                                onClick={() => handleOpenUploadModal(matchingReq)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold transition cursor-pointer"
-                              >
-                                <span>Re-upload</span>
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    })
-                  ) : (
-                    <tr>
-                      <td className="px-4 py-8 text-center text-slate-500" colSpan={5}>
-                        <div className="flex flex-col items-center justify-center">
-                          <FileUp className="w-7 h-7 text-slate-300 mb-1.5" />
-                          <p className="font-semibold text-slate-700 text-xs">No student documents uploaded yet</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
-                            Please upload your required admission documents above.
+                            <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200/60">
+                              {req.priority}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                            {req.description}
                           </p>
                         </div>
-                      </td>
+                      </div>
+
+                      {/* Upload Action */}
+                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <span className="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md hidden sm:inline-block">
+                          Not Uploaded
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenUploadModal(req)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-2xs transition cursor-pointer"
+                        >
+                          <UploadCloud className="w-3.5 h-3.5" />
+                          <span>Upload File</span>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-5 text-center shadow-2xs">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <h5 className="text-sm font-bold text-emerald-900">
+                  All Required Documents Uploaded! 🎉
+                </h5>
+                <p className="text-xs text-emerald-700 mt-0.5">
+                  You have uploaded all mandatory admission credentials. Your profile is complete.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('uploaded')}
+                  className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>View Uploaded Files ({completedRequiredDocuments.length})</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VIEW: UPLOADED DOCUMENTS (Completed Credentials) */}
+        {activeTab === 'uploaded' && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Uploaded Credentials ({completedRequiredDocuments.length})
+                </h4>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                Verified & pending review files
+              </span>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
+                    <tr>
+                      <th className="px-4 py-2.5 w-12 text-slate-400">#</th>
+                      <th className="px-4 py-2.5">Document Details</th>
+                      <th className="px-4 py-2.5">File & Upload Date</th>
+                      <th className="px-4 py-2.5">Status</th>
+                      <th className="px-4 py-2.5 text-right">Actions</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {completedRequiredDocuments.length > 0 ? (
+                      completedRequiredDocuments.map(({ key, title, priority, doc, matchingReq }, index) => {
+                        const fullUrl = getFullUrl(doc)
+                        const rawStatus = (doc.doc_status || '').trim().toLowerCase()
+                        const isApproved = rawStatus === 'completed' || rawStatus === 'approved'
+                        const isRejected = rawStatus === 'not approved' || rawStatus === 'rejected' || rawStatus.includes('not app') || rawStatus.includes('reject')
+                        const isReviewing = rawStatus === 'reviewing' || rawStatus === 'in review' || rawStatus === 'in_review' || rawStatus === 'under review'
 
-      {/* VIEW: OFFICIAL CRM ISSUED DOCUMENTS TAB */}
-      {activeTab === 'official' && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                Official Documents Issued for You ({staffIssuedDocs.length})
-              </h4>
-            </div>
-            <span className="text-[11px] text-indigo-700 font-semibold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/80">
-              Uploaded via CRM / Admissions
-            </span>
-          </div>
+                        const displayStatus = isApproved
+                          ? 'Approved'
+                          : isRejected
+                            ? 'Not Approved'
+                            : isReviewing
+                              ? 'Reviewing'
+                              : (doc.doc_status || 'Reviewing')
 
-          <div className="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
-                  <tr>
-                    <th className="px-4 py-2.5 w-12 text-slate-400">#</th>
-                    <th className="px-4 py-2.5">Document Details</th>
-                    <th className="px-4 py-2.5">File & Issued Date</th>
-                    <th className="px-4 py-2.5">Origin</th>
-                    <th className="px-4 py-2.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {staffIssuedDocs.length > 0 ? (
-                    staffIssuedDocs.map((doc, index) => {
-                      const fullUrl = getFullUrl(doc)
-                      const title = doc.document_name || doc.doc_name || 'Official Document'
-                      const fileName = doc.imgname || 'Document File'
-                      const dateStr = doc.created_at
-                        ? new Date(doc.created_at).toLocaleDateString(undefined, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })
-                        : 'Issued'
+                        const rowKey = key || title
+                        const isTargetHighlighted =
+                          highlightedDocKey === rowKey ||
+                          highlightedDocKey === title ||
+                          (matchingReq && (highlightedDocKey === matchingReq.key || highlightedDocKey === matchingReq.title || highlightedDocKey === matchingReq.dbName))
 
-                      return (
-                        <tr key={doc.id || index} className="hover:bg-indigo-50/40 transition">
-                          <td className="px-4 py-3 font-medium text-slate-400">
-                            {index + 1}
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
-                                <FileCheck2 className="w-3.5 h-3.5" />
+                        return (
+                          <tr
+                            key={`cred_doc_${key}_${doc.id || 'doc'}_${index}`}
+                            id={`doc-uploaded-${rowKey}`}
+                            className={`transition-all duration-300 ${isTargetHighlighted
+                              ? 'bg-blue-50/90 ring-2 ring-inset ring-blue-500 font-semibold'
+                              : 'hover:bg-slate-50/70'
+                              }`}
+                          >
+                            <td className="px-4 py-3 font-medium text-slate-400">
+                              {index + 1}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2.5">
+                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${isApproved
+                                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                  : isRejected
+                                    ? 'bg-rose-50 text-rose-600 border-rose-100'
+                                    : 'bg-amber-50 text-amber-600 border-amber-100'
+                                  }`}>
+                                  <FileCheck2 className="w-3.5 h-3.5" />
+                                </div>
+                                <div>
+                                  <p className="font-bold text-slate-900 leading-tight">
+                                    {title || doc.document_name || doc.doc_name || 'Document'}
+                                  </p>
+                                  {isRejected && doc.rejection_note && (
+                                    <p className="text-[11px] text-rose-600 font-medium mt-0.5">
+                                      Reason: {doc.rejection_note}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-bold text-slate-900 leading-tight">
-                                  {title}
-                                </p>
-                                <span className="inline-block mt-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-100">
-                                  Verified Official
-                                </span>
+                            </td>
+                            <td className="px-4 py-3 text-slate-500">
+                              <div className="truncate max-w-[170px] font-medium text-slate-700">
+                                {doc.imgname || 'Uploaded File'}
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-slate-500">
-                            <div className="truncate max-w-[200px] font-medium text-slate-700">
-                              {fileName}
-                            </div>
-                            <div className="text-[10px] text-slate-400 mt-0.5">
-                              {dateStr}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                              <UserCheck className="w-3 h-3 text-indigo-600" />
-                              Admissions / CRM
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right space-x-1.5">
-                            {fullUrl !== '#' ? (
-                              <>
+                              {doc.created_at && (
+                                <div className="text-[10px] text-slate-400 mt-0.5">
+                                  {new Date(doc.created_at).toLocaleDateString(undefined, {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${isApproved
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : isRejected
+                                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  }`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${isApproved
+                                    ? 'bg-emerald-500'
+                                    : isRejected
+                                      ? 'bg-rose-500'
+                                      : 'bg-amber-500'
+                                    }`}
+                                />
+                                {displayStatus}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right space-x-1.5">
+                              {fullUrl !== '#' ? (
                                 <a
                                   href={fullUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white text-xs font-semibold transition"
                                 >
                                   <Eye className="w-3 h-3" />
                                   <span>View</span>
                                 </a>
+                              ) : null}
+
+                              {!isApproved && isRejected && matchingReq && (
                                 <button
                                   type="button"
-                                  onClick={() => handleDownload(doc)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold transition cursor-pointer"
+                                  onClick={() => handleOpenUploadModal(matchingReq)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200 text-xs font-semibold transition cursor-pointer"
                                 >
-                                  <Download className="w-3 h-3" />
-                                  <span>Download</span>
+                                  <RotateCcw className="w-3 h-3" />
+                                  <span>Re-upload</span>
                                 </button>
-                              </>
-                            ) : null}
-                          </td>
-                        </tr>
-                      )
-                    })
-                  ) : (
-                    <tr>
-                      <td className="px-4 py-8 text-center text-slate-500" colSpan={5}>
-                        <div className="flex flex-col items-center justify-center">
-                          <Building2 className="w-7 h-7 text-slate-300 mb-1.5" />
-                          <p className="font-semibold text-slate-700 text-xs">No official documents issued yet</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">
-                            When your counselor or admin issues offer letters, joining letters, or VAL, they will appear here.
-                          </p>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })
+                    ) : (
+                      <tr>
+                        <td className="px-4 py-8 text-center text-slate-500" colSpan={5}>
+                          <div className="flex flex-col items-center justify-center">
+                            <FileUp className="w-7 h-7 text-slate-300 mb-1.5" />
+                            <p className="font-semibold text-slate-700 text-xs">No student documents uploaded yet</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              Please upload your required admission documents above.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* VIEW: OFFICIAL CRM ISSUED DOCUMENTS TAB */}
+        {activeTab === 'official' && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Official Documents Issued for You ({staffIssuedDocs.length})
+                </h4>
+              </div>
+              <span className="text-[11px] text-indigo-700 font-semibold bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200/80">
+                Uploaded via CRM / Admissions
+              </span>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
+                    <tr>
+                      <th className="px-4 py-2.5 w-12 text-slate-400">#</th>
+                      <th className="px-4 py-2.5">Document Details</th>
+                      <th className="px-4 py-2.5">File & Issued Date</th>
+                      <th className="px-4 py-2.5">Origin</th>
+                      <th className="px-4 py-2.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white">
+                    {staffIssuedDocs.length > 0 ? (
+                      staffIssuedDocs.map((doc, index) => {
+                        const fullUrl = getFullUrl(doc)
+                        const title = doc.document_name || doc.doc_name || 'Official Document'
+                        const fileName = doc.imgname || 'Document File'
+                        const dateStr = doc.created_at
+                          ? new Date(doc.created_at).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })
+                          : 'Issued'
+
+                        return (
+                          <tr key={doc.id || index} className="hover:bg-indigo-50/40 transition">
+                            <td className="px-4 py-3 font-medium text-slate-400">
+                              {index + 1}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+                                  <FileCheck2 className="w-3.5 h-3.5" />
+                                </div>
+                                <div>
+                                  <p className="font-bold text-slate-900 leading-tight">
+                                    {title}
+                                  </p>
+                                  <span className="inline-block mt-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-100">
+                                    Verified Official
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-slate-500">
+                              <div className="truncate max-w-[200px] font-medium text-slate-700">
+                                {fileName}
+                              </div>
+                              <div className="text-[10px] text-slate-400 mt-0.5">
+                                {dateStr}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                <UserCheck className="w-3 h-3 text-indigo-600" />
+                                Admissions / CRM
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-right space-x-1.5">
+                              {fullUrl !== '#' ? (
+                                <>
+                                  <a
+                                    href={fullUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-semibold transition cursor-pointer"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                    <span>View</span>
+                                  </a>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDownload(doc)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold transition cursor-pointer"
+                                  >
+                                    <Download className="w-3 h-3" />
+                                    <span>Download</span>
+                                  </button>
+                                </>
+                              ) : null}
+                            </td>
+                          </tr>
+                        )
+                      })
+                    ) : (
+                      <tr>
+                        <td className="px-4 py-8 text-center text-slate-500" colSpan={5}>
+                          <div className="flex flex-col items-center justify-center">
+                            <Building2 className="w-7 h-7 text-slate-300 mb-1.5" />
+                            <p className="font-semibold text-slate-700 text-xs">No official documents issued yet</p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              When your counselor or admin issues offer letters, joining letters, or VAL, they will appear here.
+                            </p>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Quick Upload Modal */}

@@ -47,10 +47,10 @@ export default function ConfirmedEmailClient() {
     if (resolvedEmail) {
       setStudentEmail(resolvedEmail)
       setInputEmail(resolvedEmail)
-      try { localStorage.setItem('student_email', resolvedEmail) } catch {}
+      try { localStorage.setItem('student_email', resolvedEmail) } catch { }
     }
     if (resolvedId && resolvedId !== 'undefined' && resolvedId !== 'null') {
-      try { localStorage.setItem('student_id', resolvedId) } catch {}
+      try { localStorage.setItem('student_id', resolvedId) } catch { }
     }
     if (resolvedName) {
       setStudentName(resolvedName)
@@ -119,16 +119,37 @@ export default function ConfirmedEmailClient() {
         ''
 
       if (response.ok && resData?.data?.token) {
+        const verifiedToken = resData.data.token
         login(
-          resData.data.token,
+          verifiedToken,
           String(resData?.data?.id || studentId || ''),
           resData?.data?.email || email || '',
           responseName
         )
-        
+
         toast.success(resData.message || 'OTP Verified Successfully!')
         setMessage(resData.message || 'OTP Verified Successfully! Redirecting...')
         setErrorVisible(false)
+
+        const pendingCourseId =
+          searchParams.get('courseId') ||
+          searchParams.get('program_id') ||
+          (typeof window !== 'undefined' ? localStorage.getItem('pending_apply_course_id') : null)
+
+        if (pendingCourseId) {
+          try {
+            await fetch(`${API_BASE}/student/apply-program/${pendingCourseId}`, {
+              headers: {
+                Authorization: `Bearer ${verifiedToken}`,
+                ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+              },
+            })
+            if (typeof window !== 'undefined') localStorage.removeItem('pending_apply_course_id')
+            toast.success('Course application submitted successfully!')
+          } catch (e) {
+            console.error('Failed to auto-apply course after verification:', e)
+          }
+        }
 
         setTimeout(() => {
           router.replace(redirectTo)
@@ -309,11 +330,10 @@ export default function ConfirmedEmailClient() {
             {/* Status Messages */}
             {message && (
               <div
-                className={`p-3.5 rounded-xl text-xs sm:text-sm font-medium border mb-4 animate-fade-in ${
-                  errorVisible
+                className={`p-3.5 rounded-xl text-xs sm:text-sm font-medium border mb-4 animate-fade-in ${errorVisible
                     ? 'bg-red-50 text-red-600 border-red-100'
                     : 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                }`}
+                  }`}
               >
                 {message}
               </div>
@@ -332,7 +352,7 @@ export default function ConfirmedEmailClient() {
                   onBlur={() => {
                     if (inputEmail.includes('@')) {
                       setStudentEmail(inputEmail.trim())
-                      try { localStorage.setItem('student_email', inputEmail.trim()) } catch {}
+                      try { localStorage.setItem('student_email', inputEmail.trim()) } catch { }
                     }
                   }}
                   icon={<Mail />}
@@ -347,7 +367,7 @@ export default function ConfirmedEmailClient() {
                 placeholder="Enter 6-digit OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
-                onBlur={() => {}}
+                onBlur={() => { }}
                 icon={<KeyRound />}
                 required
               />

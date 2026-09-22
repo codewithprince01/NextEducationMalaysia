@@ -251,9 +251,8 @@ export default function UniversityFacilities() {
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
@@ -279,9 +278,6 @@ export default function UniversityFacilities() {
             <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
               University Campus Facilities
             </h1>
-            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
-              Manage academic laboratories, student accommodations, sports complexes, libraries, and campus infrastructure items.
-            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
@@ -345,11 +341,11 @@ export default function UniversityFacilities() {
               <span>Facilities ({facilities.length})</span>
             </button>
             <button
-              onClick={() => navigate(`/university-reviews?university_id=${selectedUnivId}`)}
+              onClick={() => navigate(`/university-rankings?university_id=${selectedUnivId}`)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
               <Trophy className="w-3.5 h-3.5 text-amber-600" />
-              <span>Rankings & Reviews</span>
+              <span>Rankings</span>
             </button>
           </div>
         )}
