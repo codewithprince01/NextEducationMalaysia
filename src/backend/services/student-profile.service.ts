@@ -1221,15 +1221,18 @@ export class StudentProfileService {
       return { status: false, message: 'Message text cannot be empty.' };
     }
     const stdKey = `std_${studentId}`;
+    const cleanMsg = messageText.trim();
+    let sent = false;
+
     try {
       await prisma.$executeRawUnsafe(
         `INSERT INTO chats (sender, receiver, msg, senddate, readdate, status, notif, created_at, updated_at)
          VALUES (?, ?, ?, NOW(), NOW(), 0, 0, NOW(), NOW())`,
         stdKey,
         'admin',
-        messageText.trim()
+        cleanMsg
       );
-      return { status: true, message: 'Message sent successfully.' };
+      sent = true;
     } catch (err: any) {
       console.warn('First insert attempt in sendChatMessage failed, retrying with explicit ID generation:', err?.message);
       try {
@@ -1244,14 +1247,42 @@ export class StudentProfileService {
           nextId,
           stdKey,
           'admin',
-          messageText.trim()
+          cleanMsg
         );
-        return { status: true, message: 'Message sent successfully.' };
+        sent = true;
       } catch (innerErr: any) {
         console.error('Error inserting chat message with explicit ID:', innerErr);
         return { status: false, message: innerErr.message || 'Failed to send message.' };
       }
     }
+
+    if (sent) {
+      // Instant alert to Admin and Assigned Counsellor
+      try {
+        const studentRows = await prisma.$queryRawUnsafe<Array<{ name: string }>>(
+          `SELECT name FROM lead_data WHERE id = ? LIMIT 1`,
+          studentId
+        );
+        const studentName = studentRows[0]?.name || `Student #${studentId}`;
+        const snippet = cleanMsg.length > 70 ? cleanMsg.slice(0, 67) + '...' : cleanMsg;
+
+        await notificationService.notifyStaff({
+          leadId: studentId,
+          category: 'chat_message',
+          title: `New Message from ${studentName}`,
+          subtitle: `Student Conversation`,
+          message: `${studentName}: "${snippet}"`,
+          link: `/admin/lead/${studentId}?tab=conversation`,
+          actionLabel: 'Reply in Chat',
+          priority: 'high',
+        });
+      } catch (notifErr) {
+        console.warn('Failed to dispatch chat notification to staff:', notifErr);
+      }
+      return { status: true, message: 'Message sent successfully.' };
+    }
+
+    return { status: false, message: 'Failed to send message.' };
   }
 
   /**

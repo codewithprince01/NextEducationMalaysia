@@ -3,7 +3,12 @@ import { prisma } from '@/lib/db';
 export interface CreateStaffNotificationParams {
   leadId: number | bigint;
   appId?: number | bigint | null;
-  category: 'application_applied' | 'document_uploaded' | 'task_completed' | 'activity_logged';
+  category:
+    | 'application_applied'
+    | 'document_uploaded'
+    | 'task_completed'
+    | 'activity_logged'
+    | 'chat_message';
   title: string;
   subtitle?: string | null;
   message: string;
