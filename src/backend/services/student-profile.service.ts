@@ -1260,7 +1260,7 @@ export class StudentProfileService {
       // Instant alert to Admin and Assigned Counsellor
       try {
         const studentRows = await prisma.$queryRawUnsafe<Array<{ name: string }>>(
-          `SELECT name FROM lead_data WHERE id = ? LIMIT 1`,
+          `SELECT name FROM leads WHERE id = ? LIMIT 1`,
           studentId
         );
         const studentName = studentRows[0]?.name || `Student #${studentId}`;
