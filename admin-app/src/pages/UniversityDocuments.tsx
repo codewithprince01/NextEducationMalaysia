@@ -82,6 +82,15 @@ interface StatsData {
   formattedTotalSize: string;
 }
 
+function cleanDocUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  return url
+    .replace(/\/uploads\/uploads\//g, '/uploads/')
+    .replace(/\/storage\/storage\//g, '/storage/')
+    .replace(/\/storage\/uploads\/uploads\//g, '/storage/uploads/');
+}
+
+
 export default function UniversityDocuments() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialUniId = searchParams.get('university_id') || '';
@@ -352,9 +361,10 @@ export default function UniversityDocuments() {
   };
 
   const handleCopyLink = (doc: DocumentItem) => {
-    const fullUrl = doc.file_url.startsWith('http')
-      ? doc.file_url
-      : `${window.location.origin}${doc.file_url}`;
+    const targetUrl = cleanDocUrl(doc.file_url);
+    const fullUrl = targetUrl.startsWith('http')
+      ? targetUrl
+      : `${window.location.origin}${targetUrl}`;
 
     navigator.clipboard.writeText(fullUrl).then(() => {
       setCopiedId(doc.id);
@@ -789,9 +799,9 @@ export default function UniversityDocuments() {
                     {/* Thumbnail / Format Icon */}
                     <td className="py-3 px-4 text-center">
                       {doc.is_image ? (
-                        <a href={doc.file_url} target="_blank" rel="noreferrer">
+                        <a href={cleanDocUrl(doc.file_url)} target="_blank" rel="noreferrer">
                           <img
-                            src={doc.file_url}
+                            src={cleanDocUrl(doc.file_url)}
                             alt="thumb"
                             className="w-10 h-10 object-cover rounded-md border border-gray-200 mx-auto hover:opacity-90"
                           />
@@ -932,7 +942,7 @@ export default function UniversityDocuments() {
                           </button>
                         )}
                         <a
-                          href={doc.file_url}
+                          href={cleanDocUrl(doc.file_url)}
                           target="_blank"
                           rel="noreferrer"
                           className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

@@ -120,7 +120,9 @@ export async function GET(request: Request) {
       const is_pdf = ext === "pdf";
       const file_url =
         doc.storage_driver === "local"
-          ? (doc.file_path.startsWith("/") ? doc.file_path : `/${doc.file_path}`)
+          ? (doc.file_path.startsWith("/storage/")
+              ? doc.file_path
+              : `/storage/${doc.file_path.replace(/^\/+/, "")}`)
           : getRemoteFileUrl(doc.file_path);
 
       return {

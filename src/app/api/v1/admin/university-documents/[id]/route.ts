@@ -32,7 +32,9 @@ export async function GET(
 
     const file_url =
       doc.storage_driver === 'local'
-        ? (doc.file_path.startsWith('/') ? doc.file_path : `/${doc.file_path}`)
+        ? (doc.file_path.startsWith('/storage/')
+            ? doc.file_path
+            : `/storage/${doc.file_path.replace(/^\/+/, '')}`)
         : getRemoteFileUrl(doc.file_path);
 
     return NextResponse.json({
