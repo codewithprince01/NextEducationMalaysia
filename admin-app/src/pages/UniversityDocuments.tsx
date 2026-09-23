@@ -770,7 +770,6 @@ export default function UniversityDocuments() {
                 <th className="py-3.5 px-4 text-[#14532d]">University</th>
                 <th className="py-3.5 px-4 text-[#14532d]">Category</th>
                 <th className="py-3.5 px-4 text-center text-[#14532d]">Access</th>
-                <th className="py-3.5 px-4 text-center text-[#14532d]">Size</th>
                 <th className="py-3.5 px-4 text-[#14532d]">Date</th>
                 <th className="py-3.5 px-4 text-right w-36 text-[#14532d]">Actions</th>
               </tr>
@@ -778,14 +777,14 @@ export default function UniversityDocuments() {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-gray-500">
+                  <td colSpan={8} className="py-8 text-center text-gray-500">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto text-indigo-600 mb-2" />
                     Loading documents...
                   </td>
                 </tr>
               ) : documents.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-gray-500">
+                  <td colSpan={8} className="py-8 text-center text-gray-500">
                     No university documents found matching criteria.
                   </td>
                 </tr>
@@ -852,9 +851,16 @@ export default function UniversityDocuments() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 font-mono line-clamp-1">
-                        <FileText className="w-3 h-3 text-gray-400 shrink-0" />
-                        {doc.original_name}
+                      <div className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5 font-mono flex-wrap">
+                        <div className="flex items-center gap-1 truncate max-w-[200px]" title={doc.original_name}>
+                          <FileText className="w-3 h-3 text-gray-400 shrink-0" />
+                          <span className="truncate">{doc.original_name}</span>
+                        </div>
+                        {doc.formatted_file_size && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200 shrink-0">
+                            {doc.formatted_file_size}
+                          </span>
+                        )}
                       </div>
                       {doc.description && (
                         <div className="text-xs text-gray-500 line-clamp-1 mt-0.5">
@@ -913,10 +919,6 @@ export default function UniversityDocuments() {
                       )}
                     </td>
 
-                    {/* File Size */}
-                    <td className="py-3 px-4 text-center font-mono text-xs text-gray-600">
-                      {doc.formatted_file_size || 'N/A'}
-                    </td>
 
                     {/* Uploaded Date */}
                     <td className="py-3 px-4 text-xs text-gray-500 whitespace-nowrap">
