@@ -50,13 +50,13 @@ export async function GET(request: Request) {
       }
     }
 
-    // Filter by Visibility if explicitly passed, otherwise show all data (public and admin only both)
+    // Filter by Visibility if explicitly passed, otherwise show all data
     if (visibility === 'all') {
       whereConditions.push("d.visibility = 'all'");
-    } else if (visibility === 'agents_only') {
-      whereConditions.push("d.visibility = 'agents_only'");
-    } else if (visibility === 'counsellors_only') {
-      whereConditions.push("d.visibility = 'counsellors_only'");
+    } else if (visibility === 'agents_only' || visibility === 'agent') {
+      whereConditions.push("(d.visibility = 'agents_only' OR d.visibility = 'agent')");
+    } else if (visibility === 'counsellors_only' || visibility === 'counsellor') {
+      whereConditions.push("(d.visibility = 'counsellors_only' OR d.visibility = 'counsellor')");
     } else if (visibility === 'admin_only') {
       whereConditions.push("d.visibility = 'admin_only'");
     }

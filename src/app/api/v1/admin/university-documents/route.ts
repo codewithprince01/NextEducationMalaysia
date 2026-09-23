@@ -168,7 +168,7 @@ export async function POST(request: Request) {
     let category_id: number;
     let title: string | null = null;
     let description: string | null = null;
-    let visibility: string = "all";
+    let visibility: string = "admin_only";
     let fileEntries: {
       buffer?: Buffer;
       original_name: string;
@@ -183,7 +183,7 @@ export async function POST(request: Request) {
       category_id = parseInt(formData.get("category_id") as string, 10);
       title = (formData.get("title") as string) || null;
       description = (formData.get("description") as string) || null;
-      visibility = (formData.get("visibility") as string) || "all";
+      visibility = (formData.get("visibility") as string) || "admin_only";
 
       const files = formData.getAll("documents") as (File | string)[];
       const singleFile = formData.get("document_file") as File | string | null;
@@ -219,7 +219,7 @@ export async function POST(request: Request) {
       category_id = parseInt(body.category_id, 10);
       title = body.title || null;
       description = body.description || null;
-      visibility = body.visibility || "all";
+      visibility = body.visibility || "admin_only";
 
       if (body.file_path) {
         fileEntries.push({

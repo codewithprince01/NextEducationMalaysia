@@ -55,7 +55,7 @@ export async function PUT(
     let category_id: number;
     let title: string;
     let description: string | null = null;
-    let visibility: string = 'all';
+    let visibility: string = 'admin_only';
     let status: number = 1;
     let replacementFile: File | null = null;
     let manualFilePath: string | null = null;
@@ -66,7 +66,7 @@ export async function PUT(
       category_id = parseInt(formData.get('category_id') as string, 10);
       title = (formData.get('title') as string) || '';
       description = (formData.get('description') as string) || null;
-      visibility = (formData.get('visibility') as string) || 'all';
+      visibility = (formData.get('visibility') as string) || 'admin_only';
       status = formData.get('status') === '0' || formData.get('status') === 'false' ? 0 : 1;
 
       const file = formData.get('document_file') as File | null;
@@ -80,7 +80,7 @@ export async function PUT(
       category_id = parseInt(body.category_id, 10);
       title = body.title || '';
       description = body.description || null;
-      visibility = body.visibility || 'all';
+      visibility = body.visibility || 'admin_only';
       status = body.status !== undefined && body.status !== null ? (body.status ? 1 : 0) : 1;
       manualFilePath = body.file_path || null;
     }

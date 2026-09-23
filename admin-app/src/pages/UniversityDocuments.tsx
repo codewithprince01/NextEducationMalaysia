@@ -54,7 +54,7 @@ interface DocumentItem {
   formatted_file_size?: string;
   mime_type?: string;
   storage_driver: string;
-  visibility: 'all' | 'agents_only' | 'counsellors_only' | 'admin_only';
+  visibility: 'admin_only' | 'counsellor' | 'counsellors_only' | 'agent' | 'agents_only' | 'all';
   downloads_count: number;
   uploaded_by?: number;
   status: number;
@@ -116,7 +116,7 @@ export default function UniversityDocuments() {
     university_id: initialUniId,
     category_id: '',
     title: '',
-    visibility: 'all',
+    visibility: 'admin_only',
     description: '',
   });
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
@@ -129,7 +129,7 @@ export default function UniversityDocuments() {
     university_id: '',
     category_id: '',
     title: '',
-    visibility: 'all',
+    visibility: 'admin_only',
     description: '',
     status: 1,
   });
@@ -651,6 +651,14 @@ export default function UniversityDocuments() {
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                           <Lock className="w-3 h-3" /> Admin Only
                         </span>
+                      ) : (doc.visibility === 'counsellor' || doc.visibility === 'counsellors_only') ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <Users className="w-3 h-3" /> Counsellor
+                        </span>
+                      ) : (doc.visibility === 'agent' || doc.visibility === 'agents_only') ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                          <Users className="w-3 h-3" /> Agent
+                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                           <Users className="w-3 h-3" /> Public
@@ -813,8 +821,9 @@ export default function UniversityDocuments() {
                     onChange={(e) => setUploadForm({ ...uploadForm, visibility: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
-                    <option value="all">Public</option>
                     <option value="admin_only">Admin Only</option>
+                    <option value="counsellor">Counsellor</option>
+                    <option value="agent">Agent</option>
                   </select>
                 </div>
               </div>
@@ -974,8 +983,9 @@ export default function UniversityDocuments() {
                   onChange={(e) => setEditForm({ ...editForm, visibility: e.target.value as any })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
-                  <option value="all">Public</option>
                   <option value="admin_only">Admin Only</option>
+                  <option value="counsellor">Counsellor</option>
+                  <option value="agent">Agent</option>
                 </select>
               </div>
 
