@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { serializeBigInt, slugify } from "@/lib/utils";
 import { saveUploadedFile, deleteUploadedFile } from "@/lib/fileStorage";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function GET(
   req: Request,
@@ -183,6 +184,16 @@ export async function PUT(
       id,
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'exams',
+      recordId: id,
+      description: `Updated exam '${page_name || existing.page_name || id}' (ID: ${id})`,
+      oldValues: existing,
+      newValues: { page_name, uri, headline, position },
+    });
+
     return NextResponse.json({
       status: true,
       message: "Exam updated successfully",
@@ -225,6 +236,15 @@ export async function DELETE(
     }
 
     await prisma.$executeRawUnsafe(`DELETE FROM exams WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'exams',
+      recordId: id,
+      description: `Deleted exam '${row.page_name || id}' (ID: ${id})`,
+      oldValues: row,
+    });
 
     return NextResponse.json({
       status: true,

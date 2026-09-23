@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as XLSX from 'xlsx';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // Map of normalized incoming header keys to university_programs column names
 const COLUMN_MAP: Record<string, string> = {
@@ -314,6 +315,19 @@ export async function POST(req: Request) {
     }
 
     if (insertedCount > 0) {
+      await recordAuditLog({
+        req,
+        action: 'CREATE',
+        module: 'programs',
+        description: `Imported ${insertedCount} programs from file '${file.name || 'excel'}'`,
+        newValues: {
+          insertedCount,
+          totalRows: rows.length,
+          fileName: file.name,
+          universityId,
+        },
+      });
+
       return NextResponse.json({
         status: true,
         message: `${insertedCount} out of ${rows.length} programs imported successfully.`,

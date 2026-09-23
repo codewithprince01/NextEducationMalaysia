@@ -344,6 +344,14 @@ export async function POST(request: Request) {
       uploadedCount++;
     }
 
+    const { recordAuditLog } = await import('@/lib/auditLogger');
+    await recordAuditLog({
+      req: request,
+      action: 'CREATE',
+      module: 'university-documents',
+      description: `Uploaded ${uploadedCount} document(s) for University #${university_id}`,
+    });
+
     return NextResponse.json({
       success: true,
       message: `${uploadedCount} document record(s) created instantly! Remote FTP upload running in background.`,
@@ -367,3 +375,4 @@ function formatBytes(bytes: number): string {
   if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB";
   return bytes + " bytes";
 }
+

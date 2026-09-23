@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -130,6 +131,12 @@ export async function PUT(
     if (!course_name || !course_name.trim()) {
       return NextResponse.json({ status: false, message: 'Course name is required' }, { status: 400 });
     }
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_programs WHERE id = ? LIMIT 1`,
+      progId
+    );
+    const oldValues = oldRows || null;
 
     const slug = slugify(course_name);
     const now = new Date();
@@ -281,6 +288,16 @@ export async function PUT(
 
     await prisma.$executeRawUnsafe(sql, ...queryParams);
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'programs',
+      recordId: progId,
+      description: `Updated university program '${course_name.trim()}' (ID: ${progId})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Program updated successfully' });
   } catch (error: any) {
     console.error('Error updating program:', error);
@@ -295,10 +312,28 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const progId = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_programs WHERE id = ? LIMIT 1`,
+      progId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM university_programs WHERE id = ?`, progId);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'programs',
+      recordId: progId,
+      description: `Deleted university program '${oldValues?.course_name || progId}' (ID: ${progId})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Program deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting program:', error);
     return NextResponse.json({ status: false, message: 'Failed to delete program', error: error.message }, { status: 500 });
   }
 }
+

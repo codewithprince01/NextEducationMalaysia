@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -40,9 +41,18 @@ export async function POST(req: Request) {
       now
     );
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'study-modes',
+      description: `Created study mode '${study_mode}'`,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Study mode created successfully' });
   } catch (error: any) {
     console.error('Error creating study mode:', error);
     return NextResponse.json({ status: false, message: 'Failed to create study mode', error: error.message }, { status: 500 });
   }
 }
+

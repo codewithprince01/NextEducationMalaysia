@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as XLSX from 'xlsx';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // Map of normalized incoming header keys to university_programs column names
 const COLUMN_MAP: Record<string, string> = {
@@ -293,6 +294,19 @@ export async function POST(req: Request) {
     }
 
     if (updatedCount > 0) {
+      await recordAuditLog({
+        req,
+        action: 'UPDATE',
+        module: 'programs',
+        description: `Bulk updated ${updatedCount} programs from file '${file.name || 'excel'}'`,
+        newValues: {
+          updatedCount,
+          totalRows: rows.length,
+          fileName: file.name,
+          universityId,
+        },
+      });
+
       return NextResponse.json({
         status: true,
         message: `${updatedCount} out of ${rows.length} program records updated successfully.`,

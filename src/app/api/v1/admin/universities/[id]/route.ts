@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -74,6 +75,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ status: false, message: 'University name is required' }, { status: 400 });
     }
 
+    // Fetch existing for audit diff
+    const existing: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM universities WHERE id = ? LIMIT 1`,
+      Number(id)
+    );
+    const oldValues = existing?.[0] || null;
+
     const uname = customUname ? slugify(customUname) : slugify(name);
     const now = new Date();
 
@@ -142,6 +150,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       Number(id)
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'universities',
+      recordId: Number(id),
+      description: `Updated university '${name}' (ID: ${id})`,
+      oldValues,
+      newValues: { id: Number(id), name, uname, city, state, rating, status },
+    });
+
     return NextResponse.json({ status: true, message: 'University updated successfully' });
   } catch (error: any) {
     console.error('Error updating university:', error);
@@ -152,7 +170,23 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const existing: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM universities WHERE id = ? LIMIT 1`,
+      Number(id)
+    );
+    const oldValues = existing?.[0] || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM universities WHERE id = ? AND website = 'MYS'`, Number(id));
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'universities',
+      recordId: Number(id),
+      description: `Deleted university '${oldValues?.name || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'University deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting university:', error);

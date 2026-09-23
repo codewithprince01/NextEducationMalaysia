@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET() {
   try {
@@ -40,6 +41,18 @@ export async function POST(req: Request) {
       now,
       now
     );
+
+    const [lastInsert]: any[] = await prisma.$queryRawUnsafe(`SELECT LAST_INSERT_ID() as id`);
+    const newId = lastInsert?.id ? Number(lastInsert.id) : undefined;
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'authors',
+      recordId: newId,
+      description: `Created author '${name}'`,
+      newValues: body,
+    });
 
     return NextResponse.json({ status: true, message: 'Author created successfully' });
   } catch (error: any) {

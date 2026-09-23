@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { serializeBigInt } from "@/lib/utils";
 import { saveUploadedFile } from "@/lib/fileStorage";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function GET() {
   try {
@@ -83,6 +84,15 @@ export async function POST(req: Request) {
       now,
       now,
     );
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'upload-files',
+      recordId: nextId,
+      description: `Uploaded file '${docTitle}' (${fileName})`,
+      newValues: { title: docTitle, file_name: fileName, file_path: filePath, file_type: fileType },
+    });
 
     return NextResponse.json({
       status: true,

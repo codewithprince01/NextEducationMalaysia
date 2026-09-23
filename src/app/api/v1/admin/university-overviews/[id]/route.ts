@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { serializeBigInt } from "@/lib/utils";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function GET(
   request: Request,
@@ -51,6 +52,12 @@ export async function PUT(
     } = body;
     const tabTitle = title || tab;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_overviews WHERE id = ? LIMIT 1`,
+      id,
+    );
+    const oldValues = oldRows || null;
+
     const now = new Date();
 
     await prisma.$executeRawUnsafe(
@@ -65,6 +72,16 @@ export async function PUT(
       now,
       id,
     );
+
+    await recordAuditLog({
+      req: request,
+      action: 'UPDATE',
+      module: 'university-overview',
+      recordId: id,
+      description: `Updated university overview '${tabTitle || oldValues?.title}' for University #${oldValues?.university_id || ''} (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
 
     return NextResponse.json({
       success: true,
@@ -86,10 +103,26 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_overviews WHERE id = ? LIMIT 1`,
+      id,
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(
       `DELETE FROM university_overviews WHERE id = ?`,
       id,
     );
+
+    await recordAuditLog({
+      req: request,
+      action: 'DELETE',
+      module: 'university-overview',
+      recordId: id,
+      description: `Deleted university overview '${oldValues?.title}' (ID: ${id})`,
+      oldValues,
+    });
 
     return NextResponse.json({ success: true, message: "Overview deleted" });
   } catch (error: any) {
@@ -99,3 +132,4 @@ export async function DELETE(
     );
   }
 }
+

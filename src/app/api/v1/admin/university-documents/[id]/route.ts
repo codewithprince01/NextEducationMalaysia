@@ -194,6 +194,16 @@ export async function PUT(
       });
     }
 
+    const { recordAuditLog } = await import('@/lib/auditLogger');
+    await recordAuditLog({
+      req: request,
+      action: 'UPDATE',
+      module: 'university-documents',
+      recordId: docId,
+      description: `Updated document '${title || existingDoc.title}' (ID: ${docId})`,
+      oldValues: existingDoc,
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Document updated instantly! Remote FTP sync running in background.',
@@ -216,7 +226,7 @@ export async function DELETE(
     const docId = parseInt(id, 10);
 
     const [existingDoc]: any[] = await prisma.$queryRawUnsafe(
-      `SELECT file_path FROM university_documents WHERE id = ?`,
+      `SELECT * FROM university_documents WHERE id = ?`,
       docId
     );
 
@@ -229,6 +239,16 @@ export async function DELETE(
       docId
     );
 
+    const { recordAuditLog } = await import('@/lib/auditLogger');
+    await recordAuditLog({
+      req: request,
+      action: 'DELETE',
+      module: 'university-documents',
+      recordId: docId,
+      description: `Deleted document '${existingDoc?.title || existingDoc?.original_name || docId}' (ID: ${docId})`,
+      oldValues: existingDoc,
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Document deleted successfully',
@@ -240,3 +260,4 @@ export async function DELETE(
     );
   }
 }
+

@@ -181,3 +181,35 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+// POST /api/v1/admin/audit-logs
+export async function POST(req: NextRequest) {
+  try {
+    const { recordAuditLog } = await import('@/lib/auditLogger');
+    const body = await req.json();
+    const { action = 'VIEW', module: moduleName, recordId, description, oldValues, newValues, status } = body;
+
+    if (!moduleName) {
+      return NextResponse.json({ status: false, message: 'Module is required' }, { status: 400 });
+    }
+
+    await recordAuditLog({
+      req,
+      action,
+      module: moduleName,
+      recordId,
+      description,
+      oldValues,
+      newValues,
+      status: status || 'success',
+    });
+
+    return NextResponse.json({ status: true, message: 'Audit log recorded successfully' });
+  } catch (error: any) {
+    return NextResponse.json(
+      { status: false, message: 'Failed to record audit log', error: error.message },
+      { status: 500 }
+    );
+  }
+}
+

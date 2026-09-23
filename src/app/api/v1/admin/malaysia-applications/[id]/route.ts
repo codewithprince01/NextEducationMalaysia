@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -37,6 +38,12 @@ export async function PUT(
     const body = await req.json();
     const { year, category_id, count } = body;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM malaysia_applications WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     const now = new Date();
 
     await prisma.$executeRawUnsafe(
@@ -49,6 +56,16 @@ export async function PUT(
       now,
       id
     );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'malaysia-applications',
+      recordId: id,
+      description: `Updated Malaysia applications record (Year: ${year}, Category: ${category_id}, Count: ${count || 0}) (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
 
     return NextResponse.json({ status: true, message: 'Record updated successfully' });
   } catch (error: any) {
@@ -63,7 +80,24 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM malaysia_applications WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM malaysia_applications WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'malaysia-applications',
+      recordId: id,
+      description: `Deleted Malaysia applications record (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Record deleted successfully' });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: 'Failed to delete record', error: error.message }, { status: 500 });

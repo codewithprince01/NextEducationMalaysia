@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -27,6 +28,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const body = await req.json();
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM internships WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     const {
       title,
       slug,
@@ -93,6 +101,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       id
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'internships',
+      recordId: id,
+      description: `Updated internship '${title || oldValues?.title || id}' (ID: ${id})`,
+      oldValues,
+      newValues: { title, slug: slugified, active_status },
+    });
+
     return NextResponse.json({ status: true, message: 'Internship updated successfully' });
   } catch (error: any) {
     console.error('Error updating internship:', error);
@@ -106,7 +124,24 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM internships WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM internships WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'internships',
+      recordId: id,
+      description: `Deleted internship '${oldValues?.title || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Internship deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting internship:', error);

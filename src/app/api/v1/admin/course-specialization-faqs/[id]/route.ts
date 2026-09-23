@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const body = await req.json();
     const { question, answer } = body;
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM course_specialization_faqs WHERE id = ? LIMIT 1`,
+      Number(id)
+    );
+    const oldValues = oldRows || null;
+
     const now = new Date();
 
     await prisma.$executeRawUnsafe(
@@ -18,6 +26,16 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       Number(id)
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'course-specialization-faqs',
+      recordId: id,
+      description: `Updated specialization FAQ '${question || oldValues?.question || id}' (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'FAQ updated successfully' });
   } catch (error: any) {
     console.error('Error updating specialization FAQ:', error);
@@ -28,7 +46,24 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM course_specialization_faqs WHERE id = ? LIMIT 1`,
+      Number(id)
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM course_specialization_faqs WHERE id = ?`, Number(id));
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'course-specialization-faqs',
+      recordId: id,
+      description: `Deleted specialization FAQ '${oldValues?.question || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'FAQ deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting specialization FAQ:', error);

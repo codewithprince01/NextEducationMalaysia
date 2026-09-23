@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { syncSingleDocument } from '@/lib/documentUploadQueue';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function POST(
   request: Request,
@@ -17,6 +18,16 @@ export async function POST(
     }
 
     const res = await syncSingleDocument(docId);
+
+    await recordAuditLog({
+      req: request,
+      action: 'UPDATE',
+      module: 'university-documents',
+      recordId: docId,
+      description: `Triggered sync for university document (ID: ${docId}) to remote storage: ${res.success ? 'Success' : 'Failed'}`,
+      newValues: res,
+    });
+
     return NextResponse.json(res);
   } catch (error: any) {
     console.error('Manual sync document error:', error);

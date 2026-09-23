@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(request: Request) {
   try {
@@ -59,6 +60,14 @@ export async function POST(request: Request) {
       now
     );
 
+    await recordAuditLog({
+      req: request,
+      action: 'CREATE',
+      module: 'university-ranking',
+      description: `Created ranking accreditation '${title}' for University #${university_id}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ success: true, message: 'Ranking created successfully' }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating ranking:', error);
@@ -68,4 +77,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
 

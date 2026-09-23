@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -201,6 +202,15 @@ export async function POST(req: Request) {
       now,
       now
     );
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'universities',
+      recordId: nextId,
+      description: `Created university '${name}' (ID: ${nextId})`,
+      newValues: { id: nextId, name, uname, city, state, website: 'MYS' },
+    });
 
     return NextResponse.json({ status: true, message: 'University created successfully' });
   } catch (error: any) {

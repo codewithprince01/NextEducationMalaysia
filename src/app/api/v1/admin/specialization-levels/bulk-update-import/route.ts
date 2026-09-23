@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as XLSX from 'xlsx';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function POST(req: Request) {
   try {
@@ -67,6 +68,13 @@ export async function POST(req: Request) {
     }
 
     if (updatedCount > 0) {
+      await recordAuditLog({
+        req,
+        action: 'UPDATE',
+        module: 'specialization-levels',
+        description: `Bulk updated ${updatedCount} specialization levels via Excel upload (${file.name})`,
+      });
+
       return NextResponse.json({
         status: true,
         message: `${updatedCount} out of ${rows.length} rows updated successfully.`,
@@ -84,3 +92,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: false, message: 'Failed to bulk update specialization levels', error: error.message }, { status: 500 });
   }
 }
+

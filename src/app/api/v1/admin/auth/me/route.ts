@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAccessToken } from '@/backend/utils/auth';
 import { apiSuccess, apiError } from '@/backend/utils/response';
+import { recordAuditLog } from '@/lib/auditLogger';
 import bcrypt from 'bcryptjs';
 
 export async function GET(req: NextRequest) {
@@ -93,17 +94,19 @@ export async function PUT(req: NextRequest) {
       return apiError('Name and email are required.', 400);
     }
 
+    const existing: any[] = await prisma.$queryRawUnsafe(
+      'SELECT * FROM users WHERE id = ? LIMIT 1',
+      userId
+    );
+    if (!existing || existing.length === 0) {
+      return apiError('User not found.', 404);
+    }
+    const oldValues = existing[0];
+
     // If password change is requested, verify current password
     if (password && password.trim() !== '') {
       if (!current_password) {
         return apiError('Current password is required to set a new password.', 400);
-      }
-      const existing: any[] = await prisma.$queryRawUnsafe(
-        'SELECT password FROM users WHERE id = ? LIMIT 1',
-        userId
-      );
-      if (!existing || existing.length === 0) {
-        return apiError('User not found.', 404);
       }
       const isMatch = await bcrypt.compare(current_password, existing[0].password || '');
       if (!isMatch) {
@@ -157,6 +160,16 @@ export async function PUT(req: NextRequest) {
       last_login: updatedUser.last_login,
       created_at: updatedUser.created_at,
     };
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'profile',
+      recordId: userId,
+      description: `Updated profile details for '${updatedUser.name}' (${updatedUser.email})`,
+      oldValues: { name: oldValues.name, email: oldValues.email, department: oldValues.department },
+      newValues: { name: updatedUser.name, email: updatedUser.email, department: updatedUser.department, password_changed: !!(password && password.trim()) },
+    });
 
     return apiSuccess({ user: userPayload }, 'Profile updated successfully.');
   } catch (error: any) {

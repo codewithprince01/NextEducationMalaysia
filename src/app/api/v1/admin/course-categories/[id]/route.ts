@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function PUT(
   req: Request,
@@ -36,6 +37,12 @@ export async function PUT(
       return NextResponse.json({ status: false, message: 'Category name is required' }, { status: 400 });
     }
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM course_categories WHERE id = ? LIMIT 1`,
+      catId
+    );
+    const oldValues = oldRows || null;
+
     const slug = slugify(name);
     const now = new Date();
 
@@ -68,6 +75,16 @@ export async function PUT(
       catId
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'course-category',
+      recordId: catId,
+      description: `Updated course category '${name.trim()}' (ID: ${catId})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Category updated successfully' });
   } catch (error: any) {
     console.error('Error updating category:', error);
@@ -84,10 +101,27 @@ export async function DELETE(
     const catId = parseInt(id, 10);
     if (isNaN(catId)) return NextResponse.json({ status: false, message: 'Invalid ID' }, { status: 400 });
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM course_categories WHERE id = ? LIMIT 1`,
+      catId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM course_categories WHERE id = ?`, catId);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'course-category',
+      recordId: catId,
+      description: `Deleted course category '${oldValues?.name || catId}' (ID: ${catId})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Category deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting category:', error);
     return NextResponse.json({ status: false, message: 'Failed to delete category', error: error.message }, { status: 500 });
   }
 }
+

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // GET /api/v1/admin/levels - Fetch all levels
 export async function GET() {
@@ -69,6 +70,14 @@ export async function POST(req: Request) {
       now
     );
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'levels',
+      description: `Created level '${level.trim()}'`,
+      newValues: body,
+    });
+
     return NextResponse.json({
       status: true,
       message: 'New level created successfully',
@@ -81,3 +90,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

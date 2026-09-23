@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -37,6 +38,12 @@ export async function PUT(
     const body = await req.json();
     const { old_url, new_url } = body;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM url_redirections WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     if (!old_url || !new_url) {
       return NextResponse.json({ status: false, message: 'Both old_url and new_url are required' }, { status: 400 });
     }
@@ -53,6 +60,16 @@ export async function PUT(
       id
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'url-redirections',
+      recordId: id,
+      description: `Updated URL redirection '${old_url || oldValues?.old_url}' -> '${new_url || oldValues?.new_url}' (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Record has been updated successfully.' });
   } catch (error: any) {
     console.error('Error updating url_redirection:', error);
@@ -67,7 +84,24 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM url_redirections WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM url_redirections WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'url-redirections',
+      recordId: id,
+      description: `Deleted URL redirection '${oldValues?.old_url || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Record deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting url_redirection:', error);

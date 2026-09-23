@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const levelId = Number(id);
     const body = await req.json();
     const {
       specialization_id,
@@ -27,6 +29,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (!nameToUse || !nameToUse.trim()) {
       return NextResponse.json({ status: false, message: 'Level name is required' }, { status: 400 });
     }
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM specialization_levels WHERE id = ? LIMIT 1`,
+      levelId
+    );
+    const oldValues = oldRows || null;
 
     const level_slug = slugify(nameToUse);
     const now = new Date();
@@ -52,8 +60,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       best_rating !== undefined && best_rating !== '' ? Number(best_rating) : null,
       review_number !== undefined && review_number !== '' ? Number(review_number) : null,
       now,
-      Number(id)
+      levelId
     );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'specialization-levels',
+      recordId: levelId,
+      description: `Updated specialization level '${nameToUse.trim()}' (ID: ${levelId})`,
+      oldValues,
+      newValues: body,
+    });
 
     return NextResponse.json({ status: true, message: 'Specialization level updated successfully' });
   } catch (error: any) {
@@ -68,11 +86,27 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const levelId = Number(id);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM specialization_levels WHERE id = ? LIMIT 1`,
+      levelId
+    );
+    const oldValues = oldRows || null;
 
     await prisma.$executeRawUnsafe(
       `DELETE FROM specialization_levels WHERE id = ?`,
-      Number(id)
+      levelId
     );
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'specialization-levels',
+      recordId: levelId,
+      description: `Deleted specialization level '${oldValues?.level || levelId}' (ID: ${levelId})`,
+      oldValues,
+    });
 
     return NextResponse.json({ status: true, message: 'Specialization level deleted successfully' });
   } catch (error: any) {
@@ -83,3 +117,4 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     );
   }
 }
+

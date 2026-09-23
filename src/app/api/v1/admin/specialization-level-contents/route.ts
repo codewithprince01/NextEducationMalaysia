@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -102,6 +103,14 @@ export async function POST(req: Request) {
       );
     }
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'specialization-level-contents',
+      description: `Created content tab '${tabTitle}' for Specialization Level #${specialization_level_id || ''}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Content tab created successfully' });
   } catch (error: any) {
     console.error('Error creating specialization level content:', error);
@@ -111,3 +120,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

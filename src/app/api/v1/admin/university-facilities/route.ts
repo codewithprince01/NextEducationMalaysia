@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(request: Request) {
   try {
@@ -57,6 +58,14 @@ export async function POST(request: Request) {
       now
     );
 
+    await recordAuditLog({
+      req: request,
+      action: 'CREATE',
+      module: 'university-facilities',
+      description: `Created campus facility '${facilityTitle}' for University #${university_id}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ success: true, message: 'Facility created successfully' }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating facility:', error);
@@ -66,3 +75,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

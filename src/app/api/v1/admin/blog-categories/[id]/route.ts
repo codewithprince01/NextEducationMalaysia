@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   request: Request,
@@ -51,6 +52,12 @@ export async function PUT(
       status,
     } = body;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM blog_categories WHERE id = ? LIMIT 1`,
+      catId
+    );
+    const oldValues = oldRows || null;
+
     const slug = category_slug ? slugify(category_slug) : (category_name ? slugify(category_name) : '');
     const now = new Date();
 
@@ -82,6 +89,16 @@ export async function PUT(
       catId
     );
 
+    await recordAuditLog({
+      req: request,
+      action: 'UPDATE',
+      module: 'blog-categories',
+      recordId: catId,
+      description: `Updated blog category '${category_name || oldValues?.category_name}' (ID: ${catId})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ success: true, message: 'Category updated successfully' });
   } catch (error: any) {
     return NextResponse.json(
@@ -99,10 +116,25 @@ export async function DELETE(
     const { id } = await params;
     const catId = parseInt(id, 10);
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM blog_categories WHERE id = ? LIMIT 1`,
+      catId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(
       `DELETE FROM blog_categories WHERE id = ?`,
       catId
     );
+
+    await recordAuditLog({
+      req: request,
+      action: 'DELETE',
+      module: 'blog-categories',
+      recordId: catId,
+      description: `Deleted blog category '${oldValues?.category_name || catId}' (ID: ${catId})`,
+      oldValues,
+    });
 
     return NextResponse.json({ success: true, message: 'Category deleted successfully' });
   } catch (error: any) {
@@ -112,4 +144,5 @@ export async function DELETE(
     );
   }
 }
+
 

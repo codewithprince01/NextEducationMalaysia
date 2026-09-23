@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function DELETE(
   request: Request,
@@ -7,7 +8,22 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    await prisma.$executeRawUnsafe(`DELETE FROM university_videos WHERE id = ?`, parseInt(id, 10));
+    const videoId = parseInt(id, 10);
+
+    const oldVideo = await prisma.universityVideo.findUnique({
+      where: { id: videoId },
+    });
+
+    await prisma.$executeRawUnsafe(`DELETE FROM university_videos WHERE id = ?`, videoId);
+
+    await recordAuditLog({
+      req: request,
+      action: 'DELETE',
+      module: 'university-videos',
+      recordId: videoId,
+      description: `Deleted campus video '${oldVideo?.title || videoId}' (ID: ${videoId})`,
+      oldValues: oldVideo,
+    });
 
     return NextResponse.json({ success: true, status: true, message: 'Video deleted' });
   } catch (error: any) {
@@ -17,4 +33,5 @@ export async function DELETE(
     );
   }
 }
+
 

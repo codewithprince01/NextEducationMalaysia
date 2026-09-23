@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   request: Request,
@@ -43,6 +44,12 @@ export async function PUT(
     const catId = parseInt(id, 10);
     const body = await request.json();
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_document_categories WHERE id = ? LIMIT 1`,
+      catId
+    );
+    const oldValues = oldRows || null;
+
     const { name, description, icon, position, status } = body;
 
     if (!name || !name.trim()) {
@@ -66,6 +73,16 @@ export async function PUT(
       catId
     );
 
+    await recordAuditLog({
+      req: request,
+      action: 'UPDATE',
+      module: 'document-categories',
+      recordId: catId,
+      description: `Updated document category '${name.trim() || oldValues?.name || catId}' (ID: ${catId})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Category updated successfully',
@@ -86,10 +103,25 @@ export async function DELETE(
     const { id } = await params;
     const catId = parseInt(id, 10);
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_document_categories WHERE id = ? LIMIT 1`,
+      catId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(
       `DELETE FROM university_document_categories WHERE id = ?`,
       catId
     );
+
+    await recordAuditLog({
+      req: request,
+      action: 'DELETE',
+      module: 'document-categories',
+      recordId: catId,
+      description: `Deleted document category '${oldValues?.name || catId}' (ID: ${catId})`,
+      oldValues,
+    });
 
     return NextResponse.json({
       success: true,

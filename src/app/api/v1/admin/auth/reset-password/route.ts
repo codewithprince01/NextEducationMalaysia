@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { hashPassword, issueAccessToken } from '@/backend/utils/auth';
-import { apiError } from '@/backend/utils/response';
+ import { hashPassword, issueAccessToken } from '@/backend/utils/auth';
+ import { apiError } from '@/backend/utils/response';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -68,6 +69,20 @@ export async function POST(req: NextRequest) {
       permissions,
       last_login: now.toISOString(),
     };
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'auth',
+      recordId: user.id,
+      user: {
+        id: user.id,
+        name: user.name || 'Administrator',
+        email: user.email || 'admin@educationmalaysia.in',
+        role: user.role || 'Admin',
+      },
+      description: `Reset password successfully for admin '${user.name || user.email}' (ID: ${user.id})`,
+    });
 
     const res = NextResponse.json({
       status: true,

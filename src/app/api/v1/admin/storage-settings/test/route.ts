@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { testRemoteStorageConnection } from "@/lib/remoteStorage";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +12,18 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await testRemoteStorageConnection(body);
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'storage-settings',
+      description: `Tested storage FTP connection: ${result.success ? 'Success' : 'Failed'} (${result.message})`,
+      newValues: {
+        success: result.success,
+        message: result.message,
+      },
+    });
+
     return NextResponse.json({
       status: result.success,
       success: result.success,

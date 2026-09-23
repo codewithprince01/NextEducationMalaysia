@@ -250,15 +250,40 @@ export default function AdminLayout() {
             (c) => c.href === pathname || (c.href !== '/' && pathname.startsWith(c.href + '/'))
           );
           if (matchedChild) {
-            return { section: sec.section, parent: item.label, title: matchedChild.label };
+            return { section: sec.section, parent: item.label, title: matchedChild.label, module: matchedChild.module };
           }
         } else if (item.href === pathname || (item.href !== '/' && pathname.startsWith(item.href + '/'))) {
-          return { section: sec.section, parent: undefined, title: item.label };
+          return { section: sec.section, parent: undefined, title: item.label, module: item.module };
         }
       }
     }
-    return { section: 'ADMIN', parent: undefined, title: 'Dashboard' };
+    return { section: 'ADMIN', parent: undefined, title: 'Dashboard', module: 'dashboard' };
   }, [pathname]);
+
+  // Automatically record VIEW audit log when navigating to any module
+  const lastLoggedPathRef = useRef<string>('');
+  useEffect(() => {
+    if (!pathname || pathname === lastLoggedPathRef.current || pathname === '/login') return;
+    lastLoggedPathRef.current = pathname;
+
+    // Do not log audit-logs page itself to prevent loop
+    if (pathname.includes('audit-logs')) return;
+
+    const moduleKey = (typeof currentTitle.module === 'string' ? currentTitle.module : Array.isArray(currentTitle.module) ? currentTitle.module[0] : null) || pathname.replace(/^\//, '').split('/')[0] || 'dashboard';
+
+    try {
+      fetch('/api/v1/admin/audit-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'VIEW',
+          module: moduleKey,
+          description: `Viewed ${currentTitle.title || 'page'} (${pathname})`,
+        }),
+      }).catch(() => {});
+    } catch {}
+  }, [pathname, currentTitle]);
+
 
   // Filter sections and items dynamically according to user permissions
   const permittedNavigationConfig = useMemo(() => {

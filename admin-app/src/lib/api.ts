@@ -31,11 +31,24 @@ export async function safeFetch<T = any>(
     headers.set('Authorization', `Bearer ${token}`);
   }
 
+  // Inject user identity headers from localStorage
+  try {
+    const rawUser = localStorage.getItem('admin_user');
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      if (u.id && !headers.has('x-admin-user-id')) headers.set('x-admin-user-id', String(u.id));
+      if (u.email && !headers.has('x-admin-user-email')) headers.set('x-admin-user-email', String(u.email));
+      if (u.name && !headers.has('x-admin-user-name')) headers.set('x-admin-user-name', String(u.name));
+      if (u.role && !headers.has('x-admin-user-role')) headers.set('x-admin-user-role', String(u.role));
+    }
+  } catch {}
+
   let lastError: any = null;
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url, {
+        credentials: 'include',
         ...options,
         headers,
       });

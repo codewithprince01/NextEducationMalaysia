@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { serializeBigInt, slugify } from "@/lib/utils";
 import { saveUploadedFile, deleteUploadedFile } from "@/lib/fileStorage";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function GET(
   req: Request,
@@ -45,6 +46,12 @@ export async function PUT(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM landing_pages WHERE id = ? LIMIT 1`,
+      id,
+    );
+    const oldValues = oldRows || null;
 
     const contentType = req.headers.get("content-type") || "";
     let page_name = "";
@@ -106,6 +113,16 @@ export async function PUT(
       );
     }
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'landing-pages',
+      recordId: id,
+      description: `Updated landing page '${page_name || oldValues?.page_name || id}' (ID: ${id})`,
+      oldValues,
+      newValues: { page_name, page_slug: slugVal, date_and_address },
+    });
+
     return NextResponse.json({
       status: true,
       message: "Record has been updated successfully.",
@@ -131,16 +148,28 @@ export async function DELETE(
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT date_and_address_image FROM landing_pages WHERE id = ?`,
+      `SELECT * FROM landing_pages WHERE id = ? LIMIT 1`,
       id,
     );
-    if (rows.length > 0 && rows[0].date_and_address_image) {
-      await deleteUploadedFile(rows[0].date_and_address_image);
+    const oldValues = rows.length > 0 ? rows[0] : null;
+
+    if (oldValues && oldValues.date_and_address_image) {
+      await deleteUploadedFile(oldValues.date_and_address_image);
     }
     await prisma.$executeRawUnsafe(
       `DELETE FROM landing_pages WHERE id = ?`,
       id,
     );
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'landing-pages',
+      recordId: id,
+      description: `Deleted landing page '${oldValues?.page_name || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({
       status: true,
       message: "Record deleted successfully",

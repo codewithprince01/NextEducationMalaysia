@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -288,9 +289,18 @@ export async function POST(req: Request) {
 
     await prisma.$executeRawUnsafe(sql, ...params);
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'programs',
+      description: `Created university program '${course_name.trim()}' for University #${university_id || ''}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Program created successfully' });
   } catch (error: any) {
     console.error('Error creating program:', error);
     return NextResponse.json({ status: false, message: 'Failed to create program', error: error.message }, { status: 500 });
   }
 }
+

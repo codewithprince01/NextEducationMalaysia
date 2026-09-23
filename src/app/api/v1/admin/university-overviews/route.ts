@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { serializeBigInt } from "@/lib/utils";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function GET(request: Request) {
   try {
@@ -83,6 +84,14 @@ export async function POST(request: Request) {
       now,
     );
 
+    await recordAuditLog({
+      req: request,
+      action: 'CREATE',
+      module: 'university-overview',
+      description: `Added university overview '${tabTitle}' for University #${university_id}`,
+      newValues: body,
+    });
+
     return NextResponse.json(
       { success: true, message: "Overview created successfully" },
       { status: 201 },
@@ -95,3 +104,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

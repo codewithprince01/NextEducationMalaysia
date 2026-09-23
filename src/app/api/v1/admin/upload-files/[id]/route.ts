@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { deleteUploadedFile } from "@/lib/fileStorage";
+import { recordAuditLog } from "@/lib/auditLogger";
 
 export async function DELETE(
   req: Request,
@@ -11,14 +12,26 @@ export async function DELETE(
     const id = parseInt(rawId, 10);
 
     const rows: any[] = await prisma.$queryRawUnsafe(
-      `SELECT file_path FROM upload_files WHERE id = ?`,
+      `SELECT * FROM upload_files WHERE id = ? LIMIT 1`,
       id,
     );
-    if (rows.length > 0 && rows[0].file_path) {
-      await deleteUploadedFile(rows[0].file_path);
+    const oldValues = rows.length > 0 ? rows[0] : null;
+
+    if (oldValues && oldValues.file_path) {
+      await deleteUploadedFile(oldValues.file_path);
     }
 
     await prisma.$executeRawUnsafe(`DELETE FROM upload_files WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'upload-files',
+      recordId: id,
+      description: `Deleted file '${oldValues?.title || oldValues?.file_name || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({
       status: true,
       message: "File deleted successfully",

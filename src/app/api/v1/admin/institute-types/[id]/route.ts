@@ -1,16 +1,24 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const typeId = Number(id);
     const body = await req.json();
     const { type, seo_title } = body;
 
     if (!type) {
       return NextResponse.json({ status: false, message: 'Institute type name is required' }, { status: 400 });
     }
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM institute_types WHERE id = ? AND website = 'MYS' LIMIT 1`,
+      typeId
+    );
+    const oldValues = oldRows || null;
 
     const slug = slugify(type);
     const seoTitle = seo_title || type;
@@ -26,8 +34,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       seoTitle,
       seoTitleSlug,
       now,
-      Number(id)
+      typeId
     );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'institute-types',
+      recordId: typeId,
+      description: `Updated institute type '${type}' (ID: ${typeId})`,
+      oldValues,
+      newValues: body,
+    });
 
     return NextResponse.json({ status: true, message: 'Institute type updated successfully' });
   } catch (error: any) {
@@ -39,10 +57,29 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    await prisma.$executeRawUnsafe(`DELETE FROM institute_types WHERE id = ? AND website = 'MYS'`, Number(id));
+    const typeId = Number(id);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM institute_types WHERE id = ? AND website = 'MYS' LIMIT 1`,
+      typeId
+    );
+    const oldValues = oldRows || null;
+
+    await prisma.$executeRawUnsafe(`DELETE FROM institute_types WHERE id = ? AND website = 'MYS'`, typeId);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'institute-types',
+      recordId: typeId,
+      description: `Deleted institute type '${oldValues?.type || typeId}' (ID: ${typeId})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Institute type deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting institute type:', error);
     return NextResponse.json({ status: false, message: 'Failed to delete institute type', error: error.message }, { status: 500 });
   }
 }
+
