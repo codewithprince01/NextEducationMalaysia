@@ -56,7 +56,8 @@ export function storageUrl(path: string | null | undefined): string | null {
       return null;
     }
   }
-  const relativePath = `/storage/${cleaned.replace(/^\//, "")}`;
+  const stripped = cleaned.replace(/^\/+/, "").replace(/^storage\/+/, "").replace(/^public\/+/, "");
+  const relativePath = `/storage/${stripped}`;
   if (
     !IMAGE_DELIVERY_BASE_URL ||
     IMAGE_DELIVERY_BASE_URL.includes("localhost") ||

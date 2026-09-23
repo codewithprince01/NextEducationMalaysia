@@ -108,7 +108,10 @@ export async function GET(request: Request) {
       const is_image = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
       const is_video = ['mp4', 'webm', 'mkv', 'avi', 'mov'].includes(ext);
       const is_pdf = ext === 'pdf';
-      const file_url = getRemoteFileUrl(doc.file_path);
+      const file_url =
+        doc.storage_driver === 'local'
+          ? (doc.file_path.startsWith('/') ? doc.file_path : `/${doc.file_path}`)
+          : getRemoteFileUrl(doc.file_path);
 
       return {
         id: doc.id,

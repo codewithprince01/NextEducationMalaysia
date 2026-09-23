@@ -888,7 +888,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content View */}
-        <main className="flex-1 p-3 sm:p-4 max-w-[1700px] w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-4 w-full">
           <Outlet />
         </main>
       </div>

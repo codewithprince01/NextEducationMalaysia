@@ -94,6 +94,32 @@ type Props = {
   initialLevelData?: LevelDetailData | null
 }
 
+function UniversityCardLogo({ logoPath, name }: { logoPath?: string | null; name?: string | null }) {
+  const [error, setError] = useState(false)
+  const imageUrl = storageUrl(logoPath)
+
+  if (!imageUrl || error) {
+    return (
+      <div className="w-20 h-20 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center">
+        <GraduationCap className="w-8 h-8 text-gray-300" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-20 h-20 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-white flex items-center justify-center p-2">
+      <img
+        src={imageUrl}
+        alt={name || 'University'}
+        className="w-full h-full object-contain"
+        loading="lazy"
+        onError={() => setError(true)}
+      />
+    </div>
+  )
+}
+
+
 const tabIcons = {
   'About Course': <Info size={16} />,
   Duration: <Info size={16} />,
@@ -598,7 +624,6 @@ export default function SpecializationDetailClient({
                           .replace(/\s+/g, '-')
                           .replace(/[^a-z0-9-]/g, '') ||
                         ''
-                      const imageUrl = storageUrl(university.logo_path)
 
                       return (
                         <div
@@ -606,22 +631,10 @@ export default function SpecializationDetailClient({
                           className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition border border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-5"
                         >
                           <div className="flex items-start gap-4 w-full">
-                            <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-lg border bg-gray-50">
-                              {imageUrl ? (
-                                <Image
-                                  src={imageUrl}
-                                  alt={university.name || 'University'}
-                                  fill
-                                  className="object-contain p-2"
-                                  sizes="80px"
-                                  loading="lazy"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center">
-                                  <GraduationCap className="w-8 h-8 text-gray-300" />
-                                </div>
-                              )}
-                            </div>
+                            <UniversityCardLogo
+                              logoPath={university.logo_path}
+                              name={university.name}
+                            />
 
                             <div className="flex-1">
                               <Link

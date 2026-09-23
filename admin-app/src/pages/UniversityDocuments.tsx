@@ -6,7 +6,6 @@ import {
   FileText,
   Upload,
   Tags,
-  Building2,
   Filter,
   RefreshCw,
   Search,
@@ -25,7 +24,14 @@ import {
   HardDrive,
   BookOpen,
   Lock,
-  Users
+  Users,
+  CloudUpload,
+  CloudCheck,
+  Server,
+  Zap,
+  Eye,
+  EyeOff,
+  Building2,
 } from 'lucide-react';
 
 interface UniversityOption {
@@ -135,13 +141,147 @@ export default function UniversityDocuments() {
   });
   const [replacementFile, setReplacementFile] = useState<File | null>(null);
 
+  // Manual FTP Sync state
+  const [syncingDocId, setSyncingDocId] = useState<number | null>(null);
+  const [syncingAll, setSyncingAll] = useState(false);
+
+  // Storage Modal state
+  const [storageModalOpen, setStorageModalOpen] = useState(false);
+  const [loadingStorage, setLoadingStorage] = useState(false);
+  const [savingStorage, setSavingStorage] = useState(false);
+  const [testingStorage, setTestingStorage] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [showStoragePassword, setShowStoragePassword] = useState(false);
+  const [storageConfig, setStorageConfig] = useState({
+    sftp_host: '103.212.121.117',
+    sftp_port: 21,
+    sftp_username: 'ftpimages@images.britannicaoverseas.com',
+    sftp_password: '',
+    sftp_root: '/em/',
+    remote_storage_cdn_url: 'https://www.images.britannicaoverseas.com/em',
+  });
+
+  const fetchStorageConfig = async () => {
+    setLoadingStorage(true);
+    try {
+      const res = await fetch('/api/v1/admin/storage-settings');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.config) setStorageConfig(json.config);
+      }
+    } catch {
+      // Keep fallback
+    } finally {
+      setLoadingStorage(false);
+    }
+  };
+
+  const handleOpenStorageModal = () => {
+    setTestResult(null);
+    setStorageModalOpen(true);
+    fetchStorageConfig();
+  };
+
+  const handleSaveStorage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingStorage(true);
+    try {
+      const res = await fetch('/api/v1/admin/storage-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(storageConfig),
+      });
+      const json = await res.json();
+      if (res.ok && (json.status || json.success)) {
+        showToast('success', json.message || 'Storage settings saved successfully!');
+        setStorageModalOpen(false);
+      } else {
+        showToast('error', json.message || 'Failed to save storage settings');
+      }
+    } catch {
+      showToast('error', 'Network error while saving storage settings');
+    } finally {
+      setSavingStorage(false);
+    }
+  };
+
+  const handleTestStorage = async () => {
+    setTestingStorage(true);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/v1/admin/storage-settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(storageConfig),
+      });
+      const json = await res.json();
+      setTestResult({
+        success: Boolean(res.ok && (json.status || json.success)),
+        message: json.message || (res.ok ? 'Connection successful!' : 'Connection failed!'),
+      });
+    } catch {
+      setTestResult({
+        success: false,
+        message: 'Network error while testing connection',
+      });
+    } finally {
+      setTestingStorage(false);
+    }
+  };
+
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
   };
 
-  const fetchDocuments = async (page = currentPage) => {
-    setLoading(true);
+  const handleManualSync = async (docId: number) => {
+    setSyncingDocId(docId);
+    showToast('success', 'Initiating FTP sync...');
+    try {
+      const res = await fetch(`/api/v1/admin/university-documents/${docId}/sync`, {
+        method: 'POST',
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast('success', json.message || 'File uploaded to FTP successfully!');
+        fetchDocuments(currentPage, false);
+      } else {
+        showToast('error', json.message || 'FTP sync failed');
+      }
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to sync with FTP server');
+    } finally {
+      setSyncingDocId(null);
+    }
+  };
+
+  const handleSyncAllPending = async () => {
+    setSyncingAll(true);
+    showToast('success', 'Syncing all pending files to FTP...');
+    try {
+      const res = await fetch('/api/v1/admin/university-documents/sync-all', {
+        method: 'POST',
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        showToast('success', json.message);
+        fetchDocuments(currentPage, false);
+      } else {
+        showToast('error', json.message || 'Sync failed');
+      }
+    } catch (err: any) {
+      showToast('error', err.message || 'Failed to sync with FTP server');
+    } finally {
+      setSyncingAll(false);
+    }
+  };
+
+  const pendingSyncCount = documents.filter(
+    (d) => d.storage_driver === 'local' || d.storage_driver === 'pending_remote_ftp',
+  ).length;
+
+  const fetchDocuments = async (page = currentPage, showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
       const params = new URLSearchParams();
       if (selectedUni) params.append('university_id', selectedUni);
@@ -172,7 +312,7 @@ export default function UniversityDocuments() {
     } catch {
       showToast('error', 'Network error while loading documents');
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
   };
 
@@ -180,6 +320,20 @@ export default function UniversityDocuments() {
     fetchDocuments(1);
     setCurrentPage(1);
   }, [selectedUni, selectedCat, selectedFileType]);
+
+  // Auto-poll silently every 3s if any document in the list is still syncing to FTP
+  useEffect(() => {
+    const hasSyncingDoc = documents.some(
+      (d) => d.storage_driver === 'local' || d.storage_driver === 'pending_remote_ftp',
+    );
+    if (!hasSyncingDoc) return;
+
+    const interval = setInterval(() => {
+      fetchDocuments(currentPage, false);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [documents, currentPage, selectedUni, selectedCat, selectedFileType, searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,7 +505,7 @@ export default function UniversityDocuments() {
   };
 
   return (
-    <div className="p-6">
+    <div className="space-y-4">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -380,6 +534,17 @@ export default function UniversityDocuments() {
         </div>
 
         <div className="flex items-center gap-3">
+          {pendingSyncCount > 0 && (
+            <button
+              onClick={handleSyncAllPending}
+              disabled={syncingAll}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-60"
+              title="Click to manually retry uploading all pending files to FTP"
+            >
+              <RefreshCw className={`w-4 h-4 ${syncingAll ? 'animate-spin' : ''}`} />
+              <span>Sync All Pending ({pendingSyncCount})</span>
+            </button>
+          )}
           <Link
             to="/document-categories"
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
@@ -387,13 +552,15 @@ export default function UniversityDocuments() {
             <Tags className="w-4 h-4" />
             Categories
           </Link>
-          <Link
-            to="/university"
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
+          <button
+            type="button"
+            onClick={handleOpenStorageModal}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            title="Configure FTP Server IP & Credentials"
           >
-            <Building2 className="w-4 h-4" />
-            Universities
-          </Link>
+            <Server className="w-4 h-4 text-emerald-600" />
+            <span>Storage Config</span>
+          </button>
           <button
             onClick={() => setIsUploadModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium shadow-sm"
@@ -405,44 +572,44 @@ export default function UniversityDocuments() {
       </div>
 
       {/* Summary Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-            <FolderOpen className="w-6 h-6" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-4">
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-2xs flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <FolderOpen className="w-4 h-4" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Total Documents</p>
-            <h3 className="text-xl font-bold text-gray-900">{stats.totalDocs.toLocaleString()}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <BookOpen className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Brochures & Fees</p>
-            <h3 className="text-xl font-bold text-gray-900">{stats.brochuresCount.toLocaleString()}</h3>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider truncate">Total Documents</p>
+            <h3 className="text-base sm:text-lg font-black text-gray-900 leading-tight">{stats.totalDocs.toLocaleString()}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
-            <Video className="w-6 h-6" />
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-2xs flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Video Tours</p>
-            <h3 className="text-xl font-bold text-gray-900">{stats.videosCount.toLocaleString()}</h3>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider truncate">Brochures & Fees</p>
+            <h3 className="text-base sm:text-lg font-black text-gray-900 leading-tight">{stats.brochuresCount.toLocaleString()}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-            <HardDrive className="w-6 h-6" />
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-2xs flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Video className="w-4 h-4" />
           </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Storage Size</p>
-            <h3 className="text-xl font-bold text-gray-900">{stats.formattedTotalSize}</h3>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider truncate">Video Tours</p>
+            <h3 className="text-base sm:text-lg font-black text-gray-900 leading-tight">{stats.videosCount.toLocaleString()}</h3>
+          </div>
+        </div>
+
+        <div className="bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-2xs flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <HardDrive className="w-4 h-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider truncate">Storage Size</p>
+            <h3 className="text-base sm:text-lg font-black text-gray-900 leading-tight">{stats.formattedTotalSize}</h3>
           </div>
         </div>
       </div>
@@ -530,12 +697,54 @@ export default function UniversityDocuments() {
         </form>
       </div>
 
+      {/* Sync All Pending Alert Banner */}
+      {pendingSyncCount > 0 && (
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm mb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <CloudUpload className="h-5 w-5 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-900">
+                {pendingSyncCount} document{pendingSyncCount > 1 ? 's' : ''} pending FTP sync
+              </p>
+              <p className="text-xs text-amber-700">
+                Files are stored locally and will sync to FTP. Click button to sync now.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSyncAllPending}
+            disabled={syncingAll}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-all cursor-pointer shrink-0 disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${syncingAll ? 'animate-spin' : ''}`} />
+            <span>{syncingAll ? 'Syncing Now...' : `Sync All Pending (${pendingSyncCount})`}</span>
+          </button>
+        </div>
+      )}
+
       {/* Main Documents Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50/50">
-          <span className="text-sm font-semibold text-gray-700">
-            Found <span className="text-indigo-600 font-bold">{totalRecords}</span> document(s)
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-gray-700">
+              Found <span className="text-indigo-600 font-bold">{totalRecords}</span> document(s)
+            </span>
+            {pendingSyncCount > 0 && (
+              <button
+                type="button"
+                onClick={handleSyncAllPending}
+                disabled={syncingAll}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-xs transition-all cursor-pointer disabled:opacity-60"
+                title="Retry syncing all pending files"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncingAll ? 'animate-spin' : ''}`} />
+                <span>Sync All Pending ({pendingSyncCount})</span>
+              </button>
+            )}
+          </div>
           <span className="text-xs text-gray-500">
             Page {currentPage} of {totalPages}
           </span>
@@ -604,7 +813,35 @@ export default function UniversityDocuments() {
 
                     {/* Title & File Name */}
                     <td className="py-3 px-4 max-w-xs">
-                      <div className="font-semibold text-gray-900 line-clamp-1">{doc.title}</div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-gray-900 line-clamp-1">{doc.title}</span>
+                        {doc.storage_driver === 'local' && (
+                          <button
+                            type="button"
+                            onClick={() => handleManualSync(doc.id)}
+                            disabled={syncingDocId === doc.id}
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs transition-all cursor-pointer group disabled:opacity-60"
+                            title="Pending FTP upload. Click to retry sync now!"
+                          >
+                            {syncingDocId === doc.id ? (
+                              <Loader2 className="w-2.5 h-2.5 text-amber-600 animate-spin" />
+                            ) : (
+                              <CloudUpload className="w-2.5 h-2.5 text-amber-600 animate-pulse group-hover:scale-110 transition-transform" />
+                            )}
+                            <span>{syncingDocId === doc.id ? 'Syncing...' : 'Syncing FTP'}</span>
+                            <RefreshCw className="w-2 h-2 text-amber-600 ml-0.5 opacity-70 group-hover:opacity-100 group-hover:rotate-180 transition-all" />
+                          </button>
+                        )}
+                        {doc.storage_driver === 'remote_ftp' && (
+                          <span
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                            title="Stored safely on remote FTP cloud storage"
+                          >
+                            <CloudCheck className="w-2.5 h-2.5 text-emerald-600" />
+                            <span>FTP Upload</span>
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 font-mono line-clamp-1">
                         <FileText className="w-3 h-3 text-gray-400 shrink-0" />
                         {doc.original_name}
@@ -679,6 +916,21 @@ export default function UniversityDocuments() {
                     {/* Actions */}
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
+                        {doc.storage_driver === 'local' && (
+                          <button
+                            type="button"
+                            onClick={() => handleManualSync(doc.id)}
+                            disabled={syncingDocId === doc.id}
+                            className="p-1.5 text-amber-700 border border-amber-300 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors cursor-pointer"
+                            title="Retry FTP Sync"
+                          >
+                            {syncingDocId === doc.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
                         <a
                           href={doc.file_url}
                           target="_blank"
@@ -1034,6 +1286,187 @@ export default function UniversityDocuments() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Storage Settings Modal */}
+      {storageModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 p-6">
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200/80">
+                  <Server className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Remote SFTP / FTP Storage Config</h3>
+                  <p className="text-xs text-gray-500">Update host IP, credentials & CDN domain dynamically</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStorageModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {loadingStorage ? (
+              <div className="py-12 text-center text-gray-500">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600 mb-2" />
+                Loading current storage configuration...
+              </div>
+            ) : (
+              <form onSubmit={handleSaveStorage} className="space-y-4 pt-4">
+                {/* Test Result Banner */}
+                {testResult && (
+                  <div
+                    className={`p-3.5 rounded-xl border flex items-start gap-2.5 text-xs ${
+                      testResult.success
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                        : 'bg-rose-50 border-rose-300 text-rose-900'
+                    }`}
+                  >
+                    {testResult.success ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <span className="font-bold">{testResult.success ? 'Success: ' : 'Error: '}</span>
+                      <span>{testResult.message}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                  <div className="sm:col-span-2 space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      FTP Host IP / Domain <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={storageConfig.sftp_host}
+                      onChange={(e) => setStorageConfig({ ...storageConfig, sftp_host: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-mono border border-gray-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600"
+                      placeholder="e.g. 103.212.121.117"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Port <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={storageConfig.sftp_port}
+                      onChange={(e) => setStorageConfig({ ...storageConfig, sftp_port: parseInt(e.target.value, 10) || 21 })}
+                      className="w-full px-3 py-2 text-xs font-mono border border-gray-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600"
+                      placeholder="21"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3 space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      FTP Username <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={storageConfig.sftp_username}
+                      onChange={(e) => setStorageConfig({ ...storageConfig, sftp_username: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-mono border border-gray-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600"
+                      placeholder="ftpimages@images.britannicaoverseas.com"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3 space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      FTP Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showStoragePassword ? 'text' : 'password'}
+                        required
+                        value={storageConfig.sftp_password}
+                        onChange={(e) => setStorageConfig({ ...storageConfig, sftp_password: e.target.value })}
+                        className="w-full pl-3 pr-10 py-2 text-xs font-mono border border-gray-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600"
+                        placeholder="••••••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowStoragePassword(!showStoragePassword)}
+                        className="absolute right-2.5 top-2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      >
+                        {showStoragePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="sm:col-span-3 space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Root Directory <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={storageConfig.sftp_root}
+                      onChange={(e) => setStorageConfig({ ...storageConfig, sftp_root: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-mono border border-gray-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600"
+                      placeholder="/em/"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3 space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      CDN / Remote File URL Base <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={storageConfig.remote_storage_cdn_url}
+                      onChange={(e) => setStorageConfig({ ...storageConfig, remote_storage_cdn_url: e.target.value })}
+                      className="w-full px-3 py-2 text-xs font-mono border border-gray-300 rounded-lg focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600"
+                      placeholder="https://www.images.britannicaoverseas.com/em"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={handleTestStorage}
+                    disabled={testingStorage}
+                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {testingStorage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5 text-amber-500" />}
+                    <span>{testingStorage ? 'Testing Connection...' : 'Test FTP Connection'}</span>
+                  </button>
+
+                  <div className="flex items-center justify-end gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setStorageModalOpen(false)}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-xs font-medium transition-colors cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingStorage}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {savingStorage ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                      Save Storage Settings
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

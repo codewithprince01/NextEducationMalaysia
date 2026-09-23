@@ -65,7 +65,27 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "admin.educationmalaysia.in",
-        pathname: "/storage/**",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.educationmalaysia.in",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "educationmalaysia.in",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.britannicaoverseas.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.images.britannicaoverseas.com",
+        pathname: "/**",
       },
       {
         protocol: "https",
