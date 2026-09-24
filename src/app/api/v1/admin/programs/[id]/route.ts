@@ -154,12 +154,13 @@ export async function PUT(
 
     // Reconcile local annual fee
     const finalAnnualTuitionFeeLocal = annual_tuition_fee_local !== undefined && annual_tuition_fee_local !== '' ? annual_tuition_fee_local : anual_tuition_fee_local;
+    const finalOverview = overview !== undefined && overview !== null ? overview : (courses_description || null);
 
     const fields = [
       'university_id = ?', 'course_category_id = ?', 'specialization_id = ?', 'course_name = ?', 'slug = ?',
       'level = ?', 'duration = ?', 'study_mode = ?', 'intake = ?', 'application_deadline = ?',
       'campus = ?', 'accreditations = ?', 'is_local = ?', 'is_international = ?',
-      'overview = ?', 'entry_requirement = ?', 'exam_required = ?', 'mode_of_instruction = ?', 'scholarship_info = ?', 'courses_description = ?',
+      'overview = ?', 'entry_requirement = ?', 'exam_required = ?', 'mode_of_instruction = ?', 'scholarship_info = ?',
       'tution_fee = ?',
 
       // International legacy
@@ -207,12 +208,11 @@ export async function PUT(
       accreditations || null,
       is_local ? 1 : 0,
       is_international ? 1 : 0,
-      overview || null,
+      finalOverview || null,
       entry_requirement || null,
       exam_required || null,
       mode_of_instruction || null,
       scholarship_info || null,
-      courses_description || null,
       tution_fee ? String(tution_fee) : null,
 
       // International legacy

@@ -31,6 +31,8 @@ const COLUMN_MAP: Record<string, string> = {
   mode_of_instruction: 'mode_of_instruction',
   scholarship_info: 'scholarship_info',
   courses_description: 'courses_description',
+  course_description: 'courses_description',
+  description: 'courses_description',
 
   // Local Fees
   total_fee_local: 'total_fee_local',
@@ -181,11 +183,15 @@ export async function POST(req: Request) {
       // Reconcile local annual fee
       const annualTuitionFeeLocal = cleanNumeric(row['annual_tuition_fee_local'] !== undefined ? row['annual_tuition_fee_local'] : row['anual_tuition_fee_local']);
 
+      const overviewVal = row['overview']
+        ? String(row['overview']).trim()
+        : (row['courses_description'] ? String(row['courses_description']).trim() : null);
+
       const fields = [
         'university_id', 'course_category_id', 'specialization_id', 'course_name', 'slug',
         'level', 'duration', 'study_mode', 'intake', 'application_deadline',
         'campus', 'accreditations', 'is_local', 'is_international',
-        'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction', 'scholarship_info', 'courses_description',
+        'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction', 'scholarship_info',
         'tution_fee',
 
         // International legacy + explicit
@@ -234,12 +240,11 @@ export async function POST(req: Request) {
         row['accreditations'] ? String(row['accreditations']).trim() : null,
         isLocal,
         isInternational,
-        row['overview'] ? String(row['overview']).trim() : null,
+        overviewVal,
         row['entry_requirement'] ? String(row['entry_requirement']).trim() : null,
         row['exam_required'] ? String(row['exam_required']).trim() : null,
         row['mode_of_instruction'] ? String(row['mode_of_instruction']).trim() : null,
         row['scholarship_info'] ? String(row['scholarship_info']).trim() : null,
-        row['courses_description'] ? String(row['courses_description']).trim() : null,
         cleanNumeric(row['tution_fee']),
 
         // International legacy

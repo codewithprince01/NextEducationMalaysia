@@ -224,7 +224,6 @@ export default function Programs() {
     exam_required: '',
     mode_of_instruction: '',
     scholarship_info: '',
-    courses_description: '',
 
     // International Fees
     total_fee_international: '',
@@ -455,12 +454,11 @@ export default function Programs() {
       is_local: item.is_local === 1,
       is_international: item.is_international === 1,
 
-      overview: item.overview || '',
+      overview: item.overview || item.courses_description || '',
       entry_requirement: item.entry_requirement || '',
       exam_required: item.exam_required || '',
       mode_of_instruction: item.mode_of_instruction || '',
       scholarship_info: item.scholarship_info || '',
-      courses_description: item.courses_description || '',
 
       // International Fees (new + legacy fallbacks)
       total_fee_international: item.total_fee_international || item.total_fee || '',

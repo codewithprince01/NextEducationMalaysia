@@ -1,6 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { verifyAccessToken } from '@/backend/utils/auth';
+
+// ---------------------------------------------------------------------------
+// Helper: resolve the requesting admin's role from JWT token or custom headers
+// ---------------------------------------------------------------------------
+async function resolveRequesterRole(req: NextRequest): Promise<string | null> {
+  const headerId = req.headers.get('x-admin-user-id');
+  const headerRole = req.headers.get('x-admin-user-role');
+
+  if (headerId) {
+    try {
+      const rows: any[] = await prisma.$queryRawUnsafe(
+        'SELECT role FROM users WHERE id = ? LIMIT 1',
+        Number(headerId)
+      );
+      if (rows?.length > 0) return rows[0].role || null;
+    } catch {}
+  }
+
+  if (headerRole) return headerRole;
+
+  // Fall back to JWT token
+  try {
+    let token: string | undefined;
+    token = req.cookies.get('admin_access_token')?.value;
+    if (!token) {
+      const cookieHeader = req.headers.get('cookie') || '';
+      const m = cookieHeader.match(/admin_access_token=([^;]+)/);
+      if (m) token = m[1];
+    }
+    if (!token) {
+      const auth = req.headers.get('authorization');
+      if (auth?.startsWith('Bearer ')) token = auth.substring(7);
+    }
+    if (token) {
+      let payload: any = null;
+      try { payload = verifyAccessToken(token); } catch {
+        try { payload = require('jsonwebtoken').decode(token); } catch {}
+      }
+      const userId = Number(payload?.sub || payload?.id || payload?.userId);
+      if (userId) {
+        const rows: any[] = await prisma.$queryRawUnsafe(
+          'SELECT role FROM users WHERE id = ? LIMIT 1',
+          userId
+        );
+        if (rows?.length > 0) return rows[0].role || null;
+      }
+    }
+  } catch {}
+
+  return null;
+}
 
 let tableEnsured = false;
 async function ensureAuditTableExists() {
@@ -213,3 +265,109 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// DELETE /api/v1/admin/audit-logs
+// Super-admin (role = 'admin') only.
+// Supports three modes via JSON body:
+//   { "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD" }  → date range
+//   { "before": "YYYY-MM-DD" }                              → all before a date
+//   { "deleteAll": true }                                   → wipe entire table
+// ---------------------------------------------------------------------------
+export async function DELETE(req: NextRequest) {
+  try {
+    // --- Permission check ---
+    const role = await resolveRequesterRole(req);
+    if (role !== 'admin') {
+      return NextResponse.json(
+        { status: false, message: 'Forbidden: Only super-admins (admin role) can delete audit logs.' },
+        { status: 403 }
+      );
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const { startDate, endDate, before, deleteAll } = body as {
+      startDate?: string;
+      endDate?: string;
+      before?: string;
+      deleteAll?: boolean;
+    };
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let modeDescription = '';
+
+    if (deleteAll === true) {
+      // Wipe entire table — no WHERE clause
+      modeDescription = 'Deleted ALL audit log records';
+    } else if (before?.trim()) {
+      conditions.push('created_at < ?');
+      params.push(`${before.trim()} 23:59:59`);
+      modeDescription = `Deleted audit logs before ${before.trim()}`;
+    } else if (startDate?.trim() || endDate?.trim()) {
+      if (startDate?.trim()) {
+        conditions.push('created_at >= ?');
+        params.push(`${startDate.trim()} 00:00:00`);
+      }
+      if (endDate?.trim()) {
+        conditions.push('created_at <= ?');
+        params.push(`${endDate.trim()} 23:59:59`);
+      }
+      modeDescription = `Deleted audit logs from ${startDate || '*'} to ${endDate || '*'}`;
+    } else {
+      return NextResponse.json(
+        {
+          status: false,
+          message: 'Provide at least one of: startDate, endDate, before, or deleteAll: true.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // Count before deleting so we can report the number
+    const [countRes]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT COUNT(*) as total FROM admin_audit_logs ${whereClause}`,
+      ...params
+    );
+    const deletedCount = Number(countRes?.total || 0);
+
+    if (deletedCount === 0) {
+      return NextResponse.json({
+        status: true,
+        message: 'No audit log records matched the given criteria. Nothing deleted.',
+        deletedCount: 0,
+      });
+    }
+
+    // Execute deletion
+    await prisma.$executeRawUnsafe(
+      `DELETE FROM admin_audit_logs ${whereClause}`,
+      ...params
+    );
+
+    // Record the bulk-delete action itself
+    try {
+      const { recordAuditLog } = await import('@/lib/auditLogger');
+      await recordAuditLog({
+        req,
+        action: 'DELETE',
+        module: 'audit-logs',
+        description: `${modeDescription} — ${deletedCount} record(s) removed by super-admin`,
+        newValues: { deletedCount, startDate, endDate, before, deleteAll },
+      });
+    } catch {}
+
+    return NextResponse.json({
+      status: true,
+      message: `${deletedCount} audit log record(s) deleted successfully.`,
+      deletedCount,
+    });
+  } catch (error: any) {
+    console.error('Error deleting audit logs:', error);
+    return NextResponse.json(
+      { status: false, message: 'Failed to delete audit logs.', error: error.message },
+      { status: 500 }
+    );
+  }
+}

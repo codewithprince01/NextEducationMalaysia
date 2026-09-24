@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       req,
       action: 'CREATE',
       module: 'internships',
-      recordId: newId,
+      recordId: newId ?? undefined,
       description: `Created FAQ for internship ID ${internship_id}: '${question}'`,
       newValues: {
         id: newId,

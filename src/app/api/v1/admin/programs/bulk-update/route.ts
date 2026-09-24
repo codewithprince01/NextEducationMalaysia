@@ -28,7 +28,9 @@ const COLUMN_MAP: Record<string, string> = {
   exam_required: 'exam_required',
   mode_of_instruction: 'mode_of_instruction',
   scholarship_info: 'scholarship_info',
-  courses_description: 'courses_description',
+  courses_description: 'overview',
+  course_description: 'overview',
+  description: 'overview',
 
   // Local Fees
   total_fee_local: 'total_fee_local',
