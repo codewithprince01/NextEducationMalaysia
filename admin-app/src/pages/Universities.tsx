@@ -25,7 +25,9 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  XCircle,
+  CheckSquare
 } from 'lucide-react';
 
 interface UniversityItem {
@@ -186,6 +188,47 @@ export default function Universities() {
       setSelectedIds(selectedIds.filter((item) => item !== id));
     } else {
       setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const [bulkUpdatingStatus, setBulkUpdatingStatus] = useState(false);
+
+  const handleBulkStatus = async (newStatus: number) => {
+    if (selectedIds.length === 0) {
+      showToast('error', 'Please select at least one university');
+      return;
+    }
+
+    const label = newStatus === 1 ? 'Active' : 'Inactive';
+    setBulkUpdatingStatus(true);
+
+    // Optimistic local state update
+    setUniversities((prev) =>
+      prev.map((u) => (selectedIds.includes(u.id) ? { ...u, status: newStatus } : u))
+    );
+
+    try {
+      const res = await api.patch('/api/v1/admin/universities', {
+        ids: selectedIds,
+        status: newStatus,
+      });
+
+      if (res.ok) {
+        showToast(
+          'success',
+          `Successfully marked ${selectedIds.length} ${selectedIds.length === 1 ? 'university' : 'universities'} as ${label}`
+        );
+        setSelectedIds([]);
+      } else {
+        // Revert on error
+        await fetchData(false);
+        showToast('error', res.message || `Failed to update status to ${label}`);
+      }
+    } catch (err: any) {
+      await fetchData(false);
+      showToast('error', err?.message || `Failed to update status to ${label}`);
+    } finally {
+      setBulkUpdatingStatus(false);
     }
   };
 
@@ -528,6 +571,50 @@ export default function Universities() {
         </div>
       </div>
 
+      {/* ── BULK ACTION TOOLBAR (VISIBLE ON CHECK) ── */}
+      {selectedIds.length > 0 && (
+        <div className="bg-emerald-950 text-white p-3 sm:p-3.5 px-5 rounded-2xl shadow-lg border border-emerald-700/60 flex flex-wrap items-center justify-between gap-3 animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-emerald-500/30 text-emerald-200 font-mono text-xs font-black border border-emerald-400/30">
+              {selectedIds.length}
+            </span>
+            <div className="text-xs font-bold text-white">
+              <span>{selectedIds.length} {selectedIds.length === 1 ? 'University' : 'Universities'} Selected</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="text-[11px] font-bold text-stone-300 hover:text-white underline cursor-pointer ml-1"
+            >
+              Clear
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-emerald-200/90 mr-1">Bulk Status:</span>
+            <button
+              type="button"
+              onClick={() => handleBulkStatus(1)}
+              disabled={bulkUpdatingStatus}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              {bulkUpdatingStatus ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              <span>Active</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleBulkStatus(0)}
+              disabled={bulkUpdatingStatus}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              {bulkUpdatingStatus ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+              <span>Inactive</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── CLASSIC MAIN DATA TABLE ── */}
       <div className="bg-white rounded-3xl border border-stone-200/90 shadow-xs overflow-hidden">
         {loading ? (
@@ -560,6 +647,44 @@ export default function Universities() {
           </div>
         ) : (
           <div className="overflow-x-auto">
+            {selectedIds.length > 0 && (
+              <div className="bg-emerald-50/95 border-b border-emerald-200/90 px-4 py-2.5 flex items-center justify-between gap-3 text-xs animate-in fade-in duration-150">
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-flex items-center gap-1.5 font-extrabold text-emerald-900 text-xs">
+                    <CheckSquare className="w-4 h-4 text-emerald-700" />
+                    {selectedIds.length} {selectedIds.length === 1 ? 'university' : 'universities'} selected
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedIds([])}
+                    className="text-[11px] font-semibold text-emerald-700 hover:text-emerald-950 underline cursor-pointer"
+                  >
+                    Deselect
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-stone-600">Change Status:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleBulkStatus(1)}
+                    disabled={bulkUpdatingStatus}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition-all shadow-2xs hover:scale-105 active:scale-95 disabled:opacity-50"
+                  >
+                    {bulkUpdatingStatus ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                    Active
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleBulkStatus(0)}
+                    disabled={bulkUpdatingStatus}
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-extrabold bg-rose-600 hover:bg-rose-700 text-white cursor-pointer transition-all shadow-2xs hover:scale-105 active:scale-95 disabled:opacity-50"
+                  >
+                    {bulkUpdatingStatus ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+                    Inactive
+                  </button>
+                </div>
+              </div>
+            )}
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase tracking-wider text-[11px]">
