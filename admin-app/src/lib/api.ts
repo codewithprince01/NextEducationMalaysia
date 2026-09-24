@@ -147,6 +147,21 @@ export const api = {
       1
     ),
 
+  patch: <T = any>(url: string, body?: any, options?: RequestInit) =>
+    safeFetch<T>(
+      url,
+      {
+        ...options,
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options?.headers || {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      1
+    ),
+
   delete: <T = any>(url: string, options?: RequestInit) =>
     safeFetch<T>(url, { ...options, method: 'DELETE' }, 1),
 };

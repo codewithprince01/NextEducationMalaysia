@@ -25,8 +25,7 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Sparkles,
-  ChevronDown,
-  Star
+  ChevronDown
 } from 'lucide-react';
 
 interface UniversityItem {
@@ -87,10 +86,62 @@ export default function Universities() {
   // Preview Modals
   const [previewSeo, setPreviewSeo] = useState<UniversityItem | null>(null);
   const [previewImage, setPreviewImage] = useState<{ title: string; url: string } | null>(null);
+  const [togglingKey, setTogglingKey] = useState<string | null>(null);
 
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleTogglePermission = async (
+    item: UniversityItem,
+    field: 'status' | 'homeview' | 'featured'
+  ) => {
+    const opKey = `${item.id}-${field}`;
+    if (togglingKey === opKey) return;
+
+    const currentVal = item[field] ?? (field === 'status' ? 1 : 0);
+    const nextVal = currentVal === 1 ? 0 : 1;
+
+    // Optimistic state update
+    setUniversities((prev) =>
+      prev.map((u) => (u.id === item.id ? { ...u, [field]: nextVal } : u))
+    );
+    setTogglingKey(opKey);
+
+    const labels: Record<string, string> = {
+      status: 'Status',
+      homeview: 'Home View',
+      featured: 'Featured',
+    };
+    const valText =
+      field === 'featured'
+        ? nextVal === 1 ? 'Yes' : 'No'
+        : nextVal === 1 ? 'Active' : 'Inactive';
+
+    try {
+      const res = await api.patch(`/api/v1/admin/universities/${item.id}`, {
+        [field]: nextVal,
+      });
+
+      if (res.ok) {
+        showToast('success', `${item.name}: ${labels[field]} set to ${valText}`);
+      } else {
+        // Revert on error
+        setUniversities((prev) =>
+          prev.map((u) => (u.id === item.id ? { ...u, [field]: currentVal } : u))
+        );
+        showToast('error', res.message || `Failed to update ${labels[field]}`);
+      }
+    } catch (err: any) {
+      // Revert on error
+      setUniversities((prev) =>
+        prev.map((u) => (u.id === item.id ? { ...u, [field]: currentVal } : u))
+      );
+      showToast('error', err?.message || `Failed to update ${labels[field]}`);
+    } finally {
+      setTogglingKey(null);
+    }
   };
 
   const fetchData = async (showLoading = true, website = websiteFilter) => {
@@ -525,7 +576,7 @@ export default function Universities() {
                   <th className="py-3.5 px-4 min-w-[150px] text-[#14532d]">Location</th>
                   <th className="py-3.5 px-4 min-w-[170px] text-[#14532d]">Rankings & Accreditations</th>
                   <th className="py-3.5 px-4 min-w-[120px] text-[#14532d]">Media</th>
-                  <th className="py-3.5 px-4 text-center min-w-[130px] text-[#14532d]">Status</th>
+                  <th className="py-3.5 px-4 text-center min-w-[155px] text-[#14532d]">Permission</th>
                   <th className="py-3.5 px-4 text-center min-w-[150px] text-[#14532d]">Content Modules</th>
                   <th className="py-3.5 px-4 min-w-[130px] text-[#14532d]">Updated</th>
                   <th className="py-3.5 px-4 text-right min-w-[120px] text-[#14532d]">Actions</th>
@@ -691,29 +742,97 @@ export default function Universities() {
                         </div>
                       </td>
 
-                      {/* Status Badges */}
-                      <td className="py-4 px-4 text-center space-y-1.5">
-                        <div>
-                          {item.status !== 0 ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                              Active
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-500 border border-stone-200 font-bold text-[10px]">
-                              Inactive
-                            </span>
-                          )}
-                        </div>
+                      {/* Permission Badges (Status, Home View, Featured) */}
+                      <td className="py-3 px-3 text-center align-middle">
+                        <div className="inline-block border border-stone-200/90 rounded-lg overflow-hidden bg-white shadow-2xs text-left min-w-[142px]">
+                          <table className="w-full text-[11px] border-collapse">
+                            <tbody>
+                              {/* Status */}
+                              <tr className="border-b border-stone-100 hover:bg-stone-50/60 transition-colors">
+                                <td className="px-2.5 py-1.5 font-semibold text-stone-600 whitespace-nowrap">
+                                  Status
+                                </td>
+                                <td className="px-2 py-1.5 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTogglePermission(item, 'status')}
+                                    disabled={togglingKey === `${item.id}-status`}
+                                    className={`inline-flex items-center justify-center min-w-[62px] px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs cursor-pointer transition-all hover:scale-105 active:scale-95 ${
+                                      item.status !== 0
+                                        ? 'bg-emerald-500 hover:bg-emerald-600'
+                                        : 'bg-rose-500 hover:bg-rose-600'
+                                    } ${togglingKey === `${item.id}-status` ? 'opacity-60 cursor-wait' : ''}`}
+                                    title={`Click to switch Status to ${item.status !== 0 ? 'Inactive' : 'Active'}`}
+                                  >
+                                    {togglingKey === `${item.id}-status` ? (
+                                      <Loader2 className="w-3 h-3 animate-spin text-white" />
+                                    ) : item.status !== 0 ? (
+                                      'Active'
+                                    ) : (
+                                      'Inactive'
+                                    )}
+                                  </button>
+                                </td>
+                              </tr>
 
-                        {item.featured === 1 && (
-                          <div>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-200/80 font-extrabold text-[9.5px]">
-                              <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" />
-                              Featured
-                            </span>
-                          </div>
-                        )}
+                              {/* Home View */}
+                              <tr className="border-b border-stone-100 hover:bg-stone-50/60 transition-colors">
+                                <td className="px-2.5 py-1.5 font-semibold text-stone-600 whitespace-nowrap">
+                                  Home View
+                                </td>
+                                <td className="px-2 py-1.5 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTogglePermission(item, 'homeview')}
+                                    disabled={togglingKey === `${item.id}-homeview`}
+                                    className={`inline-flex items-center justify-center min-w-[62px] px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs cursor-pointer transition-all hover:scale-105 active:scale-95 ${
+                                      item.homeview === 1
+                                        ? 'bg-emerald-500 hover:bg-emerald-600'
+                                        : 'bg-rose-500 hover:bg-rose-600'
+                                    } ${togglingKey === `${item.id}-homeview` ? 'opacity-60 cursor-wait' : ''}`}
+                                    title={`Click to switch Home View to ${item.homeview === 1 ? 'Inactive' : 'Active'}`}
+                                  >
+                                    {togglingKey === `${item.id}-homeview` ? (
+                                      <Loader2 className="w-3 h-3 animate-spin text-white" />
+                                    ) : item.homeview === 1 ? (
+                                      'Active'
+                                    ) : (
+                                      'Inactive'
+                                    )}
+                                  </button>
+                                </td>
+                              </tr>
+
+                              {/* Featured */}
+                              <tr className="hover:bg-stone-50/60 transition-colors">
+                                <td className="px-2.5 py-1.5 font-semibold text-stone-600 whitespace-nowrap">
+                                  Featured
+                                </td>
+                                <td className="px-2 py-1.5 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTogglePermission(item, 'featured')}
+                                    disabled={togglingKey === `${item.id}-featured`}
+                                    className={`inline-flex items-center justify-center min-w-[62px] px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs cursor-pointer transition-all hover:scale-105 active:scale-95 ${
+                                      item.featured === 1
+                                        ? 'bg-emerald-500 hover:bg-emerald-600'
+                                        : 'bg-rose-500 hover:bg-rose-600'
+                                    } ${togglingKey === `${item.id}-featured` ? 'opacity-60 cursor-wait' : ''}`}
+                                    title={`Click to switch Featured to ${item.featured === 1 ? 'No' : 'Yes'}`}
+                                  >
+                                    {togglingKey === `${item.id}-featured` ? (
+                                      <Loader2 className="w-3 h-3 animate-spin text-white" />
+                                    ) : item.featured === 1 ? (
+                                      'Yes'
+                                    ) : (
+                                      'No'
+                                    )}
+                                  </button>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
                       </td>
 
                       {/* Content Sub Modules */}
