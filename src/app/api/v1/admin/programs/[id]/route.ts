@@ -58,6 +58,42 @@ export async function PUT(
     const { id: rawId } = await params;
     const progId = parseInt(rawId, 10);
     const body = await req.json();
+
+    // Support quick status toggle when course_name is not provided
+    if (body.status !== undefined && (!body.course_name || !String(body.course_name).trim())) {
+      const [existing]: any[] = await prisma.$queryRawUnsafe(
+        `SELECT id, status, course_name FROM university_programs WHERE id = ? LIMIT 1`,
+        progId
+      );
+      if (!existing) {
+        return NextResponse.json({ status: false, message: 'Program not found' }, { status: 404 });
+      }
+
+      const newStatus = Number(body.status) ? 1 : 0;
+      await prisma.$executeRawUnsafe(
+        `UPDATE university_programs SET status = ?, updated_at = ? WHERE id = ?`,
+        newStatus,
+        new Date(),
+        progId
+      );
+
+      await recordAuditLog({
+        req,
+        action: 'UPDATE',
+        module: 'programs',
+        recordId: progId,
+        description: `Toggled status of program #${progId} (${existing.course_name}) to ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+        oldValues: { status: existing.status },
+        newValues: { status: newStatus },
+      });
+
+      return NextResponse.json({
+        status: true,
+        message: `Program marked as ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+        data: { id: progId, status: newStatus },
+      });
+    }
+
     const {
       university_id,
       course_category_id,
@@ -356,4 +392,51 @@ export async function DELETE(
     return NextResponse.json({ status: false, message: 'Failed to delete program', error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: rawId } = await params;
+    const progId = parseInt(rawId, 10);
+    const body = await req.json();
+
+    const [existing]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT id, status, course_name FROM university_programs WHERE id = ? LIMIT 1`,
+      progId
+    );
+    if (!existing) {
+      return NextResponse.json({ status: false, message: 'Program not found' }, { status: 404 });
+    }
+
+    const newStatus = body.status !== undefined ? (Number(body.status) ? 1 : 0) : (existing.status === 1 ? 0 : 1);
+    await prisma.$executeRawUnsafe(
+      `UPDATE university_programs SET status = ?, updated_at = ? WHERE id = ?`,
+      newStatus,
+      new Date(),
+      progId
+    );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'programs',
+      recordId: progId,
+      description: `Toggled status of program #${progId} (${existing.course_name}) to ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+      oldValues: { status: existing.status },
+      newValues: { status: newStatus },
+    });
+
+    return NextResponse.json({
+      status: true,
+      message: `Program marked as ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+      data: { id: progId, status: newStatus },
+    });
+  } catch (error: any) {
+    console.error('Error in PATCH program:', error);
+    return NextResponse.json({ status: false, message: 'Failed to update program status', error: error.message }, { status: 500 });
+  }
+}
+
 

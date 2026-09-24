@@ -29,7 +29,8 @@ import {
   Globe,
   Info,
   Upload,
-  Check
+  Check,
+  Sparkles
 } from 'lucide-react';
 import { uploadFileToStorage, getStorageUrl } from '@/lib/uploadHelper';
 
@@ -640,6 +641,44 @@ export default function Programs() {
     } catch {
       showToast('error', 'Connection error while deleting program');
       fetchPrograms(selectedUnivId, false);
+    }
+  };
+
+  const [togglingId, setTogglingId] = useState<number | null>(null);
+
+  const handleToggleStatus = async (item: ProgramItem) => {
+    const newStatus = item.status === 1 ? 0 : 1;
+    setTogglingId(item.id);
+
+    // Optimistically update local state
+    setPrograms((prev) =>
+      prev.map((p) => (p.id === item.id ? { ...p, status: newStatus } : p))
+    );
+
+    try {
+      const res = await fetch(`/api/v1/admin/programs/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      const json = await res.json();
+      if (res.ok && json.status) {
+        showToast('success', `Program marked as ${newStatus === 1 ? 'Active' : 'Inactive'}`);
+      } else {
+        // Rollback
+        setPrograms((prev) =>
+          prev.map((p) => (p.id === item.id ? { ...p, status: item.status } : p))
+        );
+        showToast('error', json.message || 'Failed to update status');
+      }
+    } catch {
+      // Rollback
+      setPrograms((prev) =>
+        prev.map((p) => (p.id === item.id ? { ...p, status: item.status } : p))
+      );
+      showToast('error', 'Network error while updating status');
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -2222,24 +2261,23 @@ export default function Programs() {
               <tr className="bg-[#effaf2] border-b-2 border-[#c8ebd2] text-[#14532d] font-extrabold uppercase text-[11px] tracking-wider">
                 <th className="py-3.5 px-4 w-12 text-center text-emerald-700">Sr.</th>
                 <th className="py-3.5 px-4 text-[#14532d]">Program Name</th>
-                <th className="py-3.5 px-4 text-[#14532d]">Category & Specialization</th>
-                <th className="py-3.5 px-4 w-32 text-[#14532d]">Duration & Mode</th>
-                <th className="py-3.5 px-4 w-32 text-[#14532d]">Intake / Fee</th>
-                <th className="py-3.5 px-4 w-24 text-center text-[#14532d]">Status</th>
+                <th className="py-3.5 px-4 w-36 text-[#14532d]">Duration & Mode</th>
+                <th className="py-3.5 px-4 w-36 text-[#14532d]">Intake / Fee</th>
+                <th className="py-3.5 px-4 w-28 text-center text-[#14532d]">Status</th>
                 <th className="py-3.5 px-4 w-28 text-right text-[#14532d]">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-stone-400">
+                  <td colSpan={6} className="py-12 text-center text-stone-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-amber-700" />
                     <span className="text-xs font-bold">Loading university programs...</span>
                   </td>
                 </tr>
               ) : paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-stone-400 space-y-1">
+                  <td colSpan={6} className="py-12 text-center text-stone-400 space-y-1">
                     <BookOpen className="w-7 h-7 text-stone-300 mx-auto mb-1" />
                     <div className="text-xs font-bold text-stone-600">No programs found</div>
                     <p className="text-[11px]">Try adjusting search filters or select another university.</p>
@@ -2251,7 +2289,7 @@ export default function Programs() {
                   return (
                     <tr key={item.id} className="hover:bg-[#fbfaf7] transition-colors group">
                       <td className="py-3.5 px-4 text-center font-bold text-stone-400 text-[11px]">{srNo}</td>
-                      <td className="py-3.5 px-4 space-y-1">
+                      <td className="py-3.5 px-4 space-y-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold text-stone-700 bg-stone-100 border border-stone-200 px-1.5 py-0.5 rounded">
                             #{item.id}
@@ -2260,15 +2298,26 @@ export default function Programs() {
                             {item.course_name}
                           </span>
                         </div>
-                        {item.level && (
-                          <div className="inline-flex items-center gap-1 text-[10px] font-bold text-stone-600 bg-stone-100/90 border border-stone-200/80 px-2 py-0.5 rounded-full">
-                            <Tag className="w-2.5 h-2.5 text-stone-400" /> {item.level}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3.5 px-4 space-y-0.5">
-                        <div className="text-xs font-bold text-stone-800">{item.category_name || '-'}</div>
-                        <div className="text-[11px] font-medium text-stone-500">{item.specialization_name || '-'}</div>
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                          {item.level && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-full">
+                              <Tag className="w-2.5 h-2.5 text-indigo-500" />
+                              {item.level}
+                            </span>
+                          )}
+                          {item.category_name && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full">
+                              <Layers className="w-2.5 h-2.5 text-emerald-600" />
+                              {item.category_name}
+                            </span>
+                          )}
+                          {item.specialization_name && item.specialization_name !== '-' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-full">
+                              <Sparkles className="w-2.5 h-2.5 text-amber-600" />
+                              {item.specialization_name}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 space-y-0.5">
                         <div className="flex items-center gap-1 text-xs font-bold text-stone-800">
@@ -2287,15 +2336,26 @@ export default function Programs() {
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        {item.status === 1 ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-stone-100 text-stone-500 border border-stone-200">
-                            Inactive
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleStatus(item)}
+                          disabled={togglingId === item.id}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold cursor-pointer transition-all shadow-2xs hover:scale-105 active:scale-95 ${
+                            item.status === 1
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100'
+                              : 'bg-rose-50 text-rose-700 border border-rose-300 hover:bg-rose-100'
+                          } ${togglingId === item.id ? 'opacity-60 cursor-wait' : ''}`}
+                          title={`Click to mark as ${item.status === 1 ? 'Inactive' : 'Active'}`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${item.status === 1 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                          {togglingId === item.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : item.status === 1 ? (
+                            'Active'
+                          ) : (
+                            'Inactive'
+                          )}
+                        </button>
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
