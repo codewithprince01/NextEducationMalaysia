@@ -450,7 +450,14 @@ export default function Programs() {
       intake: item.intake || '',
       application_deadline: item.application_deadline || '',
       campus: item.campus || '',
-      accreditations: item.accreditations || 'N/A',
+      accreditations: (() => {
+        if (!item.accreditations) return 'N/A';
+        try {
+          const parsed = JSON.parse(item.accreditations);
+          if (Array.isArray(parsed)) return parsed.join(' | ');
+        } catch {}
+        return String(item.accreditations);
+      })(),
       is_local: item.is_local === 1,
       is_international: item.is_international === 1,
 

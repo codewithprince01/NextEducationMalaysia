@@ -167,6 +167,26 @@ function cleanNumeric(val: any): number | null {
   return Number(str);
 }
 
+function formatAccreditations(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  if (Array.isArray(val)) {
+    const cleaned = val.map(x => String(x).trim()).filter(Boolean);
+    return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+  }
+  const s = String(val).trim();
+  if (!s || s === 'null' || s === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed.map(x => String(x).trim()).filter(Boolean);
+      return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+    }
+  } catch {}
+
+  const items = s.split(/[|,\n;]+/).map(x => x.trim()).filter(Boolean);
+  return items.length > 0 ? JSON.stringify(items) : JSON.stringify([s]);
+}
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -244,7 +264,9 @@ export async function POST(req: Request) {
 
         let formattedVal: any;
 
-        if (NUMERIC_COLS.has(col)) {
+        if (col === 'accreditations') {
+          formattedVal = formatAccreditations(val);
+        } else if (NUMERIC_COLS.has(col)) {
           formattedVal = cleanNumeric(val);
         } else if (BOOLEAN_COLS.has(col)) {
           const s = String(val).trim().toLowerCase();

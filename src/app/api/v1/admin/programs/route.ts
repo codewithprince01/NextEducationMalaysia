@@ -42,6 +42,26 @@ export async function GET(req: Request) {
   }
 }
 
+function formatAccreditations(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  if (Array.isArray(val)) {
+    const cleaned = val.map(x => String(x).trim()).filter(Boolean);
+    return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+  }
+  const s = String(val).trim();
+  if (!s || s === 'null' || s === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed.map(x => String(x).trim()).filter(Boolean);
+      return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+    }
+  } catch {}
+
+  const items = s.split(/[|,\n;]+/).map(x => x.trim()).filter(Boolean);
+  return items.length > 0 ? JSON.stringify(items) : JSON.stringify([s]);
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -205,7 +225,7 @@ export async function POST(req: Request) {
       intake || null,
       application_deadline || null,
       campus || null,
-      accreditations || null,
+      formatAccreditations(accreditations),
       is_local ? 1 : 0,
       is_international ? 1 : 0,
       finalOverview,
