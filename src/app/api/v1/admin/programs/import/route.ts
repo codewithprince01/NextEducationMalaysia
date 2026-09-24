@@ -13,7 +13,10 @@ const COLUMN_MAP: Record<string, string> = {
   name: 'course_name',
   course_category_id: 'course_category_id',
   category_id: 'course_category_id',
+  course_category: 'course_category',
+  category: 'course_category',
   specialization_id: 'specialization_id',
+  specialization: 'specialization',
   level: 'level',
   duration: 'duration',
   study_mode: 'study_mode',
@@ -161,6 +164,25 @@ export async function POST(req: Request) {
     let insertedCount = 0;
     const now = new Date();
 
+    // Preload valid category and specialization IDs and names to prevent FK constraint failures
+    const validCategories: any[] = await prisma.$queryRawUnsafe(`SELECT id, name FROM course_categories`);
+    const validCategoryIds = new Set<number>();
+    const categoryMapByName = new Map<string, number>();
+    for (const c of validCategories) {
+      const id = Number(c.id);
+      validCategoryIds.add(id);
+      if (c.name) categoryMapByName.set(String(c.name).trim().toLowerCase(), id);
+    }
+
+    const validSpecs: any[] = await prisma.$queryRawUnsafe(`SELECT id, course_category_id, name FROM course_specializations`);
+    const validSpecIds = new Set<number>();
+    const specMapByName = new Map<string, number>();
+    for (const s of validSpecs) {
+      const id = Number(s.id);
+      validSpecIds.add(id);
+      if (s.name) specMapByName.set(String(s.name).trim().toLowerCase(), id);
+    }
+
     for (const rawRow of rows) {
       const row: Record<string, any> = {};
       for (const [k, v] of Object.entries(rawRow)) {
@@ -245,10 +267,34 @@ export async function POST(req: Request) {
       const isLocal = row['is_local'] === '1' || row['is_local'] === 1 || row['is_local'] === true ? 1 : 0;
       const isInternational = row['is_international'] === '0' || row['is_international'] === 0 || row['is_international'] === false ? 0 : 1;
 
+      // Resolve valid course_category_id (mandatory FK)
+      let resolvedCatId = cleanNumeric(row['course_category_id']);
+      if (!resolvedCatId || !validCategoryIds.has(resolvedCatId)) {
+        const catNameKey = String(row['course_category_id'] || row['course_category'] || '').trim().toLowerCase();
+        if (catNameKey && categoryMapByName.has(catNameKey)) {
+          resolvedCatId = categoryMapByName.get(catNameKey)!;
+        } else if (validCategoryIds.size > 0) {
+          resolvedCatId = Array.from(validCategoryIds)[0];
+        } else {
+          resolvedCatId = null;
+        }
+      }
+
+      // Resolve valid specialization_id (nullable FK)
+      let resolvedSpecId = cleanNumeric(row['specialization_id']);
+      if (resolvedSpecId && !validSpecIds.has(resolvedSpecId)) {
+        const specNameKey = String(row['specialization_id'] || row['specialization'] || '').trim().toLowerCase();
+        if (specNameKey && specMapByName.has(specNameKey)) {
+          resolvedSpecId = specMapByName.get(specNameKey)!;
+        } else {
+          resolvedSpecId = null;
+        }
+      }
+
       const params = [
         targetUnivId || null,
-        cleanNumeric(row['course_category_id']),
-        cleanNumeric(row['specialization_id']),
+        resolvedCatId,
+        resolvedSpecId,
         courseName,
         slug,
         row['level'] ? String(row['level']).trim() : null,

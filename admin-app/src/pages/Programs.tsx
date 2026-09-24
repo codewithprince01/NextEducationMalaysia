@@ -747,8 +747,10 @@ export default function Programs() {
       'currency',
       'additional_note'
     ];
+    const sampleCatId = categories.length > 0 ? String(categories[0].id) : '1';
+    const sampleSpecId = specializations.length > 0 ? String(specializations[0].id) : '';
     const sampleRow = [
-      'Bachelor of Information Technology (Hons)', '1', '1', 'Bachelor',
+      'Bachelor of Information Technology (Hons)', sampleCatId, sampleSpecId, 'Bachelor',
       '3 Years', 'BY COURSEWORK, FULL TIME', 'Jan, Mar, Sep', 'Dec, Feb, Aug', 'Main Campus',
       'Comprehensive IT program covering software engineering and cybersecurity.',
       'STPM with min 2 Principal passes or equivalent.', 'IELTS 5.5', 'English',
