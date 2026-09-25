@@ -729,7 +729,7 @@ export default function UniversityOverviews() {
 
                           {/* Thumbnail */}
                           <td className="py-4 px-5 text-center">
-                            {item.thumbnail_path ? (
+                            {item.thumbnail_path && getStorageUrl(item.thumbnail_path) ? (
                               <button
                                 onClick={() => setPreviewImage({ title: item.title || item.tab || 'Thumbnail', url: item.thumbnail_path! })}
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 text-[11px] font-bold text-stone-700 transition-colors cursor-pointer group-hover:border-amber-400"
