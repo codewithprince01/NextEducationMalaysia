@@ -190,6 +190,9 @@ export default function UniversityOverviews() {
     }
 
     setSubmitting(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
     try {
       let thumbnailPath = formData.thumbnail_path;
       if (thumbnailFile) {
@@ -205,6 +208,7 @@ export default function UniversityOverviews() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           university_id: selectedUnivId,
           title: formData.title,
@@ -214,6 +218,8 @@ export default function UniversityOverviews() {
           thumbnail_path: thumbnailPath,
         }),
       });
+      clearTimeout(timeoutId);
+
       const json = await res.json();
 
       if (res.ok && json.success) {
@@ -223,8 +229,13 @@ export default function UniversityOverviews() {
       } else {
         showToast('error', json.error || 'Failed to save overview');
       }
-    } catch {
-      showToast('error', 'Error submitting overview data');
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        showToast('error', 'Request timed out. Please check server connection.');
+      } else {
+        showToast('error', err.message || 'Error submitting overview data');
+      }
     } finally {
       setSubmitting(false);
     }

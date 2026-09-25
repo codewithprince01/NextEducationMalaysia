@@ -49,7 +49,7 @@ function getRefreshJwtSecret(): string {
 }
 
 export function getAccessTokenTtl(): string {
-  return (process.env.JWT_ACCESS_TOKEN_TTL || '15m').trim();
+  return (process.env.JWT_ACCESS_TOKEN_TTL || '7d').trim();
 }
 
 export function getRefreshTokenTtl(): string {
