@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Filter, X } from 'lucide-react'
 import { IoFilter, IoClose } from 'react-icons/io5'
@@ -65,6 +65,38 @@ const filterKeyMap: { [key: string]: string } = {
   'Study Mode': 'study_mode',
 }
 
+const filterTitleByKey: { [key: string]: string } = Object.fromEntries(
+  Object.entries(filterKeyMap).map(([title, key]) => [key, title])
+)
+
+/**
+ * Filters have to ride along in the URL. Paging moves between two different
+ * route segments — `/courses` and `/courses/page-N` — so this component is
+ * unmounted and remounted, and anything held only in React state is lost.
+ */
+const buildFilterQuery = (filters: { [key: string]: any[] }): string => {
+  const params = new URLSearchParams()
+  Object.entries(filters).forEach(([title, values]) => {
+    const key = filterKeyMap[title]
+    if (key && values?.length) {
+      values.forEach(v => params.append(key, String(v)))
+    }
+  })
+  const qs = params.toString()
+  return qs ? `?${qs}` : ''
+}
+
+const readFiltersFromParams = (params: URLSearchParams): { [key: string]: any[] } => {
+  const restored: { [key: string]: any[] } = {}
+  Object.entries(filterTitleByKey).forEach(([key, title]) => {
+    const values = params.getAll(key)
+    if (!values.length) return
+    // Category and stream are numeric ids; level and study mode are labels.
+    restored[title] = values.map(v => (v !== '' && !Number.isNaN(Number(v)) ? Number(v) : v))
+  })
+  return restored
+}
+
 const normalizeAccreditations = (value: unknown): string[] => {
   if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean)
   if (typeof value !== 'string') return []
@@ -85,9 +117,14 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
 
+  // Seeded from the URL on the very first render, matching what the server just
+  // rendered from the same URL.
+  const initialFilters = readFiltersFromParams(new URLSearchParams(searchParams?.toString() ?? ''))
+  const isFirstFetchPassRef = useRef(true)
+
   const [data, setData] = useState<CoursesData | null>(initialData || null)
   const [loading, setLoading] = useState(!initialData)
-  const [currentFilters, setCurrentFilters] = useState<{ [key: string]: any[] }>({})
+  const [currentFilters, setCurrentFilters] = useState<{ [key: string]: any[] }>(initialFilters)
   const [page, setPage] = useState(initialPage)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [appliedPrograms, setAppliedPrograms] = useState<number[]>([])
@@ -102,19 +139,24 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
   const [showFormSuccess, setShowFormSuccess] = useState(false)
   const [formSuccessMessage, setFormSuccessMessage] = useState('Your inquiry has been submitted successfully. We will contact you soon.')
 
-  // Initial filters from URL
+  // The URL is the source of truth for filters, so every filter survives a
+  // reload, a shared link and — the reason this matters — paging across route
+  // segments. Reading every key in filterKeyMap also fixes Study Level and
+  // Study Mode, which the old version never restored.
   useEffect(() => {
-    const init: { [key: string]: any[] } = {}
-    const catId = searchParams.get('course_category_id')
-    const specId = searchParams.get('specialization_id')
-    if (catId) init['Course Category'] = [isNaN(Number(catId)) ? catId : Number(catId)]
-    if (specId) init['Stream'] = [isNaN(Number(specId)) ? specId : Number(specId)]
-    if (Object.keys(init).length) setCurrentFilters(init)
+    const restored = readFiltersFromParams(new URLSearchParams(searchParams?.toString() ?? ''))
+    setCurrentFilters(prev =>
+      JSON.stringify(prev) === JSON.stringify(restored) ? prev : restored
+    )
   }, [searchParams])
 
   useEffect(() => {
-    if (initialData && page === initialPage && Object.keys(currentFilters).length === 0) {
-      return
+    // The server already rendered this exact page with this exact filter set —
+    // both read the same URL — so the first pass must not re-fetch. Doing so is
+    // what made the full list appear for a moment before snapping back.
+    if (isFirstFetchPassRef.current) {
+      isFirstFetchPassRef.current = false
+      if (initialData) return
     }
     const fetchCourses = async () => {
       setLoading(true)
@@ -202,25 +244,46 @@ export default function UniversityCoursesClient({ slug, initialPage = 1, initial
     'Study Mode': data?.study_modes?.map((i: any) => ({ id: i.study_mode, name: i.study_mode })) || [],
   }
 
+  /**
+   * Puts the top of the course list just under the site navbar and the tab bar.
+   *
+   * Measures `#courses-list-container`, not `#university-tabs`: the tab bar is
+   * `sticky top-[76px]`, so once it is stuck its getBoundingClientRect().top is
+   * always 76 and the old sum came out to exactly the current scrollY — the
+   * page never moved, leaving page 2 opened at the bottom. The jump is instant
+   * because a smooth scroll would still be animating while the route swaps and
+   * the list re-renders at a different height.
+   */
+  const scrollToCoursesTop = () => {
+    if (typeof window === 'undefined') return
+    const list = document.getElementById('courses-list-container')
+    if (!list) return
+
+    const navHeight = document.querySelector('nav')?.getBoundingClientRect().height ?? 76
+    const tabsHeight = document.getElementById('university-tabs')?.getBoundingClientRect().height ?? 0
+    const y = list.getBoundingClientRect().top + window.scrollY - navHeight - tabsHeight - 12
+    window.scrollTo({ top: Math.max(0, y), behavior: 'auto' })
+  }
+
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
-    const url = newPage === 1 ? `/university/${slug}/courses` : `/university/${slug}/courses/page-${newPage}`
+    // Carry the active filters across; without them page 2 lands on a fresh
+    // mount with nothing selected and silently shows every course again.
+    const query = buildFilterQuery(currentFilters)
+    const url =
+      newPage === 1
+        ? `/university/${slug}/courses${query}`
+        : `/university/${slug}/courses/page-${newPage}${query}`
     startTransition(() => router.replace(url, { scroll: false }))
-    if (typeof window !== 'undefined') {
-      const tabs = document.getElementById('university-tabs')
-      if (tabs) {
-        const nav = document.querySelector('nav')
-        const navHeight = nav ? nav.getBoundingClientRect().height : 76
-        const y = tabs.getBoundingClientRect().top + window.scrollY - navHeight
-        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
-      }
-    }
+    scrollToCoursesTop()
   }
 
   const handleFiltersChange = (filters: { [key: string]: any[] }) => {
     setCurrentFilters(filters)
     setPage(1)
-    startTransition(() => router.replace(`/university/${slug}/courses`, { scroll: false }))
+    startTransition(() =>
+      router.replace(`/university/${slug}/courses${buildFilterQuery(filters)}`, { scroll: false })
+    )
   }
 
   const handleClearAllFilters = () => {

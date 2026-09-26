@@ -1,5 +1,6 @@
 import { notFound, permanentRedirect } from 'next/navigation'
 import { getProgramBySlug } from '@/lib/queries/courses'
+import { courseFiltersFromSearchParams, getUniversityCoursesPage } from '@/lib/queries/universityCourses'
 import CourseDetailClient from './CourseDetailClient'
 import UniversityCoursesClient from '@/components/university/UniversityCoursesClient'
 import { serializeBigInt } from '@/lib/utils'
@@ -8,7 +9,10 @@ import { resolveCourseMeta } from '@/lib/seo/metadata'
 import { courseJsonLd } from '@/lib/seo/structured-data'
 import type { Metadata } from 'next'
 
-type Props = { params: Promise<{ slug: string; courseSlug: string }> }
+type Props = {
+  params: Promise<{ slug: string; courseSlug: string }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
 
 // Rendered per request so an edit saved in the admin panel is live immediately.
 // The cost is one ~1ms freshness probe: the expensive program query behind this
@@ -27,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return resolveCourseMeta(program)
 }
 
-export default async function CourseDetailPage({ params }: Props) {
+export default async function CourseDetailPage({ params, searchParams }: Props) {
   const { slug, courseSlug } = await params
   
   // Case 1: Pagination (e.g., page-2)
@@ -35,11 +39,12 @@ export default async function CourseDetailPage({ params }: Props) {
     const pageNum = parseInt(courseSlug.replace('page-', ''))
     if (isNaN(pageNum) || pageNum < 1) notFound()
 
-    let initialCourseData = null
+    let initialCourseData: any = undefined
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/university-courses/${slug}?page=${pageNum}`, { next: { revalidate: 3600 } })
-      const d = await res.json()
-      initialCourseData = d?.data || d
+      // Honour the filters in the URL so the server renders the same rows the
+      // client is about to show — otherwise the full list flashes first.
+      const filters = courseFiltersFromSearchParams((await searchParams) ?? {})
+      initialCourseData = (await getUniversityCoursesPage(slug, pageNum, filters)) ?? undefined
     } catch (e) {
       console.error('Failed to fetch initial course data:', e)
     }
