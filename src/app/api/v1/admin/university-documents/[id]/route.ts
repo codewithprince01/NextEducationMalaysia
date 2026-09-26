@@ -73,7 +73,7 @@ export async function PUT(
       category_id = parseInt(formData.get('category_id') as string, 10);
       title = (formData.get('title') as string) || '';
       description = (formData.get('description') as string) || null;
-      visibility = (formData.get('visibility') as string) || 'admin_only';
+      visibility = normalizeVisibility((formData.get('visibility') as string) || 'admin_only');
       status = formData.get('status') === '0' || formData.get('status') === 'false' ? 0 : 1;
 
       const file = formData.get('document_file') as File | null;
@@ -87,7 +87,7 @@ export async function PUT(
       category_id = parseInt(body.category_id, 10);
       title = body.title || '';
       description = body.description || null;
-      visibility = body.visibility || 'admin_only';
+      visibility = normalizeVisibility(body.visibility || 'admin_only');
       status = body.status !== undefined && body.status !== null ? (body.status ? 1 : 0) : 1;
       manualFilePath = body.file_path || null;
     }
@@ -259,5 +259,23 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+function normalizeVisibility(v: string | null | undefined): string {
+  if (!v) return 'admin_only';
+  const val = String(v).trim().toLowerCase();
+  if (val === 'counsellor' || val === 'counsellors' || val === 'counsellors_only') {
+    return 'counsellors_only';
+  }
+  if (val === 'agent' || val === 'agents' || val === 'agents_only') {
+    return 'agents_only';
+  }
+  if (val === 'admin_only' || val === 'admin') {
+    return 'admin_only';
+  }
+  if (val === 'all' || val === 'public') {
+    return 'all';
+  }
+  return 'admin_only';
 }
 

@@ -190,7 +190,7 @@ export async function POST(request: Request) {
       category_id = parseInt(formData.get("category_id") as string, 10);
       title = (formData.get("title") as string) || null;
       description = (formData.get("description") as string) || null;
-      visibility = (formData.get("visibility") as string) || "admin_only";
+      visibility = normalizeVisibility((formData.get("visibility") as string) || "admin_only");
 
       const files = formData.getAll("documents") as (File | string)[];
       const singleFile = formData.get("document_file") as File | string | null;
@@ -226,7 +226,7 @@ export async function POST(request: Request) {
       category_id = parseInt(body.category_id, 10);
       title = body.title || null;
       description = body.description || null;
-      visibility = body.visibility || "admin_only";
+      visibility = normalizeVisibility(body.visibility || "admin_only");
 
       if (body.file_path) {
         fileEntries.push({
@@ -374,5 +374,23 @@ function formatBytes(bytes: number): string {
   if (bytes >= 1048576) return (bytes / 1048576).toFixed(2) + " MB";
   if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB";
   return bytes + " bytes";
+}
+
+function normalizeVisibility(v: string | null | undefined): string {
+  if (!v) return "admin_only";
+  const val = String(v).trim().toLowerCase();
+  if (val === "counsellor" || val === "counsellors" || val === "counsellors_only") {
+    return "counsellors_only";
+  }
+  if (val === "agent" || val === "agents" || val === "agents_only") {
+    return "agents_only";
+  }
+  if (val === "admin_only" || val === "admin") {
+    return "admin_only";
+  }
+  if (val === "all" || val === "public") {
+    return "all";
+  }
+  return "admin_only";
 }
 
