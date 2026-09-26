@@ -174,7 +174,7 @@ export default function LoginClient() {
                 </div>
                 <div>
                   <h3 className="text-base sm:text-[16.5px] font-bold text-slate-900">
-                    5 Universities · 1 Single Form
+                    Multiple Universities · 1 Single Form
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
                     Apply to multiple institutions without repeating details or paperwork.
