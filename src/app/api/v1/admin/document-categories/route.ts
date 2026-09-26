@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET() {
   try {
@@ -73,6 +74,18 @@ export async function POST(request: Request) {
       now,
       now
     );
+
+    const [lastInsert]: any[] = await prisma.$queryRawUnsafe(`SELECT LAST_INSERT_ID() as id`);
+    const newId = lastInsert?.id ? Number(lastInsert.id) : undefined;
+
+    await recordAuditLog({
+      req: request,
+      action: 'CREATE',
+      module: 'document-categories',
+      recordId: newId,
+      description: `Created document category '${name.trim()}'`,
+      newValues: body,
+    });
 
     return NextResponse.json(
       { success: true, message: 'Category created successfully' },

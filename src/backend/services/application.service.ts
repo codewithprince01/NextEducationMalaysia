@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db';
 import { SITE_VAR } from '../utils/constants';
+import { notificationService } from './notification.service';
+import { sendProgramApplicationEmail } from '../email/send-application-email';
 
 // Status: false = Shortlisted, true = Applied (mirrors legacy status 0/1)
 const STATUS_SHORTLISTED = false;
@@ -27,7 +29,7 @@ export class ApplicationService {
     const progId = BigInt(programId);
 
     const [program] = await prisma.$queryRawUnsafe(
-      `SELECT course_name, uname FROM university_programs WHERE id = ? LIMIT 1`,
+      `SELECT course_name, uname, duration, study_mode, intake, tution_fee FROM university_programs WHERE id = ? LIMIT 1`,
       Number(progId)
     ) as any[];
 
@@ -152,6 +154,41 @@ export class ApplicationService {
         console.error('Failed to auto-assign default requirements on applyProgram:', err);
       }
     }
+
+    // 1. Dispatch in-app notification to Admin and Assigned Counsellor(s) in CRM
+    try {
+      const studentName = student?.name || 'Student';
+      const courseName = program?.course_name || 'Program';
+      const uniName = program?.uname || 'University';
+      await notificationService.notifyStaff({
+        leadId: studentId,
+        appId: newApp?.id,
+        category: 'application_applied',
+        title: `New Application: ${studentName}`,
+        subtitle: `${courseName} • ${uniName}`,
+        message: `${studentName} has applied for ${courseName} at ${uniName}.`,
+        link: `/admin/lead/${Number(studentId)}?tab=applications`,
+        actionLabel: 'View Application',
+        priority: 'high',
+      });
+    } catch (notifErr) {
+      console.warn('Failed to dispatch staff notification on program application:', notifErr);
+    }
+
+    // 2. Dispatch email notification to Admin & Team
+    sendProgramApplicationEmail({
+      studentId,
+      appId: newApp?.id,
+      programId: progId,
+      courseName: program?.course_name || 'Program',
+      universityName: program?.uname || 'Malaysian University',
+      studyMode: program?.study_mode || null,
+      duration: program?.duration || null,
+      intake: program?.intake || null,
+      tuitionFee: program?.tution_fee ? `RM ${program.tution_fee}` : null,
+    }).catch((emailErr) => {
+      console.error('[ApplicationService] Error sending program application email:', emailErr);
+    });
 
     return createdRows[0] || null;
   }

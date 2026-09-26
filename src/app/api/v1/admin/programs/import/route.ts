@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as XLSX from 'xlsx';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // Map of normalized incoming header keys to university_programs column names
 const COLUMN_MAP: Record<string, string> = {
@@ -12,7 +13,10 @@ const COLUMN_MAP: Record<string, string> = {
   name: 'course_name',
   course_category_id: 'course_category_id',
   category_id: 'course_category_id',
+  course_category: 'course_category',
+  category: 'course_category',
   specialization_id: 'specialization_id',
+  specialization: 'specialization',
   level: 'level',
   duration: 'duration',
   study_mode: 'study_mode',
@@ -30,6 +34,8 @@ const COLUMN_MAP: Record<string, string> = {
   mode_of_instruction: 'mode_of_instruction',
   scholarship_info: 'scholarship_info',
   courses_description: 'courses_description',
+  course_description: 'courses_description',
+  description: 'courses_description',
 
   // Local Fees
   total_fee_local: 'total_fee_local',
@@ -113,6 +119,26 @@ function cleanNumeric(val: any): number | null {
   return Number(str);
 }
 
+function formatAccreditations(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  if (Array.isArray(val)) {
+    const cleaned = val.map(x => String(x).trim()).filter(Boolean);
+    return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+  }
+  const s = String(val).trim();
+  if (!s || s === 'null' || s === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed.map(x => String(x).trim()).filter(Boolean);
+      return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+    }
+  } catch {}
+
+  const items = s.split(/[|,\n;]+/).map(x => x.trim()).filter(Boolean);
+  return items.length > 0 ? JSON.stringify(items) : JSON.stringify([s]);
+}
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -137,6 +163,25 @@ export async function POST(req: Request) {
 
     let insertedCount = 0;
     const now = new Date();
+
+    // Preload valid category and specialization IDs and names to prevent FK constraint failures
+    const validCategories: any[] = await prisma.$queryRawUnsafe(`SELECT id, name FROM course_categories`);
+    const validCategoryIds = new Set<number>();
+    const categoryMapByName = new Map<string, number>();
+    for (const c of validCategories) {
+      const id = Number(c.id);
+      validCategoryIds.add(id);
+      if (c.name) categoryMapByName.set(String(c.name).trim().toLowerCase(), id);
+    }
+
+    const validSpecs: any[] = await prisma.$queryRawUnsafe(`SELECT id, course_category_id, name FROM course_specializations`);
+    const validSpecIds = new Set<number>();
+    const specMapByName = new Map<string, number>();
+    for (const s of validSpecs) {
+      const id = Number(s.id);
+      validSpecIds.add(id);
+      if (s.name) specMapByName.set(String(s.name).trim().toLowerCase(), id);
+    }
 
     for (const rawRow of rows) {
       const row: Record<string, any> = {};
@@ -180,11 +225,15 @@ export async function POST(req: Request) {
       // Reconcile local annual fee
       const annualTuitionFeeLocal = cleanNumeric(row['annual_tuition_fee_local'] !== undefined ? row['annual_tuition_fee_local'] : row['anual_tuition_fee_local']);
 
+      const overviewVal = row['overview']
+        ? String(row['overview']).trim()
+        : (row['courses_description'] ? String(row['courses_description']).trim() : null);
+
       const fields = [
         'university_id', 'course_category_id', 'specialization_id', 'course_name', 'slug',
         'level', 'duration', 'study_mode', 'intake', 'application_deadline',
         'campus', 'accreditations', 'is_local', 'is_international',
-        'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction', 'scholarship_info', 'courses_description',
+        'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction', 'scholarship_info',
         'tution_fee',
 
         // International legacy + explicit
@@ -218,10 +267,34 @@ export async function POST(req: Request) {
       const isLocal = row['is_local'] === '1' || row['is_local'] === 1 || row['is_local'] === true ? 1 : 0;
       const isInternational = row['is_international'] === '0' || row['is_international'] === 0 || row['is_international'] === false ? 0 : 1;
 
+      // Resolve valid course_category_id (mandatory FK)
+      let resolvedCatId = cleanNumeric(row['course_category_id']);
+      if (!resolvedCatId || !validCategoryIds.has(resolvedCatId)) {
+        const catNameKey = String(row['course_category_id'] || row['course_category'] || '').trim().toLowerCase();
+        if (catNameKey && categoryMapByName.has(catNameKey)) {
+          resolvedCatId = categoryMapByName.get(catNameKey)!;
+        } else if (validCategoryIds.size > 0) {
+          resolvedCatId = Array.from(validCategoryIds)[0];
+        } else {
+          resolvedCatId = null;
+        }
+      }
+
+      // Resolve valid specialization_id (nullable FK)
+      let resolvedSpecId = cleanNumeric(row['specialization_id']);
+      if (resolvedSpecId && !validSpecIds.has(resolvedSpecId)) {
+        const specNameKey = String(row['specialization_id'] || row['specialization'] || '').trim().toLowerCase();
+        if (specNameKey && specMapByName.has(specNameKey)) {
+          resolvedSpecId = specMapByName.get(specNameKey)!;
+        } else {
+          resolvedSpecId = null;
+        }
+      }
+
       const params = [
         targetUnivId || null,
-        cleanNumeric(row['course_category_id']),
-        cleanNumeric(row['specialization_id']),
+        resolvedCatId,
+        resolvedSpecId,
         courseName,
         slug,
         row['level'] ? String(row['level']).trim() : null,
@@ -230,15 +303,14 @@ export async function POST(req: Request) {
         row['intake'] ? String(row['intake']).trim() : null,
         row['application_deadline'] ? String(row['application_deadline']).trim() : null,
         row['campus'] ? String(row['campus']).trim() : null,
-        row['accreditations'] ? String(row['accreditations']).trim() : null,
+        formatAccreditations(row['accreditations']),
         isLocal,
         isInternational,
-        row['overview'] ? String(row['overview']).trim() : null,
+        overviewVal,
         row['entry_requirement'] ? String(row['entry_requirement']).trim() : null,
         row['exam_required'] ? String(row['exam_required']).trim() : null,
         row['mode_of_instruction'] ? String(row['mode_of_instruction']).trim() : null,
         row['scholarship_info'] ? String(row['scholarship_info']).trim() : null,
-        row['courses_description'] ? String(row['courses_description']).trim() : null,
         cleanNumeric(row['tution_fee']),
 
         // International legacy
@@ -314,6 +386,19 @@ export async function POST(req: Request) {
     }
 
     if (insertedCount > 0) {
+      await recordAuditLog({
+        req,
+        action: 'CREATE',
+        module: 'programs',
+        description: `Imported ${insertedCount} programs from file '${file.name || 'excel'}'`,
+        newValues: {
+          insertedCount,
+          totalRows: rows.length,
+          fileName: file.name,
+          universityId,
+        },
+      });
+
       return NextResponse.json({
         status: true,
         message: `${insertedCount} out of ${rows.length} programs imported successfully.`,

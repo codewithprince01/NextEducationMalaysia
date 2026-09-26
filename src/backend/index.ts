@@ -42,6 +42,9 @@ export * from './services/multiple-search-apply.service';
 export * from './services/sitemap.service';
 export * from './services/sitemap-data.service';
 export * from './services/home.service';
+export * from './services/notification.service';
+export * from './email/send-application-email';
+export * from './email/send-document-email';
 
 // ─── TYPES ────────────────────────────────────────────────────
 export * from './types';

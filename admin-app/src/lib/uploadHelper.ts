@@ -35,7 +35,7 @@ export async function uploadFileToStorage(
 export function getStorageUrl(path?: string | null): string {
   if (!path) return "";
   const cleaned = String(path).trim();
-  if (!cleaned) return "";
+  if (!cleaned || cleaned.includes('$') || cleaned === 'undefined' || cleaned === 'null') return "";
   if (/^(https?:\/\/|data:)/i.test(cleaned)) return cleaned;
 
   const relative = cleaned

@@ -3,10 +3,12 @@ import { prisma } from "@/lib/db";
 import { serializeBigInt } from "@/lib/utils";
 import { uploadToRemoteStorage, getRemoteFileUrl } from "@/lib/remoteStorage";
 import { saveUploadedFile } from "@/lib/fileStorage";
+import { enqueueDocumentUpload, initQueueSweeper } from "@/lib/documentUploadQueue";
 import path from "path";
 
 export async function GET(request: Request) {
   try {
+    initQueueSweeper();
     const { searchParams } = new URL(request.url);
     const university_id = searchParams.get("university_id");
     const category_id = searchParams.get("category_id");
@@ -116,7 +118,12 @@ export async function GET(request: Request) {
       const is_image = ["jpg", "jpeg", "png", "webp", "gif"].includes(ext);
       const is_video = ["mp4", "webm", "mkv", "avi", "mov"].includes(ext);
       const is_pdf = ext === "pdf";
-      const file_url = getRemoteFileUrl(doc.file_path);
+      const file_url =
+        doc.storage_driver === "local"
+          ? (doc.file_path.startsWith("/storage/")
+              ? doc.file_path
+              : `/storage/${doc.file_path.replace(/^\/+/, "")}`)
+          : getRemoteFileUrl(doc.file_path);
 
       return {
         ...doc,
@@ -168,7 +175,7 @@ export async function POST(request: Request) {
     let category_id: number;
     let title: string | null = null;
     let description: string | null = null;
-    let visibility: string = "all";
+    let visibility: string = "admin_only";
     let fileEntries: {
       buffer?: Buffer;
       original_name: string;
@@ -183,7 +190,7 @@ export async function POST(request: Request) {
       category_id = parseInt(formData.get("category_id") as string, 10);
       title = (formData.get("title") as string) || null;
       description = (formData.get("description") as string) || null;
-      visibility = (formData.get("visibility") as string) || "all";
+      visibility = (formData.get("visibility") as string) || "admin_only";
 
       const files = formData.getAll("documents") as (File | string)[];
       const singleFile = formData.get("document_file") as File | string | null;
@@ -219,7 +226,7 @@ export async function POST(request: Request) {
       category_id = parseInt(body.category_id, 10);
       title = body.title || null;
       description = body.description || null;
-      visibility = body.visibility || "all";
+      visibility = body.visibility || "admin_only";
 
       if (body.file_path) {
         fileEntries.push({
@@ -274,30 +281,15 @@ export async function POST(request: Request) {
       let mimeType = entry.mime_type || "application/octet-stream";
       let storageDriver = "remote_ftp";
 
+      let isLocalSaved = false;
+
       if (entry.buffer) {
         const folder = `university_docs/${university_id}/${categorySlug}`;
         const blob = new Blob([new Uint8Array(entry.buffer)]);
         const localRes = await saveUploadedFile(blob, originalName, folder);
         finalFilePath = localRes.file_path;
-
-        try {
-          const remoteRes = await uploadToRemoteStorage(
-            entry.buffer,
-            folder,
-            originalName,
-            mimeType,
-          );
-          if (remoteRes && remoteRes.file_path) {
-            finalFilePath = remoteRes.file_path;
-            storageDriver = remoteRes.storage_driver;
-          }
-        } catch (e) {
-          console.warn(
-            "Remote storage upload warning (falling back to local file):",
-            e,
-          );
-          storageDriver = "local";
-        }
+        storageDriver = "local";
+        isLocalSaved = true;
       } else if (entry.manualPath) {
         finalFilePath = entry.manualPath;
       }
@@ -331,12 +323,38 @@ export async function POST(request: Request) {
         now,
       );
 
+      // Get inserted ID to enqueue background FTP sync
+      const [newRow]: any[] = await prisma.$queryRawUnsafe(
+        `SELECT id FROM university_documents WHERE university_id = ? ORDER BY id DESC LIMIT 1`,
+        university_id,
+      );
+      const docId = Number(newRow?.id);
+
+      if (isLocalSaved && docId) {
+        enqueueDocumentUpload({
+          docId,
+          universityId: university_id,
+          categorySlug,
+          relativePath: finalFilePath,
+          originalName,
+          mimeType,
+        });
+      }
+
       uploadedCount++;
     }
 
+    const { recordAuditLog } = await import('@/lib/auditLogger');
+    await recordAuditLog({
+      req: request,
+      action: 'CREATE',
+      module: 'university-documents',
+      description: `Uploaded ${uploadedCount} document(s) for University #${university_id}`,
+    });
+
     return NextResponse.json({
       success: true,
-      message: `${uploadedCount} document(s) uploaded successfully to remote storage (images.britannicaoverseas.com).`,
+      message: `${uploadedCount} document record(s) created instantly! Remote FTP upload running in background.`,
     });
   } catch (error: any) {
     console.error("Error uploading university documents:", error);
@@ -357,3 +375,4 @@ function formatBytes(bytes: number): string {
   if (bytes >= 1024) return (bytes / 1024).toFixed(2) + " KB";
   return bytes + " bytes";
 }
+

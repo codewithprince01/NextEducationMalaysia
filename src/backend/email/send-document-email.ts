@@ -12,10 +12,6 @@ export interface DocumentUploadEmailData {
   requestOrigin?: string;
 }
 
-const ADMIN_TO = 'studytutelage@gmail.com';
-const ADMIN_CC = 'amanahlawat1918@gmail.com';
-const ADMIN_BCC = 'prinsai.britannica@gmail.com';
-
 function formatBytes(bytes?: number): string {
   if (!bytes || bytes <= 0) return 'Unknown size';
   if (bytes < 1024) return `${bytes} B`;
@@ -33,12 +29,48 @@ function escapeHtml(value: unknown): string {
 }
 
 /**
- * Sends notification emails with the attached document to ADMIN_TO, ADMIN_CC, and ADMIN_BCC.
- * This runs safely and never throws so student document uploads are never blocked.
+ * Sends notification emails with the attached document to team members configured in system_settings.
+ * Dynamically respects email_mode ('main' or 'testing') and recipient addresses.
  */
 export async function sendDocumentUploadEmail(data: DocumentUploadEmailData): Promise<void> {
   try {
-    // 1. Fetch student information from leads table
+    // 1. Fetch recipient configuration from system_settings
+    let toEmail = 'studytutelage@gmail.com';
+    let toName = 'Team tutelage Study';
+    let ccEmail = 'amanahlawat1918@gmail.com';
+    let ccName = 'Aman Ahlawat';
+    let bccEmail = 'farazahmad280@gmail.com';
+    let bccName = 'Mohd Faraz';
+
+    try {
+      const settingsRows: any[] = await prisma.$queryRawUnsafe(
+        `SELECT \`key\`, \`value\` FROM system_settings`
+      );
+      const settingsMap: Record<string, string> = {};
+      for (const r of settingsRows) {
+        if (r.key) settingsMap[r.key] = r.value ?? '';
+      }
+      const emailMode = settingsMap['email_mode'] || 'main';
+      if (emailMode === 'testing') {
+        toEmail = settingsMap['testing_to_email'] || 'farazahmad280@gmail.com';
+        toName = settingsMap['testing_to_name'] || 'Testing Team';
+        ccEmail = settingsMap['testing_cc_email'] || '';
+        ccName = settingsMap['testing_cc_name'] || '';
+        bccEmail = settingsMap['testing_bcc_email'] || '';
+        bccName = settingsMap['testing_bcc_name'] || '';
+      } else {
+        toEmail = settingsMap['main_to_email'] || toEmail;
+        toName = settingsMap['main_to_name'] || toName;
+        ccEmail = settingsMap['main_cc_email'] || ccEmail;
+        ccName = settingsMap['main_cc_name'] || ccName;
+        bccEmail = settingsMap['main_bcc_email'] || bccEmail;
+        bccName = settingsMap['main_bcc_name'] || bccName;
+      }
+    } catch (settingsErr) {
+      console.warn('[DocumentUploadEmail] Failed to load system_settings, using defaults:', settingsErr);
+    }
+
+    // 2. Fetch student information from leads table
     const rows = (await prisma.$queryRawUnsafe(
       `SELECT id, name, email, country_code, mobile, home_contact_number, nationality, city, state, country 
        FROM leads 
@@ -198,33 +230,39 @@ export async function sendDocumentUploadEmail(data: DocumentUploadEmailData): Pr
 </html>
     `.trim();
 
-    const attachments = [
-      {
-        filename: originalName,
-        path: data.fullFilePath,
-        contentType: data.mimeType,
-      },
-    ];
+    const fs = await import('fs');
+    const hasAttachment = Boolean(data.fullFilePath && fs.existsSync(data.fullFilePath));
+    const attachments = hasAttachment
+      ? [
+          {
+            filename: originalName,
+            path: data.fullFilePath,
+            contentType: data.mimeType,
+          },
+        ]
+      : undefined;
 
-    // Primary delivery: send to ADMIN_TO with CC and BCC
+    // Primary delivery: send to configured recipients from system_settings
     try {
       await sendMail({
-        to: ADMIN_TO,
-        cc: ADMIN_CC,
-        bcc: ADMIN_BCC,
+        to: toEmail,
+        toName: toName || undefined,
+        cc: ccEmail || undefined,
+        ccName: ccName || undefined,
+        bcc: bccEmail || undefined,
         subject,
         html,
         attachments,
         priority: 'high',
       });
-      console.log(`[DocumentUploadEmail] Notification successfully sent for student #${data.studentId} to ${ADMIN_TO}, CC: ${ADMIN_CC}, BCC: ${ADMIN_BCC}`);
+      console.log(`[DocumentUploadEmail] Notification successfully sent for student #${data.studentId} to ${toEmail}, CC: ${ccEmail}, BCC: ${bccEmail}`);
     } catch (primaryErr) {
       console.warn('[DocumentUploadEmail] Primary combined send failed, attempting individual delivery fallback:', primaryErr);
-      await Promise.allSettled([
-        sendMail({ to: ADMIN_TO, subject, html, attachments, priority: 'high' }),
-        sendMail({ to: ADMIN_CC, subject, html, attachments, priority: 'high' }),
-        sendMail({ to: ADMIN_BCC, subject, html, attachments, priority: 'high' }),
-      ]);
+      const fallbackTasks: Promise<any>[] = [];
+      if (toEmail) fallbackTasks.push(sendMail({ to: toEmail, toName, subject, html, attachments, priority: 'high' }));
+      if (ccEmail) fallbackTasks.push(sendMail({ to: ccEmail, toName: ccName, subject, html, attachments, priority: 'high' }));
+      if (bccEmail) fallbackTasks.push(sendMail({ to: bccEmail, toName: bccName, subject, html, attachments, priority: 'high' }));
+      await Promise.allSettled(fallbackTasks);
       console.log(`[DocumentUploadEmail] Individual fallback delivery completed for student #${data.studentId}`);
     }
   } catch (error) {

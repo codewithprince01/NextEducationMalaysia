@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function PUT(
   req: Request,
@@ -37,6 +38,12 @@ export async function PUT(
       return NextResponse.json({ status: false, message: 'Specialization name is required' }, { status: 400 });
     }
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM course_specializations WHERE id = ? LIMIT 1`,
+      specId
+    );
+    const oldValues = oldRows || null;
+
     const slug = slugify(name);
     const now = new Date();
 
@@ -70,6 +77,16 @@ export async function PUT(
       specId
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'course-specializations',
+      recordId: specId,
+      description: `Updated course specialization '${name.trim()}' (ID: ${specId})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Specialization updated successfully' });
   } catch (error: any) {
     console.error('Error updating specialization:', error);
@@ -86,10 +103,27 @@ export async function DELETE(
     const specId = parseInt(id, 10);
     if (isNaN(specId)) return NextResponse.json({ status: false, message: 'Invalid ID' }, { status: 400 });
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM course_specializations WHERE id = ? LIMIT 1`,
+      specId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM course_specializations WHERE id = ?`, specId);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'course-specializations',
+      recordId: specId,
+      description: `Deleted course specialization '${oldValues?.name || specId}' (ID: ${specId})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Specialization deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting specialization:', error);
     return NextResponse.json({ status: false, message: 'Failed to delete specialization', error: error.message }, { status: 500 });
   }
 }
+

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -50,6 +51,25 @@ export async function POST(req: Request) {
       now,
       now
     );
+
+    const inserted: any[] = await prisma.$queryRawUnsafe(
+      `SELECT LAST_INSERT_ID() as id`
+    );
+    const newId = inserted?.[0]?.id ? Number(inserted[0].id) : null;
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'internships',
+      recordId: newId ?? undefined,
+      description: `Created FAQ for internship ID ${internship_id}: '${question}'`,
+      newValues: {
+        id: newId,
+        internship_id,
+        question,
+        answer,
+      },
+    });
 
     return NextResponse.json({ status: true, message: 'Internship FAQ created successfully' });
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -202,9 +203,90 @@ export async function POST(req: Request) {
       now
     );
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'universities',
+      recordId: nextId,
+      description: `Created university '${name}' (ID: ${nextId})`,
+      newValues: { id: nextId, name, uname, city, state, website: 'MYS' },
+    });
+
     return NextResponse.json({ status: true, message: 'University created successfully' });
   } catch (error: any) {
     console.error('Error creating university:', error);
     return NextResponse.json({ status: false, message: 'Failed to create university', error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { ids, status, homeview, featured } = body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ status: false, message: 'No universities selected' }, { status: 400 });
+    }
+
+    const cleanIds = ids.map((id: any) => Number(id)).filter((id: number) => !isNaN(id) && id > 0);
+    if (cleanIds.length === 0) {
+      return NextResponse.json({ status: false, message: 'No valid IDs provided' }, { status: 400 });
+    }
+
+    const setClauses: string[] = [];
+    const params: any[] = [];
+    const updatedFields: string[] = [];
+
+    if (status !== undefined) {
+      const s = Number(status) ? 1 : 0;
+      setClauses.push('status = ?');
+      params.push(s);
+      updatedFields.push(`status -> ${s === 1 ? 'Active' : 'Inactive'}`);
+    }
+
+    if (homeview !== undefined) {
+      const h = Number(homeview) ? 1 : 0;
+      setClauses.push('homeview = ?');
+      params.push(h);
+      updatedFields.push(`homeview -> ${h === 1 ? 'Active' : 'Inactive'}`);
+    }
+
+    if (featured !== undefined) {
+      const f = Number(featured) ? 1 : 0;
+      setClauses.push('featured = ?');
+      params.push(f);
+      updatedFields.push(`featured -> ${f === 1 ? 'Yes' : 'No'}`);
+    }
+
+    if (setClauses.length === 0) {
+      return NextResponse.json({ status: false, message: 'No valid fields provided to update' }, { status: 400 });
+    }
+
+    setClauses.push('updated_at = ?');
+    params.push(new Date());
+
+    const placeholders = cleanIds.map(() => '?').join(',');
+    const sql = `UPDATE universities SET ${setClauses.join(', ')} WHERE id IN (${placeholders})`;
+
+    await prisma.$executeRawUnsafe(sql, ...params, ...cleanIds);
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'universities',
+      recordId: cleanIds[0],
+      description: `Bulk updated ${cleanIds.length} universities: ${updatedFields.join(', ')}`,
+      newValues: { ids: cleanIds, status, homeview, featured },
+    });
+
+    return NextResponse.json({
+      status: true,
+      message: `Successfully updated ${cleanIds.length} universities`,
+      data: { count: cleanIds.length, status, homeview, featured },
+    });
+  } catch (error: any) {
+    console.error('Error in bulk update universities:', error);
+    return NextResponse.json({ status: false, message: 'Failed to bulk update universities', error: error.message }, { status: 500 });
+  }
+}
+

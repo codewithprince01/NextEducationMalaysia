@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(request: Request) {
   try {
@@ -55,6 +56,14 @@ export async function POST(request: Request) {
       now
     );
 
+    await recordAuditLog({
+      req: request,
+      action: 'CREATE',
+      module: 'university-videos',
+      description: `Added campus video '${title || video_url}' for University #${university_id}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ success: true, message: 'Video added' }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
@@ -63,4 +72,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
 

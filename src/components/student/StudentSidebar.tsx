@@ -20,8 +20,10 @@ import {
   CreditCard,
   Pin,
   PinOff,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { isStaffUploaded } from "@/utils/studentChecklist";
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
 const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
@@ -295,9 +297,40 @@ export default function StudentSidebar({
     return () => window.removeEventListener('applied_colleges_updated', handleUpdated);
   }, []);
 
+  const [officialDocsCount, setOfficialDocsCount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchDocsCount = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/student/documents`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+          },
+        });
+        const data = await res.json();
+        const docs = Array.isArray(data?.data?.student_documents)
+          ? data.data.student_documents
+          : [];
+        const count = docs.filter(isStaffUploaded).length;
+        setOfficialDocsCount(count);
+      } catch {
+        // ignore
+      }
+    };
+
+    fetchDocsCount();
+    const handleDocsUpdated = () => fetchDocsCount();
+    window.addEventListener('student_documents_updated', handleDocsUpdated);
+    return () => window.removeEventListener('student_documents_updated', handleDocsUpdated);
+  }, []);
+
   const navLinks = [
     { href: "/student/overview", icon: LayoutDashboard, label: "Overview" },
     { href: "/student/profile", icon: User, label: "My Profile" },
+    { href: "/student/official-documents", icon: Building2, label: "Official Documents" },
     { href: "/student/my-applications", icon: GraduationCap, label: "My Applications" },
     { href: "/student/unpaid-applications", icon: CreditCard, label: "Unpaid Applications" },
     { href: "/student/tasks", icon: ListTodo, label: "My Tasks" },
@@ -515,6 +548,15 @@ export default function StudentSidebar({
                     {!isCollapsed && <span className="truncate whitespace-nowrap">{link.label}</span>}
 
                     {/* Badges */}
+                    {!isCollapsed && link.href === "/student/official-documents" && officialDocsCount > 0 && (
+                      <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                        {officialDocsCount} Issued
+                      </span>
+                    )}
+                    {isCollapsed && link.href === "/student/official-documents" && officialDocsCount > 0 && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-600 ring-2 ring-white" />
+                    )}
+
                     {!isCollapsed && link.href === "/student/my-applications" && appCounts && appCounts.paid > 0 && (
                       <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                         {appCounts.paid} Paid

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -39,6 +40,26 @@ export async function GET(req: Request) {
     console.error('Error fetching programs:', error);
     return NextResponse.json({ status: false, message: 'Failed to fetch programs', error: error.message }, { status: 500 });
   }
+}
+
+function formatAccreditations(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  if (Array.isArray(val)) {
+    const cleaned = val.map(x => String(x).trim()).filter(Boolean);
+    return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+  }
+  const s = String(val).trim();
+  if (!s || s === 'null' || s === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed.map(x => String(x).trim()).filter(Boolean);
+      return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+    }
+  } catch {}
+
+  const items = s.split(/[|,\n;]+/).map(x => x.trim()).filter(Boolean);
+  return items.length > 0 ? JSON.stringify(items) : JSON.stringify([s]);
 }
 
 export async function POST(req: Request) {
@@ -154,12 +175,13 @@ export async function POST(req: Request) {
 
     // Reconcile local annual fee
     const finalAnnualTuitionFeeLocal = annual_tuition_fee_local !== undefined && annual_tuition_fee_local !== '' ? annual_tuition_fee_local : anual_tuition_fee_local;
+    const finalOverview = overview || courses_description || null;
 
     const fields = [
       'university_id', 'course_category_id', 'specialization_id', 'course_name', 'slug',
       'level', 'duration', 'study_mode', 'intake', 'application_deadline',
       'campus', 'accreditations', 'is_local', 'is_international',
-      'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction', 'scholarship_info', 'courses_description',
+      'overview', 'entry_requirement', 'exam_required', 'mode_of_instruction', 'scholarship_info',
       'tution_fee',
 
       // International
@@ -203,15 +225,14 @@ export async function POST(req: Request) {
       intake || null,
       application_deadline || null,
       campus || null,
-      accreditations || null,
+      formatAccreditations(accreditations),
       is_local ? 1 : 0,
       is_international ? 1 : 0,
-      overview || null,
+      finalOverview,
       entry_requirement || null,
       exam_required || null,
       mode_of_instruction || null,
       scholarship_info || null,
-      courses_description || null,
       tution_fee ? String(tution_fee) : null,
 
       // International legacy
@@ -288,9 +309,18 @@ export async function POST(req: Request) {
 
     await prisma.$executeRawUnsafe(sql, ...params);
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'programs',
+      description: `Created university program '${course_name.trim()}' for University #${university_id || ''}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Program created successfully' });
   } catch (error: any) {
     console.error('Error creating program:', error);
     return NextResponse.json({ status: false, message: 'Failed to create program', error: error.message }, { status: 500 });
   }
 }
+

@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const contentId = Number(id);
     const body = await req.json();
     const { title, description, position, parent_id } = body;
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM blog_contents WHERE id = ? LIMIT 1`,
+      contentId
+    );
+    const oldValues = oldRows || null;
 
     const contentSlug = title ? slugify(title) : undefined;
     const now = new Date();
@@ -26,8 +34,18 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       position ? parseInt(position, 10) : null,
       parent_id ? parseInt(parent_id, 10) : null,
       now,
-      id
+      contentId
     );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'blog-contents',
+      recordId: contentId,
+      description: `Updated blog section content '${title || oldValues?.title}' (ID: ${contentId})`,
+      oldValues,
+      newValues: body,
+    });
 
     return NextResponse.json({ success: true, message: 'Blog content updated successfully' });
   } catch (error: any) {
@@ -41,7 +59,25 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    await prisma.$executeRawUnsafe(`DELETE FROM blog_contents WHERE id = ?`, id);
+    const contentId = Number(id);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM blog_contents WHERE id = ? LIMIT 1`,
+      contentId
+    );
+    const oldValues = oldRows || null;
+
+    await prisma.$executeRawUnsafe(`DELETE FROM blog_contents WHERE id = ?`, contentId);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'blog-contents',
+      recordId: contentId,
+      description: `Deleted blog section content '${oldValues?.title || contentId}' (ID: ${contentId})`,
+      oldValues,
+    });
+
     return NextResponse.json({ success: true, message: 'Blog content deleted successfully' });
   } catch (error: any) {
     return NextResponse.json(
@@ -50,4 +86,5 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     );
   }
 }
+
 

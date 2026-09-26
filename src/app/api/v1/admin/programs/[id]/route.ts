@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -29,6 +30,26 @@ export async function GET(
   }
 }
 
+function formatAccreditations(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  if (Array.isArray(val)) {
+    const cleaned = val.map(x => String(x).trim()).filter(Boolean);
+    return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+  }
+  const s = String(val).trim();
+  if (!s || s === 'null' || s === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed.map(x => String(x).trim()).filter(Boolean);
+      return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+    }
+  } catch {}
+
+  const items = s.split(/[|,\n;]+/).map(x => x.trim()).filter(Boolean);
+  return items.length > 0 ? JSON.stringify(items) : JSON.stringify([s]);
+}
+
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -37,6 +58,42 @@ export async function PUT(
     const { id: rawId } = await params;
     const progId = parseInt(rawId, 10);
     const body = await req.json();
+
+    // Support quick status toggle when course_name is not provided
+    if (body.status !== undefined && (!body.course_name || !String(body.course_name).trim())) {
+      const [existing]: any[] = await prisma.$queryRawUnsafe(
+        `SELECT id, status, course_name FROM university_programs WHERE id = ? LIMIT 1`,
+        progId
+      );
+      if (!existing) {
+        return NextResponse.json({ status: false, message: 'Program not found' }, { status: 404 });
+      }
+
+      const newStatus = Number(body.status) ? 1 : 0;
+      await prisma.$executeRawUnsafe(
+        `UPDATE university_programs SET status = ?, updated_at = ? WHERE id = ?`,
+        newStatus,
+        new Date(),
+        progId
+      );
+
+      await recordAuditLog({
+        req,
+        action: 'UPDATE',
+        module: 'programs',
+        recordId: progId,
+        description: `Toggled status of program #${progId} (${existing.course_name}) to ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+        oldValues: { status: existing.status },
+        newValues: { status: newStatus },
+      });
+
+      return NextResponse.json({
+        status: true,
+        message: `Program marked as ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+        data: { id: progId, status: newStatus },
+      });
+    }
+
     const {
       university_id,
       course_category_id,
@@ -131,6 +188,12 @@ export async function PUT(
       return NextResponse.json({ status: false, message: 'Course name is required' }, { status: 400 });
     }
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_programs WHERE id = ? LIMIT 1`,
+      progId
+    );
+    const oldValues = oldRows || null;
+
     const slug = slugify(course_name);
     const now = new Date();
 
@@ -147,12 +210,13 @@ export async function PUT(
 
     // Reconcile local annual fee
     const finalAnnualTuitionFeeLocal = annual_tuition_fee_local !== undefined && annual_tuition_fee_local !== '' ? annual_tuition_fee_local : anual_tuition_fee_local;
+    const finalOverview = overview !== undefined && overview !== null ? overview : (courses_description || null);
 
     const fields = [
       'university_id = ?', 'course_category_id = ?', 'specialization_id = ?', 'course_name = ?', 'slug = ?',
       'level = ?', 'duration = ?', 'study_mode = ?', 'intake = ?', 'application_deadline = ?',
       'campus = ?', 'accreditations = ?', 'is_local = ?', 'is_international = ?',
-      'overview = ?', 'entry_requirement = ?', 'exam_required = ?', 'mode_of_instruction = ?', 'scholarship_info = ?', 'courses_description = ?',
+      'overview = ?', 'entry_requirement = ?', 'exam_required = ?', 'mode_of_instruction = ?', 'scholarship_info = ?',
       'tution_fee = ?',
 
       // International legacy
@@ -197,15 +261,14 @@ export async function PUT(
       intake || null,
       application_deadline || null,
       campus || null,
-      accreditations || null,
+      formatAccreditations(accreditations),
       is_local ? 1 : 0,
       is_international ? 1 : 0,
-      overview || null,
+      finalOverview || null,
       entry_requirement || null,
       exam_required || null,
       mode_of_instruction || null,
       scholarship_info || null,
-      courses_description || null,
       tution_fee ? String(tution_fee) : null,
 
       // International legacy
@@ -281,6 +344,16 @@ export async function PUT(
 
     await prisma.$executeRawUnsafe(sql, ...queryParams);
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'programs',
+      recordId: progId,
+      description: `Updated university program '${course_name.trim()}' (ID: ${progId})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Program updated successfully' });
   } catch (error: any) {
     console.error('Error updating program:', error);
@@ -295,10 +368,75 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const progId = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_programs WHERE id = ? LIMIT 1`,
+      progId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM university_programs WHERE id = ?`, progId);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'programs',
+      recordId: progId,
+      description: `Deleted university program '${oldValues?.course_name || progId}' (ID: ${progId})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Program deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting program:', error);
     return NextResponse.json({ status: false, message: 'Failed to delete program', error: error.message }, { status: 500 });
   }
 }
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: rawId } = await params;
+    const progId = parseInt(rawId, 10);
+    const body = await req.json();
+
+    const [existing]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT id, status, course_name FROM university_programs WHERE id = ? LIMIT 1`,
+      progId
+    );
+    if (!existing) {
+      return NextResponse.json({ status: false, message: 'Program not found' }, { status: 404 });
+    }
+
+    const newStatus = body.status !== undefined ? (Number(body.status) ? 1 : 0) : (existing.status === 1 ? 0 : 1);
+    await prisma.$executeRawUnsafe(
+      `UPDATE university_programs SET status = ?, updated_at = ? WHERE id = ?`,
+      newStatus,
+      new Date(),
+      progId
+    );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'programs',
+      recordId: progId,
+      description: `Toggled status of program #${progId} (${existing.course_name}) to ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+      oldValues: { status: existing.status },
+      newValues: { status: newStatus },
+    });
+
+    return NextResponse.json({
+      status: true,
+      message: `Program marked as ${newStatus === 1 ? 'Active' : 'Inactive'}`,
+      data: { id: progId, status: newStatus },
+    });
+  } catch (error: any) {
+    console.error('Error in PATCH program:', error);
+    return NextResponse.json({ status: false, message: 'Failed to update program status', error: error.message }, { status: 500 });
+  }
+}
+
+

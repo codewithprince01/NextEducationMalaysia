@@ -22,6 +22,8 @@ export default function RichTextEditor({
   const editorId = useId().replace(/:/g, 'editor_');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const instanceRef = useRef<any>(null);
+  const lastHtmlRef = useRef<string>(value || '');
+  const debounceTimerRef = useRef<any>(null);
   const [loading, setLoading] = useState(!window.CKEDITOR);
 
   const onChangeRef = useRef(onChange);
@@ -51,6 +53,7 @@ export default function RichTextEditor({
         allowedContent: true,
         extraAllowedContent: '*(*);*{*}',
         placeholder: placeholder,
+        undoStackSize: 30, // Limit undo memory to prevent browser tab RAM bloat
       });
 
       instanceRef.current = editor;
@@ -58,15 +61,36 @@ export default function RichTextEditor({
       editor.on('instanceReady', () => {
         if (isMounted) {
           setLoading(false);
-          if (value) {
-            editor.setData(value);
-          }
+          const initial = value || '';
+          lastHtmlRef.current = initial;
+          editor.setData(initial);
         }
       });
 
+      // Debounce change events to prevent main-thread freezing and React re-render thrashing
       editor.on('change', () => {
-        if (isMounted) {
-          const data = editor.getData();
+        if (!isMounted) return;
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+          if (!isMounted || !instanceRef.current) return;
+          const data = instanceRef.current.getData();
+          lastHtmlRef.current = data;
+          onChangeRef.current(data);
+        }, 250);
+      });
+
+      // Flush immediately on blur so latest content is guaranteed before form submit
+      editor.on('blur', () => {
+        if (!isMounted || !instanceRef.current) return;
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+          debounceTimerRef.current = null;
+        }
+        const data = instanceRef.current.getData();
+        if (data !== lastHtmlRef.current) {
+          lastHtmlRef.current = data;
           onChangeRef.current(data);
         }
       });
@@ -96,6 +120,7 @@ export default function RichTextEditor({
 
       return () => {
         isMounted = false;
+        if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
         script.removeEventListener('load', handleScriptLoad);
         if (instanceRef.current) {
           try {
@@ -110,6 +135,7 @@ export default function RichTextEditor({
 
     return () => {
       isMounted = false;
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       if (instanceRef.current) {
         try {
           instanceRef.current.destroy(true);
@@ -121,11 +147,17 @@ export default function RichTextEditor({
     };
   }, [editorId]);
 
-  // Sync external value updates to CKEditor (e.g. Reset or Edit button)
+  // Sync external value updates to CKEditor ONLY if value was changed from OUTSIDE
+  // (e.g. user clicked Edit on another row, clicked Cancel / Reset, or tab was switched)
   useEffect(() => {
+    // If the new value is identical to what the editor already produced, skip setData!
+    if (value === lastHtmlRef.current) return;
+
     if (instanceRef.current) {
       const currentData = instanceRef.current.getData();
+      // Only set if actually different from what the editor currently holds
       if (currentData !== value && !(currentData === '' && !value)) {
+        lastHtmlRef.current = value || '';
         instanceRef.current.setData(value || '');
       }
     }

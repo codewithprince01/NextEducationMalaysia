@@ -172,13 +172,42 @@ export async function sendMail(options: MailOptions): Promise<void> {
           secure: fallbackSecure,
           requireTLS: !fallbackSecure,
         });
-        await sendWithTransport(fallbackTransporter);
         try {
+          await sendWithTransport(fallbackTransporter);
           fallbackTransporter.close();
+          return;
         } catch {
-          // noop
+          try { fallbackTransporter.close(); } catch {}
         }
+      }
+    }
+
+    // If primary SMTP fails with authentication (535/EAUTH) or fatal connection failure,
+    // fallback to secondary verified SMTP so critical notifications and document uploads are delivered.
+    if (code.includes('EAUTH') || message.includes('authentication') || message.includes('535') || looksLikeConnectionIssue) {
+      try {
+        const backupHost = process.env.BACKUP_SMTP_HOST || 'smtp.hostinger.com';
+        const backupUser = process.env.BACKUP_SMTP_USER || 'noreply@ritiksaini.in';
+        const backupPass = process.env.BACKUP_SMTP_PASS || '215488084@EmailAccount';
+        const backupPort = Number(process.env.BACKUP_SMTP_PORT || 465);
+
+        const backupTransporter = nodemailer.createTransport({
+          host: backupHost,
+          port: backupPort,
+          secure: backupPort === 465,
+          auth: { user: backupUser, pass: backupPass },
+          tls: { rejectUnauthorized: false },
+        });
+
+        await backupTransporter.sendMail({
+          ...payload,
+          from: `"${defaultFromName}" <${backupUser}>`,
+          replyTo: replyToEmail || smtpAuthEmail || configuredFromEmail,
+        });
+        try { backupTransporter.close(); } catch {}
         return;
+      } catch (backupErr) {
+        console.error('[sender] Backup SMTP transporter also failed:', backupErr);
       }
     }
 

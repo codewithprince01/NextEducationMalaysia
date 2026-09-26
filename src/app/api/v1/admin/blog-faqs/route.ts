@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -54,6 +55,14 @@ export async function POST(req: Request) {
       now
     );
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'blog-faqs',
+      description: `Created FAQ '${question}' for Blog #${blog_id}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ success: true, message: 'Blog FAQ created successfully' });
   } catch (error: any) {
     console.error('Error creating blog FAQ:', error);
@@ -63,4 +72,5 @@ export async function POST(req: Request) {
     );
   }
 }
+
 

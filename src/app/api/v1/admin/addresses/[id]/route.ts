@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -37,6 +38,12 @@ export async function PUT(
     const body = await req.json();
     const { country, city, mobile, email, address } = body;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM addresses WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     if (!country || !city || !mobile || !email || !address) {
       return NextResponse.json({ status: false, message: 'All fields are required' }, { status: 400 });
     }
@@ -56,6 +63,16 @@ export async function PUT(
       id
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'addresses',
+      recordId: id,
+      description: `Updated office address for '${city || oldValues?.city}, ${country || oldValues?.country}' (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Record has been updated successfully.' });
   } catch (error: any) {
     console.error('Error updating address:', error);
@@ -70,7 +87,24 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM addresses WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM addresses WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'addresses',
+      recordId: id,
+      description: `Deleted office address '${oldValues?.city ? `${oldValues.city}, ${oldValues.country}` : id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Record deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting address:', error);

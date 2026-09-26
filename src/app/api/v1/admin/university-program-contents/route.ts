@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // GET /api/v1/admin/university-program-contents?c_id={program_id}
 export async function GET(req: Request) {
@@ -111,6 +112,14 @@ export async function POST(req: Request) {
       );
     }
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'university-program-contents',
+      description: `Created program content tab '${tab_title.trim()}' for Program #${c_id}`,
+      newValues: body,
+    });
+
     return NextResponse.json({
       status: true,
       message: 'Program content created successfully',
@@ -127,3 +136,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

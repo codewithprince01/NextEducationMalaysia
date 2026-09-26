@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function PUT(
   req: Request,
@@ -9,6 +10,12 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM our_partners WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
 
     const {
       name,
@@ -60,6 +67,16 @@ export async function PUT(
       id
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'our-partners',
+      recordId: id,
+      description: `Updated partner '${name || oldValues?.name || id}' (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Partner profile updated successfully' });
   } catch (error: any) {
     console.error('Error updating partner:', error);
@@ -74,10 +91,25 @@ export async function DELETE(
   try {
     const { id } = await params;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM our_partners WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(
       `DELETE FROM our_partners WHERE id = ?`,
       id
     );
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'our-partners',
+      recordId: id,
+      description: `Deleted partner '${oldValues?.name || id}' (ID: ${id})`,
+      oldValues,
+    });
 
     return NextResponse.json({ status: true, message: 'Partner profile deleted successfully' });
   } catch (error: any) {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as XLSX from 'xlsx';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function POST(req: Request) {
   try {
@@ -66,6 +67,13 @@ export async function POST(req: Request) {
     }
 
     if (insertedCount > 0) {
+      await recordAuditLog({
+        req,
+        action: 'CREATE',
+        module: 'specialization-levels',
+        description: `Imported ${insertedCount} specialization levels via Excel upload (${file.name})`,
+      });
+
       return NextResponse.json({
         status: true,
         message: `${insertedCount} out of ${rows.length} rows imported successfully.`,
@@ -83,3 +91,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: false, message: 'Failed to import specialization levels', error: error.message }, { status: 500 });
   }
 }
+

@@ -29,6 +29,7 @@ export interface NotificationItem {
   subtitle: string
   message: string
   type: 'document' | 'application' | 'message' | 'alert' | 'system'
+  category?: string
   timestamp: string
   timeAgo: string
   read: boolean
@@ -96,6 +97,36 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
   },
 ]
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api/v1').replace(/\/$/, '')
+const API_KEY = process.env.NEXT_PUBLIC_FRONTEND_API_KEY || ''
+
+function formatTimeAgo(isoString: string): string {
+  try {
+    const diffMs = Date.now() - new Date(isoString).getTime()
+    if (isNaN(diffMs) || diffMs < 0) return 'Just now'
+    const diffMins = Math.floor(diffMs / 60000)
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours < 24) return `${diffHours}h ago`
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays < 7) return `${diffDays}d ago`
+    return new Date(isoString).toLocaleDateString('en-MY', { month: 'short', day: 'numeric' })
+  } catch {
+    return 'Recently'
+  }
+}
+
+function mapCategoryToType(category?: string): NotificationItem['type'] {
+  if (!category) return 'system'
+  const c = category.toLowerCase()
+  if (c.includes('doc') || c.includes('requirement')) return 'document'
+  if (c.includes('stage') || c.includes('application')) return 'application'
+  if (c.includes('message') || c.includes('chat')) return 'message'
+  if (c.includes('alert') || c.includes('warning')) return 'alert'
+  return 'system'
+}
+
 export default function StudentNotificationDrawer({ isMobile = false }: { isMobile?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
   const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all')
@@ -104,21 +135,94 @@ export default function StudentNotificationDrawer({ isMobile = false }: { isMobi
   const router = useRouter()
   const drawerRef = useRef<HTMLDivElement | null>(null)
 
-  // Mount check and localStorage loading
+  const fetchLiveNotifications = async () => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) {
+        const saved = localStorage.getItem('student_notifications_data_v2')
+        if (saved) {
+          setNotifications(JSON.parse(saved))
+        } else {
+          setNotifications(DEFAULT_NOTIFICATIONS)
+        }
+        return
+      }
+
+      const res = await fetch(`${API_BASE}/student/notifications`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+        },
+      })
+
+      if (!res.ok) return
+
+      const json = await res.json()
+      if (json && json.status && json.data && Array.isArray(json.data.notifications)) {
+        if (json.data.notifications.length === 0) {
+          // If no notifications yet in DB, check local or keep empty
+          setNotifications([])
+          return
+        }
+
+        const mapped: NotificationItem[] = json.data.notifications.map((item: any) => {
+          let link = item.link || undefined
+          if (link) {
+            const match = link.match(/#app-(\d+)/)
+            if (match && match[1]) {
+              link = `/student/applications/${match[1]}`
+            } else if (item.app_id && (item.category === 'stage_changed' || link.includes('applied-colleges') || link.includes('my-applications'))) {
+              link = `/student/applications/${item.app_id}`
+            }
+          } else if (item.app_id && item.category === 'stage_changed') {
+            link = `/student/applications/${item.app_id}`
+          }
+
+          return {
+            id: String(item.id),
+            title: item.title,
+            subtitle: item.subtitle || '',
+            message: item.message,
+            type: mapCategoryToType(item.category),
+            category: item.category || undefined,
+            timestamp: item.timestamp,
+            timeAgo: formatTimeAgo(item.timestamp),
+            read: Boolean(item.read),
+            link,
+            actionLabel: item.actionLabel || undefined,
+            priority: item.priority || 'normal',
+          }
+        })
+
+        setNotifications(mapped)
+        try {
+          localStorage.setItem('student_notifications_data_v2', JSON.stringify(mapped))
+        } catch {}
+      }
+    } catch (err) {
+      console.warn('Failed to fetch student live notifications:', err)
+    }
+  }
+
+  // Initial load and polling
   useEffect(() => {
     setMounted(true)
-    try {
-      const saved = localStorage.getItem('student_notifications_data_v2')
-      if (saved) {
-        setNotifications(JSON.parse(saved))
-      } else {
-        setNotifications(DEFAULT_NOTIFICATIONS)
-        localStorage.setItem('student_notifications_data_v2', JSON.stringify(DEFAULT_NOTIFICATIONS))
-      }
-    } catch {
-      setNotifications(DEFAULT_NOTIFICATIONS)
-    }
+    void fetchLiveNotifications()
+
+    // Poll every 25 seconds for real-time updates
+    const interval = setInterval(() => {
+      void fetchLiveNotifications()
+    }, 25000)
+
+    return () => clearInterval(interval)
   }, [])
+
+  // Refresh whenever drawer opens
+  useEffect(() => {
+    if (isOpen) {
+      void fetchLiveNotifications()
+    }
+  }, [isOpen])
 
   // Sync to localStorage
   const updateNotifications = (newList: NotificationItem[]) => {
@@ -176,27 +280,111 @@ export default function StudentNotificationDrawer({ isMobile = false }: { isMobi
     return notifications
   }, [notifications, activeFilter])
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     const updated = notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
     updateNotifications(updated)
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (token) {
+        await fetch(`${API_BASE}/student/notifications`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+          },
+          body: JSON.stringify({ id }),
+        })
+      }
+    } catch (err) {
+      console.error('Error marking notification as read in backend:', err)
+    }
   }
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     const updated = notifications.map((n) => ({ ...n, read: true }))
     updateNotifications(updated)
+
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (token) {
+        await fetch(`${API_BASE}/student/notifications`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            ...(API_KEY ? { 'x-api-key': API_KEY } : {}),
+          },
+        })
+      }
+    } catch (err) {
+      console.error('Error marking all notifications as read in backend:', err)
+    }
   }
 
   const handleMarkAsReadAndDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    void markAsRead(id)
     const updated = notifications.filter((n) => n.id !== id)
     updateNotifications(updated)
   }
 
   const handleActionClick = (notif: NotificationItem) => {
-    markAsRead(notif.id)
+    void markAsRead(notif.id)
     setIsOpen(false)
+
+    let docName: string | null = null
+    const titleLower = (notif.title || '').toLowerCase()
+
+    // 1. Check if link already contains doc=...
+    if (notif.link && notif.link.includes('doc=')) {
+      const match = notif.link.match(/doc=([^&#]+)/)
+      if (match && match[1]) {
+        docName = decodeURIComponent(match[1])
+      }
+    }
+
+    // 2. If not in link, extract from title or message
+    if (!docName && (titleLower.includes('document') || notif.type === 'document')) {
+      const colonMatch = notif.title.match(/:\s*(.+)$/)
+      if (colonMatch && colonMatch[1]) {
+        docName = colonMatch[1].trim()
+      } else {
+        const quoteMatch = notif.message.match(/"([^"]+)"/)
+        if (quoteMatch && quoteMatch[1]) {
+          docName = quoteMatch[1].trim()
+        }
+      }
+    }
+
+    if (notif.type === 'document' || notif.category === 'document_status_changed' || titleLower.includes('document') || docName) {
+      const targetDoc = docName || 'Document'
+      const targetLink = `/student/profile?doc=${encodeURIComponent(targetDoc)}#Upload Documents`
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('student_focus_document', {
+            detail: {
+              docName: targetDoc,
+              action: notif.actionLabel,
+              shouldOpenModal: notif.actionLabel === 'Re-upload',
+            },
+          })
+        )
+      }
+
+      router.push(targetLink)
+      return
+    }
+
     if (notif.link) {
-      router.push(notif.link)
+      let targetLink = notif.link
+      const match = targetLink.match(/#app-(\d+)/)
+      if (match && match[1]) {
+        targetLink = `/student/applications/${match[1]}`
+      }
+      router.push(targetLink)
     }
   }
 

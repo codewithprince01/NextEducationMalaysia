@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // PUT /api/v1/admin/university-program-contents/[id]
 export async function PUT(
@@ -8,6 +9,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+    const contentId = Number(id);
     const body = await req.json();
     const { tab_title, heading, description, imgpath, imgname } = body;
 
@@ -17,6 +19,12 @@ export async function PUT(
         { status: 400 }
       );
     }
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_program_contents WHERE id = ? LIMIT 1`,
+      contentId
+    );
+    const oldValues = oldRows || null;
 
     const now = new Date();
 
@@ -30,8 +38,18 @@ export async function PUT(
       imgpath || null,
       imgname || null,
       now,
-      Number(id)
+      contentId
     );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'university-program-contents',
+      recordId: contentId,
+      description: `Updated program content tab '${tab_title.trim()}' (ID: ${contentId})`,
+      oldValues,
+      newValues: body,
+    });
 
     return NextResponse.json({
       status: true,
@@ -53,10 +71,27 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    const contentId = Number(id);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM university_program_contents WHERE id = ? LIMIT 1`,
+      contentId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(
       `DELETE FROM university_program_contents WHERE id = ?`,
-      Number(id)
+      contentId
     );
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'university-program-contents',
+      recordId: contentId,
+      description: `Deleted program content tab '${oldValues?.tab_title || contentId}' (ID: ${contentId})`,
+      oldValues,
+    });
 
     return NextResponse.json({
       status: true,
@@ -70,3 +105,4 @@ export async function DELETE(
     );
   }
 }
+

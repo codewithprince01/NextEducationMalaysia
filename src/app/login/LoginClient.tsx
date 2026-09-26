@@ -127,7 +127,7 @@ export default function LoginClient() {
         router.replace(redirectTo)
       } else if (
         response.ok &&
-        (responseData.needs_otp || responseData.otp_required || responseData.id)
+        (responseData.needs_otp || responseData.otp_required)
       ) {
         if (responseData.id) localStorage.setItem('student_id', String(responseData.id))
         if (responseData.email) localStorage.setItem('student_email', String(responseData.email))

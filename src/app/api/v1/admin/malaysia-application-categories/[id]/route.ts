@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -37,6 +38,12 @@ export async function PUT(
     const body = await req.json();
     const { category_name, color_class } = body;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM malaysia_application_categories WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     const category_slug = category_name ? slugify(category_name) : '';
     const now = new Date();
 
@@ -51,6 +58,16 @@ export async function PUT(
       id
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'malaysia-application-categories',
+      recordId: id,
+      description: `Updated Malaysia application category '${category_name || oldValues?.category_name || id}' (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Category updated successfully' });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: 'Failed to update record', error: error.message }, { status: 500 });
@@ -64,7 +81,24 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM malaysia_application_categories WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM malaysia_application_categories WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'malaysia-application-categories',
+      recordId: id,
+      description: `Deleted Malaysia application category '${oldValues?.category_name || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Category deleted successfully' });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: 'Failed to delete record', error: error.message }, { status: 500 });

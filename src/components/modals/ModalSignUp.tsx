@@ -152,8 +152,8 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
           (typeof courseData?.university?.name === "string" && courseData.university.name.trim()
             ? courseData.university.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
             : typeof courseData?.university === "string" && courseData.university.trim()
-            ? courseData.university.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
-            : "");
+              ? courseData.university.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+              : "");
 
         if (uniSlug) {
           try {
@@ -179,7 +179,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
                   .filter((p: any) => p.name);
               }
             }
-          } catch {}
+          } catch { }
         }
 
         if (hasCourseContext) {
@@ -551,16 +551,26 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
         localStorage.setItem("student_id", String(studentId));
         localStorage.setItem("student_email", formData.email);
         if (formData.name) localStorage.setItem("student_name", String(formData.name).trim());
+        if (courseId) {
+          try { localStorage.setItem("pending_apply_course_id", String(courseId)); } catch { }
+        }
         const token = resData?.token || resData?.data?.token;
         if (token) {
           saveSession({ token, id: studentId, email: formData.email, name: formData.name });
         }
 
-        toast.success("Registration successful!");
+        toast.success("Registration successful! Redirecting to verify OTP...");
 
         if (onSuccess) {
           onSuccess(studentId);
         }
+
+        const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/student/overview';
+        const nextParam = encodeURIComponent(currentPath);
+        const courseParam = courseId ? `&courseId=${encodeURIComponent(String(courseId))}` : '';
+        const targetUrl = `/confirmed-email?id=${studentId}&email=${encodeURIComponent(formData.email)}${courseParam}&next=${nextParam}`;
+
+        window.location.href = targetUrl;
       } else {
         toast.error(resData?.message || "Registration failed. Please check your details.");
       }
@@ -580,7 +590,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
   const getCountryFlag = (phoneCodeValue: string) => {
     const iso = getCountryIsoByPhoneCode(phoneCodeValue) || "MY";
     try {
-      return iso.toUpperCase().replace(/./g, (char: string) => 
+      return iso.toUpperCase().replace(/./g, (char: string) =>
         String.fromCodePoint(char.charCodeAt(0) + 127397)
       );
     } catch (e) { return "🇲🇾"; }
@@ -664,13 +674,12 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onSuccess, onSwitchToLogin, c
                   name="mobile"
                   value={formData.mobile}
                   onChange={handlePhoneChange}
-                  className={`w-full pl-7 pr-7 py-1.5 sm:py-2 bg-gray-50 border rounded-lg text-gray-900 font-medium focus:bg-white focus:ring-1 transition-all text-xs sm:text-[13px] outline-none ${
-                    phoneError
+                  className={`w-full pl-7 pr-7 py-1.5 sm:py-2 bg-gray-50 border rounded-lg text-gray-900 font-medium focus:bg-white focus:ring-1 transition-all text-xs sm:text-[13px] outline-none ${phoneError
                       ? "border-red-300 focus:border-red-500"
                       : phoneValid
-                      ? "border-green-300 focus:border-green-500"
-                      : "border-gray-200 focus:border-blue-600"
-                  }`}
+                        ? "border-green-300 focus:border-green-500"
+                        : "border-gray-200 focus:border-blue-600"
+                    }`}
                   required
                 />
                 {phoneValid && (

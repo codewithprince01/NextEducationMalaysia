@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 // Trigger Next.js route compilation
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // GET /api/v1/admin/course-categories
 export async function GET(req: Request) {
@@ -68,7 +69,7 @@ export async function POST(req: Request) {
     const slug = slugify(name);
     const now = new Date();
 
-    await prisma.$executeRawUnsafe(
+    const result: any = await prisma.$executeRawUnsafe(
       `INSERT INTO course_categories (
         name, slug, author_id, shortnote, icon_class, courses_description, 
         meta_title, meta_description, meta_keyword, seo_rating, best_rating, review_number,
@@ -96,6 +97,14 @@ export async function POST(req: Request) {
       now
     );
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'course-category',
+      description: `Created course category '${name.trim()}'`,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Category created successfully' });
   } catch (error: any) {
     console.error('Error creating category:', error);
@@ -105,3 +114,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -61,6 +62,15 @@ export async function POST(req: Request) {
       now,
       now
     );
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'static-page-seos',
+      recordId: nextId,
+      description: `Created static page SEO for '${page}'`,
+      newValues: body,
+    });
 
     return NextResponse.json({ status: true, message: 'Static page SEO created successfully' });
   } catch (error: any) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify, serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -101,6 +102,14 @@ export async function POST(req: Request) {
       now
     );
 
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'specialization-levels',
+      description: `Created specialization level '${nameToUse.trim()}' for Specialization #${specialization_id || ''}`,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Specialization level created successfully' });
   } catch (error: any) {
     console.error('Error creating specialization level:', error);
@@ -110,3 +119,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

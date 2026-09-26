@@ -12,7 +12,13 @@ import {
   Zap,
   Check,
   AtSign,
-  User
+  User,
+  HardDrive,
+  Server,
+  Eye,
+  EyeOff,
+  Globe,
+  FolderOpen
 } from 'lucide-react';
 
 export default function SystemSettings() {
@@ -20,11 +26,24 @@ export default function SystemSettings() {
   const [submittingMode, setSubmittingMode] = useState(false);
   const [submittingMain, setSubmittingMain] = useState(false);
   const [submittingTesting, setSubmittingTesting] = useState(false);
+  const [submittingStorage, setSubmittingStorage] = useState(false);
+  const [testingStorage, setTestingStorage] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'mode' | 'main' | 'testing'>('mode');
+  const [activeTab, setActiveTab] = useState<'mode' | 'main' | 'testing' | 'storage'>('mode');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [emailMode, setEmailMode] = useState<'main' | 'testing'>('main');
+
+  const [storageSettings, setStorageSettings] = useState({
+    sftp_host: '103.212.121.117',
+    sftp_port: 21,
+    sftp_username: 'ftpimages@images.britannicaoverseas.com',
+    sftp_password: 'GZHAV=#3e~lS49i%',
+    sftp_root: '/em/',
+    remote_storage_cdn_url: 'https://www.images.britannicaoverseas.com/em',
+  });
 
   const [mainSettings, setMainSettings] = useState({
     main_to_email: 'studytutelage@gmail.com',
@@ -54,13 +73,24 @@ export default function SystemSettings() {
   const fetchSettings = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/admin/system-settings');
+      const [res, storageRes] = await Promise.all([
+        fetch('/api/v1/admin/system-settings'),
+        fetch('/api/v1/admin/storage-settings'),
+      ]);
+
       if (res.ok) {
         const json = await res.json();
         if (json.emailMode) setEmailMode(json.emailMode);
         if (json.mainSettings) setMainSettings(json.mainSettings);
         if (json.testingSettings) setTestingSettings(json.testingSettings);
         if (json.totalCount !== undefined) setTotalKeys(json.totalCount);
+      }
+
+      if (storageRes.ok) {
+        const storageJson = await storageRes.json();
+        if (storageJson.config) {
+          setStorageSettings(storageJson.config);
+        }
       }
     } catch {
       // Keep fallback state
@@ -139,6 +169,53 @@ export default function SystemSettings() {
     }
   };
 
+  const handleUpdateStorage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingStorage(true);
+    try {
+      const res = await fetch('/api/v1/admin/storage-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(storageSettings),
+      });
+      const json = await res.json();
+      if (res.ok && (json.status || json.success)) {
+        showToast('success', json.message || 'Storage settings updated successfully!');
+        if (json.config) setStorageSettings(json.config);
+      } else {
+        showToast('error', json.message || 'Failed to update storage settings');
+      }
+    } catch {
+      showToast('error', 'Network error while updating storage settings');
+    } finally {
+      setSubmittingStorage(false);
+    }
+  };
+
+  const handleTestStorage = async () => {
+    setTestingStorage(true);
+    setTestResult(null);
+    try {
+      const res = await fetch('/api/v1/admin/storage-settings/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(storageSettings),
+      });
+      const json = await res.json();
+      setTestResult({
+        success: Boolean(res.ok && (json.status || json.success)),
+        message: json.message || (res.ok ? 'Connection successful!' : 'Connection failed!'),
+      });
+    } catch {
+      setTestResult({
+        success: false,
+        message: 'Network error while attempting to connect to FTP server',
+      });
+    } finally {
+      setTestingStorage(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-[1600px] mx-auto pb-12">
       {/* Toast Notification */}
@@ -208,6 +285,11 @@ export default function SystemSettings() {
             <span className="font-extrabold font-mono text-[11px] text-purple-900">{testingSettings.testing_to_email || 'None'}</span>
           </div>
 
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-emerald-900">
+            <span className="text-emerald-700 text-[11px] font-medium uppercase tracking-wider">FTP Host:</span>
+            <span className="font-extrabold font-mono text-[11px] text-emerald-900">{storageSettings.sftp_host || 'None'}</span>
+          </div>
+
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-stone-100/70 border border-stone-200 text-stone-800">
             <span className="text-stone-600 text-[11px] font-medium uppercase tracking-wider">Parameters:</span>
             <span className="font-extrabold text-stone-900">{totalKeys} Keys</span>
@@ -251,6 +333,17 @@ export default function SystemSettings() {
           >
             <Send className="w-3.5 h-3.5" />
             <span>Testing Recipients (Sandbox)</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('storage')}
+            className={`py-2.5 px-4 rounded-xl flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
+              activeTab === 'storage'
+                ? 'bg-[#14532d] text-white shadow-xs'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/50'
+            }`}
+          >
+            <HardDrive className="w-3.5 h-3.5" />
+            <span>SFTP / FTP Storage</span>
           </button>
         </div>
 
@@ -630,6 +723,197 @@ export default function SystemSettings() {
                     <Check className="w-4 h-4" />
                   )}
                   Save Testing Settings
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* TAB 4: SFTP / FTP Storage Settings */}
+          {activeTab === 'storage' && (
+            <form onSubmit={handleUpdateStorage} className="space-y-6 animate-in fade-in duration-200">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-stone-200/80">
+                <div>
+                  <h3 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                    <Server className="w-5 h-5 text-emerald-700" />
+                    <span>Remote SFTP / FTP Storage Configuration</span>
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-1 max-w-2xl">
+                    Configure the remote FTP server and CDN domain for university brochures, fee sheets, and media. Changes take effect immediately without needing server restarts or .env edits.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={handleTestStorage}
+                    disabled={testingStorage}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 text-xs font-bold uppercase tracking-wider shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {testingStorage ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                    ) : (
+                      <Zap className="w-3.5 h-3.5 text-amber-600" />
+                    )}
+                    <span>{testingStorage ? 'Testing Connection...' : 'Test Connection'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Live Connection Test Banner */}
+              {testResult && (
+                <div
+                  className={`p-4 rounded-xl border flex items-start gap-3 transition-all ${
+                    testResult.success
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                      : 'bg-rose-50 border-rose-300 text-rose-900'
+                  }`}
+                >
+                  {testResult.success ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                  )}
+                  <div className="text-xs">
+                    <p className="font-bold">{testResult.success ? 'FTP Connection Successful' : 'FTP Connection Failed'}</p>
+                    <p className="mt-0.5 opacity-90">{testResult.message}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Grid of Inputs */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {/* Host */}
+                <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-2 md:col-span-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                    SFTP / FTP Host (IP or Domain) <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Server className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      value={storageSettings.sftp_host}
+                      onChange={(e) => setStorageSettings({ ...storageSettings, sftp_host: e.target.value })}
+                      className="w-full pl-9 pr-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
+                      placeholder="e.g. 103.212.121.117 or ftp.domain.com"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-400">IP address or domain of the remote server hosting the files.</p>
+                </div>
+
+                {/* Port */}
+                <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                    Port <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    value={storageSettings.sftp_port}
+                    onChange={(e) => setStorageSettings({ ...storageSettings, sftp_port: parseInt(e.target.value, 10) || 21 })}
+                    className="w-full px-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
+                    placeholder="21"
+                  />
+                  <p className="text-[11px] text-stone-400">Default standard port is 21.</p>
+                </div>
+
+                {/* Username */}
+                <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                    FTP Username <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      value={storageSettings.sftp_username}
+                      onChange={(e) => setStorageSettings({ ...storageSettings, sftp_username: e.target.value })}
+                      className="w-full pl-9 pr-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
+                      placeholder="e.g. ftpimages@images.britannicaoverseas.com"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                    FTP Password <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={storageSettings.sftp_password}
+                      onChange={(e) => setStorageSettings({ ...storageSettings, sftp_password: e.target.value })}
+                      className="w-full pl-3.5 pr-10 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
+                      placeholder="••••••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3 text-stone-400 hover:text-stone-700 cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Root Directory */}
+                <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-2">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                    Remote Root Folder <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <FolderOpen className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      value={storageSettings.sftp_root}
+                      onChange={(e) => setStorageSettings({ ...storageSettings, sftp_root: e.target.value })}
+                      className="w-full pl-9 pr-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
+                      placeholder="/em/"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-400">Target root folder on the server (e.g. /em/).</p>
+                </div>
+
+                {/* CDN Base URL */}
+                <div className="bg-stone-50/50 p-5 rounded-2xl border border-stone-200/70 space-y-2 md:col-span-3">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+                    Public CDN / Remote URL Base <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Globe className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+                    <input
+                      type="url"
+                      required
+                      value={storageSettings.remote_storage_cdn_url}
+                      onChange={(e) => setStorageSettings({ ...storageSettings, remote_storage_cdn_url: e.target.value })}
+                      className="w-full pl-9 pr-3.5 py-2.5 text-xs font-mono bg-white border border-stone-300 rounded-xl focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-600 transition-all shadow-2xs"
+                      placeholder="https://www.images.britannicaoverseas.com/em"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-400">Public CDN prefix used to serve uploaded documents to students and counsellors.</p>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-6 border-t border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p className="text-xs text-stone-500">
+                  Settings are stored in the database and applied dynamically across all upload queues.
+                </p>
+                <button
+                  type="submit"
+                  disabled={submittingStorage}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#14532d] hover:bg-[#0f3e21] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {submittingStorage ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Check className="w-4 h-4" />
+                  )}
+                  Save Storage Settings
                 </button>
               </div>
             </form>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as XLSX from 'xlsx';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function POST(req: Request) {
   try {
@@ -59,6 +60,18 @@ export async function POST(req: Request) {
     }
 
     if (insertedCount > 0) {
+      await recordAuditLog({
+        req,
+        action: 'CREATE',
+        module: 'course-specializations',
+        description: `Imported ${insertedCount} course specializations from file '${file.name || 'excel'}'`,
+        newValues: {
+          insertedCount,
+          totalRows: rows.length,
+          fileName: file.name,
+        },
+      });
+
       return NextResponse.json({
         status: true,
         message: `${insertedCount} out of ${rows.length} rows imported successfully.`,

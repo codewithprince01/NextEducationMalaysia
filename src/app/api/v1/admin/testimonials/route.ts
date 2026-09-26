@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(req: Request) {
   try {
@@ -40,6 +41,15 @@ export async function POST(req: Request) {
       now,
       now
     );
+
+    await recordAuditLog({
+      req,
+      action: 'CREATE',
+      module: 'testimonials',
+      recordId: nextId,
+      description: `Created testimonial for student '${name}'`,
+      newValues: body,
+    });
 
     return NextResponse.json({ status: true, message: 'Testimonial created successfully' });
   } catch (error: any) {

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 import { prisma } from '@/lib/db';
 import { apiSuccess, apiError } from '@/backend/utils/response';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,6 +33,20 @@ export async function POST(req: NextRequest) {
       formattedExpireAt,
       user.id
     );
+
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'auth',
+      recordId: user.id,
+      user: {
+        id: user.id,
+        name: user.name || 'Administrator',
+        email: user.email || 'admin@educationmalaysia.in',
+        role: 'Admin',
+      },
+      description: `Requested password reset instructions for admin email '${cleanEmail}'`,
+    });
 
     const origin = req.nextUrl.origin;
     const resetUrl = `${origin}/admin/password/reset?uid=${user.id}&token=${rememberToken}`;

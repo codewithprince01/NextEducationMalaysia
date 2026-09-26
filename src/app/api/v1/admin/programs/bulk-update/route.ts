@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as XLSX from 'xlsx';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // Map of normalized incoming header keys to university_programs column names
 const COLUMN_MAP: Record<string, string> = {
@@ -27,7 +28,9 @@ const COLUMN_MAP: Record<string, string> = {
   exam_required: 'exam_required',
   mode_of_instruction: 'mode_of_instruction',
   scholarship_info: 'scholarship_info',
-  courses_description: 'courses_description',
+  courses_description: 'overview',
+  course_description: 'overview',
+  description: 'overview',
 
   // Local Fees
   total_fee_local: 'total_fee_local',
@@ -164,6 +167,26 @@ function cleanNumeric(val: any): number | null {
   return Number(str);
 }
 
+function formatAccreditations(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  if (Array.isArray(val)) {
+    const cleaned = val.map(x => String(x).trim()).filter(Boolean);
+    return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+  }
+  const s = String(val).trim();
+  if (!s || s === 'null' || s === 'undefined') return null;
+  try {
+    const parsed = JSON.parse(s);
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed.map(x => String(x).trim()).filter(Boolean);
+      return cleaned.length > 0 ? JSON.stringify(cleaned) : null;
+    }
+  } catch {}
+
+  const items = s.split(/[|,\n;]+/).map(x => x.trim()).filter(Boolean);
+  return items.length > 0 ? JSON.stringify(items) : JSON.stringify([s]);
+}
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -241,7 +264,9 @@ export async function POST(req: Request) {
 
         let formattedVal: any;
 
-        if (NUMERIC_COLS.has(col)) {
+        if (col === 'accreditations') {
+          formattedVal = formatAccreditations(val);
+        } else if (NUMERIC_COLS.has(col)) {
           formattedVal = cleanNumeric(val);
         } else if (BOOLEAN_COLS.has(col)) {
           const s = String(val).trim().toLowerCase();
@@ -293,6 +318,19 @@ export async function POST(req: Request) {
     }
 
     if (updatedCount > 0) {
+      await recordAuditLog({
+        req,
+        action: 'UPDATE',
+        module: 'programs',
+        description: `Bulk updated ${updatedCount} programs from file '${file.name || 'excel'}'`,
+        newValues: {
+          updatedCount,
+          totalRows: rows.length,
+          fileName: file.name,
+          universityId,
+        },
+      });
+
       return NextResponse.json({
         status: true,
         message: `${updatedCount} out of ${rows.length} program records updated successfully.`,

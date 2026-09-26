@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt, slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -57,6 +58,12 @@ export async function PUT(
       og_image_path,
     } = body;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM site_pages WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     const pageNameVal = page_name || '';
     const headlineVal = headline || '';
     const thumbnailVal = imgpath || thumbnail_path || null;
@@ -92,6 +99,16 @@ export async function PUT(
       id
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'services',
+      recordId: id,
+      description: `Updated service '${pageNameVal || oldValues?.page_name || id}' (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Service updated successfully' });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: 'Failed to update record', error: error.message }, { status: 500 });
@@ -105,7 +122,24 @@ export async function DELETE(
   try {
     const { id: rawId } = await params;
     const id = parseInt(rawId, 10);
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM site_pages WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM site_pages WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'services',
+      recordId: id,
+      description: `Deleted service '${oldValues?.page_name || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Service deleted successfully' });
   } catch (error: any) {
     return NextResponse.json({ status: false, message: 'Failed to delete record', error: error.message }, { status: 500 });

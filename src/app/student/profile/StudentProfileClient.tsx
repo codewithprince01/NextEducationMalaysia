@@ -102,9 +102,44 @@ export default function StudentProfileClient() {
 
   const [serverRequirements, setServerRequirements] = useState<any[]>([]);
 
+  const isStaffDocTitle = (title?: string | null) => {
+    if (!title) return false;
+    const t = title.toLowerCase().trim();
+    return (
+      t.includes('offer letter') ||
+      t.includes('joining letter') ||
+      t.includes('visa approval letter') ||
+      t === 'val' ||
+      t.includes('val copy') ||
+      t.includes('pre-arrival briefing') ||
+      t.includes('emgs payment receipt') ||
+      t.includes('tuition fee invoice')
+    );
+  };
+
   const activeRequirementsList = useMemo(() => {
     if (Array.isArray(serverRequirements) && serverRequirements.length > 0) {
-      return serverRequirements.map((sr) => {
+      // Exclude staff docs and profile action items
+      const docRequirements = serverRequirements.filter((sr) => {
+        const titleLower = String(sr.title || '').toLowerCase().trim();
+        const actionType = String(sr.action_type || '').toLowerCase();
+        if (actionType === 'profile') return false;
+        if (titleLower.includes('parent') || titleLower.includes('date of birth') || titleLower.includes('address')) return false;
+        if (isStaffDocTitle(titleLower)) return false;
+        return true;
+      });
+
+      // Deduplicate by clean title
+      const uniqueReqs: typeof docRequirements = [];
+      const seen = new Set<string>();
+      for (const sr of docRequirements) {
+        const titleClean = String(sr.title || '').trim().toLowerCase();
+        if (!titleClean || seen.has(titleClean)) continue;
+        seen.add(titleClean);
+        uniqueReqs.push(sr);
+      }
+
+      return uniqueReqs.map((sr) => {
         const titleClean = String(sr.title || '').trim();
         const stdMatch = OFFICIAL_REQUIRED_DOCUMENTS.find(
           (std) => std.match(titleClean) || std.title.toLowerCase() === titleClean.toLowerCase()
@@ -126,8 +161,9 @@ export default function StudentProfileClient() {
   }, [serverRequirements]);
 
   const missingDocs = useMemo(() => {
+    const studentOnlyDocs = documents.filter(d => !isStaffDocTitle(d?.document_name || d?.doc_name));
     return activeRequirementsList.filter((req) => {
-      return !documents.some((d) => req.match(String(d?.document_name || d?.doc_name || d?.imgname || '')));
+      return !studentOnlyDocs.some((d) => req.match(String(d?.document_name || d?.doc_name || d?.imgname || '')));
     });
   }, [activeRequirementsList, documents]);
 
@@ -205,6 +241,23 @@ export default function StudentProfileClient() {
     loadProfile();
     loadMeta();
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    if (typeof window === 'undefined') return;
+
+    const hash = decodeURIComponent(window.location.hash || '');
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasDocParam = Boolean(urlParams.get('doc') || urlParams.get('reupload'));
+    const tabParam = urlParams.get('tab');
+
+    if (hash.includes('Upload Documents') || tabParam === 'Upload Documents' || hasDocParam) {
+      setTimeout(() => {
+        refs['Upload Documents'].current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setActiveTab('Upload Documents');
+      }, 250);
+    }
+  }, [loading]);
 
   useEffect(() => {
     const handler = () => {
@@ -419,12 +472,11 @@ export default function StudentProfileClient() {
   };
 
   return (
-    <div className="relative w-full">
-
-      {/* Sticky Quick-Nav Tabs - Attached Flush directly below 76px Navbar */}
-      <div className="sticky top-[76px] z-20 -mt-4 sm:-mt-6 lg:-mt-8 xl:-mt-8 2xl:-mt-10 -mx-4 sm:-mx-6 lg:-mx-8 xl:-mx-8 2xl:-mx-10 px-4 sm:px-6 lg:px-8 xl:px-8 2xl:px-10 py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
+    <div className="relative w-full space-y-6">
+      {/* Quick-Nav Sticky Tabs Header */}
+      <div className="sticky top-2 z-20 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-xs p-2">
         <div className="flex items-center justify-between gap-3 w-full">
-          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden py-0.5 min-w-0 flex-1">
             {TABS.map(({ id, label }) => {
               const isActive = activeTab === id;
               const isUploadTab = id === "Upload Documents";
@@ -432,8 +484,9 @@ export default function StudentProfileClient() {
               return (
                 <button
                   key={id}
+                  type="button"
                   onClick={() => handleTabClick(id, (refs as any)[id])}
-                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                     isActive
                       ? "bg-blue-600 text-white shadow-xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80"
@@ -442,7 +495,7 @@ export default function StudentProfileClient() {
                   <span className={isActive ? "text-white" : "text-slate-400"}>
                     {tabIcons[id]}
                   </span>
-                  {label}
+                  <span>{label}</span>
                   {showBadge && (
                     <span
                       className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
@@ -474,7 +527,7 @@ export default function StudentProfileClient() {
         </div>
       </div>
 
-      <div className="pt-6 space-y-6">
+      <div className="space-y-6">
         {/* Missing Required Documents Alert Banner */}
       {missingDocs.length > 0 && (
         <div className="bg-amber-50/90 border border-amber-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">

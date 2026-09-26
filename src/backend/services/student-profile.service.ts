@@ -14,6 +14,7 @@ import { verifyPassword, hashPassword } from '../utils/auth';
 import { serializeBigInt } from '@/lib/utils';
 import { ApiResponse, Student, StudentSchool, StudentDocument } from '../types';
 import { matchesDocumentRequirement } from '@/utils/studentChecklist';
+import { notificationService } from './notification.service';
 
 /**
  * Service to handle student profile management, education history, and documents.
@@ -111,6 +112,22 @@ export class StudentProfileService {
       input.home_contact_number || null,
       Number(studentId),
     );
+
+    // Notify staff of student activity
+    try {
+      const studentName = input.name || `Student #${studentId}`;
+      await notificationService.notifyStaff({
+        leadId: Number(studentId),
+        category: 'activity_logged',
+        title: `Profile Updated: ${studentName}`,
+        subtitle: `${studentName} updated personal profile details`,
+        message: `${studentName} (Lead #${studentId}) updated their personal details on the student portal.`,
+        link: `/admin/lead/${studentId}?tab=info`,
+        actionLabel: 'View Lead Info',
+      });
+    } catch (notifyErr) {
+      console.error('Failed to notify staff on profile update:', notifyErr);
+    }
 
     return { status: true, message: 'Personal information updated successfully' };
   }
@@ -452,7 +469,7 @@ export class StudentProfileService {
    */
   async getDocuments(studentId: number): Promise<ApiResponse<{ student_documents: StudentDocument[]; student_requirements: any[] }>> {
     const docs = (await prisma.$queryRawUnsafe(
-      `SELECT id, std_id, doc_name, imgname, imgpath, upload_source, doc_status, status, created_at, updated_at
+      `SELECT id, std_id, doc_name, imgname, imgpath, upload_by, upload_source, doc_status, status, created_at, updated_at
        FROM student_documents
        WHERE std_id = ?
        ORDER BY id DESC`,
@@ -461,8 +478,35 @@ export class StudentProfileService {
 
     let reqs: any[] = [];
     try {
+      // Clean up any historical staff document rows that were mistakenly saved in application_requirements
+      await prisma.$executeRawUnsafe(
+        `DELETE FROM application_requirements 
+         WHERE std_id = ? AND (
+           LOWER(TRIM(title)) LIKE '%offer letter%' OR
+           LOWER(TRIM(title)) LIKE '%joining letter%' OR
+           LOWER(TRIM(title)) LIKE '%visa approval letter%' OR
+           LOWER(TRIM(title)) = 'val' OR
+           LOWER(TRIM(title)) LIKE '%val copy%' OR
+           LOWER(TRIM(title)) LIKE '%pre-arrival briefing%' OR
+           LOWER(TRIM(title)) LIKE '%emgs payment receipt%' OR
+           LOWER(TRIM(title)) LIKE '%tuition fee invoice%'
+         )`,
+        Number(studentId),
+      ).catch(() => null);
+
+      // Clean up duplicate requirement rows for this student in DB, keeping the latest one
+      await prisma.$executeRawUnsafe(
+        `DELETE r1 FROM application_requirements r1
+         INNER JOIN application_requirements r2 
+         WHERE r1.std_id = ? AND r2.std_id = ? 
+           AND LOWER(TRIM(r1.title)) = LOWER(TRIM(r2.title)) 
+           AND r1.id < r2.id`,
+        Number(studentId),
+        Number(studentId),
+      ).catch(() => null);
+
       reqs = (await prisma.$queryRawUnsafe(
-        `SELECT DISTINCT id, app_id, title, tag, stage_tag, action_type, doc_status, rejection_note FROM application_requirements WHERE std_id = ?`,
+        `SELECT id, app_id, std_id, title, tag, stage_tag, action_type, doc_status, rejection_note FROM application_requirements WHERE std_id = ? ORDER BY id ASC`,
         Number(studentId),
       )) as any[];
 
@@ -491,24 +535,88 @@ export class StudentProfileService {
           }
 
           reqs = (await prisma.$queryRawUnsafe(
-            `SELECT DISTINCT id, app_id, title, tag, stage_tag, action_type, doc_status, rejection_note FROM application_requirements WHERE std_id = ?`,
+            `SELECT id, app_id, std_id, title, tag, stage_tag, action_type, doc_status, rejection_note FROM application_requirements WHERE std_id = ? ORDER BY id ASC`,
             Number(studentId),
           )) as any[];
         }
       }
 
-      // Ensure any requirement that has a matching uploaded document in student_documents is marked as 'Reviewing'
+      // Deduplicate requirement rows by title (excluding staff-issued documents)
+      const isStaffDoc = (title: string) => {
+        const t = title.toLowerCase().trim();
+        return (
+          t.includes('offer letter') ||
+          t.includes('joining letter') ||
+          t.includes('visa approval letter') ||
+          t === 'val' ||
+          t.includes('val copy') ||
+          t.includes('pre-arrival briefing') ||
+          t.includes('emgs payment receipt') ||
+          t.includes('tuition fee invoice')
+        );
+      };
+
+      const uniqueRows: any[] = [];
+      const seenTitles = new Set<string>();
+      for (const r of reqs) {
+        const cleanTitle = String(r.title || '').trim().toLowerCase();
+        if (!cleanTitle || isStaffDoc(cleanTitle)) continue;
+        if (!seenTitles.has(cleanTitle)) {
+          seenTitles.add(cleanTitle);
+          uniqueRows.push(r);
+        }
+      }
+      reqs = uniqueRows;
+
+      // Sync doc_status bidirectional between application_requirements and student_documents
       if (Array.isArray(reqs) && Array.isArray(docs) && docs.length > 0) {
         reqs = reqs.map((r: any) => {
-          const hasUploadedDoc = docs.some((d: any) => matchesDocumentRequirement(r.title, d.doc_name));
-          if (hasUploadedDoc && (!r.doc_status || r.doc_status === 'Pending')) {
-            if (r.id) {
-              prisma.$executeRawUnsafe(
-                `UPDATE application_requirements SET doc_status = 'Reviewing', rejection_note = NULL WHERE id = ?`,
-                Number(r.id)
-              ).catch(() => null);
+          const matchedDoc = docs.find((d: any) => matchesDocumentRequirement(r.title, d.doc_name));
+          if (matchedDoc) {
+            const reqStatus = String(r.doc_status || '').trim();
+            const uploadedStatus = String(matchedDoc.doc_status || '').trim();
+            const uploadedStatusLower = uploadedStatus.toLowerCase();
+            const reqStatusLower = reqStatus.toLowerCase();
+
+            const isDocApproved = uploadedStatusLower === 'completed' || uploadedStatusLower === 'approved';
+            const isDocRejected = uploadedStatusLower === 'not approved' || uploadedStatusLower === 'rejected';
+
+            if (isDocApproved) {
+              matchedDoc.doc_status = 'Completed';
+              if (r.doc_status !== 'Approved' || r.rejection_note) {
+                if (r.id) {
+                  prisma.$executeRawUnsafe(
+                    `UPDATE application_requirements SET doc_status = 'Approved', rejection_note = NULL WHERE id = ?`,
+                    Number(r.id)
+                  ).catch(() => null);
+                }
+              }
+              return { ...r, doc_status: 'Approved', rejection_note: null };
             }
-            return { ...r, doc_status: 'Reviewing' };
+
+            if (isDocRejected) {
+              matchedDoc.doc_status = 'Not Approved';
+              return { ...r, doc_status: 'Not Approved' };
+            }
+
+            if (reqStatusLower === 'approved' || reqStatusLower === 'completed') {
+              matchedDoc.doc_status = 'Completed';
+              return { ...r, doc_status: 'Approved', rejection_note: null };
+            }
+            if (reqStatusLower === 'not approved' || reqStatusLower === 'rejected') {
+              matchedDoc.doc_status = 'Not Approved';
+              return { ...r, doc_status: 'Not Approved' };
+            }
+
+            if (!r.doc_status || r.doc_status === 'Pending') {
+              if (r.id) {
+                prisma.$executeRawUnsafe(
+                  `UPDATE application_requirements SET doc_status = 'Reviewing', rejection_note = NULL WHERE id = ?`,
+                  Number(r.id)
+                ).catch(() => null);
+              }
+              return { ...r, doc_status: 'Reviewing' };
+            }
           }
           return r;
         });
@@ -557,6 +665,27 @@ export class StudentProfileService {
       }
     };
 
+    const sendDocNotification = async () => {
+      try {
+        const leadRows: any[] = await prisma.$queryRawUnsafe(
+          `SELECT name FROM leads WHERE id = ? LIMIT 1`,
+          Number(studentId),
+        );
+        const studentName = leadRows?.[0]?.name || `Student #${studentId}`;
+        await notificationService.notifyStaff({
+          leadId: Number(studentId),
+          category: 'document_uploaded',
+          title: `Document Uploaded: ${docName}`,
+          subtitle: `${studentName} uploaded "${docName}"`,
+          message: `${studentName} (Lead #${studentId}) uploaded document "${docName}". Please review and verify.`,
+          link: `/admin/lead/${studentId}?tab=docs&docName=${encodeURIComponent(docName)}`,
+          actionLabel: 'Review Document',
+        });
+      } catch (notifyErr) {
+        console.error('Failed to notify staff on document upload:', notifyErr);
+      }
+    };
+
     try {
       const defaultDomain = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'https://www.educationmalaysia.in';
       const cleanUploadSource = (siteUrl && siteUrl.trim() && siteUrl.trim().toLowerCase() !== 'crm')
@@ -574,6 +703,7 @@ export class StudentProfileService {
       );
 
       await syncRequirements();
+      await sendDocNotification();
       return { status: true, message: 'Document uploaded successfully' };
     } catch (err: any) {
       console.error('Error in addDocument:', err);
@@ -592,6 +722,7 @@ export class StudentProfileService {
         cleanUploadSource,
       );
       await syncRequirements();
+      await sendDocNotification();
       return { status: true, message: 'Document uploaded successfully' };
     }
   }
@@ -1090,15 +1221,18 @@ export class StudentProfileService {
       return { status: false, message: 'Message text cannot be empty.' };
     }
     const stdKey = `std_${studentId}`;
+    const cleanMsg = messageText.trim();
+    let sent = false;
+
     try {
       await prisma.$executeRawUnsafe(
         `INSERT INTO chats (sender, receiver, msg, senddate, readdate, status, notif, created_at, updated_at)
          VALUES (?, ?, ?, NOW(), NOW(), 0, 0, NOW(), NOW())`,
         stdKey,
         'admin',
-        messageText.trim()
+        cleanMsg
       );
-      return { status: true, message: 'Message sent successfully.' };
+      sent = true;
     } catch (err: any) {
       console.warn('First insert attempt in sendChatMessage failed, retrying with explicit ID generation:', err?.message);
       try {
@@ -1113,14 +1247,42 @@ export class StudentProfileService {
           nextId,
           stdKey,
           'admin',
-          messageText.trim()
+          cleanMsg
         );
-        return { status: true, message: 'Message sent successfully.' };
+        sent = true;
       } catch (innerErr: any) {
         console.error('Error inserting chat message with explicit ID:', innerErr);
         return { status: false, message: innerErr.message || 'Failed to send message.' };
       }
     }
+
+    if (sent) {
+      // Instant alert to Admin and Assigned Counsellor
+      try {
+        const studentRows = await prisma.$queryRawUnsafe<Array<{ name: string }>>(
+          `SELECT name FROM leads WHERE id = ? LIMIT 1`,
+          studentId
+        );
+        const studentName = studentRows[0]?.name || `Student #${studentId}`;
+        const snippet = cleanMsg.length > 70 ? cleanMsg.slice(0, 67) + '...' : cleanMsg;
+
+        await notificationService.notifyStaff({
+          leadId: studentId,
+          category: 'chat_message',
+          title: `New Message from ${studentName}`,
+          subtitle: `Student Conversation`,
+          message: `${studentName}: "${snippet}"`,
+          link: `/admin/lead/${studentId}?tab=conversation`,
+          actionLabel: 'Reply in Chat',
+          priority: 'high',
+        });
+      } catch (notifErr) {
+        console.warn('Failed to dispatch chat notification to staff:', notifErr);
+      }
+      return { status: true, message: 'Message sent successfully.' };
+    }
+
+    return { status: false, message: 'Failed to send message.' };
   }
 
   /**

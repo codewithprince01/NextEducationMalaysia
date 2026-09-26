@@ -190,6 +190,9 @@ export default function UniversityOverviews() {
     }
 
     setSubmitting(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
     try {
       let thumbnailPath = formData.thumbnail_path;
       if (thumbnailFile) {
@@ -205,6 +208,7 @@ export default function UniversityOverviews() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           university_id: selectedUnivId,
           title: formData.title,
@@ -214,6 +218,8 @@ export default function UniversityOverviews() {
           thumbnail_path: thumbnailPath,
         }),
       });
+      clearTimeout(timeoutId);
+
       const json = await res.json();
 
       if (res.ok && json.success) {
@@ -223,8 +229,13 @@ export default function UniversityOverviews() {
       } else {
         showToast('error', json.error || 'Failed to save overview');
       }
-    } catch {
-      showToast('error', 'Error submitting overview data');
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        showToast('error', 'Request timed out. Please check server connection.');
+      } else {
+        showToast('error', err.message || 'Error submitting overview data');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -303,9 +314,8 @@ export default function UniversityOverviews() {
       {/* Toast Alert */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
-          }`}
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold text-white animate-in slide-in-from-bottom-5 duration-200 ${toast.type === 'success' ? 'bg-stone-900 border border-emerald-500/40' : 'bg-rose-900 border border-rose-500/40'
+            }`}
         >
           {toast.type === 'success' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
           <span>{toast.message}</span>
@@ -331,9 +341,6 @@ export default function UniversityOverviews() {
             <h1 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight font-serif">
               University Overviews & Tabs
             </h1>
-            <p className="text-xs sm:text-sm text-stone-500 font-medium leading-relaxed">
-              Curate comprehensive institutional profiles, campus life descriptions, facilities highlights, admission requirements, and content tabs.
-            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 shrink-0">
@@ -397,11 +404,11 @@ export default function UniversityOverviews() {
               <span>Facilities</span>
             </button>
             <button
-              onClick={() => navigate(`/university-reviews?university_id=${selectedUnivId}`)}
+              onClick={() => navigate(`/university-rankings?university_id=${selectedUnivId}`)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-stone-600 bg-stone-100 hover:bg-stone-200 transition-all cursor-pointer border border-stone-200/60"
             >
               <Trophy className="w-3.5 h-3.5 text-amber-600" />
-              <span>Rankings & Reviews</span>
+              <span>Rankings</span>
             </button>
           </div>
         )}
@@ -733,7 +740,7 @@ export default function UniversityOverviews() {
 
                           {/* Thumbnail */}
                           <td className="py-4 px-5 text-center">
-                            {item.thumbnail_path ? (
+                            {item.thumbnail_path && getStorageUrl(item.thumbnail_path) ? (
                               <button
                                 onClick={() => setPreviewImage({ title: item.title || item.tab || 'Thumbnail', url: item.thumbnail_path! })}
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-stone-50 hover:bg-stone-100 border border-stone-200 text-[11px] font-bold text-stone-700 transition-colors cursor-pointer group-hover:border-amber-400"

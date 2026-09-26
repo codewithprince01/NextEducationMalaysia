@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { slugify } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 // PUT /api/v1/admin/levels/[id] - Update level
 export async function PUT(
@@ -20,6 +21,12 @@ export async function PUT(
     if (!level || !level.trim()) {
       return NextResponse.json({ status: false, message: 'Level title is required' }, { status: 400 });
     }
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM levels WHERE id = ? LIMIT 1`,
+      levelId
+    );
+    const oldValues = oldRows || null;
 
     const slug = slugify(level);
     const shortNameSlug = short_name ? slugify(short_name) : null;
@@ -53,6 +60,16 @@ export async function PUT(
       levelId
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'levels',
+      recordId: levelId,
+      description: `Updated level '${level.trim()}' (ID: ${levelId})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({
       status: true,
       message: 'Level updated successfully',
@@ -78,7 +95,22 @@ export async function DELETE(
       return NextResponse.json({ status: false, message: 'Invalid Level ID' }, { status: 400 });
     }
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM levels WHERE id = ? LIMIT 1`,
+      levelId
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM levels WHERE id = ?`, levelId);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'levels',
+      recordId: levelId,
+      description: `Deleted level '${oldValues?.level || levelId}' (ID: ${levelId})`,
+      oldValues,
+    });
 
     return NextResponse.json({
       status: true,
@@ -92,3 +124,4 @@ export async function DELETE(
     );
   }
 }
+

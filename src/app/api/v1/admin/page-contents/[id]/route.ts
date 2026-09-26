@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
+import { recordAuditLog } from '@/lib/auditLogger';
 
 export async function GET(
   req: Request,
@@ -42,6 +43,12 @@ export async function PUT(
     const body = await req.json();
     const { page_name, author_id, heading, description } = body;
 
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM page_contents WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     const now = new Date();
 
     await prisma.$executeRawUnsafe(
@@ -56,6 +63,16 @@ export async function PUT(
       id
     );
 
+    await recordAuditLog({
+      req,
+      action: 'UPDATE',
+      module: 'page-contents',
+      recordId: id,
+      description: `Updated page content for '${page_name || oldValues?.page_name || id}' (ID: ${id})`,
+      oldValues,
+      newValues: body,
+    });
+
     return NextResponse.json({ status: true, message: 'Page content updated successfully' });
   } catch (error: any) {
     console.error('Error updating page content:', error);
@@ -69,7 +86,24 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
+    const [oldRows]: any[] = await prisma.$queryRawUnsafe(
+      `SELECT * FROM page_contents WHERE id = ? LIMIT 1`,
+      id
+    );
+    const oldValues = oldRows || null;
+
     await prisma.$executeRawUnsafe(`DELETE FROM page_contents WHERE id = ?`, id);
+
+    await recordAuditLog({
+      req,
+      action: 'DELETE',
+      module: 'page-contents',
+      recordId: id,
+      description: `Deleted page content '${oldValues?.page_name || id}' (ID: ${id})`,
+      oldValues,
+    });
+
     return NextResponse.json({ status: true, message: 'Page content deleted successfully' });
   } catch (error: any) {
     console.error('Error deleting page content:', error);

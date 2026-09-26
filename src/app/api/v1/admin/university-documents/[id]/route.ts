@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { serializeBigInt } from '@/lib/utils';
 import { uploadToRemoteStorage, deleteFromRemoteStorage, getRemoteFileUrl } from '@/lib/remoteStorage';
+import { saveUploadedFile, deleteUploadedFile } from '@/lib/fileStorage';
+import { enqueueDocumentUpload } from '@/lib/documentUploadQueue';
 import path from 'path';
 
 export async function GET(
@@ -28,7 +30,12 @@ export async function GET(
       );
     }
 
-    const file_url = getRemoteFileUrl(doc.file_path);
+    const file_url =
+      doc.storage_driver === 'local'
+        ? (doc.file_path.startsWith('/storage/')
+            ? doc.file_path
+            : `/storage/${doc.file_path.replace(/^\/+/, '')}`)
+        : getRemoteFileUrl(doc.file_path);
 
     return NextResponse.json({
       success: true,
@@ -55,7 +62,7 @@ export async function PUT(
     let category_id: number;
     let title: string;
     let description: string | null = null;
-    let visibility: string = 'all';
+    let visibility: string = 'admin_only';
     let status: number = 1;
     let replacementFile: File | null = null;
     let manualFilePath: string | null = null;
@@ -66,7 +73,7 @@ export async function PUT(
       category_id = parseInt(formData.get('category_id') as string, 10);
       title = (formData.get('title') as string) || '';
       description = (formData.get('description') as string) || null;
-      visibility = (formData.get('visibility') as string) || 'all';
+      visibility = (formData.get('visibility') as string) || 'admin_only';
       status = formData.get('status') === '0' || formData.get('status') === 'false' ? 0 : 1;
 
       const file = formData.get('document_file') as File | null;
@@ -80,7 +87,7 @@ export async function PUT(
       category_id = parseInt(body.category_id, 10);
       title = body.title || '';
       description = body.description || null;
-      visibility = body.visibility || 'all';
+      visibility = body.visibility || 'admin_only';
       status = body.status !== undefined && body.status !== null ? (body.status ? 1 : 0) : 1;
       manualFilePath = body.file_path || null;
     }
@@ -104,10 +111,16 @@ export async function PUT(
     let mimeType = existingDoc.mime_type;
     let storageDriver = existingDoc.storage_driver;
 
+    let isLocalSaved = false;
+
     if (replacementFile) {
-      // Delete old remote file
+      // Delete old remote or local file
       if (existingDoc.file_path) {
-        await deleteFromRemoteStorage(existingDoc.file_path);
+        if (existingDoc.storage_driver === 'local') {
+          await deleteUploadedFile(existingDoc.file_path);
+        } else {
+          await deleteFromRemoteStorage(existingDoc.file_path);
+        }
       }
 
       const [cat]: any[] = await prisma.$queryRawUnsafe(
@@ -116,16 +129,17 @@ export async function PUT(
       );
       const categorySlug = cat?.slug || 'general';
 
-      const buffer = Buffer.from(await replacementFile.arrayBuffer());
+      const folder = `university_docs/${university_id}/${categorySlug}`;
       originalName = replacementFile.name;
-      const subFolder = `university_docs/${university_id}/${categorySlug}`;
-      const remoteRes = await uploadToRemoteStorage(buffer, subFolder, originalName, replacementFile.type);
+      const ext = path.extname(originalName).replace('.', '').toLowerCase() || 'file';
+      extension = ext;
+      mimeType = replacementFile.type || 'application/octet-stream';
+      fileSize = replacementFile.size;
 
-      filePath = remoteRes.file_path;
-      extension = remoteRes.extension;
-      fileSize = remoteRes.file_size;
-      mimeType = remoteRes.mime_type;
-      storageDriver = remoteRes.storage_driver;
+      const localRes = await saveUploadedFile(replacementFile, originalName, folder);
+      filePath = localRes.file_path;
+      storageDriver = 'local';
+      isLocalSaved = true;
     } else if (manualFilePath) {
       filePath = manualFilePath;
     }
@@ -163,9 +177,36 @@ export async function PUT(
       docId
     );
 
+    if (isLocalSaved) {
+      const [cat]: any[] = await prisma.$queryRawUnsafe(
+        `SELECT slug FROM university_document_categories WHERE id = ?`,
+        category_id
+      );
+      const categorySlug = cat?.slug || 'general';
+
+      enqueueDocumentUpload({
+        docId,
+        universityId: university_id,
+        categorySlug,
+        relativePath: filePath,
+        originalName,
+        mimeType,
+      });
+    }
+
+    const { recordAuditLog } = await import('@/lib/auditLogger');
+    await recordAuditLog({
+      req: request,
+      action: 'UPDATE',
+      module: 'university-documents',
+      recordId: docId,
+      description: `Updated document '${title || existingDoc.title}' (ID: ${docId})`,
+      oldValues: existingDoc,
+    });
+
     return NextResponse.json({
       success: true,
-      message: 'Document updated successfully',
+      message: 'Document updated instantly! Remote FTP sync running in background.',
     });
   } catch (error: any) {
     console.error('Error updating document:', error);
@@ -185,7 +226,7 @@ export async function DELETE(
     const docId = parseInt(id, 10);
 
     const [existingDoc]: any[] = await prisma.$queryRawUnsafe(
-      `SELECT file_path FROM university_documents WHERE id = ?`,
+      `SELECT * FROM university_documents WHERE id = ?`,
       docId
     );
 
@@ -198,6 +239,16 @@ export async function DELETE(
       docId
     );
 
+    const { recordAuditLog } = await import('@/lib/auditLogger');
+    await recordAuditLog({
+      req: request,
+      action: 'DELETE',
+      module: 'university-documents',
+      recordId: docId,
+      description: `Deleted document '${existingDoc?.title || existingDoc?.original_name || docId}' (ID: ${docId})`,
+      oldValues: existingDoc,
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Document deleted successfully',
@@ -209,3 +260,4 @@ export async function DELETE(
     );
   }
 }
+
