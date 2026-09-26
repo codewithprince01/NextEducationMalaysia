@@ -1086,8 +1086,9 @@ export default function UniversityDocuments() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
                     <option value="admin_only">Admin Only</option>
-                    <option value="counsellor">Counsellor</option>
-                    <option value="agent">Agent</option>
+                    <option value="counsellors_only">Counsellor</option>
+                    <option value="agents_only">Agent</option>
+                    <option value="all">All / Public</option>
                   </select>
                 </div>
               </div>
@@ -1248,8 +1249,9 @@ export default function UniversityDocuments() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                 >
                   <option value="admin_only">Admin Only</option>
-                  <option value="counsellor">Counsellor</option>
-                  <option value="agent">Agent</option>
+                  <option value="counsellors_only">Counsellor</option>
+                  <option value="agents_only">Agent</option>
+                  <option value="all">All / Public</option>
                 </select>
               </div>
 
